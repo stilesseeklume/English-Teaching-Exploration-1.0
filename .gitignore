@@ -1,0 +1,30 @@
+# 临时文件
+辅助ai的临时性文件/
+
+# Claude 内部文件
+.claude/
+
+# Obsidian
+.obsidian/
+
+# 二进制/Office 文件
+*.docx
+*.pdf
+Thumbs.db
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# 调试输出
+scripts/*_debug.json
+scripts/all_questions_output.js
+scripts/classified_questions.json
+src/grammar-fill/index.html.bak
