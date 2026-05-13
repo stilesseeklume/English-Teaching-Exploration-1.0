@@ -176,17 +176,7 @@
     box-shadow: 0 2px 8px rgba(139,105,20,0.25);
   }
 
-  /* ==== 作者私语 + 早期版本 ==== */
-  .author {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 28px 30px; margin-bottom: 48px; position: relative;
-  }
-  .author::before { content: '✦'; position: absolute; top: 20px; right: 24px; color: var(--accent-light); font-size: 24px; opacity: 0.5; }
-  .author h3 { font-size: 16px; color: var(--text); margin-bottom: 12px; font-weight: 700; }
-  .author p { font-size: 14px; color: var(--text-2); line-height: 1.85; margin-bottom: 10px; }
-  .author p:last-child { margin-bottom: 0; }
-  .author b { color: var(--text); }
-
+  /* ==== 早期版本 ==== */
   .disclaimer {
     background: linear-gradient(135deg, var(--accent-bg) 0%, var(--surface-2) 100%);
     border: 1px solid #d4b884; border-radius: 14px;
@@ -343,16 +333,9 @@
       </ol>
     </div>
 
-    <div class="author">
-      <h3>关于这个小工具</h3>
-      <p>我是一名一线的英语老师，编程是从零自学的。日常备课时总在反复整理同一种题，于是想做一个能帮自己、也希望能帮到同行老师的小工具。</p>
-      <p>这只是一个粗糙的起点，方法论和功能都会随着使用慢慢打磨。如果它能在你某天的备课里省下哪怕一点点时间，就值得了。</p>
-      <p style="color:var(--text-3);font-size:13px;">整理参考过课标、高考评价体系、《赢在微点·二轮复习》、教育部考试院专家文章等资料，但难免有错漏，欢迎指正。</p>
-    </div>
-
     <div class="disclaimer">
       <h3>🌱 这是早期版本，请多担待</h3>
-      <p>目前只上线了「语法填空」一个模块，其它题型还在做。也可能会遇到些小 bug，给你添麻烦了 —— 如果方便，麻烦把问题反馈给我，我会尽快修，咱们一起把它变好。</p>
+      <p>出于兴趣与教学需求，我自制了这款教学小工具。本人教研经验尚浅，编程也为自学摸索，目前仍处于雏形阶段。首期仅上线语法填空模块（待完善），后续会逐步拓展其他题型。使用中若遇到问题，可通过邮箱或 GitHub Issues 反馈，我会持续打磨优化。</p>
       <ul>
         <li>📧 <code>liuzhenlzstiles@icloud.com</code></li>
         <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
