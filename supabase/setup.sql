@@ -145,6 +145,8 @@ create table if not exists public.profiles (
   approved    boolean not null default false,
   created_at  timestamptz not null default now()
 );
+-- 用户名唯一约束（先删旧重复再建）
+create unique index if not exists profiles_username_unique on public.profiles(username);
 alter table public.profiles enable row level security;
 
 -- RLS：本人可读自己的审批状态
@@ -161,11 +163,19 @@ set search_path = public
 as $$
 declare
   uname text;
+  base  text;
+  suffix int := 0;
 begin
   uname := new.raw_user_meta_data ->> 'username';
   if uname is null or uname = '' then
     uname := split_part(new.email, '@', 1);
   end if;
+  base := uname;
+  -- 如果用户名已存在，追加数字后缀
+  while exists(select 1 from public.profiles where username = uname) loop
+    suffix := suffix + 1;
+    uname := base || suffix::text;
+  end loop;
   insert into public.profiles (user_id, username, approved)
   values (new.id, uname, coalesce(
     new.email in ('liuzhenlzstiles@icloud.com')
@@ -237,14 +247,15 @@ grant execute on function public.admin_reject_user(uuid) to authenticated;
 drop function if exists public.admin_list_users();
 create or replace function public.admin_list_users()
 returns table (
-  id              uuid,
-  email           text,
-  username        text,
-  created_at      timestamptz,
-  last_sign_in_at timestamptz,
-  approved        boolean,
-  error_count     bigint,
-  prep_count      bigint
+  id                uuid,
+  email             text,
+  username          text,
+  created_at        timestamptz,
+  last_sign_in_at   timestamptz,
+  approved          boolean,
+  pending_username  text,
+  error_count       bigint,
+  prep_count        bigint
 )
 language plpgsql
 security definer
@@ -262,6 +273,7 @@ begin
       u.created_at,
       u.last_sign_in_at,
       coalesce(p.approved, false),
+      p.pending_username,
       (select count(*) from public.error_book  where user_id = u.id),
       (select count(*) from public.lesson_prep where user_id = u.id)
     from auth.users u
@@ -286,3 +298,112 @@ grant execute on function public.admin_list_users() to authenticated;
 --   insert into public.profiles (user_id, approved)
 --     select id, true from auth.users
 --     on conflict (user_id) do update set approved = true;
+
+-- ============== 8. 用户名修改审批 + 密码管理 ==============
+
+-- profiles 增加 pending_username 字段
+alter table public.profiles add column if not exists pending_username text;
+
+-- 根据用户名查找实际邮箱（修改用户名后登录用）
+create or replace function public.get_email_by_username(uname text)
+returns text
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare result text;
+begin
+  select u.email::text into result
+  from auth.users u
+  where u.raw_user_meta_data->>'username' = uname
+  limit 1;
+  return result;
+end;
+$$;
+grant execute on function public.get_email_by_username(text) to authenticated;
+
+-- 用户名是否被占用
+create or replace function public.username_taken(uname text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  return exists(
+    select 1 from auth.users
+    where raw_user_meta_data->>'username' = uname and id != auth.uid()
+  ) or exists(
+    select 1 from public.profiles
+    where username = uname and user_id != auth.uid()
+  );
+end;
+$$;
+grant execute on function public.username_taken(text) to authenticated;
+
+-- 用户申请改用户名
+create or replace function public.request_username_change(new_username text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if length(new_username) < 2 then
+    raise exception '用户名至少 2 个字符';
+  end if;
+  if new_username like '%@%' then
+    raise exception '用户名不能包含 @ 符号';
+  end if;
+  -- 查占用
+  if exists(select 1 from public.profiles where username = new_username and user_id != auth.uid()) then
+    raise exception '用户名已被占用';
+  end if;
+  if exists(select 1 from auth.users where raw_user_meta_data->>'username' = new_username and id != auth.uid()) then
+    raise exception '用户名已被占用';
+  end if;
+  update public.profiles set pending_username = new_username where user_id = auth.uid();
+end;
+$$;
+grant execute on function public.request_username_change(text) to authenticated;
+
+-- 管理员批准用户名修改
+create or replace function public.admin_approve_username_change(target_user uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare new_uname text;
+begin
+  if not public.is_admin() then raise exception 'forbidden'; end if;
+  select pending_username into new_uname from public.profiles where user_id = target_user;
+  if new_uname is null then raise exception 'no pending username change'; end if;
+  -- 更新 profiles
+  update public.profiles
+    set username = new_uname, pending_username = null
+    where user_id = target_user;
+  -- 更新 auth user_metadata
+  update auth.users
+    set raw_user_meta_data = jsonb_set(
+      coalesce(raw_user_meta_data, '{}'::jsonb),
+      '{username}', to_jsonb(new_uname)
+    )
+    where id = target_user;
+end;
+$$;
+grant execute on function public.admin_approve_username_change(uuid) to authenticated;
+
+-- 管理员拒绝用户名修改
+create or replace function public.admin_reject_username_change(target_user uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then raise exception 'forbidden'; end if;
+  update public.profiles set pending_username = null where user_id = target_user;
+end;
+$$;
+grant execute on function public.admin_reject_username_change(uuid) to authenticated;

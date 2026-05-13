@@ -269,22 +269,38 @@
   .analysis-steps { font-size: 13px; color: var(--text-2); line-height: 1.8; }
   .analysis-steps p { margin-bottom: 6px; }
 
-  .theory-toggle {
-    margin-top: 10px; font-size: 13px; color: var(--blue); cursor: pointer;
-    padding: 6px 12px; background: var(--blue-bg); border-radius: 4px;
-    display: inline-block; border: 1px solid #c5d9ed;
+  /* ── 抽屉折叠模块 ── */
+  .drawer-fold {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
   }
-  .theory-toggle:hover { background: #dce8f5; }
-  .theory-panel {
-    display: none; margin-top: 8px; padding: 14px; background: #f8fafb;
-    border: 1px solid #d5e4f3; border-radius: 8px; font-size: 13px;
-    line-height: 1.8; color: var(--text);
+  .drawer-fold-summary {
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    background: var(--surface-2);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
   }
-  .theory-panel.show { display: block; }
-  .theory-panel h4 { font-size: 14px; color: var(--blue); margin-bottom: 6px; }
-  .theory-panel ul { padding-left: 18px; margin: 4px 0; }
-  .theory-panel li { margin-bottom: 3px; }
-  .theory-panel .highlight-box {
+  .drawer-fold-summary::-webkit-details-marker { display: none; }
+  .drawer-fold-summary::before {
+    content: '▸ ';
+    display: inline-block;
+    transition: transform 0.2s;
+    font-size: 10px;
+    margin-right: 4px;
+  }
+  .drawer-fold[open] > .drawer-fold-summary::before { transform: rotate(90deg); }
+  .drawer-fold-body { padding: 12px 16px; }
+  .drawer-fold-body h4 { font-size: 14px; color: var(--blue); margin-bottom: 6px; margin-top: 14px; }
+  .drawer-fold-body h4:first-child { margin-top: 0; }
+  .drawer-fold-body ul { padding-left: 18px; margin: 4px 0; }
+  .drawer-fold-body li { margin-bottom: 3px; line-height: 1.7; }
+  .drawer-fold-body .highlight-box {
     background: #fefce8; border-left: 3px solid var(--orange); padding: 8px 12px;
     border-radius: 4px; margin: 8px 0; font-weight: 500;
   }
@@ -921,11 +937,44 @@
   }
   async function signIn(login, password) {
     if (!sb) throw new Error('未配置 Supabase');
-    // 含 @ 的是邮箱登录（管理员），否则用 username 构造邮箱
-    var email = login.indexOf('@') !== -1 ? login : login + '@u.seeklume.work';
+    var email;
+    if (login.indexOf('@') !== -1) {
+      email = login;
+    } else {
+      // 先查 RPC 获取实际邮箱（支持改过用户名的用户）
+      try {
+        var r2 = await sb.rpc('get_email_by_username', { uname: login });
+        email = (r2.data && !r2.error) ? r2.data : login + '@u.seeklume.work';
+      } catch(e) { email = login + '@u.seeklume.work'; }
+    }
     var r = await sb.auth.signInWithPassword({ email: email, password: password });
     if (r.error) throw r.error;
     return r.data;
+  }
+  async function changePassword(newPassword) {
+    if (!sb) throw new Error('未配置 Supabase');
+    var r = await sb.auth.updateUser({ password: newPassword });
+    if (r.error) throw r.error;
+  }
+  async function requestUsernameChange(newUsername) {
+    if (!sb) throw new Error('未配置 Supabase');
+    var r = await sb.rpc('request_username_change', { new_username: newUsername });
+    if (r.error) throw r.error;
+  }
+  async function approveUsernameChange(userId) {
+    if (!sb) throw new Error('未配置 Supabase');
+    var r = await sb.rpc('admin_approve_username_change', { target_user: userId });
+    if (r.error) throw r.error;
+  }
+  async function rejectUsernameChange(userId) {
+    if (!sb) throw new Error('未配置 Supabase');
+    var r = await sb.rpc('admin_reject_username_change', { target_user: userId });
+    if (r.error) throw r.error;
+  }
+  async function usernameTaken(uname) {
+    if (!sb) return false;
+    var r = await sb.rpc('username_taken', { uname: uname });
+    return !r.error && r.data === true;
   }
   async function signOut() {
     if (!sb) return;
@@ -1013,6 +1062,8 @@
     onChange: function(cb){ listeners.push(cb); cb(state); },
     init: init,
     signUp: signUp, signIn: signIn, signOut: signOut,
+    changePassword: changePassword, requestUsernameChange: requestUsernameChange,
+    approveUsernameChange: approveUsernameChange, rejectUsernameChange: rejectUsernameChange,
     pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,
@@ -1095,7 +1146,37 @@
     </div>
   </div>
 
+  <!-- ============== 用户设置 模态框 ============== -->
+  <div id="settingsModal" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1001;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="font-size:18px;font-weight:700;color:var(--text);">账户设置</div>
+        <button onclick="closeSettingsModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
+      </div>
+      <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">修改密码</div>
+        <input id="settingsNewPwd" type="password" placeholder="新密码（至少 6 位）" style="width:100%;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        <button onclick="changeMyPassword()" style="padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">更新密码</button>
+        <span id="settingsPwdMsg" style="font-size:12px;margin-left:8px;"></span>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">修改用户名</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;">修改后需管理员审批才能生效</div>
+        <div id="pendingUsernameInfo" style="display:none;background:var(--accent-bg);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:var(--accent);">
+          待审批：<b id="pendingUsernameVal"></b>
+        </div>
+        <input id="settingsNewUsername" type="text" placeholder="新用户名（至少 2 个字符，不含 @）" style="width:100%;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        <button onclick="requestMyUsernameChange()" style="padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">提交申请</button>
+        <span id="settingsUnameMsg" style="font-size:12px;margin-left:8px;"></span>
+      </div>
+    </div>
+  </div>
+
   <main>
+    <div id="adminBanner" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:12px;margin-bottom:16px;font-size:14px;max-width:1100px;margin-left:auto;margin-right:auto;">
+      <span>当前正在以管理员身份查看 <b id="adminViewingEmail"></b> 的数据</span>
+      <button onclick="exitViewAs()" style="float:right;border:none;background:var(--accent);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">退出查看</button>
+    </div>
     <div class="page active" id="page-home" style="max-width:1100px;">
       <h1 class="page-title">语法填空 · 考点分类训练</h1>
       <p class="page-desc"><span id="bankStat">题库加载中…</span></p>
@@ -1277,6 +1358,7 @@
         <div class="drawer-tabs">
           <div class="drawer-tab active" data-tab="analysis" onclick="switchDrawerTab('analysis')">� 解析</div>
           <div class="drawer-tab" id="drawerTabMigration" data-tab="migration" onclick="switchDrawerTab('migration')">🔗 迁移训练</div>
+          <div class="drawer-tab" id="drawerTabTheory" data-tab="theory" onclick="switchDrawerTab('theory')">📚 考点理论</div>
         </div>
         <div class="drawer-content" id="drawerContent"></div>
       </div>
@@ -1400,10 +1482,6 @@
     <div class="page" id="page-admin" style="max-width:1100px;">
       <h1 class="page-title">👥 管理员视图</h1>
       <p class="page-desc"><span id="adminStat">加载中…</span> 点击某个用户可以查看 ta 的错题本和备课资料（只读）。</p>
-      <div id="adminBanner" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:12px;margin-bottom:16px;font-size:14px;">
-        <span>当前正在以管理员身份查看 <b id="adminViewingEmail"></b> 的数据</span>
-        <button onclick="exitViewAs()" style="float:right;border:none;background:var(--accent);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">退出查看</button>
-      </div>
       <div id="adminUserList"></div>
     </div>
   </main>
@@ -2339,6 +2417,7 @@ function renderUserPill(state) {
     var adminTag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
     var pendingTag = !state.approved ? '<span style="background:var(--orange);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">待审批</span>' : '';
     el.innerHTML = adminTag + pendingTag + '<span title="' + name + '" style="color:var(--text);">' + short + '</span>'
+      + '<button onclick="openSettingsModal()" title="账户设置" style="border:none;background:var(--surface-3);padding:4px 7px;border-radius:4px;font-size:13px;cursor:pointer;">⚙</button>'
       + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
   } else {
     el.innerHTML = '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
@@ -2360,6 +2439,60 @@ function openAuthModal(mode) {
   setTimeout(function(){ var f = document.getElementById('authUsername'); if (f) f.focus(); }, 50);
 }
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+
+function openSettingsModal() {
+  var s = document.getElementById('settingsModal');
+  s.style.display = 'flex';
+  document.getElementById('settingsNewPwd').value = '';
+  document.getElementById('settingsNewUsername').value = '';
+  document.getElementById('settingsPwdMsg').textContent = '';
+  document.getElementById('settingsUnameMsg').textContent = '';
+  var pu = window.cloud && window.cloud.pendingUsername;
+  if (pu) {
+    document.getElementById('pendingUsernameInfo').style.display = '';
+    document.getElementById('pendingUsernameVal').textContent = pu;
+  } else {
+    document.getElementById('pendingUsernameInfo').style.display = 'none';
+  }
+}
+function closeSettingsModal() {
+  document.getElementById('settingsModal').style.display = 'none';
+}
+async function changeMyPassword() {
+  var pwd = document.getElementById('settingsNewPwd').value;
+  var msg = document.getElementById('settingsPwdMsg');
+  msg.style.color = 'var(--text-2)'; msg.textContent = '';
+  if (pwd.length < 6) { msg.style.color = 'var(--red)'; msg.textContent = '密码至少 6 位'; return; }
+  try {
+    await window.cloud.changePassword(pwd);
+    msg.style.color = 'var(--green)';
+    msg.textContent = '密码已更新';
+    document.getElementById('settingsNewPwd').value = '';
+  } catch (e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '失败：' + (e.message || e);
+  }
+}
+async function requestMyUsernameChange() {
+  var uname = document.getElementById('settingsNewUsername').value.trim();
+  var msg = document.getElementById('settingsUnameMsg');
+  msg.style.color = 'var(--text-2)'; msg.textContent = '';
+  if (uname.length < 2) { msg.style.color = 'var(--red)'; msg.textContent = '用户名至少 2 个字符'; return; }
+  if (uname.indexOf('@') !== -1) { msg.style.color = 'var(--red)'; msg.textContent = '用户名不能包含 @'; return; }
+  try {
+    await window.cloud.requestUsernameChange(uname);
+    msg.style.color = 'var(--green)';
+    msg.textContent = '已提交申请，等待管理员审批';
+    document.getElementById('settingsNewUsername').value = '';
+    document.getElementById('pendingUsernameInfo').style.display = '';
+    document.getElementById('pendingUsernameVal').textContent = uname;
+    window.cloud.pendingUsername = uname;
+    if (window._sb) await window._sb.auth.refreshSession();
+  } catch (e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '失败：' + (e.message || e);
+  }
+}
 function toggleAuthMode() {
   _authMode = (_authMode === 'signin') ? 'signup' : 'signin';
   document.getElementById('authError').style.display = 'none';
@@ -2397,6 +2530,12 @@ async function submitAuth() {
   if (pwd.length < 6) { errEl.innerHTML = '密码至少 6 位'; errEl.style.display = 'block'; return; }
   var btn = document.getElementById('authPrimaryBtn');
   btn.disabled = true; var oldText = btn.textContent; btn.textContent = '处理中…';
+  try {
+    if (_authMode === 'signup' && window.cloud) {
+      var taken = await window.cloud.usernameTaken(username);
+      if (taken) { errEl.innerHTML = '该用户名已被占用，请换一个'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = oldText; return; }
+    }
+  } catch(_) { /* RPC 不可用时放行 */ }
   try {
     if (_authMode === 'signin') {
       await window.cloud.signIn(username, pwd);
@@ -2436,13 +2575,20 @@ async function submitAuth() {
 
 async function doLogout() {
   if (!confirm('确定要退出登录吗？\n（错题本/备课资料会从本地清空，下次登录会重新从云端拉取）')) return;
-  await window.cloud.signOut();
+  try {
+    await window.cloud.signOut();
+  } catch (e) {
+    // 即使服务端退出失败，本地照常清理
+  }
   errorBookQuestions = [];
   prepPassages = [];
   saveErrorBook(); savePrepPassages();
   renderErrorBook(); renderPrepList(); renderBankStat();
   _lastCloudUser = null;
   _migrationPromptShown = false;
+  document.body.classList.remove('pending');
+  switchPage('home');
+  navigateHome('cards');
 }
 
 // 拦截原始 save 函数，写本地后异步推到云
@@ -2586,11 +2732,24 @@ async function renderAdminPage() {
       ? '<span style="color:var(--green);font-weight:600;font-size:12px;">✅ 已通过</span>'
       : '<span style="color:var(--orange);font-weight:600;font-size:12px;">⏳ 待审批</span>';
     var displayName = u.username || (u.email || '').split('@')[0] || '(无用户名)';
+    var isSelf = window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.state.user.id === u.id;
     var actionBtns = '';
     if (!u.approved) {
       actionBtns = '<div style="margin-top:8px;display:flex;gap:8px;">'
         + '<button onclick="event.stopPropagation();adminApproveUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✓ 通过</button>'
         + '<button onclick="event.stopPropagation();adminRejectUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ 拒绝</button>'
+        + '</div>';
+    } else if (!isSelf) {
+      actionBtns = '<div style="margin-top:8px;">'
+        + '<button onclick="event.stopPropagation();adminDeleteUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:3px 10px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;">删除用户</button>'
+        + '</div>';
+    }
+    var unameChange = '';
+    if (u.pending_username) {
+      unameChange = '<div style="margin-top:8px;background:var(--accent-bg);border-radius:6px;padding:6px 10px;font-size:12px;">'
+        + '✏️ 申请改名为 <b>' + u.pending_username + '</b>'
+        + '<button onclick="event.stopPropagation();adminApproveUsernameChange(\'' + u.id + '\',\'' + u.pending_username.replace(/'/g, "\\'") + '\')" style="margin-left:8px;padding:2px 8px;background:var(--green);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;">✓ 通过</button>'
+        + '<button onclick="event.stopPropagation();adminRejectUsernameChange(\'' + u.id + '\',\'' + u.pending_username.replace(/'/g, "\\'") + '\')" style="margin-left:4px;padding:2px 8px;background:var(--red);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;">✕ 拒绝</button>'
         + '</div>';
     }
     html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')">'
@@ -2600,6 +2759,7 @@ async function renderAdminPage() {
           + '<span>最近登录：' + signin + '</span>'
           + '<span style="color:var(--accent);">📝 ' + u.error_count + ' 错题 · 📋 ' + u.prep_count + ' 备课</span>'
           + '</div>'
+          + unameChange
           + actionBtns
           + '</div>';
   });
@@ -2630,6 +2790,39 @@ async function adminRejectUser(userId, email) {
   try {
     await window.cloud.rejectUser(userId);
     alert(email + ' 已被拒绝');
+    renderAdminPage();
+  } catch (e) {
+    alert('操作失败：' + (e.message || e));
+  }
+}
+
+async function adminDeleteUser(userId, name) {
+  if (!confirm('确认永久删除用户 ' + name + ' 及其所有数据？\n此操作不可恢复。')) return;
+  try {
+    await window.cloud.rejectUser(userId);
+    alert(name + ' 已被删除');
+    renderAdminPage();
+  } catch (e) {
+    alert('操作失败：' + (e.message || e));
+  }
+}
+
+async function adminApproveUsernameChange(userId, newName) {
+  if (!confirm('确认批准用户改名为 ' + newName + '？')) return;
+  try {
+    await window.cloud.approveUsernameChange(userId);
+    alert('已批准改名为 ' + newName);
+    renderAdminPage();
+  } catch (e) {
+    alert('操作失败：' + (e.message || e));
+  }
+}
+
+async function adminRejectUsernameChange(userId, newName) {
+  if (!confirm('确认拒绝用户改名为 ' + newName + '？')) return;
+  try {
+    await window.cloud.rejectUsernameChange(userId);
+    alert('已拒绝改名申请');
     renderAdminPage();
   } catch (e) {
     alert('操作失败：' + (e.message || e));
@@ -2931,6 +3124,7 @@ function showAnalysisByIdx(idx) {
   document.querySelectorAll('.drawer-tab').forEach(function(t) { t.classList.remove('active'); });
   document.querySelector('.drawer-tab[data-tab="analysis"]').classList.add('active');
   document.getElementById('drawerTabMigration').style.display = 'none';
+  document.getElementById('drawerTabTheory').style.display = 'none';
 
   document.getElementById('drawerContent').innerHTML = buildAnalysisContent(q);
   document.getElementById('drawer').classList.add('open');
@@ -2948,9 +3142,13 @@ function switchDrawerTab(tab) {
   document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.drawer-tab[data-tab="${tab}"]`).classList.add('active');
   if (selectedQuestion) {
-    document.getElementById('drawerContent').innerHTML = tab === 'analysis'
-      ? buildAnalysisContent(selectedQuestion)
-      : buildMigrationContent(selectedQuestion);
+    if (tab === 'analysis') {
+      document.getElementById('drawerContent').innerHTML = buildAnalysisContent(selectedQuestion);
+    } else if (tab === 'theory') {
+      document.getElementById('drawerContent').innerHTML = buildTheoryContent(selectedQuestion);
+    } else {
+      document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedQuestion);
+    }
   }
 }
 
@@ -2981,21 +3179,15 @@ function buildAnalysisContent(q) {
   sent = sent.replace('___' + q.no + '___', '<span class="hl">' + q.answer + '</span>');
   sent = sent.replace(new RegExp('___\\\\d+___', 'g'), function(m) { return m; });
 
-  var theoryHtml = KNOWLEDGE_DATA[q.category]
-    ? '<button class="theory-toggle" onclick="toggleTheory(this)">📚 查看解题理论</button><div class="theory-panel">' + KNOWLEDGE_DATA[q.category].content + '</div>'
-    : '';
-
   return '<div class="analysis-answer-lg">' + q.answer + '</div>'
     + '<div class="analysis-sentence-lg">' + sent + '</div>'
     + '<div class="analysis-steps-lg">'
     + '<p><strong>解题：</strong>' + q.analysis + '</p>'
     + '<p><strong>技巧：</strong>' + q.technique + '</p>'
-    + '</div>'
-    + theoryHtml;
+    + '</div>';
 }
 
 function buildMigrationContent(q) {
-  // 同考点（category），剔除同一套卷
   var pool = ALL_QUESTIONS.filter(function(item) {
     return item.exam !== q.exam && item.category === q.category;
   });
@@ -3006,19 +3198,17 @@ function buildMigrationContent(q) {
            '）的其他题目，可先添加更多套卷到 data/语法填空库 后重新生成题库。</div>';
   }
 
-  // 跨年份/卷次抽样：每套卷最多 1 题，最多 6 张
   var byExam = {};
   pool.forEach(function(item) {
     if (!byExam[item.exam]) byExam[item.exam] = item;
   });
   var migration = Object.values(byExam).slice(0, 6);
 
-  var header = '<div style="font-size:12px;color:var(--text-2);margin-bottom:8px;">' +
-               '同考点（<strong>' + (CATEGORY_MAP[q.category] || q.category) +
-               '</strong>）共 <strong>' + pool.length + '</strong> 题，已展示 ' +
-               migration.length + ' 题（每套卷取 1 题）：</div>';
-
-  var html = header + '<div class="migration-list">';
+  var html = '<div style="font-size:12px;color:var(--text-2);margin-bottom:8px;">' +
+             '同考点（<strong>' + (CATEGORY_MAP[q.category] || q.category) +
+             '</strong>）共 <strong>' + pool.length + '</strong> 题，已展示 ' +
+             migration.length + ' 题（每套卷取 1 题）：</div>'
+             + '<div class="migration-list">';
   migration.forEach(function(item) {
     var sent = extractSentence(item.passage, item.no);
     if (!sent) sent = item.sentence || '(空格上下文不可用)';
@@ -3040,6 +3230,17 @@ function buildMigrationContent(q) {
   return html;
 }
 
+function buildTheoryContent(q) {
+  var theory = KNOWLEDGE_DATA[q.category];
+  if (!theory) {
+    return '<div class="empty-hint">「' + (CATEGORY_MAP[q.category] || q.category) + '」考点理论资料整理中，敬请期待。</div>';
+  }
+  return '<details class="drawer-fold" open>'
+    + '<summary class="drawer-fold-summary">' + theory.title + ' · ' + theory.desc + '</summary>'
+    + '<div class="drawer-fold-body">' + theory.content + '</div>'
+    + '</details>';
+}
+
 function showAnalysis(no) {
   var q = currentQuestions.find(function(item) { return item.no === no; });
   if (!q) return;
@@ -3052,6 +3253,7 @@ function showAnalysis(no) {
   document.querySelectorAll('.drawer-tab').forEach(function(t) { t.classList.remove('active'); });
   document.querySelector('.drawer-tab[data-tab="analysis"]').classList.add('active');
   document.getElementById('drawerTabMigration').style.display = '';
+  document.getElementById('drawerTabTheory').style.display = '';
 
   document.getElementById('drawerContent').innerHTML = buildAnalysisContent(q);
 
@@ -3175,12 +3377,6 @@ document.addEventListener('keydown', function(e) {
     closeDrawer();
   }
 });
-
-function toggleTheory(btn) {
-  const panel = btn.nextElementSibling;
-  panel.classList.toggle('show');
-  btn.textContent = panel.classList.contains('show') ? '📖 收起理论' : '📚 查看解题理论';
-}
 
 function renderKnowledgePage() {
   const grid = document.getElementById('knowledgeGrid');
