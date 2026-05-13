@@ -212,6 +212,24 @@
 
   .hint-text { font-size: var(--font-sm, 21px); color: var(--text-3); margin-bottom: 12px; }
 
+  .translation-section { margin-bottom: 12px; }
+  .translation-toggle {
+    padding: 8px 14px; font-size: var(--font-sm, 21px); color: var(--text-2);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    user-select: none;
+  }
+  .translation-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .translation-arrow { font-size: 12px; transition: transform 0.2s; color: var(--text-3); }
+  .translation-arrow.open { transform: rotate(90deg); }
+  .translation-body {
+    padding: 16px 20px; font-size: var(--passage-font-size, 24px); line-height: 2.1;
+    color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border);
+    border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+  .translation-body p { margin-bottom: 12px; }
+  .translation-body p:last-child { margin-bottom: 0; }
+
   .answer-table {
     width: 100%; border-collapse: collapse; font-size: 14px;
     background: var(--surface); border: 1px solid var(--border);
@@ -923,10 +941,8 @@
     return state.viewingUserId || (state.user && state.user.id) || null;
   }
 
-  async function signUp(username, password) {
+  async function signUp(email, username, password) {
     if (!sb) throw new Error('未配置 Supabase');
-    // 用邮箱管理员可直接用邮箱登录
-    var email = username + '@u.seeklume.work';
     var r = await sb.auth.signUp({
       email: email,
       password: password,
@@ -941,11 +957,12 @@
     if (login.indexOf('@') !== -1) {
       email = login;
     } else {
-      // 先查 RPC 获取实际邮箱（支持改过用户名的用户）
+      // 用户名登录：通过 RPC 查找实际邮箱
       try {
         var r2 = await sb.rpc('get_email_by_username', { uname: login });
-        email = (r2.data && !r2.error) ? r2.data : login + '@u.seeklume.work';
-      } catch(e) { email = login + '@u.seeklume.work'; }
+        email = (r2.data && !r2.error) ? r2.data : null;
+      } catch(e) { email = null; }
+      if (!email) throw new Error('找不到该用户名对应的邮箱，请使用邮箱登录');
     }
     var r = await sb.auth.signInWithPassword({ email: email, password: password });
     if (r.error) throw r.error;
@@ -1109,11 +1126,15 @@
         </div>
         <div id="authSignupHint" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.55;">
           📝 <b>注册后需管理员审批</b><br>
-          选择一个喜欢的用户名和密码即可注册，<b>等待管理员审批</b>通过即可登录使用。
+          使用真实邮箱注册，设置一个喜欢的用户名，<b>等待管理员审批</b>通过即可登录使用。
         </div>
         <div style="margin-bottom:12px;">
+          <label style="font-size:12px;color:var(--text-2);">邮箱</label>
+          <input id="authEmail" type="email" autocomplete="email" placeholder="your@email.com" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        </div>
+        <div id="authUsernameRow" style="display:none;margin-bottom:12px;">
           <label style="font-size:12px;color:var(--text-2);">用户名</label>
-          <input id="authUsername" type="text" autocomplete="username" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="authUsername" type="text" autocomplete="username" placeholder="你喜欢的名字" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
         </div>
         <div style="margin-bottom:16px;">
           <label style="font-size:12px;color:var(--text-2);">密码（≥ 6 位）</label>
@@ -1330,6 +1351,12 @@
           </div>
           <div class="category-stats" id="categoryStats"></div>
           <div class="passage-box" id="passageBox"></div>
+          <div class="translation-section" id="translationSection" style="display:none;">
+            <div class="translation-toggle" onclick="toggleTranslation()">
+              <span>📖 中文翻译</span><span class="translation-arrow" id="translationArrow">▸</span>
+            </div>
+            <div class="translation-body" id="translationBody" style="display:none;"></div>
+          </div>
           <div class="hint-text">💡 点击文中空白处，弹出解析与迁移训练</div>
         </div>
       </div>
@@ -2431,12 +2458,12 @@ function openAuthModal(mode) {
   document.getElementById('authSuccessPanel').style.display = 'none';
   document.getElementById('authError').style.display = 'none';
   document.getElementById('authInfo').style.display = 'none';
-  var nameEl = document.getElementById('authUsername');
-  if (nameEl) { nameEl.value = ''; }
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authUsername').value = '';
   document.getElementById('authPassword').value = '';
   applyAuthMode();
   document.getElementById('authModal').style.display = 'flex';
-  setTimeout(function(){ var f = document.getElementById('authUsername'); if (f) f.focus(); }, 50);
+  setTimeout(function(){ document.getElementById('authEmail').focus(); }, 50);
 }
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
@@ -2507,6 +2534,8 @@ function applyAuthMode() {
   document.getElementById('authSwitchLink').textContent = isSignin ? '注册' : '去登录';
   document.getElementById('authPassword').autocomplete = isSignin ? 'current-password' : 'new-password';
   document.getElementById('authSignupHint').style.display = isSignin ? 'none' : 'block';
+  document.getElementById('authUsernameRow').style.display = isSignin ? 'none' : 'block';
+  document.getElementById('authEmail').autocomplete = isSignin ? 'email' : 'email';
 }
 function authBackToSignin() {
   document.getElementById('authSuccessPanel').style.display = 'none';
@@ -2518,16 +2547,25 @@ function authBackToSignin() {
 }
 
 async function submitAuth() {
+  var email = document.getElementById('authEmail').value.trim();
   var username = document.getElementById('authUsername').value.trim();
   var pwd = document.getElementById('authPassword').value;
   var errEl = document.getElementById('authError');
   var infoEl = document.getElementById('authInfo');
   errEl.style.display = 'none'; infoEl.style.display = 'none';
-  if (!username || !pwd) { errEl.innerHTML = '用户名和密码不能为空'; errEl.style.display = 'block'; return; }
-  if (_authMode === 'signup' && username.indexOf('@') !== -1) {
-    errEl.innerHTML = '用户名不能包含 @ 符号'; errEl.style.display = 'block'; return;
-  }
+
+  if (!pwd) { errEl.innerHTML = '密码不能为空'; errEl.style.display = 'block'; return; }
   if (pwd.length < 6) { errEl.innerHTML = '密码至少 6 位'; errEl.style.display = 'block'; return; }
+
+  if (_authMode === 'signup') {
+    if (!email || email.indexOf('@') === -1) { errEl.innerHTML = '请输入有效的邮箱地址'; errEl.style.display = 'block'; return; }
+    if (!username) { errEl.innerHTML = '请设置一个用户名'; errEl.style.display = 'block'; return; }
+    if (username.indexOf('@') !== -1) { errEl.innerHTML = '用户名不能包含 @ 符号'; errEl.style.display = 'block'; return; }
+    if (username.length < 2) { errEl.innerHTML = '用户名至少 2 个字符'; errEl.style.display = 'block'; return; }
+  } else {
+    if (!email) { errEl.innerHTML = '请输入邮箱或用户名'; errEl.style.display = 'block'; return; }
+  }
+
   var btn = document.getElementById('authPrimaryBtn');
   btn.disabled = true; var oldText = btn.textContent; btn.textContent = '处理中…';
   try {
@@ -2538,16 +2576,14 @@ async function submitAuth() {
   } catch(_) { /* RPC 不可用时放行 */ }
   try {
     if (_authMode === 'signin') {
-      await window.cloud.signIn(username, pwd);
+      await window.cloud.signIn(email, pwd);
       closeAuthModal();
     } else {
-      var r = await window.cloud.signUp(username, pwd);
+      var r = await window.cloud.signUp(email, username, pwd);
       if (r && r.session) {
-        // 邮箱验证已关闭：直接登录成功
         closeAuthModal();
       } else {
-        // 需要邮箱验证 → 切到成功态面板（一般不会走到这里）
-        document.getElementById('authSuccessEmail').textContent = username;
+        document.getElementById('authSuccessEmail').textContent = email;
         document.getElementById('authFormPanel').style.display = 'none';
         document.getElementById('authSuccessPanel').style.display = '';
       }
@@ -2555,11 +2591,11 @@ async function submitAuth() {
   } catch (e) {
     var msg = (e.message || e) + '';
     if (/email not confirmed/i.test(msg)) {
-      errEl.innerHTML = '邮箱还没验证，请联系管理员。';
+      errEl.innerHTML = '邮箱还没验证，请检查邮箱并点击验证链接。';
     } else if (/invalid login credentials/i.test(msg)) {
-      errEl.innerHTML = '用户名或密码错误。注册的话请先切到「注册」。';
+      errEl.innerHTML = '邮箱或密码错误。注册的话请先切到「注册」。';
     } else if (/user already registered/i.test(msg)) {
-      errEl.innerHTML = '这个用户名已经被注册了，换一个试试。';
+      errEl.innerHTML = '该邮箱已被注册。如忘记密码请联系管理员。';
     } else if (/password should be at least/i.test(msg)) {
       errEl.innerHTML = '密码太短（至少 6 位）';
     } else if (/rate limit/i.test(msg)) {
@@ -3038,6 +3074,7 @@ function startByExam(examId) {
     questions: currentQuestions,
     mode: 'exam',
     passage: ex.passage,
+    chinese_translation: ex.chinese_translation || '',
   };
   previousView = { page: 'home', view: 'exams' };
   switchPage('practice');
@@ -3064,6 +3101,7 @@ function renderExam() {
         '<span class="blank-inline" onclick="showAnalysis(1)">1</span>');
     }
     document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
+    updateTranslationSection();
     return;
   }
 
@@ -3093,6 +3131,7 @@ function renderExam() {
       html += '</div>';
     });
     document.getElementById('passageBox').innerHTML = html;
+    updateTranslationSection();
   } else if (currentExam.mode === 'prep' || currentExam.mode === 'exam') {
     var passage = currentExam.passage || currentQuestions[0].passage;
     currentQuestions.forEach(function(q) {
@@ -3106,7 +3145,137 @@ function renderExam() {
     });
     passage = passage.split('\n\n').map(function(p) { return '<p>' + p + '</p>'; }).join('');
     document.getElementById('passageBox').innerHTML = passage;
+    updateTranslationSection();
   }
+}
+
+// --- 中文翻译 ---
+
+function getTranslationCache() {
+  try { return JSON.parse(localStorage.getItem('grammar-translation-cache') || '{}'); } catch (e) { return {}; }
+}
+
+function setTranslationCache(hash, text) {
+  var cache = getTranslationCache();
+  cache[hash] = text;
+  var keys = Object.keys(cache);
+  while (keys.length > 50) { delete cache[keys[0]]; keys = Object.keys(cache); }
+  localStorage.setItem('grammar-translation-cache', JSON.stringify(cache));
+}
+
+function hashPassage(passage) {
+  var s = passage.trim().substring(0, 80);
+  var h = 0;
+  for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+  return Math.abs(h).toString(36);
+}
+
+function updateTranslationSection() {
+  var section = document.getElementById('translationSection');
+  if (!section) return;
+  if (currentExam && currentExam.mode === 'error') {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  document.getElementById('translationBody').style.display = 'none';
+  document.getElementById('translationArrow').classList.remove('open');
+}
+
+function toggleTranslation() {
+  var body = document.getElementById('translationBody');
+  var arrow = document.getElementById('translationArrow');
+  if (body.style.display === 'none') {
+    var text = getPassageText();
+    if (!text) return;
+    var cache = getTranslationCache();
+    var hash = hashPassage(text);
+    if (cache[hash]) {
+      renderTranslationBody(cache[hash]);
+      body.style.display = '';
+      arrow.classList.add('open');
+      return;
+    }
+    if (currentExam && currentExam.chinese_translation) {
+      renderTranslationBody(currentExam.chinese_translation);
+      setTranslationCache(hash, currentExam.chinese_translation);
+      body.style.display = '';
+      arrow.classList.add('open');
+      return;
+    }
+    if (currentExam && currentExam.mode === 'category' && selectedQuestion) {
+      var examObj = (window.GRAMMAR_BANK && window.GRAMMAR_BANK.exams || []).find(function(e) {
+        return e.id === selectedQuestion.exam;
+      });
+      if (examObj && examObj.chinese_translation) {
+        renderTranslationBody(examObj.chinese_translation);
+        body.style.display = '';
+        arrow.classList.add('open');
+        return;
+      }
+    }
+    var fullText = getPassageText(true);
+    loadAndShowTranslation(fullText, hashPassage(fullText));
+  } else {
+    body.style.display = 'none';
+    arrow.classList.remove('open');
+  }
+}
+
+function getPassageText(fillAnswers) {
+  var text;
+  if (currentExam && currentExam.mode === 'category') {
+    var firstQ = currentQuestions[0];
+    text = firstQ ? (firstQ.passage || '') : '';
+  } else {
+    text = (currentExam && currentExam.passage) || (currentQuestions[0] && currentQuestions[0].passage) || '';
+  }
+  // 填入答案，生成完整文章用于翻译
+  if (fillAnswers && currentQuestions) {
+    currentQuestions.forEach(function(q) {
+      text = text.replace('___' + q.no + '___', q.answer);
+    });
+  }
+  return text;
+}
+
+async function loadAndShowTranslation(text, hash) {
+  var body = document.getElementById('translationBody');
+  body.style.display = '';
+  body.innerHTML = '<p style="color:var(--text-3);">翻译中…</p>';
+  document.getElementById('translationArrow').classList.add('open');
+
+  try {
+    var token = window._sb ? (await window._sb.auth.getSession()).data.session?.access_token : null;
+    if (!token) {
+      body.innerHTML = '<p style="color:var(--text-3);">请先登录以使用翻译功能。</p>';
+      return;
+    }
+    var res = await fetch('https://zwbvcqkfbndgmyfxtkyl.supabase.co/functions/v1/translate-passage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ text: text })
+    });
+    var data = await res.json();
+    if (data.error) {
+      body.innerHTML = '<p style="color:var(--text-3);">翻译失败：' + data.error + '</p>';
+      return;
+    }
+    var chinese = data.chinese || '';
+    setTranslationCache(hash, chinese);
+    renderTranslationBody(chinese);
+  } catch (e) {
+    body.innerHTML = '<p style="color:var(--text-3);">翻译请求失败，请检查网络后重试。</p>';
+  }
+}
+
+function renderTranslationBody(chinese) {
+  var body = document.getElementById('translationBody');
+  var html = chinese.split('\n\n').filter(function(p) { return p.trim(); }).map(function(p) {
+    return '<p>' + p + '</p>';
+  }).join('');
+  body.innerHTML = html;
+  body.style.display = '';
 }
 
 // 按考点模式：根据题在 currentQuestions 数组中的下标取题
