@@ -1211,6 +1211,7 @@
     <div class="page" id="page-error-book" style="max-width:1100px;">
       <h1 class="page-title">错题本</h1>
       <p class="page-desc"><span id="errorBookStat">加载中…</span> 把题目文档发给 Claude 分析，拿到 JSON 后一键批量导入。</p>
+      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word 并 AI 解析</button>
       <button class="error-import-toggle" onclick="toggleImportForm()">+ 逐题添加</button>
       <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
       <div class="error-import-form" id="errorImportForm">
@@ -1862,7 +1863,15 @@ function renderPrepList() {
 
 // ========== Word 文档上传 + DeepSeek AI 解析 ==========
 
+var _docxImportTarget = 'prep'; // 'prep' | 'error'
+
 function handleDocxUpload() {
+  _docxImportTarget = 'prep';
+  document.getElementById('docxFileInput').click();
+}
+
+function handleDocxUploadForError() {
+  _docxImportTarget = 'error';
   document.getElementById('docxFileInput').click();
 }
 
@@ -1961,15 +1970,22 @@ async function parseWithDeepSeek(text) {
       return '空' + b.no + ': ' + b.answer + ' [' + (CATEGORY_MAP[b.category] || b.category) + ']';
     }).join('\n');
 
+    var isErrorBook = (_docxImportTarget === 'error');
+    var targetLabel = isErrorBook ? '错题本' : '备课资料';
+
     if (confirm(
       'AI 解析完成！\n\n' +
       '标题：' + parsed.title + '\n' +
       '空格数：' + parsed.blanks.length + '\n\n' +
       blankSummary.substring(0, 500) +
       (blankSummary.length > 500 ? '\n…' : '') +
-      '\n\n确认导入到备课资料？'
+      '\n\n确认导入到' + targetLabel + '？'
     )) {
-      importDeepSeekResult(parsed);
+      if (isErrorBook) {
+        importDeepSeekResultToErrorBook(parsed);
+      } else {
+        importDeepSeekResult(parsed);
+      }
     }
 
   } catch (err) {
@@ -2014,6 +2030,40 @@ function importDeepSeekResult(result) {
   renderPrepList();
   renderBankStat();
   alert('成功导入：' + result.title + '\n共 ' + result.blanks.length + ' 个空格');
+}
+
+function importDeepSeekResultToErrorBook(result) {
+  var count = 0;
+  result.blanks.forEach(function(b) {
+    errorBookQuestions.unshift({
+      id: 'err_' + Date.now() + '_' + count,
+      passage: result.passage,
+      answer: b.answer || '?',
+      category: b.category || 'word',
+      category_name: CATEGORY_MAP[b.category] || b.category,
+      grammar_point: '',
+      analysis: b.analysis || ('答案：' + (b.answer || '?') + '。'),
+      technique: '考点：' + (CATEGORY_MAP[b.category] || b.category) +
+                 '。' + (CATEGORY_TIPS[b.category] || '先判空格成分，再确定词形。'),
+      exam: '错题本',
+      exam_id: '错题本',
+      no: b.no || (count + 1),
+      created_at: new Date().toISOString()
+    });
+    count++;
+  });
+
+  saveErrorBook();
+
+  if (window.cloud && window.cloud.isConfigured && window.cloud.isConfigured()) {
+    window.cloud.uploadLocalToCloud().catch(function(e) {
+      console.warn('云端同步失败，已保存到本地：', e);
+    });
+  }
+
+  renderErrorBook();
+  renderBankStat();
+  alert('成功导入 ' + count + ' 道错题到错题本');
 }
 
 function showRawTextFallback(text) {
