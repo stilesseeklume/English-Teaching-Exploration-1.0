@@ -533,48 +533,153 @@
     .grid-11 { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   }
 
-  /* 密码保护 */
-  .pw-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--bg); z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .pw-overlay.hidden { display: none; }
-  .pw-box {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 40px 36px;
-    text-align: center; box-shadow: var(--shadow-lg);
-    max-width: 360px; width: 90%;
-  }
-  .pw-box h2 { font-size: 20px; margin-bottom: 8px; color: var(--accent); }
-  .pw-box p { font-size: 14px; color: var(--text-2); margin-bottom: 20px; }
-  .pw-box input {
-    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
-    border-radius: 6px; font-size: 16px; text-align: center;
-    font-family: inherit; margin-bottom: 12px;
-  }
-  .pw-box input:focus { outline: none; border-color: var(--accent); }
-  .pw-box button {
-    width: 100%; padding: 10px; border: none; border-radius: 6px;
-    background: var(--accent); color: #fff; font-size: 15px;
-    font-weight: 600; cursor: pointer; font-family: inherit;
-  }
-  .pw-box button:hover { background: var(--accent-light); }
-  .pw-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
 </style>
 <script src="data/grammar_bank.js"></script>
+
+<!-- ============== Supabase 云同步 · 配置 + 客户端 ============== -->
+<!-- 部署前请把下面两行换成你 Supabase 项目的真实值（Settings → API） -->
+<script>
+  window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* eslint-disable */
+(function(){
+  var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1
+              && window.SUPABASE_ANON_KEY && window.SUPABASE_ANON_KEY.indexOf('YOUR_') === -1;
+
+  var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
+  var listeners = [];
+  var state = { user: null, isAdmin: false, viewingUserId: null, viewingEmail: null };
+
+  function notify() { listeners.forEach(function(cb){ try { cb(state); } catch(e){} }); }
+
+  async function detectAdmin() {
+    if (!sb || !state.user) { state.isAdmin = false; return; }
+    // probe admin_list_users; success = admin
+    try {
+      var r = await sb.rpc('admin_list_users');
+      state.isAdmin = !r.error;
+    } catch(e) { state.isAdmin = false; }
+  }
+
+  async function init() {
+    if (!sb) return;
+    var s = await sb.auth.getSession();
+    state.user = s.data && s.data.session ? s.data.session.user : null;
+    await detectAdmin();
+    notify();
+    sb.auth.onAuthStateChange(async function(_evt, session){
+      state.user = session ? session.user : null;
+      state.viewingUserId = null;
+      state.viewingEmail = null;
+      await detectAdmin();
+      notify();
+    });
+  }
+
+  function asUserId() {
+    return state.viewingUserId || (state.user && state.user.id) || null;
+  }
+
+  async function signUp(email, password) {
+    if (!sb) throw new Error('未配置 Supabase');
+    var r = await sb.auth.signUp({ email: email, password: password });
+    if (r.error) throw r.error;
+    return r.data;
+  }
+  async function signIn(email, password) {
+    if (!sb) throw new Error('未配置 Supabase');
+    var r = await sb.auth.signInWithPassword({ email: email, password: password });
+    if (r.error) throw r.error;
+    return r.data;
+  }
+  async function signOut() {
+    if (!sb) return;
+    await sb.auth.signOut();
+  }
+
+  async function pullErrorBook() {
+    if (!sb || !state.user) return null;
+    var uid = asUserId();
+    var r = await sb.from('error_book').select('*').eq('user_id', uid).order('created_at', { ascending: false });
+    if (r.error) throw r.error;
+    return r.data.map(function(row){ return Object.assign({}, row.question, { id: row.client_id }); });
+  }
+  async function upsertErrorItem(q) {
+    if (!sb || !state.user) return;
+    if (state.viewingUserId) return; // admin 浏览别人的数据，禁止写
+    var clean = Object.assign({}, q); delete clean.id;
+    var r = await sb.from('error_book').upsert({
+      user_id: state.user.id,
+      client_id: q.id,
+      question: clean
+    }, { onConflict: 'user_id,client_id' });
+    if (r.error) throw r.error;
+  }
+  async function deleteErrorItem(clientId) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var r = await sb.from('error_book').delete().eq('user_id', state.user.id).eq('client_id', clientId);
+    if (r.error) throw r.error;
+  }
+
+  async function pullLessonPrep() {
+    if (!sb || !state.user) return null;
+    var uid = asUserId();
+    var r = await sb.from('lesson_prep').select('*').eq('user_id', uid).order('created_at', { ascending: false });
+    if (r.error) throw r.error;
+    return r.data.map(function(row){ return Object.assign({}, row.passage, { id: row.client_id }); });
+  }
+  async function upsertPrepItem(p) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var clean = Object.assign({}, p); delete clean.id;
+    var r = await sb.from('lesson_prep').upsert({
+      user_id: state.user.id,
+      client_id: p.id,
+      passage: clean
+    }, { onConflict: 'user_id,client_id' });
+    if (r.error) throw r.error;
+  }
+  async function deletePrepItem(clientId) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var r = await sb.from('lesson_prep').delete().eq('user_id', state.user.id).eq('client_id', clientId);
+    if (r.error) throw r.error;
+  }
+
+  async function listUsers() {
+    if (!sb) throw new Error('未配置');
+    var r = await sb.rpc('admin_list_users');
+    if (r.error) throw r.error;
+    return r.data;
+  }
+
+  async function viewAs(userId, email) {
+    state.viewingUserId = userId;
+    state.viewingEmail = email;
+    notify();
+  }
+  function clearViewAs() {
+    state.viewingUserId = null;
+    state.viewingEmail = null;
+    notify();
+  }
+
+  window.cloud = {
+    isConfigured: function(){ return !!sb; },
+    state: state,
+    onChange: function(cb){ listeners.push(cb); cb(state); },
+    init: init,
+    signUp: signUp, signIn: signIn, signOut: signOut,
+    pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
+    pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
+    listUsers: listUsers, viewAs: viewAs, clearViewAs: clearViewAs
+  };
+})();
+</script>
+<!-- ============== /Supabase 云同步 ============== -->
 </head>
 <body>
-
-<div class="pw-overlay" id="pwOverlay">
-  <div class="pw-box">
-    <h2>🔐 课堂助手</h2>
-    <p>请输入访问密码</p>
-    <input type="password" id="pwInput" placeholder="密码" onkeydown="if(event.key==='Enter')checkPassword()">
-    <button onclick="checkPassword()">进入</button>
-    <div class="pw-error" id="pwError">密码错误，请重试</div>
-  </div>
-</div>
 
 <div class="app-container">
   <header>
@@ -591,9 +696,36 @@
         <button class="nav-btn" data-page="knowledge">📚 考点速查</button>
         <button class="nav-btn" data-page="error-book">📝 错题</button>
         <button class="nav-btn" data-page="lesson-prep">📋 备课</button>
+        <button class="nav-btn" data-page="admin" id="navBtnAdmin" style="display:none;">👥 管理员</button>
       </nav>
+      <div id="userPill" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);"></div>
     </div>
   </header>
+
+  <!-- ============== 登录/注册 模态框 ============== -->
+  <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:380px;max-width:92vw;padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div id="authTitle" style="font-size:18px;font-weight:700;color:var(--text);">登录</div>
+        <button onclick="closeAuthModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px;color:var(--text-2);">邮箱</label>
+        <input id="authEmail" type="email" autocomplete="email" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;color:var(--text-2);">密码（≥ 6 位）</label>
+        <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+      </div>
+      <div id="authError" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;"></div>
+      <div id="authInfo"  style="display:none;color:var(--green);font-size:12px;margin-bottom:12px;"></div>
+      <button id="authPrimaryBtn" onclick="submitAuth()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">登录</button>
+      <div style="margin-top:14px;font-size:12px;color:var(--text-2);text-align:center;">
+        <span id="authSwitchText">没有账号？</span>
+        <a href="#" id="authSwitchLink" onclick="toggleAuthMode();return false;" style="color:var(--accent);">注册</a>
+      </div>
+    </div>
+  </div>
 
   <main>
     <div class="page active" id="page-home" style="max-width:1100px;">
@@ -872,31 +1004,21 @@
       </div>
       <div id="prepList"></div>
     </div>
+
+    <!-- ============== 管理员页（仅管理员可见） ============== -->
+    <div class="page" id="page-admin" style="max-width:1100px;">
+      <h1 class="page-title">👥 管理员视图</h1>
+      <p class="page-desc"><span id="adminStat">加载中…</span> 点击某个用户可以查看 ta 的错题本和备课资料（只读）。</p>
+      <div id="adminBanner" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:12px;margin-bottom:16px;font-size:14px;">
+        <span>当前正在以管理员身份查看 <b id="adminViewingEmail"></b> 的数据</span>
+        <button onclick="exitViewAs()" style="float:right;border:none;background:var(--accent);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">退出查看</button>
+      </div>
+      <div id="adminUserList"></div>
+    </div>
   </main>
 </div>
 
 <script>
-// ────────── 密码保护 ──────────
-const PW_HASH = 'b5f90a96e680140d51e2ba945461716e44cc385940aee21f66020e66193647b7';
-(function() {
-  if (sessionStorage.getItem('grammar-auth') === '1') {
-    document.getElementById('pwOverlay').classList.add('hidden');
-  }
-})();
-async function checkPassword() {
-  var input = document.getElementById('pwInput').value;
-  var data = new TextEncoder().encode(input);
-  var hashBuf = await crypto.subtle.digest('SHA-256', data);
-  var hashHex = Array.from(new Uint8Array(hashBuf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-  if (hashHex === PW_HASH) {
-    sessionStorage.setItem('grammar-auth', '1');
-    document.getElementById('pwOverlay').classList.add('hidden');
-  } else {
-    document.getElementById('pwError').style.display = 'block';
-    document.getElementById('pwInput').value = '';
-  }
-}
-
 const CATEGORY_MAP = (window.GRAMMAR_BANK && window.GRAMMAR_BANK.category_names) || {
   'predicate': '谓语动词',
   'nonpredicate': '非谓语动词',
@@ -1472,6 +1594,279 @@ function init() {
   setupBatchDrop();
   setupPrepDrop();
   navigateHome('cards');
+
+  // ========== 云同步启动 ==========
+  if (window.cloud && window.cloud.isConfigured()) {
+    window.cloud.onChange(onCloudStateChange);
+    window.cloud.init();
+  } else {
+    renderUserPill({ user: null, isAdmin: false });
+  }
+}
+
+// ========== 云同步：UI + 数据 ==========
+let _lastCloudUser = null;
+let _migrationPromptShown = false;
+
+async function onCloudStateChange(state) {
+  renderUserPill(state);
+  document.getElementById('navBtnAdmin').style.display = state.isAdmin ? '' : 'none';
+  document.getElementById('adminBanner').style.display = state.viewingUserId ? '' : 'none';
+  if (state.viewingUserId) {
+    document.getElementById('adminViewingEmail').textContent = state.viewingEmail || '';
+  }
+
+  var newUserKey = (state.user ? state.user.id : '') + '|' + (state.viewingUserId || '');
+  if (newUserKey === _lastCloudUser) return;
+  _lastCloudUser = newUserKey;
+
+  if (!state.user) return;
+
+  // 拉云端数据
+  try {
+    var [errors, preps] = await Promise.all([
+      window.cloud.pullErrorBook(),
+      window.cloud.pullLessonPrep()
+    ]);
+    if (errors !== null) {
+      // 第一次登录的迁移提示：云端空 + 本地非空
+      if (!state.viewingUserId && !_migrationPromptShown
+          && errors.length === 0 && preps.length === 0
+          && (errorBookQuestions.length > 0 || prepPassages.length > 0)) {
+        _migrationPromptShown = true;
+        if (confirm('检测到本地有 ' + errorBookQuestions.length + ' 道错题、'
+                    + prepPassages.length + ' 份备课资料，是否上传到云端？')) {
+          await uploadLocalToCloud();
+          return; // uploadLocalToCloud 会重新拉取并 render
+        }
+      }
+      errorBookQuestions = errors;
+      prepPassages = preps;
+      renderErrorBook();
+      renderPrepList();
+      renderBankStat();
+    }
+  } catch (e) {
+    console.error('cloud pull failed', e);
+    alert('云端读取失败：' + (e.message || e));
+  }
+}
+
+async function uploadLocalToCloud() {
+  try {
+    for (var i = 0; i < errorBookQuestions.length; i++) {
+      await window.cloud.upsertErrorItem(errorBookQuestions[i]);
+    }
+    for (var j = 0; j < prepPassages.length; j++) {
+      await window.cloud.upsertPrepItem(prepPassages[j]);
+    }
+    alert('已上传：' + errorBookQuestions.length + ' 道错题 + ' + prepPassages.length + ' 份备课资料');
+    // 重新拉一次，状态以云端为准
+    errorBookQuestions = (await window.cloud.pullErrorBook()) || errorBookQuestions;
+    prepPassages = (await window.cloud.pullLessonPrep()) || prepPassages;
+    saveErrorBook(); savePrepPassages();
+    renderErrorBook(); renderPrepList(); renderBankStat();
+  } catch (e) {
+    alert('上传失败：' + (e.message || e));
+  }
+}
+
+function renderUserPill(state) {
+  var el = document.getElementById('userPill');
+  if (!el) return;
+  if (!window.cloud || !window.cloud.isConfigured()) {
+    el.innerHTML = '<span style="color:var(--text-3);font-size:11px;">本地模式</span>';
+    return;
+  }
+  if (state.user) {
+    var email = state.user.email || '';
+    var short = email.length > 22 ? email.slice(0, 20) + '…' : email;
+    var adminTag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
+    el.innerHTML = adminTag + '<span title="' + email + '" style="color:var(--text);">' + short + '</span>'
+      + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
+  } else {
+    el.innerHTML = '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
+  }
+}
+
+let _authMode = 'signin';
+function openAuthModal(mode) {
+  _authMode = mode || 'signin';
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authInfo').style.display = 'none';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  applyAuthMode();
+  document.getElementById('authModal').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('authEmail').focus(); }, 50);
+}
+function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+function toggleAuthMode() { _authMode = (_authMode === 'signin') ? 'signup' : 'signin'; applyAuthMode(); }
+function applyAuthMode() {
+  var isSignin = _authMode === 'signin';
+  document.getElementById('authTitle').textContent = isSignin ? '登录' : '注册';
+  document.getElementById('authPrimaryBtn').textContent = isSignin ? '登录' : '创建账号';
+  document.getElementById('authSwitchText').textContent = isSignin ? '没有账号？' : '已有账号？';
+  document.getElementById('authSwitchLink').textContent = isSignin ? '注册' : '去登录';
+  document.getElementById('authPassword').autocomplete = isSignin ? 'current-password' : 'new-password';
+}
+
+async function submitAuth() {
+  var email = document.getElementById('authEmail').value.trim();
+  var pwd = document.getElementById('authPassword').value;
+  var errEl = document.getElementById('authError');
+  var infoEl = document.getElementById('authInfo');
+  errEl.style.display = 'none'; infoEl.style.display = 'none';
+  if (!email || !pwd) { errEl.textContent = '邮箱和密码不能为空'; errEl.style.display = 'block'; return; }
+  if (pwd.length < 6) { errEl.textContent = '密码至少 6 位'; errEl.style.display = 'block'; return; }
+  var btn = document.getElementById('authPrimaryBtn');
+  btn.disabled = true; var oldText = btn.textContent; btn.textContent = '处理中…';
+  try {
+    if (_authMode === 'signin') {
+      await window.cloud.signIn(email, pwd);
+      closeAuthModal();
+    } else {
+      var r = await window.cloud.signUp(email, pwd);
+      if (r && r.session) {
+        closeAuthModal();
+      } else {
+        infoEl.textContent = '注册成功！请去邮箱点验证链接，然后回来登录。';
+        infoEl.style.display = 'block';
+        _authMode = 'signin'; applyAuthMode();
+      }
+    }
+  } catch (e) {
+    errEl.textContent = (e.message || e) + '';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = oldText;
+  }
+}
+
+async function doLogout() {
+  if (!confirm('确定要退出登录吗？\n（错题本/备课资料会从本地清空，下次登录会重新从云端拉取）')) return;
+  await window.cloud.signOut();
+  errorBookQuestions = [];
+  prepPassages = [];
+  saveErrorBook(); savePrepPassages();
+  renderErrorBook(); renderPrepList(); renderBankStat();
+  _lastCloudUser = null;
+  _migrationPromptShown = false;
+}
+
+// 拦截原始 save 函数，写本地后异步推到云
+var _origSaveError = saveErrorBook;
+saveErrorBook = function() {
+  _origSaveError();
+  if (window.cloud && window.cloud.state && window.cloud.state.user && !window.cloud.state.viewingUserId) {
+    // 全量同步：每次保存都把本地全量推一遍（小数据量场景没问题）
+    syncErrorBookToCloud();
+  }
+};
+var _origSavePrep = savePrepPassages;
+savePrepPassages = function() {
+  _origSavePrep();
+  if (window.cloud && window.cloud.state && window.cloud.state.user && !window.cloud.state.viewingUserId) {
+    syncPrepToCloud();
+  }
+};
+
+var _syncErrorPending = false, _syncErrorAgain = false;
+async function syncErrorBookToCloud() {
+  if (_syncErrorPending) { _syncErrorAgain = true; return; }
+  _syncErrorPending = true;
+  try {
+    var localIds = {};
+    for (var i = 0; i < errorBookQuestions.length; i++) {
+      localIds[errorBookQuestions[i].id] = true;
+      await window.cloud.upsertErrorItem(errorBookQuestions[i]);
+    }
+    // 删除云端不在本地的
+    var cloudItems = await window.cloud.pullErrorBook();
+    if (cloudItems) {
+      for (var j = 0; j < cloudItems.length; j++) {
+        if (!localIds[cloudItems[j].id]) await window.cloud.deleteErrorItem(cloudItems[j].id);
+      }
+    }
+  } catch (e) { console.error('syncErrorBook failed', e); }
+  finally {
+    _syncErrorPending = false;
+    if (_syncErrorAgain) { _syncErrorAgain = false; syncErrorBookToCloud(); }
+  }
+}
+
+var _syncPrepPending = false, _syncPrepAgain = false;
+async function syncPrepToCloud() {
+  if (_syncPrepPending) { _syncPrepAgain = true; return; }
+  _syncPrepPending = true;
+  try {
+    var localIds = {};
+    for (var i = 0; i < prepPassages.length; i++) {
+      localIds[prepPassages[i].id] = true;
+      await window.cloud.upsertPrepItem(prepPassages[i]);
+    }
+    var cloudItems = await window.cloud.pullLessonPrep();
+    if (cloudItems) {
+      for (var j = 0; j < cloudItems.length; j++) {
+        if (!localIds[cloudItems[j].id]) await window.cloud.deletePrepItem(cloudItems[j].id);
+      }
+    }
+  } catch (e) { console.error('syncPrep failed', e); }
+  finally {
+    _syncPrepPending = false;
+    if (_syncPrepAgain) { _syncPrepAgain = false; syncPrepToCloud(); }
+  }
+}
+
+// ========== 管理员页 ==========
+async function renderAdminPage() {
+  if (!window.cloud || !window.cloud.state.isAdmin) {
+    document.getElementById('adminUserList').innerHTML =
+      '<div class="error-empty">需要管理员权限</div>';
+    return;
+  }
+  var list;
+  try { list = await window.cloud.listUsers(); }
+  catch (e) {
+    document.getElementById('adminUserList').innerHTML =
+      '<div class="error-empty">加载失败：' + (e.message || e) + '</div>';
+    return;
+  }
+  document.getElementById('adminStat').textContent = '共 ' + list.length + ' 个用户。';
+  if (list.length === 0) {
+    document.getElementById('adminUserList').innerHTML =
+      '<div class="error-empty">还没有用户注册</div>';
+    return;
+  }
+  var html = '<div style="display:grid;grid-template-columns:1fr;gap:8px;">';
+  list.forEach(function(u) {
+    var signin = u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleString('zh-CN') : '从未';
+    var created = u.created_at ? new Date(u.created_at).toLocaleDateString('zh-CN') : '';
+    html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')">'
+          + '<div class="prep-list-title">' + (u.email || '(无邮箱)') + '</div>'
+          + '<div class="prep-list-meta">'
+          + '<span>注册：' + created + '</span>'
+          + '<span>最近登录：' + signin + '</span>'
+          + '<span style="color:var(--accent);">📝 ' + u.error_count + ' 错题 · 📋 ' + u.prep_count + ' 备课</span>'
+          + '</div>'
+          + '</div>';
+  });
+  html += '</div>';
+  document.getElementById('adminUserList').innerHTML = html;
+}
+
+async function adminViewUser(userId, email) {
+  await window.cloud.viewAs(userId, email);
+  _lastCloudUser = null;     // 强制刷新数据加载
+  await onCloudStateChange(window.cloud.state);
+  switchPage('error-book');  // 跳到错题本查看
+}
+
+async function exitViewAs() {
+  window.cloud.clearViewAs();
+  _lastCloudUser = null;
+  await onCloudStateChange(window.cloud.state);
+  switchPage('admin');
 }
 
 function renderBankStat() {
@@ -1533,6 +1928,7 @@ function switchPage(page) {
   if (page === 'home') navigateHome('cards');
   if (page === 'error-book') renderErrorBook();
   if (page === 'lesson-prep') renderPrepList();
+  if (page === 'admin') renderAdminPage();
 }
 
 function goHome() {
