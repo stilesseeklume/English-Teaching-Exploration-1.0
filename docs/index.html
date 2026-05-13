@@ -34,6 +34,7 @@
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
     --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
   }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -698,31 +699,55 @@
         <button class="nav-btn" data-page="lesson-prep">📋 备课</button>
         <button class="nav-btn" data-page="admin" id="navBtnAdmin" style="display:none;">👥 管理员</button>
       </nav>
+      <span id="syncStatus" style="font-size:12px;display:none;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;"></span>
       <div id="userPill" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);"></div>
     </div>
   </header>
 
   <!-- ============== 登录/注册 模态框 ============== -->
   <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:380px;max-width:92vw;padding:28px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div id="authTitle" style="font-size:18px;font-weight:700;color:var(--text);">登录</div>
-        <button onclick="closeAuthModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
+    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
+      <!-- 表单态 -->
+      <div id="authFormPanel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div id="authTitle" style="font-size:18px;font-weight:700;color:var(--text);">登录</div>
+          <button onclick="closeAuthModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
+        </div>
+        <div id="authSignupHint" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.55;">
+          📧 <b>注册需邮箱验证</b><br>
+          完成下方表单后，我们会发一封验证邮件到你的邮箱，<b>点链接</b>后才能登录。
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;color:var(--text-2);">邮箱</label>
+          <input id="authEmail" type="email" autocomplete="email" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text-2);">密码（≥ 6 位）</label>
+          <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        </div>
+        <div id="authError" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;line-height:1.55;"></div>
+        <div id="authInfo"  style="display:none;color:var(--green);font-size:12px;margin-bottom:12px;"></div>
+        <button id="authPrimaryBtn" onclick="submitAuth()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">登录</button>
+        <div style="margin-top:14px;font-size:12px;color:var(--text-2);text-align:center;">
+          <span id="authSwitchText">没有账号？</span>
+          <a href="#" id="authSwitchLink" onclick="toggleAuthMode();return false;" style="color:var(--accent);">注册</a>
+        </div>
       </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text-2);">邮箱</label>
-        <input id="authEmail" type="email" autocomplete="email" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
-      </div>
-      <div style="margin-bottom:16px;">
-        <label style="font-size:12px;color:var(--text-2);">密码（≥ 6 位）</label>
-        <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
-      </div>
-      <div id="authError" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;"></div>
-      <div id="authInfo"  style="display:none;color:var(--green);font-size:12px;margin-bottom:12px;"></div>
-      <button id="authPrimaryBtn" onclick="submitAuth()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">登录</button>
-      <div style="margin-top:14px;font-size:12px;color:var(--text-2);text-align:center;">
-        <span id="authSwitchText">没有账号？</span>
-        <a href="#" id="authSwitchLink" onclick="toggleAuthMode();return false;" style="color:var(--accent);">注册</a>
+      <!-- 注册成功态 -->
+      <div id="authSuccessPanel" style="display:none;text-align:center;">
+        <div style="font-size:48px;color:var(--green);margin-bottom:10px;">✉️</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">验证邮件已发出</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:18px;">
+          已发送验证邮件到 <b id="authSuccessEmail" style="color:var(--text);"></b><br>
+          请去邮箱<b style="color:var(--accent);">点击链接</b>完成验证，然后回来登录。
+        </div>
+        <div style="background:var(--surface-2);border-radius:6px;padding:12px 14px;font-size:12px;color:var(--text-2);line-height:1.7;text-align:left;margin-bottom:16px;">
+          💡 <b>提示</b><br>
+          · 邮件可能 1-2 分钟才到<br>
+          · 收件箱没有？<b>看垃圾邮件 / 广告邮件</b>夹<br>
+          · 发件人通常是 <code>noreply@mail.app.supabase.io</code>
+        </div>
+        <button onclick="authBackToSignin()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">我已验证 · 去登录</button>
       </div>
     </div>
   </div>
@@ -1623,6 +1648,7 @@ async function onCloudStateChange(state) {
   if (!state.user) return;
 
   // 拉云端数据
+  setSyncStatus('syncing');
   try {
     var [errors, preps] = await Promise.all([
       window.cloud.pullErrorBook(),
@@ -1636,6 +1662,7 @@ async function onCloudStateChange(state) {
         _migrationPromptShown = true;
         if (confirm('检测到本地有 ' + errorBookQuestions.length + ' 道错题、'
                     + prepPassages.length + ' 份备课资料，是否上传到云端？')) {
+          setSyncStatus(null);
           await uploadLocalToCloud();
           return; // uploadLocalToCloud 会重新拉取并 render
         }
@@ -1645,9 +1672,13 @@ async function onCloudStateChange(state) {
       renderErrorBook();
       renderPrepList();
       renderBankStat();
+      setSyncStatus('ok');
+    } else {
+      setSyncStatus(null);
     }
   } catch (e) {
     console.error('cloud pull failed', e);
+    setSyncStatus('error', e.message || String(e));
     alert('云端读取失败：' + (e.message || e));
   }
 }
@@ -1692,6 +1723,8 @@ function renderUserPill(state) {
 let _authMode = 'signin';
 function openAuthModal(mode) {
   _authMode = mode || 'signin';
+  document.getElementById('authFormPanel').style.display = '';
+  document.getElementById('authSuccessPanel').style.display = 'none';
   document.getElementById('authError').style.display = 'none';
   document.getElementById('authInfo').style.display = 'none';
   document.getElementById('authEmail').value = '';
@@ -1701,7 +1734,12 @@ function openAuthModal(mode) {
   setTimeout(function(){ document.getElementById('authEmail').focus(); }, 50);
 }
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
-function toggleAuthMode() { _authMode = (_authMode === 'signin') ? 'signup' : 'signin'; applyAuthMode(); }
+function toggleAuthMode() {
+  _authMode = (_authMode === 'signin') ? 'signup' : 'signin';
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authInfo').style.display = 'none';
+  applyAuthMode();
+}
 function applyAuthMode() {
   var isSignin = _authMode === 'signin';
   document.getElementById('authTitle').textContent = isSignin ? '登录' : '注册';
@@ -1709,6 +1747,15 @@ function applyAuthMode() {
   document.getElementById('authSwitchText').textContent = isSignin ? '没有账号？' : '已有账号？';
   document.getElementById('authSwitchLink').textContent = isSignin ? '注册' : '去登录';
   document.getElementById('authPassword').autocomplete = isSignin ? 'current-password' : 'new-password';
+  document.getElementById('authSignupHint').style.display = isSignin ? 'none' : 'block';
+}
+function authBackToSignin() {
+  document.getElementById('authSuccessPanel').style.display = 'none';
+  document.getElementById('authFormPanel').style.display = '';
+  _authMode = 'signin';
+  applyAuthMode();
+  document.getElementById('authPassword').value = '';
+  setTimeout(function(){ document.getElementById('authPassword').focus(); }, 50);
 }
 
 async function submitAuth() {
@@ -1717,8 +1764,8 @@ async function submitAuth() {
   var errEl = document.getElementById('authError');
   var infoEl = document.getElementById('authInfo');
   errEl.style.display = 'none'; infoEl.style.display = 'none';
-  if (!email || !pwd) { errEl.textContent = '邮箱和密码不能为空'; errEl.style.display = 'block'; return; }
-  if (pwd.length < 6) { errEl.textContent = '密码至少 6 位'; errEl.style.display = 'block'; return; }
+  if (!email || !pwd) { errEl.innerHTML = '邮箱和密码不能为空'; errEl.style.display = 'block'; return; }
+  if (pwd.length < 6) { errEl.innerHTML = '密码至少 6 位'; errEl.style.display = 'block'; return; }
   var btn = document.getElementById('authPrimaryBtn');
   btn.disabled = true; var oldText = btn.textContent; btn.textContent = '处理中…';
   try {
@@ -1728,15 +1775,31 @@ async function submitAuth() {
     } else {
       var r = await window.cloud.signUp(email, pwd);
       if (r && r.session) {
+        // 验证邮件已关闭：直接登录成功
         closeAuthModal();
       } else {
-        infoEl.textContent = '注册成功！请去邮箱点验证链接，然后回来登录。';
-        infoEl.style.display = 'block';
-        _authMode = 'signin'; applyAuthMode();
+        // 需要邮箱验证 → 切到成功态面板
+        document.getElementById('authSuccessEmail').textContent = email;
+        document.getElementById('authFormPanel').style.display = 'none';
+        document.getElementById('authSuccessPanel').style.display = '';
       }
     }
   } catch (e) {
-    errEl.textContent = (e.message || e) + '';
+    var msg = (e.message || e) + '';
+    // 友好化常见错误
+    if (/email not confirmed/i.test(msg)) {
+      errEl.innerHTML = '📧 这个邮箱还没验证。<br>请去 <b>' + email + '</b> 的收件箱（包括<b>垃圾邮件</b>）找验证邮件，点链接后再来登录。';
+    } else if (/invalid login credentials/i.test(msg)) {
+      errEl.innerHTML = '邮箱或密码错误。注册的话请先切到「注册」。';
+    } else if (/user already registered/i.test(msg)) {
+      errEl.innerHTML = '这个邮箱已经注册过了，去登录吧。';
+    } else if (/password should be at least/i.test(msg)) {
+      errEl.innerHTML = '密码太短（Supabase 要求至少 6 位）';
+    } else if (/rate limit/i.test(msg)) {
+      errEl.innerHTML = '请求太频繁，过 1 分钟再试。';
+    } else {
+      errEl.innerHTML = msg;
+    }
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = oldText;
@@ -1771,10 +1834,55 @@ savePrepPassages = function() {
   }
 };
 
+// ─── 同步状态指示 ───
+var _syncOkTimer = null;
+function setSyncStatus(state, msg) {
+  var el = document.getElementById('syncStatus');
+  if (!el) return;
+  if (_syncOkTimer) { clearTimeout(_syncOkTimer); _syncOkTimer = null; }
+  if (state === 'syncing') {
+    el.style.display = 'inline-flex';
+    el.style.background = 'var(--accent-bg)';
+    el.style.color = 'var(--accent)';
+    el.title = '';
+    el.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">⟳</span> 同步中…';
+  } else if (state === 'ok') {
+    el.style.display = 'inline-flex';
+    el.style.background = 'var(--green-bg)';
+    el.style.color = 'var(--green)';
+    el.title = '';
+    el.innerHTML = '✓ 已同步';
+    _syncOkTimer = setTimeout(function(){ el.style.display = 'none'; }, 2500);
+  } else if (state === 'error') {
+    el.style.display = 'inline-flex';
+    el.style.background = 'var(--red-bg)';
+    el.style.color = 'var(--red)';
+    el.title = msg || '同步失败';
+    el.style.cursor = 'pointer';
+    el.onclick = function(){ alert('同步失败：' + (msg || '未知错误') + '\n\n你的数据已存在本地，刷新后会重试。如果反复失败，检查网络或 Console。'); };
+    el.innerHTML = '⚠ 同步失败';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// 计数同步引用计数，让两个同步函数共用一个状态
+var _syncInflight = 0;
+function syncBegin() { _syncInflight++; setSyncStatus('syncing'); }
+function syncEnd(err) {
+  _syncInflight = Math.max(0, _syncInflight - 1);
+  if (_syncInflight === 0) {
+    if (err) setSyncStatus('error', err.message || String(err));
+    else setSyncStatus('ok');
+  }
+}
+
 var _syncErrorPending = false, _syncErrorAgain = false;
 async function syncErrorBookToCloud() {
   if (_syncErrorPending) { _syncErrorAgain = true; return; }
   _syncErrorPending = true;
+  syncBegin();
+  var caught = null;
   try {
     var localIds = {};
     for (var i = 0; i < errorBookQuestions.length; i++) {
@@ -1788,9 +1896,10 @@ async function syncErrorBookToCloud() {
         if (!localIds[cloudItems[j].id]) await window.cloud.deleteErrorItem(cloudItems[j].id);
       }
     }
-  } catch (e) { console.error('syncErrorBook failed', e); }
+  } catch (e) { console.error('syncErrorBook failed', e); caught = e; }
   finally {
     _syncErrorPending = false;
+    syncEnd(caught);
     if (_syncErrorAgain) { _syncErrorAgain = false; syncErrorBookToCloud(); }
   }
 }
@@ -1799,6 +1908,8 @@ var _syncPrepPending = false, _syncPrepAgain = false;
 async function syncPrepToCloud() {
   if (_syncPrepPending) { _syncPrepAgain = true; return; }
   _syncPrepPending = true;
+  syncBegin();
+  var caught = null;
   try {
     var localIds = {};
     for (var i = 0; i < prepPassages.length; i++) {
@@ -1811,9 +1922,10 @@ async function syncPrepToCloud() {
         if (!localIds[cloudItems[j].id]) await window.cloud.deletePrepItem(cloudItems[j].id);
       }
     }
-  } catch (e) { console.error('syncPrep failed', e); }
+  } catch (e) { console.error('syncPrep failed', e); caught = e; }
   finally {
     _syncPrepPending = false;
+    syncEnd(caught);
     if (_syncPrepAgain) { _syncPrepAgain = false; syncPrepToCloud(); }
   }
 }
