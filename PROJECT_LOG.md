@@ -86,18 +86,34 @@ d29c166 注册登录改为用户名+密码
   - `辅助ai的临时性文件/山东二模·课堂讲评讲义.md` — 课堂讲评材料
 - **项目日志建立**：本文件，开始记录每日进度
 - **论文与分享方向初步确定**（见下方关键决策）
+- **后端迁移 Supabase → LeanCloud（进行中）**：
+  - `src/grammar-fill/index.html` 已改：`window.SUPABASE_URL` → `window.LC_APP_ID`，`supabase.createClient` → `AV.init`，管理员判断从邮箱改为手机号
+  - `docs/grammar-fill/index.html` **尚未同步**——部署版仍硬编码 Supabase 密钥
+- **考点知识库大扩充**：
+  - `predicate`（谓语动词）从 3 条扩至 5 大块：时间标志、语境并列、时态呼应、语态、主谓一致
+  - 新增 `nonpredicate`（非谓语动词）完整分类：4 种考法（状语补语、定语、宾语、主语表语）
+  - 新增 `word`（词性转换）开始填充
+  - `src/grammar-fill/index.html` 和 `docs/grammar-fill/index.html` 均在同步修改
+
+### 工作状态
+
+- **待提交的修改**（`git status` 显示 modified 但未 commit）：
+  - `src/grammar-fill/index.html` — LeanCloud 替换 + 知识库扩充
+  - `docs/grammar-fill/index.html` — 知识库扩充（但 Supabase 部分未改）
+- **未跟踪文件**：`PROJECT_LOG.md`、`supabase/.temp/`
 
 ### 发现的 Bug / 待解决问题
 
-- **HTML 独立部署问题**：`index.html` 通过 `<script src="../../data/grammar_bank.js">` 引用外部数据文件，单独复制到 U 盘或其他位置后路径断裂，所有题目消失。已有 `standalone.html`（内联数据），但需要确认完整性
+- **HTML 独立部署问题**：`index.html` 通过 `<script src="../../data/grammar_bank.js">` 引用外部数据文件，单独复制到 U 盘或其他位置后路径断裂，所有题目消失。已有 `standalone.html`（537KB，内联数据），但需确认完整性
 - **班级使用场景**：需要在教室电脑上直接打开 HTML 文件就能用，不能依赖网络或相对路径
+- **docs/ 部署版落后**：LeanCloud 替换只改了 src/，docs/grammar-fill/index.html 没同步
 
 ### 关键决策
 
 - **论文定位**：技术+教育融合 — AI 辅助教师构建试题知识库，实现跨卷联动。核心问题不是「我做了个系统」，而是解决教学痛点「试卷讲评课缺乏结构化引导」「教师难以横向对比真题发现命题规律」
 - **首次分享场合**：校内教研组，十几人规模，小面积尝试
 - **分享目标**：让老师觉得有用、想用，重点展示 demo（选一篇真题，走一遍导问流程）
-- **下一步学习**：Git/GitHub 基础操作（已在本会话中讲解）
+- **Git/GitHub**：本会话中已讲解基础概念（commit = 快照，branch = 平行版本，push/pull = 同步）
 
 ### 文献基础（写论文可直接引用）
 
