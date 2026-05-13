@@ -2623,6 +2623,10 @@ async function doLogout() {
   _lastCloudUser = null;
   _migrationPromptShown = false;
   document.body.classList.remove('pending');
+  window.cloud.state.user = null;
+  window.cloud.state.isAdmin = false;
+  window.cloud.state.approved = false;
+  renderUserPill({ user: null, isAdmin: false });
   switchPage('home');
   navigateHome('cards');
 }
