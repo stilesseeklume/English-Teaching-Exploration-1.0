@@ -184,6 +184,9 @@
   }
   .passage-box p { margin-bottom: 16px; }
   .passage-box p:last-child { margin-bottom: 0; }
+  .passage-box .cat-hint { font-size: 14px; color: var(--text-2); margin-bottom: 12px; }
+  .passage-box .cat-exam-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .passage-box .cat-sentence { font-size: var(--passage-font-size, 24px); line-height: 1.8; margin: 6px 0; }
   .font-ctrl-btn {
     width: 22px; height: 22px; border: 1px solid var(--border);
     border-radius: 4px; background: var(--surface); cursor: pointer;
@@ -193,15 +196,16 @@
   .font-ctrl-btn:hover { background: var(--surface-3); border-color: var(--accent); }
   .blank-inline {
     display: inline-block; min-width: 52px; text-align: center;
-    padding: 2px 8px; margin: 0 2px;
+    padding: 0.1em 0.4em; margin: 0 2px;
     border-bottom: 2px dashed var(--accent);
     background: var(--accent-bg);
     border-radius: 3px;
-    font-weight: 600; font-size: 14px;
+    font-weight: 600; font-size: 0.58em;
     cursor: pointer;
     color: var(--accent);
     transition: all .15s;
     position: relative;
+    vertical-align: baseline;
   }
   .blank-inline:hover { background: #f5e6c8; border-bottom-color: var(--accent-light); }
   .blank-inline.highlight { background: #fce4a8; border-bottom-color: var(--orange); color: var(--orange); }
@@ -508,19 +512,20 @@
 
   .answer-filled {
     font-weight: 700; color: var(--green); display: inline-block;
-    min-width: 52px; text-align: center; padding: 2px 8px; margin: 0 2px;
+    min-width: 52px; text-align: center; padding: 0.1em 0.4em; margin: 0 2px;
     border-bottom: 2px solid var(--green);
     background: var(--green-bg); border-radius: 3px;
+    font-size: 0.58em; vertical-align: baseline;
   }
 
   .category-stats {
     display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
     padding: 10px 14px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); font-size: 13px; align-items: center;
+    border-radius: var(--radius-sm); font-size: var(--font-sm, 21px); align-items: center;
   }
-  .category-stats-label { color: var(--text-3); font-size: 12px; margin-right: 4px; }
+  .category-stats-label { color: var(--text-3); font-size: var(--font-sm, 21px); margin-right: 4px; }
   .category-stats-tag {
-    padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; font-size: var(--font-sm, 21px); font-weight: 600;
     cursor: pointer; transition: all .15s;
   }
   .category-stats-tag:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
@@ -1159,7 +1164,7 @@
     <div class="page" id="page-practice">
       <div class="practice-layout">
         <div class="left-panel">
-          <div class="back-btn" onclick="goHome()">← 返回首页</div>
+          <div class="back-btn" id="practiceBackBtn" onclick="goBack()">← 返回首页</div>
           <div class="source-info">
             <span class="source-tag" id="sourceName">--</span>
             <span class="source-count" id="sourceCount">--</span>
@@ -1396,6 +1401,7 @@ let selectedQuestion = null;
 let passageFontSize = 24;
 let drawerFontSize = 24;
 let showAnswers = false;
+let previousView = null;
 
 const ERROR_BOOK_KEY = 'grammar-error-book';
 let errorBookQuestions = [];
@@ -1624,6 +1630,7 @@ function viewErrorQuestion(id) {
     questions: currentQuestions,
     mode: 'error',
   };
+  previousView = { page: 'error-book' };
   switchPage('practice');
   renderExam();
 }
@@ -1824,6 +1831,7 @@ function viewPrepPassage(id) {
     mode: 'prep',
     passage: p.passage,
   };
+  previousView = { page: 'lesson-prep' };
   switchPage('practice');
   renderExam();
 }
@@ -2545,15 +2553,50 @@ function switchPage(page) {
   document.getElementById('page-' + page).classList.add('active');
   var navBtn = document.querySelector('[data-page="' + page + '"]');
   if (navBtn) navBtn.classList.add('active');
+  if (page === 'practice') updateBackButton();
   if (page === 'home') navigateHome('cards');
   if (page === 'error-book') renderErrorBook();
   if (page === 'lesson-prep') renderPrepList();
   if (page === 'admin') renderAdminPage();
 }
 
+function updateBackButton() {
+  var btn = document.getElementById('practiceBackBtn');
+  if (!btn) return;
+  if (!previousView) {
+    btn.textContent = '← 返回首页';
+    return;
+  }
+  if (previousView.page === 'home') {
+    if (previousView.view === 'exams') btn.textContent = '← 返回套卷列表';
+    else if (previousView.view === 'categories') btn.textContent = '← 返回考点列表';
+    else btn.textContent = '← 返回首页';
+  } else if (previousView.page === 'error-book') {
+    btn.textContent = '← 返回错题本';
+  } else if (previousView.page === 'lesson-prep') {
+    btn.textContent = '← 返回备课资料';
+  } else {
+    btn.textContent = '← 返回首页';
+  }
+}
+
 function goHome() {
   switchPage('home');
   navigateHome('cards');
+}
+
+function goBack() {
+  if (!previousView) {
+    goHome();
+    return;
+  }
+  if (previousView.page === 'home') {
+    switchPage('home');
+    navigateHome(previousView.view || 'cards');
+  } else {
+    switchPage(previousView.page);
+  }
+  previousView = null;
 }
 
 function navigateHome(view) {
@@ -2565,14 +2608,11 @@ function navigateHome(view) {
 function adjustFont(target, delta) {
   if (target === 'passage') {
     passageFontSize = Math.max(12, Math.min(48, passageFontSize + delta));
-    var onPractice = document.getElementById('page-practice').classList.contains('active');
-    if (onPractice) {
-      document.documentElement.style.setProperty('--passage-font-size', passageFontSize + 'px');
-    } else {
-      document.documentElement.style.setProperty('--font-base', passageFontSize + 'px');
-      document.documentElement.style.setProperty('--font-lg', (passageFontSize + 1) + 'px');
-      document.documentElement.style.setProperty('--font-sm', (passageFontSize - 3) + 'px');
-    }
+    // 更新原文/标题字号（影响所有页面的文字大小）
+    document.documentElement.style.setProperty('--passage-font-size', passageFontSize + 'px');
+    document.documentElement.style.setProperty('--font-base', passageFontSize + 'px');
+    document.documentElement.style.setProperty('--font-lg', (passageFontSize + 1) + 'px');
+    document.documentElement.style.setProperty('--font-sm', (passageFontSize - 3) + 'px');
     document.getElementById('passageFontVal').textContent = passageFontSize + 'px';
   } else {
     drawerFontSize = Math.max(12, Math.min(48, drawerFontSize + delta));
@@ -2615,6 +2655,7 @@ function startByCategory(cat) {
     mode: 'category',
     category: cat,
   };
+  previousView = { page: 'home', view: 'categories' };
   switchPage('practice');
   renderExam();
 }
@@ -2648,6 +2689,7 @@ function startByExam(examId) {
     mode: 'exam',
     passage: ex.passage,
   };
+  previousView = { page: 'home', view: 'exams' };
   switchPage('practice');
   renderExam();
 }
@@ -2676,7 +2718,7 @@ function renderExam() {
   }
 
   if (currentExam.mode === 'category') {
-    var html = '<div style="font-size:14px;color:var(--text-2);margin-bottom:12px;">' +
+    var html = '<div class="cat-hint">' +
                '同考点共 ' + currentQuestions.length + ' 题，按套卷顺序排列。点击 ' +
                '<span class="blank-hl">空格序号</span> 查看解析。</div>';
     var byExam = {};
@@ -2685,7 +2727,7 @@ function renderExam() {
     });
     Object.keys(byExam).forEach(function(examId) {
       html += '<div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);">'
-            + '<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;">' + examId + '</div>';
+            + '<div class="cat-exam-title">' + examId + '</div>';
       byExam[examId].forEach(function(item) {
         var q = item.q;
         var sent = extractSentence(q.passage, q.no) || ('___' + q.no + '___');
@@ -2696,7 +2738,7 @@ function renderExam() {
           sent = sent.replace('___' + q.no + '___',
             '<span class="blank-inline" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>');
         }
-        html += '<div style="margin:6px 0;font-size:14px;line-height:1.8;">' + sent + '</div>';
+        html += '<div class="cat-sentence">' + sent + '</div>';
       });
       html += '</div>';
     });
