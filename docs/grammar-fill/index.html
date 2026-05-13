@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>语法填空 · 课堂助手</title>
+<title>语法填空 · Lesson Snippets</title>
 <style>
   :root {
     --bg: #f5f3ef;
@@ -1123,7 +1123,29 @@
 <script>
   window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
   window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
+  // 同步检测 session，避免跨页跳转时闪欢迎页
+  (function(){
+    try {
+      var raw = localStorage.getItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token');
+      if (raw) {
+        var d = JSON.parse(raw);
+        var token = d && (d.access_token || (d.currentSession && d.currentSession.access_token));
+        var exp   = d && (d.expires_at   || (d.currentSession && d.currentSession.expires_at));
+        if (token && (!exp || exp * 1000 > Date.now())) {
+          document.documentElement.classList.add('has-session');
+        }
+      }
+    } catch(e) {}
+  })();
 </script>
+<style>
+  /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
+  html.has-session body.guest #page-welcome { display: none !important; }
+  html.has-session body.guest #page-home    { display: block !important; }
+  html.has-session body.guest .nav,
+  html.has-session body.guest .header-font-ctrl,
+  html.has-session body.guest #syncStatus { display: flex !important; }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script>
@@ -1333,7 +1355,7 @@
 
 <div class="app-container">
   <header>
-    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 课堂助手</div>
+    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
@@ -1442,7 +1464,7 @@
     <div class="page" id="page-welcome">
       <div class="welcome-hero">
         <div class="welcome-eyebrow">EARLY ACCESS · v0.1</div>
-        <h1>一名英语新老师做的<br><span class="gradient-text">课堂小工具</span></h1>
+        <h1>Lesson<br><span class="gradient-text">Snippets</span></h1>
         <p class="welcome-sub">
           先从最常讲的「语法填空」开始，按考点分类、跨卷迁移、错题归档。<br>
           后面会慢慢加上完形、七选五、阅读、读后续写、应用文。
@@ -2467,11 +2489,9 @@ function renderPrepList() {
 // ========== Word 文档上传 + DeepSeek AI 解析 ==========
 
 var _docxImportTarget = 'prep'; // 'prep' | 'error'
-var _aiAbortController = null;
 
 function handleDocxUpload() {
   _docxImportTarget = 'prep';
-  document.getElementById('docxFileInput').value = '';
   document.getElementById('docxFileInput').click();
 }
 
@@ -2484,10 +2504,13 @@ function showAiOverlay(title, desc) {
   document.getElementById('aiOverlay').style.display = 'flex';
   document.getElementById('aiOverlayTitle').textContent = title || '';
   document.getElementById('aiOverlayDesc').textContent = desc || '';
+  setAiProgress(0);
+  renderAiStages([]);
 }
 
 function hideAiOverlay() {
   document.getElementById('aiOverlay').style.display = 'none';
+  stopAiDrift();
 }
 
 var _abortAiParse = false;
@@ -2497,11 +2520,58 @@ function cancelAiParse() {
   hideAiOverlay();
 }
 
+// ────────── AI 解析进度条 ──────────
+function setAiProgress(pct) {
+  var bar = document.getElementById('aiProgressBar');
+  if (bar) bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+}
+
+function renderAiStages(stages) {
+  // stages: [{label, status: 'done'|'doing'|'todo'}]
+  var el = document.getElementById('aiStageList');
+  if (!el) return;
+  el.innerHTML = stages.map(function(s) {
+    var icon = s.status === 'done' ? '<span style="color:var(--green);">✓</span>'
+             : s.status === 'doing' ? '<span style="display:inline-block;width:10px;height:10px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-right:2px;"></span>'
+             : '<span style="color:var(--text-3);">○</span>';
+    var color = s.status === 'todo' ? 'var(--text-3)' : 'var(--text)';
+    return '<div style="color:' + color + ';">' + icon + ' ' + s.label + '</div>';
+  }).join('');
+}
+
+var _aiDriftTimer = null;
+var _aiDriftTarget = 0;
+function startAiDrift(from, to, durationMs) {
+  stopAiDrift();
+  _aiDriftTarget = to;
+  var cur = from;
+  setAiProgress(cur);
+  var step = (to - from) / (durationMs / 200);
+  _aiDriftTimer = setInterval(function() {
+    cur += step;
+    if (cur >= _aiDriftTarget) {
+      cur = _aiDriftTarget;
+      stopAiDrift();
+    }
+    setAiProgress(cur);
+  }, 200);
+}
+function stopAiDrift() {
+  if (_aiDriftTimer) { clearInterval(_aiDriftTimer); _aiDriftTimer = null; }
+}
+
 async function processDocxFile(input) {
   var file = input.files[0];
   if (!file) { input.value = ''; return; }
 
-  showAiOverlay('正在提取 Word 文本…', '请稍候');
+  showAiOverlay('正在提取 Word 文本…', '');
+  renderAiStages([
+    { label: '提取 Word 文本', status: 'doing' },
+    { label: '上传到云端 AI', status: 'todo' },
+    { label: 'AI 正在解析（10–30 秒）', status: 'todo' },
+    { label: '整理结果并入库', status: 'todo' },
+  ]);
+  setAiProgress(5);
 
   try {
     var arrayBuffer = await file.arrayBuffer();
@@ -2512,13 +2582,13 @@ async function processDocxFile(input) {
       throw new Error('Word 文档内容太短或无法识别（仅支持 .docx 格式）。\n请确保文档包含完整的英文段落。');
     }
 
-    hideAiOverlay();
-
-    if (!confirm(
-      '已成功提取 ' + text.length + ' 个字符。\n\n' +
-      '预览：\n' + text.substring(0, 300) + (text.length > 300 ? '\n…' : '') +
-      '\n\n是否发送给 DeepSeek AI 进行智能解析？（约需 10-30 秒）'
-    )) { input.value = ''; return; }
+    setAiProgress(15);
+    renderAiStages([
+      { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
+      { label: '上传到云端 AI', status: 'doing' },
+      { label: 'AI 正在解析（10–30 秒）', status: 'todo' },
+      { label: '整理结果并入库', status: 'todo' },
+    ]);
 
     await parseWithDeepSeek(text);
 
@@ -2532,7 +2602,6 @@ async function processDocxFile(input) {
 
 async function parseWithDeepSeek(text) {
   _abortAiParse = false;
-  showAiOverlay('AI 正在智能解析…', '正在识别标题、空格位置、答案和考点分类（预计 10-30 秒）');
 
   try {
     var session = window._sb ? await window._sb.auth.getSession() : null;
@@ -2541,8 +2610,17 @@ async function parseWithDeepSeek(text) {
       alert('请先登录后再使用 AI 解析功能。');
       return;
     }
-
     var token = session.data.session.access_token;
+
+    // 进度阶段 2 -> 3：上传完成，AI 思考中（慢慢推进度条到 85%）
+    setAiProgress(30);
+    renderAiStages([
+      { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
+      { label: '上传到云端 AI', status: 'done' },
+      { label: 'AI 正在解析（10–30 秒）', status: 'doing' },
+      { label: '整理结果并入库', status: 'todo' },
+    ]);
+    startAiDrift(30, 85, 25000);
 
     var res = await fetch(
       window.SUPABASE_URL + '/functions/v1/deepseek-parse',
@@ -2556,44 +2634,94 @@ async function parseWithDeepSeek(text) {
       }
     );
 
+    stopAiDrift();
     if (_abortAiParse) { hideAiOverlay(); return; }
 
     if (!res.ok) {
       var errData;
       try { errData = await res.json(); } catch (e) { errData = {}; }
-      throw new Error(errData.error || ('服务端错误 HTTP ' + res.status));
+      var msg = errData.error || ('服务端错误 HTTP ' + res.status);
+      if (errData.rawContent) msg += '\n\nAI 原始返回：\n' + errData.rawContent.substring(0, 300);
+      throw new Error(msg);
     }
+
+    setAiProgress(90);
+    renderAiStages([
+      { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
+      { label: '上传到云端 AI', status: 'done' },
+      { label: 'AI 正在解析（10–30 秒）', status: 'done' },
+      { label: '整理结果并入库', status: 'doing' },
+    ]);
 
     var parsed = await res.json();
-    hideAiOverlay();
 
-    if (!parsed.title || !parsed.passage || !Array.isArray(parsed.blanks)) {
-      throw new Error('AI 返回的数据格式不正确');
+    // 兼容多种返回格式：
+    // a) { passages: [{title, passage, blanks}, ...] }     新版多篇
+    // b) { title, passage, blanks }                         旧版单篇
+    // c) [{...}, ...]                                       裸数组
+    var passagesArr = [];
+    if (Array.isArray(parsed)) {
+      passagesArr = parsed;
+    } else if (parsed && Array.isArray(parsed.passages)) {
+      passagesArr = parsed.passages;
+    } else if (parsed && parsed.passage && Array.isArray(parsed.blanks)) {
+      passagesArr = [parsed];
+    } else {
+      throw new Error('AI 返回的数据格式不正确：\n' + JSON.stringify(parsed).substring(0, 300));
     }
 
-    var blankSummary = parsed.blanks.map(function(b) {
-      return '空' + b.no + ': ' + b.answer + ' [' + (CATEGORY_MAP[b.category] || b.category) + ']';
-    }).join('\n');
+    // 每篇兜底字段
+    passagesArr = passagesArr.filter(function(p) {
+      return p && (p.passage || (Array.isArray(p.blanks) && p.blanks.length));
+    }).map(function(p, i) {
+      return {
+        title: (p.title && String(p.title).trim()) || ('未命名 ' + (i + 1)),
+        passage: p.passage || '',
+        blanks: Array.isArray(p.blanks) ? p.blanks : []
+      };
+    });
+
+    if (passagesArr.length === 0) {
+      throw new Error('AI 没有识别出任何题目');
+    }
+
+    setAiProgress(100);
+    renderAiStages([
+      { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
+      { label: '上传到云端 AI', status: 'done' },
+      { label: 'AI 正在解析', status: 'done' },
+      { label: '整理结果并入库（共 ' + passagesArr.length + ' 篇）', status: 'done' },
+    ]);
+    setTimeout(hideAiOverlay, 400);
 
     var isErrorBook = (_docxImportTarget === 'error');
     var targetLabel = isErrorBook ? '错题本' : '备课资料';
 
-    if (confirm(
-      'AI 解析完成！\n\n' +
-      '标题：' + parsed.title + '\n' +
-      '空格数：' + parsed.blanks.length + '\n\n' +
-      blankSummary.substring(0, 500) +
-      (blankSummary.length > 500 ? '\n…' : '') +
+    var summary = passagesArr.map(function(p, i) {
+      return (i + 1) + '. 《' + p.title + '》· ' + p.blanks.length + ' 空';
+    }).join('\n');
+
+    if (!confirm(
+      'AI 解析完成！识别到 ' + passagesArr.length + ' 篇：\n\n' +
+      summary +
       '\n\n确认导入到' + targetLabel + '？'
-    )) {
-      if (isErrorBook) {
-        importDeepSeekResultToErrorBook(parsed);
-      } else {
-        importDeepSeekResult(parsed);
-      }
-    }
+    )) return;
+
+    var imported = 0;
+    passagesArr.forEach(function(p) {
+      if (isErrorBook) importDeepSeekResultToErrorBook(p, true);
+      else             importDeepSeekResult(p, true);
+      imported++;
+    });
+
+    // 统一渲染（保存包装器会自动同步到云端，无需再单独调 uploadLocalToCloud）
+    if (isErrorBook) { renderErrorBook(); renderBankStat(); }
+    else             { renderPrepList(); renderBankStat(); }
+
+    alert('已导入 ' + imported + ' 篇 ' + targetLabel + '。');
 
   } catch (err) {
+    stopAiDrift();
     hideAiOverlay();
     console.error('AI 解析失败：', err);
 
@@ -2601,19 +2729,19 @@ async function parseWithDeepSeek(text) {
 
     if (confirm(
       'AI 解析失败：' + (err.message || String(err)) + '\n\n' +
-      '是否将提取的原始文本放入批量导入框，以便手动整理？'
+      '是否将提取的原始文本放入批量导入框，方便手动整理？'
     )) {
       showRawTextFallback(text);
     }
   }
 }
 
-function importDeepSeekResult(result) {
+function importDeepSeekResult(result, silent) {
   prepPassages.unshift({
-    id: 'prep_' + Date.now(),
+    id: 'prep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
     title: result.title || '无标题',
     passage: result.passage,
-    blanks: result.blanks.map(function(b) {
+    blanks: (result.blanks || []).map(function(b) {
       return {
         no: b.no,
         answer: b.answer || '?',
@@ -2625,21 +2753,22 @@ function importDeepSeekResult(result) {
   });
 
   savePrepPassages();
+  if (silent) return;
 
   renderPrepList();
   renderBankStat();
-  alert('成功导入：' + result.title + '\n共 ' + result.blanks.length + ' 个空格');
+  alert('成功导入：' + result.title + '\n共 ' + (result.blanks || []).length + ' 个空格');
 
   uploadLocalToCloud().catch(function(e) {
     console.warn('云端同步失败，已保存到本地：', e);
   });
 }
 
-function importDeepSeekResultToErrorBook(result) {
+function importDeepSeekResultToErrorBook(result, silent) {
   var count = 0;
-  result.blanks.forEach(function(b) {
+  (result.blanks || []).forEach(function(b) {
     errorBookQuestions.unshift({
-      id: 'err_' + Date.now() + '_' + count,
+      id: 'err_' + Date.now() + '_' + count + '_' + Math.random().toString(36).slice(2, 6),
       passage: result.passage,
       answer: b.answer || '?',
       category: b.category || 'word',
@@ -2657,6 +2786,7 @@ function importDeepSeekResultToErrorBook(result) {
   });
 
   saveErrorBook();
+  if (silent) return;
 
   renderErrorBook();
   renderBankStat();
@@ -2740,8 +2870,13 @@ function init() {
 
   // ========== 云同步启动 ==========
   if (window.cloud && window.cloud.isConfigured()) {
-    // 默认 guest 状态显示欢迎页；cloud.init() 后如果有 session 会自动切换
-    switchPage('welcome');
+    // 如果同步检测到 session，跳过欢迎页直接进 home，避免闪烁；否则默认 guest 显示欢迎页
+    if (document.documentElement.classList.contains('has-session')) {
+      document.body.classList.remove('guest');
+      switchPage('home');
+    } else {
+      switchPage('welcome');
+    }
     window.cloud.onChange(onCloudStateChange);
     window.cloud.init();
   } else {
@@ -2769,10 +2904,12 @@ async function onCloudStateChange(state) {
 
   // 1. 未登录 → 欢迎页
   if (!state.user) {
+    document.documentElement.classList.remove('has-session');
     document.body.classList.remove('pending');
     switchPage('welcome');
     return;
   }
+  document.documentElement.classList.add('has-session');
 
   // 2. 已登录但待审批 → 等待审批页
   if (!state.approved) {
@@ -4066,7 +4203,14 @@ init();
     <div class="ai-card-spinner"></div>
     <div class="ai-card-title" id="aiOverlayTitle">AI 正在解析…</div>
     <div class="ai-card-desc" id="aiOverlayDesc">预计 10-30 秒</div>
-    <button class="ai-card-cancel" onclick="cancelAiParse()">取消</button>
+
+    <!-- 进度条 -->
+    <div style="margin-top:18px;background:var(--surface-3);height:6px;border-radius:3px;overflow:hidden;">
+      <div id="aiProgressBar" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-light));border-radius:3px;transition:width .6s ease;"></div>
+    </div>
+    <div id="aiStageList" style="margin-top:14px;font-size:12px;color:var(--text-2);text-align:left;line-height:1.85;"></div>
+
+    <button class="ai-card-cancel" onclick="cancelAiParse()" style="margin-top:18px;">取消</button>
   </div>
 </div>
 </body>
