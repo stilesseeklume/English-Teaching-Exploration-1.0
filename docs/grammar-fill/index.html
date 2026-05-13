@@ -2467,9 +2467,11 @@ function renderPrepList() {
 // ========== Word 文档上传 + DeepSeek AI 解析 ==========
 
 var _docxImportTarget = 'prep'; // 'prep' | 'error'
+var _aiAbortController = null;
 
 function handleDocxUpload() {
   _docxImportTarget = 'prep';
+  document.getElementById('docxFileInput').value = '';
   document.getElementById('docxFileInput').click();
 }
 
@@ -2624,15 +2626,13 @@ function importDeepSeekResult(result) {
 
   savePrepPassages();
 
-  if (window.cloud && window.cloud.isConfigured && window.cloud.isConfigured()) {
-    window.cloud.uploadLocalToCloud().catch(function(e) {
-      console.warn('云端同步失败，已保存到本地：', e);
-    });
-  }
-
   renderPrepList();
   renderBankStat();
   alert('成功导入：' + result.title + '\n共 ' + result.blanks.length + ' 个空格');
+
+  uploadLocalToCloud().catch(function(e) {
+    console.warn('云端同步失败，已保存到本地：', e);
+  });
 }
 
 function importDeepSeekResultToErrorBook(result) {
@@ -2658,15 +2658,13 @@ function importDeepSeekResultToErrorBook(result) {
 
   saveErrorBook();
 
-  if (window.cloud && window.cloud.isConfigured && window.cloud.isConfigured()) {
-    window.cloud.uploadLocalToCloud().catch(function(e) {
-      console.warn('云端同步失败，已保存到本地：', e);
-    });
-  }
-
   renderErrorBook();
   renderBankStat();
   alert('成功导入 ' + count + ' 道错题到错题本');
+
+  uploadLocalToCloud().catch(function(e) {
+    console.warn('云端同步失败，已保存到本地：', e);
+  });
 }
 
 function showRawTextFallback(text) {
