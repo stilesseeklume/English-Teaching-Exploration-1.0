@@ -63,21 +63,124 @@ git push
 
 ## ⚙ 可选配置
 
-### 关掉邮件验证（个人/小团队，省事）
+### 关掉邮箱验证 + 开启审批注册
 
-注册默认要点验证邮件链接才能登录。如果觉得麻烦：
+国内邮箱收不到 Supabase 的验证邮件，需要关掉邮箱验证并开启管理员审批：
 
 1. Supabase → **Authentication** → **Providers** → **Email**
 2. 关掉 **Confirm email**
 3. 保存
+4. 然后跑下面的 SQL（在 SQL Editor 里粘贴执行）来安装审批系统：
 
-### 不想随便谁都能注册？
+```sql
+-- 如果你还没有跑过 setup.sql，直接跑完整的 setup.sql 即可。
+-- 如果你已经跑过 setup.sql，跑下面这一段来追加审批系统：
 
-如果决定只让信任的人用：
+create table if not exists public.profiles (
+  user_id     uuid primary key references auth.users(id) on delete cascade,
+  approved    boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+alter table public.profiles enable row level security;
 
-1. Supabase → **Authentication** → **Providers** → **Email**
-2. 关掉 **Enable Email Signups**
-3. 你想加新人的时候，在 Supabase → **Authentication** → **Users** → **Add user** 手动创建
+drop policy if exists profiles_select on public.profiles;
+create policy profiles_select on public.profiles
+  for select using (auth.uid() = user_id or public.is_admin());
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (user_id, approved)
+  values (new.id, coalesce(
+    new.email in ('liuzhenlzstiles@icloud.com'),
+    false
+  ));
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+create or replace function public.check_approved()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare result boolean;
+begin
+  select p.approved into result from public.profiles p where p.user_id = auth.uid();
+  return coalesce(result, false);
+end;
+$$;
+grant execute on function public.check_approved() to authenticated;
+
+create or replace function public.admin_approve_user(target_user uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then raise exception 'forbidden: admin only'; end if;
+  update public.profiles set approved = true where user_id = target_user;
+end;
+$$;
+grant execute on function public.admin_approve_user(uuid) to authenticated;
+
+create or replace function public.admin_reject_user(target_user uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then raise exception 'forbidden: admin only'; end if;
+  delete from auth.users where id = target_user;
+end;
+$$;
+grant execute on function public.admin_reject_user(uuid) to authenticated;
+
+create or replace function public.admin_list_users()
+returns table (
+  id uuid, email text, created_at timestamptz, last_sign_in_at timestamptz,
+  approved boolean, error_count bigint, prep_count bigint
+)
+language plpgsql security definer
+set search_path = public, auth
+as $$
+begin
+  if not public.is_admin() then raise exception 'forbidden: admin only'; end if;
+  return query
+    select u.id, u.email::text, u.created_at, u.last_sign_in_at,
+      coalesce(p.approved, false),
+      (select count(*) from public.error_book where user_id = u.id),
+      (select count(*) from public.lesson_prep where user_id = u.id)
+    from auth.users u
+    left join public.profiles p on p.user_id = u.id
+    order by u.created_at desc;
+end;
+$$;
+grant execute on function public.admin_list_users() to authenticated;
+
+-- 如果你已经有用户了，把他们的 approved 设为 true：
+insert into public.profiles (user_id, approved)
+  select id, true from auth.users
+  on conflict (user_id) do update set approved = true;
+```
+
+### 审批流程
+
+1. **注册**：用户填写邮箱+密码注册，自动进入「待审批」状态
+2. **管理员审批**：管理员登录后点「👥 管理员」，看到待审批用户，点「通过」或「拒绝」
+3. **用户使用**：审批通过后，用户刷新页面或点「重新检查」即可进入系统
 
 ### 增加管理员
 

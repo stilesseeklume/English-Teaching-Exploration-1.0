@@ -907,14 +907,22 @@
     return state.viewingUserId || (state.user && state.user.id) || null;
   }
 
-  async function signUp(email, password) {
+  async function signUp(username, password) {
     if (!sb) throw new Error('未配置 Supabase');
-    var r = await sb.auth.signUp({ email: email, password: password });
+    // 用邮箱管理员可直接用邮箱登录
+    var email = username + '@u.seeklume.work';
+    var r = await sb.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { username: username } }
+    });
     if (r.error) throw r.error;
     return r.data;
   }
-  async function signIn(email, password) {
+  async function signIn(login, password) {
     if (!sb) throw new Error('未配置 Supabase');
+    // 含 @ 的是邮箱登录（管理员），否则用 username 构造邮箱
+    var email = login.indexOf('@') !== -1 ? login : login + '@u.seeklume.work';
     var r = await sb.auth.signInWithPassword({ email: email, password: password });
     if (r.error) throw r.error;
     return r.data;
@@ -1050,11 +1058,11 @@
         </div>
         <div id="authSignupHint" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.55;">
           📝 <b>注册后需管理员审批</b><br>
-          填写邮箱和密码即可注册，注册后<b>等待管理员审批</b>通过即可登录使用。
+          选择一个喜欢的用户名和密码即可注册，<b>等待管理员审批</b>通过即可登录使用。
         </div>
         <div style="margin-bottom:12px;">
-          <label style="font-size:12px;color:var(--text-2);">邮箱</label>
-          <input id="authEmail" type="email" autocomplete="email" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <label style="font-size:12px;color:var(--text-2);">用户名</label>
+          <input id="authUsername" type="text" autocomplete="username" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
         </div>
         <div style="margin-bottom:16px;">
           <label style="font-size:12px;color:var(--text-2);">密码（≥ 6 位）</label>
@@ -2252,7 +2260,7 @@ async function onCloudStateChange(state) {
   // 待审批状态控制
   if (state.user && !state.approved) {
     document.body.classList.add('pending');
-    document.getElementById('pendingEmail').textContent = state.user.email || '';
+    document.getElementById('pendingEmail').textContent = getUserDisplayName(state.user);
     return;
   }
   document.body.classList.remove('pending');
@@ -2326,11 +2334,11 @@ function renderUserPill(state) {
     return;
   }
   if (state.user) {
-    var email = state.user.email || '';
-    var short = email.length > 22 ? email.slice(0, 20) + '…' : email;
+    var name = getUserDisplayName(state.user);
+    var short = name.length > 20 ? name.slice(0, 18) + '…' : name;
     var adminTag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
     var pendingTag = !state.approved ? '<span style="background:var(--orange);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">待审批</span>' : '';
-    el.innerHTML = adminTag + pendingTag + '<span title="' + email + '" style="color:var(--text);">' + short + '</span>'
+    el.innerHTML = adminTag + pendingTag + '<span title="' + name + '" style="color:var(--text);">' + short + '</span>'
       + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
   } else {
     el.innerHTML = '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
@@ -2344,11 +2352,12 @@ function openAuthModal(mode) {
   document.getElementById('authSuccessPanel').style.display = 'none';
   document.getElementById('authError').style.display = 'none';
   document.getElementById('authInfo').style.display = 'none';
-  document.getElementById('authEmail').value = '';
+  var nameEl = document.getElementById('authUsername');
+  if (nameEl) { nameEl.value = ''; }
   document.getElementById('authPassword').value = '';
   applyAuthMode();
   document.getElementById('authModal').style.display = 'flex';
-  setTimeout(function(){ document.getElementById('authEmail').focus(); }, 50);
+  setTimeout(function(){ var f = document.getElementById('authUsername'); if (f) f.focus(); }, 50);
 }
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 function toggleAuthMode() {
@@ -2376,42 +2385,44 @@ function authBackToSignin() {
 }
 
 async function submitAuth() {
-  var email = document.getElementById('authEmail').value.trim();
+  var username = document.getElementById('authUsername').value.trim();
   var pwd = document.getElementById('authPassword').value;
   var errEl = document.getElementById('authError');
   var infoEl = document.getElementById('authInfo');
   errEl.style.display = 'none'; infoEl.style.display = 'none';
-  if (!email || !pwd) { errEl.innerHTML = '邮箱和密码不能为空'; errEl.style.display = 'block'; return; }
+  if (!username || !pwd) { errEl.innerHTML = '用户名和密码不能为空'; errEl.style.display = 'block'; return; }
+  if (_authMode === 'signup' && username.indexOf('@') !== -1) {
+    errEl.innerHTML = '用户名不能包含 @ 符号'; errEl.style.display = 'block'; return;
+  }
   if (pwd.length < 6) { errEl.innerHTML = '密码至少 6 位'; errEl.style.display = 'block'; return; }
   var btn = document.getElementById('authPrimaryBtn');
   btn.disabled = true; var oldText = btn.textContent; btn.textContent = '处理中…';
   try {
     if (_authMode === 'signin') {
-      await window.cloud.signIn(email, pwd);
+      await window.cloud.signIn(username, pwd);
       closeAuthModal();
     } else {
-      var r = await window.cloud.signUp(email, pwd);
+      var r = await window.cloud.signUp(username, pwd);
       if (r && r.session) {
-        // 验证邮件已关闭：直接登录成功
+        // 邮箱验证已关闭：直接登录成功
         closeAuthModal();
       } else {
-        // 需要邮箱验证 → 切到成功态面板
-        document.getElementById('authSuccessEmail').textContent = email;
+        // 需要邮箱验证 → 切到成功态面板（一般不会走到这里）
+        document.getElementById('authSuccessEmail').textContent = username;
         document.getElementById('authFormPanel').style.display = 'none';
         document.getElementById('authSuccessPanel').style.display = '';
       }
     }
   } catch (e) {
     var msg = (e.message || e) + '';
-    // 友好化常见错误
     if (/email not confirmed/i.test(msg)) {
-      errEl.innerHTML = '📧 这个邮箱还没验证。<br>请去 <b>' + email + '</b> 的收件箱（包括<b>垃圾邮件</b>）找验证邮件，点链接后再来登录。';
+      errEl.innerHTML = '邮箱还没验证，请联系管理员。';
     } else if (/invalid login credentials/i.test(msg)) {
-      errEl.innerHTML = '邮箱或密码错误。注册的话请先切到「注册」。';
+      errEl.innerHTML = '用户名或密码错误。注册的话请先切到「注册」。';
     } else if (/user already registered/i.test(msg)) {
-      errEl.innerHTML = '这个邮箱已经注册过了，去登录吧。';
+      errEl.innerHTML = '这个用户名已经被注册了，换一个试试。';
     } else if (/password should be at least/i.test(msg)) {
-      errEl.innerHTML = '密码太短（Supabase 要求至少 6 位）';
+      errEl.innerHTML = '密码太短（至少 6 位）';
     } else if (/rate limit/i.test(msg)) {
       errEl.innerHTML = '请求太频繁，过 1 分钟再试。';
     } else {
@@ -2574,15 +2585,16 @@ async function renderAdminPage() {
     var approvedBadge = u.approved
       ? '<span style="color:var(--green);font-weight:600;font-size:12px;">✅ 已通过</span>'
       : '<span style="color:var(--orange);font-weight:600;font-size:12px;">⏳ 待审批</span>';
+    var displayName = u.username || (u.email || '').split('@')[0] || '(无用户名)';
     var actionBtns = '';
     if (!u.approved) {
       actionBtns = '<div style="margin-top:8px;display:flex;gap:8px;">'
-        + '<button onclick="event.stopPropagation();adminApproveUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✓ 通过</button>'
-        + '<button onclick="event.stopPropagation();adminRejectUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ 拒绝</button>'
+        + '<button onclick="event.stopPropagation();adminApproveUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✓ 通过</button>'
+        + '<button onclick="event.stopPropagation();adminRejectUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ 拒绝</button>'
         + '</div>';
     }
-    html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')">'
-          + '<div class="prep-list-title">' + (u.email || '(无邮箱)') + ' ' + approvedBadge + '</div>'
+    html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')">'
+          + '<div class="prep-list-title">' + displayName + ' ' + approvedBadge + '</div>'
           + '<div class="prep-list-meta">'
           + '<span>注册：' + created + '</span>'
           + '<span>最近登录：' + signin + '</span>'
@@ -2718,6 +2730,11 @@ async function checkApprovalStatus() {
   if (!window.cloud) return;
   _lastCloudUser = null;
   await window.cloud.checkApproved();
+}
+
+function getUserDisplayName(user) {
+  if (!user) return '';
+  return (user.user_metadata && user.user_metadata.username) || (user.email || '').split('@')[0] || '';
 }
 
 function goHome() {
