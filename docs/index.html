@@ -3,133 +3,695 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>英语教学系统</title>
+<title>课堂助手 · 英语教学小工具</title>
 <style>
   :root {
     --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface-2: #faf8f5;
+    --surface-3: #f3f0eb;
+    --border: #e5e0d9;
     --text: #2c2416;
     --text-2: #6b5e4a;
+    --text-3: #9b8d7a;
     --accent: #8b6914;
+    --accent-light: #b8942f;
     --accent-bg: #fdf6e8;
-    --border: #e5e0d9;
+    --green: #2d6a4f;
+    --green-bg: #edf7f1;
+    --red: #c1121f;
+    --orange: #bc6c25;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
   }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
   }
-  .container { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
   header {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid rgba(229,224,217,0.6);
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 52px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: -.3px; user-select: none; }
+  .header-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-2); }
+  .header-btn {
+    padding: 6px 16px; border: none; border-radius: 6px; font-size: 13px;
+    font-family: inherit; cursor: pointer; font-weight: 600;
+    transition: background .15s, transform .12s;
+  }
+  .header-btn.primary { background: var(--accent); color: #fff; }
+  .header-btn.primary:hover { background: var(--accent-light); }
+  .header-btn.ghost { background: var(--surface-3); color: var(--text-2); }
+  .header-btn.ghost:hover { background: var(--border); }
+
+  main { max-width: 1020px; margin: 0 auto; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+
+  /* ==== Hero ==== */
+  .hero {
     text-align: center;
-    padding: 64px 0 48px;
+    padding: 80px 24px 56px;
+    background:
+      radial-gradient(ellipse at top left, rgba(184,148,47,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at top right, rgba(45,106,79,0.08) 0%, transparent 55%),
+      linear-gradient(180deg, var(--accent-bg) 0%, transparent 100%);
+    border-radius: 16px;
+    margin-bottom: 48px;
+    position: relative; overflow: hidden;
   }
-  header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: var(--text);
-    margin-bottom: 8px;
+  .eyebrow {
+    display: inline-block; font-size: 11px; letter-spacing: 2px;
+    color: var(--accent); background: rgba(255,255,255,0.7);
+    padding: 6px 14px; border-radius: 100px;
+    border: 1px solid rgba(184,148,47,0.3);
+    margin-bottom: 24px; font-weight: 600;
   }
-  header p {
-    color: var(--text-2);
-    font-size: 1rem;
+  .hero h1 {
+    font-size: 44px; color: var(--text); margin-bottom: 18px;
+    letter-spacing: -1px; line-height: 1.2; font-weight: 700;
   }
-  .modules {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent) 0%, #b8942f 50%, var(--green) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p.sub {
+    font-size: 17px; color: var(--text-2); max-width: 620px;
+    margin: 0 auto 36px; line-height: 1.75;
+  }
+  .cta { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    padding: 13px 32px; border: 1px solid var(--border); border-radius: 100px;
+    font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: transform .15s, box-shadow .2s, background .15s, border-color .15s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,105,20,0.18); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 12px rgba(139,105,20,0.25);
+  }
+  .btn.primary:hover { box-shadow: 0 8px 28px rgba(139,105,20,0.35); }
+  .btn.secondary { background: var(--surface); color: var(--text); }
+  .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ==== 段落 ==== */
+  .section { margin-bottom: 56px; }
+  .section h2 { font-size: 24px; color: var(--text); margin-bottom: 8px; font-weight: 700; letter-spacing: -.3px; }
+  .section .sub { font-size: 14px; color: var(--text-3); margin-bottom: 22px; line-height: 1.7; }
+
+  /* ==== 功能卡片 ==== */
+  .features {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+  }
+  .feature {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px;
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+  }
+  .feature:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.06); border-color: var(--accent-light); }
+  .feature-icon {
+    display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center;
+    background: var(--accent-bg); border-radius: 10px; font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .feature h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .feature p { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+
+  /* ==== 模块卡（登录后才看见）==== */
+  .modules-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
   }
   .module-card {
-    display: block;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px 28px;
-    text-decoration: none;
-    color: var(--text);
-    transition: box-shadow 0.15s, border-color 0.15s;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px;
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    position: relative; text-decoration: none; color: inherit; display: block;
   }
-  .module-card:hover {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  .module-card.available:hover {
+    transform: translateY(-3px); box-shadow: 0 16px 36px rgba(0,0,0,0.08);
     border-color: var(--accent);
   }
-  .module-card h2 {
-    font-size: 1.15rem;
-    font-weight: 600;
-    margin-bottom: 6px;
+  .module-card.coming { opacity: 0.55; cursor: not-allowed; }
+  .module-badge {
+    position: absolute; top: 16px; right: 16px;
+    font-size: 10px; letter-spacing: 1px; padding: 3px 9px;
+    border-radius: 100px; text-transform: uppercase; font-weight: 700;
   }
-  .module-card .desc {
-    font-size: 0.9rem;
-    color: var(--text-2);
-    line-height: 1.5;
+  .module-badge.live { background: var(--green-bg); color: var(--green); }
+  .module-badge.soon { background: var(--surface-3); color: var(--text-3); }
+  .module-icon {
+    display: inline-flex; width: 56px; height: 56px; align-items: center; justify-content: center;
+    background: var(--accent-bg); border-radius: 14px; font-size: 32px;
+    margin-bottom: 14px;
   }
-  .module-card .tag {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 2px 10px;
-    font-size: 0.8rem;
-    background: var(--accent-bg);
-    color: var(--accent);
-    border-radius: 4px;
+  .module-card.coming .module-icon { background: var(--surface-3); }
+  .module-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.2px; }
+  .module-card p { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+  .module-meta { font-size: 12px; color: var(--text-3); margin-top: 8px; }
+
+  /* ==== 三步上手 ==== */
+  .steps { list-style: none; counter-reset: step; padding: 0; }
+  .steps li {
+    counter-increment: step; padding: 16px 16px 16px 64px;
+    margin-bottom: 12px; position: relative;
+    font-size: 14px; color: var(--text-2); line-height: 1.75;
   }
-  .coming-soon {
-    opacity: 0.5;
-    pointer-events: none;
+  .steps li b { color: var(--text); }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 12px;
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: #fff; border-radius: 50%; text-align: center; line-height: 32px;
+    font-size: 14px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(139,105,20,0.25);
   }
-  footer {
-    text-align: center;
-    margin-top: 64px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    color: var(--text-2);
-    font-size: 0.85rem;
+
+  /* ==== 作者私语 + 早期版本 ==== */
+  .author {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 30px; margin-bottom: 48px; position: relative;
+  }
+  .author::before { content: '✦'; position: absolute; top: 20px; right: 24px; color: var(--accent-light); font-size: 24px; opacity: 0.5; }
+  .author h3 { font-size: 16px; color: var(--text); margin-bottom: 12px; font-weight: 700; }
+  .author p { font-size: 14px; color: var(--text-2); line-height: 1.85; margin-bottom: 10px; }
+  .author p:last-child { margin-bottom: 0; }
+  .author b { color: var(--text); }
+
+  .disclaimer {
+    background: linear-gradient(135deg, var(--accent-bg) 0%, var(--surface-2) 100%);
+    border: 1px solid #d4b884; border-radius: 14px;
+    padding: 24px 28px; margin-bottom: 48px;
+  }
+  .disclaimer h3 { font-size: 16px; color: var(--accent); margin-bottom: 12px; font-weight: 700; }
+  .disclaimer p { font-size: 14px; color: var(--text); line-height: 1.85; margin-bottom: 10px; }
+  .disclaimer ul {
+    list-style: none; padding: 0; margin: 14px 0 4px;
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .disclaimer li {
+    font-size: 13px; color: var(--text); line-height: 1.6;
+    background: var(--surface); padding: 8px 14px; border-radius: 100px; border: 1px solid var(--border);
+  }
+  .disclaimer code { background: transparent; padding: 0; border: 0; font-size: 13px; color: var(--text); }
+  .disclaimer a { color: var(--accent); text-decoration: none; }
+  .disclaimer a:hover { text-decoration: underline; }
+
+  .footer-cta { text-align: center; padding: 24px 0 8px; }
+  .footer-note { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 36px; line-height: 1.7; }
+
+  /* ==== 模态框 ==== */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 1000;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-lg);
+    width: 420px; max-width: 100%; padding: 28px;
+    animation: fadeIn .25s ease;
+  }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .modal-head h3 { font-size: 18px; font-weight: 700; color: var(--text); }
+  .modal-close { border: none; background: none; font-size: 20px; color: var(--text-3); cursor: pointer; padding: 0 6px; }
+  .modal label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 4px; margin-top: 12px; }
+  .modal input {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; font-family: inherit;
+  }
+  .modal input:focus { outline: none; border-color: var(--accent); }
+  .modal .hint {
+    font-size: 12px; color: var(--text); line-height: 1.7;
+    background: var(--accent-bg); border: 1px solid #d4b884;
+    border-radius: 8px; padding: 10px 12px; margin-top: 4px;
+  }
+  .modal .err { font-size: 12px; color: var(--red); line-height: 1.6; margin-top: 12px; display: none; }
+  .modal .err.show { display: block; }
+  .modal-actions { margin-top: 18px; }
+  .modal-actions button { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .modal-actions button:hover:not(:disabled) { background: var(--accent-light); }
+  .modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .modal-switch { margin-top: 14px; text-align: center; font-size: 12px; color: var(--text-2); }
+  .modal-switch a { color: var(--accent); text-decoration: none; cursor: pointer; }
+
+  /* 视图切换 */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* 等待审批 */
+  .pending-box {
+    text-align: center; padding: 80px 24px 56px;
+    background: linear-gradient(180deg, var(--accent-bg) 0%, transparent 100%);
+    border-radius: 16px; margin-bottom: 32px;
+  }
+  .pending-box h1 { font-size: 32px; font-weight: 700; margin-bottom: 14px; }
+  .pending-box p { font-size: 16px; color: var(--text-2); line-height: 1.8; max-width: 540px; margin: 0 auto; }
+  .pending-actions { text-align: center; margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+  /* 加载圈 */
+  .loading-spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .8s linear infinite;
+    vertical-align: -2px; margin-right: 6px;
   }
 </style>
+<script>
+  window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>英语教学系统</h1>
-    <p>辅助教师进行英语教学的体系化工具</p>
-  </header>
 
-  <div class="modules">
-    <a href="/grammar-fill/" class="module-card">
-      <h2>语法填空 · 课堂助手</h2>
-      <p class="desc">20 套真题按套卷/考点练习，空格点击弹解析，错题本，迁移训练</p>
-      <span class="tag">已上线</span>
-    </a>
+<header>
+  <div class="logo" onclick="goHome()" style="cursor:pointer;">📚 课堂助手</div>
+  <div class="header-right" id="headerRight">
+    <button class="header-btn primary" onclick="openModal('signin')">登录 / 注册</button>
+  </div>
+</header>
 
-    <div class="module-card coming-soon">
-      <h2>完形填空 · 语义关联训练</h2>
-      <p class="desc">九招解题法，语义场分析，前后线索追踪</p>
-      <span class="tag">敬请期待</span>
+<main>
+  <!-- ============== 欢迎视图（未登录） ============== -->
+  <div class="view active" id="view-welcome">
+    <div class="hero">
+      <div class="eyebrow">EARLY ACCESS · v0.1</div>
+      <h1>一名英语新老师做的<br><span class="gradient-text">课堂小工具</span></h1>
+      <p class="sub">
+        先从最常讲的「语法填空」开始，按考点分类、跨卷迁移、错题归档。<br>
+        后面会慢慢加上完形、七选五、阅读、读后续写、应用文。
+      </p>
+      <div class="cta">
+        <button class="btn primary" onclick="openModal('signup')">免费注册 · 开始使用</button>
+        <button class="btn secondary" onclick="openModal('signin')">我已注册 · 登录</button>
+      </div>
     </div>
 
-    <div class="module-card coming-soon">
-      <h2>阅读理解 · 题型导问</h2>
-      <p class="desc">七项能力分类，三层导问法，文本结构解析</p>
-      <span class="tag">敬请期待</span>
+    <div class="section">
+      <h2>它能做什么</h2>
+      <div class="sub">目前只覆盖<b style="color:var(--text);">语法填空</b>一个模块，其它模块还在路上。</div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📋</div>
+          <h3>20 套真题/模拟卷</h3>
+          <p>2023–2026 全国卷、浙江、广州、深圳，开箱即用</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📖</div>
+          <h3>按考点专题训练</h3>
+          <p>11 类常考点：谓语、非谓语、词性、冠词、代词、介词、连词…</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔗</div>
+          <h3>同考点跨卷迁移</h3>
+          <p>讲一道，自动调出别的卷里同考点的题，方便举一反三</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📝</div>
+          <h3>错题本 · 自动同步</h3>
+          <p>办公室攒的题，回家手机上也能看，不用导来导去</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📋</div>
+          <h3>备课资料导入</h3>
+          <p>粘贴一篇语法填空，立刻进入和真题一样的讲题模式</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💡</div>
+          <h3>考点速查</h3>
+          <p>每个考点的解题思路一页讲完，参考赢在微点二轮复习整理</p>
+        </div>
+      </div>
     </div>
 
-    <div class="module-card coming-soon">
-      <h2>七选五 · 逻辑衔接</h2>
-      <p class="desc">八类逻辑关系，代词指代追踪，四步解题法</p>
-      <span class="tag">敬请期待</span>
+    <div class="section">
+      <h2>怎么开始用</h2>
+      <ol class="steps">
+        <li><b>注册账号</b>：邮箱 + 用户名 + 密码。注册后会有一小段管理员审批的等待，多包涵。</li>
+        <li><b>选一套真题</b>，或者按考点直接练，点空格弹出解析。</li>
+        <li>讲过的题<b>加入错题本</b>，下次自动把别的卷子里同考点的题列出来，做迁移训练。</li>
+      </ol>
     </div>
 
-    <div class="module-card coming-soon">
-      <h2>写作训练</h2>
-      <p class="desc">应用文双支架 · 读后续写双轨提纲</p>
-      <span class="tag">敬请期待</span>
+    <div class="author">
+      <h3>关于这个小工具</h3>
+      <p>我是一名一线的英语老师，编程是从零自学的。日常备课时总在反复整理同一种题，于是想做一个能帮自己、也希望能帮到同行老师的小工具。</p>
+      <p>这只是一个粗糙的起点，方法论和功能都会随着使用慢慢打磨。如果它能在你某天的备课里省下哪怕一点点时间，就值得了。</p>
+      <p style="color:var(--text-3);font-size:13px;">整理参考过课标、高考评价体系、《赢在微点·二轮复习》、教育部考试院专家文章等资料，但难免有错漏，欢迎指正。</p>
+    </div>
+
+    <div class="disclaimer">
+      <h3>🌱 这是早期版本，请多担待</h3>
+      <p>目前只上线了「语法填空」一个模块，其它题型还在做。也可能会遇到些小 bug，给你添麻烦了 —— 如果方便，麻烦把问题反馈给我，我会尽快修，咱们一起把它变好。</p>
+      <ul>
+        <li>📧 <code>liuzhenlzstiles@icloud.com</code></li>
+        <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-cta">
+      <button class="btn primary" onclick="openModal('signup')">注册一个账号 · 开始用</button>
+    </div>
+    <div class="footer-note">英语教学系统 1.0 · 一份微薄的尝试，谢谢愿意花时间试用的你 🙏</div>
+  </div>
+
+  <!-- ============== 模块选择视图（登录后） ============== -->
+  <div class="view" id="view-modules">
+    <div class="hero" style="padding: 56px 24px 40px;">
+      <div class="eyebrow" id="modulesGreeting">欢迎回来</div>
+      <h1 style="font-size:32px;">选一个模块开始</h1>
+      <p class="sub">第一个版本只把<b style="color:var(--text);">语法填空</b>做出来了，其它题型还在做，敬请期待。</p>
+    </div>
+    <div class="modules-grid">
+      <a class="module-card available" href="/grammar-fill/">
+        <span class="module-badge live">已上线</span>
+        <div class="module-icon">📝</div>
+        <h3>语法填空</h3>
+        <p>20 套真题 + 按考点训练 + 同考点跨卷迁移 + 错题本与备课资料</p>
+        <div class="module-meta">v1.0 · 已可用</div>
+      </a>
+      <div class="module-card coming">
+        <span class="module-badge soon">敬请期待</span>
+        <div class="module-icon">🔤</div>
+        <h3>完形填空</h3>
+        <p>按语义关联、前置线索、后置支撑分类讲题</p>
+        <div class="module-meta">规划中</div>
+      </div>
+      <div class="module-card coming">
+        <span class="module-badge soon">敬请期待</span>
+        <div class="module-icon">🔍</div>
+        <h3>七选五</h3>
+        <p>逻辑衔接 + 四步解题法，按代词指代、同义复现等分类</p>
+        <div class="module-meta">规划中</div>
+      </div>
+      <div class="module-card coming">
+        <span class="module-badge soon">敬请期待</span>
+        <div class="module-icon">📖</div>
+        <h3>阅读理解</h3>
+        <p>细节、推断、主旨、词义猜测 7 项能力分类</p>
+        <div class="module-meta">规划中</div>
+      </div>
+      <div class="module-card coming">
+        <span class="module-badge soon">敬请期待</span>
+        <div class="module-icon">✍️</div>
+        <h3>读后续写</h3>
+        <p>情节维 + 情感维 + 语言维三维协同，含双轨提纲训练</p>
+        <div class="module-meta">课堂模板已就绪，等接入</div>
+      </div>
+      <div class="module-card coming">
+        <span class="module-badge soon">敬请期待</span>
+        <div class="module-icon">📝</div>
+        <h3>应用文写作</h3>
+        <p>内容支架 + 语言支架双管齐下</p>
+        <div class="module-meta">课堂模板已就绪，等接入</div>
+      </div>
+    </div>
+    <div style="text-align:center; padding: 36px 24px; font-size: 13px; color: var(--text-3); border-top: 1px solid var(--border); margin-top: 28px;">
+      <p>遇到问题、想要新功能、或者觉得方法论可以更好 —— 都欢迎联系作者。<br>
+      📧 <a href="mailto:liuzhenlzstiles@icloud.com" style="color:var(--accent);">liuzhenlzstiles@icloud.com</a>
+      &nbsp;·&nbsp;
+      💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank" style="color:var(--accent);">GitHub Issues</a></p>
     </div>
   </div>
 
-  <footer>
-    <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0" style="color:inherit">开源代码</a>
-  </footer>
+  <!-- ============== 待审批视图 ============== -->
+  <div class="view" id="view-pending">
+    <div class="pending-box">
+      <div class="eyebrow">PENDING · 等待开通</div>
+      <h1>已收到你的注册，谢谢 🙏</h1>
+      <p>账号 <b id="pendingName" style="color:var(--text);">--</b> 已经在排队等审批了。<br>因为是早期版本，所以加了人工审核这一道，麻烦稍等片刻 🌱</p>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin:24px auto 0;font-size:13px;color:var(--text-2);line-height:1.9;max-width:520px;text-align:left;">
+        💡 通过后刷新一下页面就能进。<br>
+        如果等急了，可以联系作者催一催：<br>
+        📧 <b>liuzhenlzstiles@icloud.com</b>
+      </div>
+    </div>
+    <div class="pending-actions">
+      <button class="btn primary" onclick="checkApproval()">🔄 重新检查</button>
+      <button class="btn secondary" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============== 登录/注册 模态框 ============== -->
+<div class="modal-overlay" id="authModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div id="authFormPanel">
+      <div class="modal-head">
+        <h3 id="authTitle">登录</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div id="signupHint" class="hint" style="display:none;">
+        🌱 <b>欢迎试用 · 早期版本</b><br>填邮箱 + 用户名 + 密码即可。因为还在小范围测试，注册后会有一小段管理员审批的等待，麻烦多包涵～
+      </div>
+      <label>邮箱</label>
+      <input id="authEmail" type="email" placeholder="your@email.com" autocomplete="email">
+      <div id="usernameRow" style="display:none;">
+        <label>用户名</label>
+        <input id="authUsername" type="text" placeholder="你喜欢的名字" autocomplete="username">
+      </div>
+      <label>密码（≥ 6 位）</label>
+      <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+      <div id="authError" class="err"></div>
+      <div class="modal-actions">
+        <button id="authBtn" onclick="submitAuth()">登录</button>
+      </div>
+      <div class="modal-switch">
+        <span id="switchText">没有账号？</span>
+        <a id="switchLink" onclick="toggleMode()">注册</a>
+      </div>
+    </div>
+    <div id="authSuccessPanel" style="display:none;text-align:center;">
+      <div style="font-size:48px;color:var(--green);margin-bottom:10px;">🌱</div>
+      <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">注册成功</h3>
+      <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:18px;">
+        账号 <b id="successName" style="color:var(--text);"></b> 已创建。<br>
+        因为是早期版本，需要一小段人工审批 —— 通过后会自动登录。
+      </p>
+      <button class="btn primary" style="width:100%;padding:11px;" onclick="afterSignupGoSignin()">好的 · 去登录</button>
+    </div>
+  </div>
 </div>
+
+<script>
+(function(){
+  var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1;
+  var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
+  var state = { user: null, approved: false, isAdmin: false };
+
+  async function detectAdmin() {
+    if (!sb || !state.user) { state.isAdmin = false; return; }
+    try {
+      var r = await sb.rpc('admin_list_users');
+      state.isAdmin = !r.error;
+    } catch (e) { state.isAdmin = false; }
+  }
+  async function detectApproved() {
+    if (!sb || !state.user) { state.approved = false; return; }
+    try {
+      var r = await sb.rpc('check_approved');
+      state.approved = !r.error && r.data === true;
+    } catch (e) { state.approved = true; }
+  }
+
+  async function refreshAndRoute() {
+    if (!sb) { showView('welcome'); return; }
+    var s = await sb.auth.getSession();
+    state.user = (s.data && s.data.session) ? s.data.session.user : null;
+    if (state.user) {
+      await Promise.all([detectAdmin(), detectApproved()]);
+    } else {
+      state.approved = false; state.isAdmin = false;
+    }
+    renderUserPill();
+    if (!state.user) showView('welcome');
+    else if (!state.approved) {
+      document.getElementById('pendingName').textContent = displayName();
+      showView('pending');
+    } else {
+      renderGreeting();
+      showView('modules');
+    }
+  }
+
+  function displayName() {
+    if (!state.user) return '';
+    return (state.user.user_metadata && state.user.user_metadata.username) ||
+           (state.user.email || '').split('@')[0] || '';
+  }
+
+  function renderUserPill() {
+    var el = document.getElementById('headerRight');
+    if (!sb) { el.innerHTML = '<span style="color:var(--text-3);">本地模式</span>'; return; }
+    if (state.user) {
+      var nm = displayName();
+      var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
+      var tag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>'
+              : !state.approved ? '<span style="background:var(--orange);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">待审批</span>' : '';
+      el.innerHTML = tag +
+        '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
+        '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
+    } else {
+      el.innerHTML = '<button class="header-btn primary" onclick="openModal(\'signin\')">登录 / 注册</button>';
+    }
+  }
+
+  function renderGreeting() {
+    var el = document.getElementById('modulesGreeting');
+    if (!el) return;
+    var h = new Date().getHours();
+    var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
+          : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
+    el.textContent = g + '，' + displayName();
+  }
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    var v = document.getElementById('view-' + name);
+    if (v) v.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  // ─── 模态框 ───
+  var _mode = 'signin';
+  function openModal(mode) {
+    _mode = mode || 'signin';
+    document.getElementById('authFormPanel').style.display = '';
+    document.getElementById('authSuccessPanel').style.display = 'none';
+    document.getElementById('authError').classList.remove('show');
+    document.getElementById('authEmail').value = '';
+    document.getElementById('authUsername').value = '';
+    document.getElementById('authPassword').value = '';
+    applyMode();
+    document.getElementById('authModal').classList.add('show');
+    setTimeout(function(){ document.getElementById('authEmail').focus(); }, 50);
+  }
+  function closeModal() { document.getElementById('authModal').classList.remove('show'); }
+  function toggleMode() {
+    _mode = _mode === 'signin' ? 'signup' : 'signin';
+    document.getElementById('authError').classList.remove('show');
+    applyMode();
+  }
+  function applyMode() {
+    var isSignin = _mode === 'signin';
+    document.getElementById('authTitle').textContent = isSignin ? '登录' : '注册';
+    document.getElementById('authBtn').textContent = isSignin ? '登录' : '创建账号';
+    document.getElementById('switchText').textContent = isSignin ? '没有账号？' : '已有账号？';
+    document.getElementById('switchLink').textContent = isSignin ? '注册' : '去登录';
+    document.getElementById('signupHint').style.display = isSignin ? 'none' : 'block';
+    document.getElementById('usernameRow').style.display = isSignin ? 'none' : 'block';
+    document.getElementById('authPassword').autocomplete = isSignin ? 'current-password' : 'new-password';
+  }
+  function afterSignupGoSignin() {
+    _mode = 'signin'; applyMode();
+    document.getElementById('authSuccessPanel').style.display = 'none';
+    document.getElementById('authFormPanel').style.display = '';
+  }
+
+  async function submitAuth() {
+    if (!sb) return;
+    var email = document.getElementById('authEmail').value.trim();
+    var username = document.getElementById('authUsername').value.trim();
+    var pwd = document.getElementById('authPassword').value;
+    var errEl = document.getElementById('authError');
+    errEl.classList.remove('show');
+
+    if (!email || email.indexOf('@') === -1) { errEl.textContent = '请输入有效的邮箱'; errEl.classList.add('show'); return; }
+    if (!pwd) { errEl.textContent = '密码不能为空'; errEl.classList.add('show'); return; }
+    if (pwd.length < 6) { errEl.textContent = '密码至少 6 位'; errEl.classList.add('show'); return; }
+    if (_mode === 'signup') {
+      if (!username) { errEl.textContent = '请设置一个用户名'; errEl.classList.add('show'); return; }
+      if (username.indexOf('@') !== -1) { errEl.textContent = '用户名不能包含 @'; errEl.classList.add('show'); return; }
+      if (username.length < 2) { errEl.textContent = '用户名至少 2 个字符'; errEl.classList.add('show'); return; }
+    }
+
+    var btn = document.getElementById('authBtn');
+    btn.disabled = true; var oldText = btn.textContent;
+    btn.innerHTML = '<span class="loading-spinner"></span>处理中…';
+    try {
+      if (_mode === 'signin') {
+        var r = await sb.auth.signInWithPassword({ email: email, password: pwd });
+        if (r.error) throw r.error;
+        closeModal();
+        await refreshAndRoute();
+      } else {
+        var r2 = await sb.auth.signUp({
+          email: email, password: pwd,
+          options: { data: { username: username } }
+        });
+        if (r2.error) throw r2.error;
+        if (r2.data && r2.data.session) {
+          closeModal();
+          await refreshAndRoute();
+        } else {
+          document.getElementById('successName').textContent = username || email;
+          document.getElementById('authFormPanel').style.display = 'none';
+          document.getElementById('authSuccessPanel').style.display = '';
+        }
+      }
+    } catch (e) {
+      var msg = (e.message || e) + '';
+      if (/email not confirmed/i.test(msg)) {
+        errEl.innerHTML = '邮箱还没验证，请去 <b>' + email + '</b> 的收件箱（包括<b>垃圾邮件</b>）找验证邮件，点链接后再来登录。';
+      } else if (/invalid login credentials/i.test(msg)) {
+        errEl.textContent = '邮箱或密码错误。';
+      } else if (/user already registered/i.test(msg) || /already.*registered/i.test(msg)) {
+        errEl.textContent = '这个邮箱已经注册过了，去登录吧。';
+      } else if (/rate limit/i.test(msg)) {
+        errEl.textContent = '请求太频繁，过 1 分钟再试。';
+      } else if (/duplicate.*username|profiles_username/i.test(msg)) {
+        errEl.textContent = '这个用户名被占用了，换一个？';
+      } else {
+        errEl.textContent = msg;
+      }
+      errEl.classList.add('show');
+    } finally {
+      btn.disabled = false; btn.textContent = oldText;
+    }
+  }
+
+  async function doLogout() {
+    if (!confirm('确定要退出登录吗？')) return;
+    try { await sb.auth.signOut(); } catch (e) {}
+    state.user = null; state.approved = false; state.isAdmin = false;
+    await refreshAndRoute();
+  }
+
+  function checkApproval() { refreshAndRoute(); }
+
+  function goHome() {
+    if (state.user && state.approved) showView('modules');
+    else if (state.user && !state.approved) showView('pending');
+    else showView('welcome');
+  }
+
+  // 导出全局
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.toggleMode = toggleMode;
+  window.submitAuth = submitAuth;
+  window.afterSignupGoSignin = afterSignupGoSignin;
+  window.doLogout = doLogout;
+  window.checkApproval = checkApproval;
+  window.goHome = goHome;
+
+  // 启动
+  refreshAndRoute();
+  if (sb) {
+    sb.auth.onAuthStateChange(function(){ refreshAndRoute(); });
+  }
+})();
+</script>
+
 </body>
 </html>
