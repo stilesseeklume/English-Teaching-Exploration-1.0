@@ -541,6 +541,15 @@
   }
 
 
+  /* ============== 待审批状态 ============== */
+  body.pending .nav,
+  body.pending .header-font-ctrl,
+  body.pending #syncStatus { display: none !important; }
+  body.pending #page-pending { display: block !important; }
+  body.pending .page:not(#page-pending) { display: none !important; }
+
+  #page-pending { max-width: 980px; padding: 24px 24px 80px; animation: fadeIn .35s ease; }
+
   /* ============== 欢迎页 + 登录墙 ============== */
   body.guest .nav,
   body.guest .header-font-ctrl,
@@ -800,6 +809,40 @@
   border: 1px solid var(--green) !important;
 }
 .docx-upload-btn:hover { background: #256b42 !important; }
+
+/* ── 浮动回到顶部按钮 ── */
+.float-back-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  cursor: pointer;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  transform: translateY(8px);
+}
+.float-back-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.float-back-top:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+}
 </style>
 <script src="../data/grammar_bank.js"></script>
 
@@ -820,30 +863,42 @@
   var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
   window._sb = sb;
   var listeners = [];
-  var state = { user: null, isAdmin: false, viewingUserId: null, viewingEmail: null };
+  var state = { user: null, isAdmin: false, approved: false, viewingUserId: null, viewingEmail: null };
 
   function notify() { listeners.forEach(function(cb){ try { cb(state); } catch(e){} }); }
 
   async function detectAdmin() {
     if (!sb || !state.user) { state.isAdmin = false; return; }
-    // probe admin_list_users; success = admin
     try {
       var r = await sb.rpc('admin_list_users');
       state.isAdmin = !r.error;
     } catch(e) { state.isAdmin = false; }
   }
 
+  async function checkApproved() {
+    if (!sb || !state.user) { state.approved = false; return; }
+    try {
+      var r = await sb.rpc('check_approved');
+      state.approved = !r.error && r.data === true;
+    } catch(e) {
+      // RPC 不存在或 profiles 表未建 → 放行已有用户
+      state.approved = true;
+    }
+    notify();
+  }
+
   async function init() {
     if (!sb) return;
     var s = await sb.auth.getSession();
     state.user = s.data && s.data.session ? s.data.session.user : null;
-    await detectAdmin();
+    await Promise.all([detectAdmin(), checkApproved()]);
     notify();
     sb.auth.onAuthStateChange(async function(_evt, session){
       state.user = session ? session.user : null;
       state.viewingUserId = null;
       state.viewingEmail = null;
-      await detectAdmin();
+      state.approved = false;
+      await Promise.all([detectAdmin(), checkApproved()]);
       notify();
     });
   }
@@ -923,6 +978,16 @@
     return r.data;
   }
 
+  async function approveUser(userId) {
+    if (!sb) throw new Error('未配置');
+    var r = await sb.rpc('admin_approve_user', { target_user: userId });
+    if (r.error) throw r.error;
+  }
+  async function rejectUser(userId) {
+    if (!sb) throw new Error('未配置');
+    var r = await sb.rpc('admin_reject_user', { target_user: userId });
+    if (r.error) throw r.error;
+  }
   async function viewAs(userId, email) {
     state.viewingUserId = userId;
     state.viewingEmail = email;
@@ -942,7 +1007,9 @@
     signUp: signUp, signIn: signIn, signOut: signOut,
     pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
-    listUsers: listUsers, viewAs: viewAs, clearViewAs: clearViewAs
+    listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,
+    checkApproved: checkApproved,
+    viewAs: viewAs, clearViewAs: clearViewAs
   };
 })();
 </script>
@@ -982,8 +1049,8 @@
           <button onclick="closeAuthModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
         </div>
         <div id="authSignupHint" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.55;">
-          📧 <b>注册需邮箱验证</b><br>
-          完成下方表单后，我们会发一封验证邮件到你的邮箱，<b>点链接</b>后才能登录。
+          📝 <b>注册后需管理员审批</b><br>
+          填写邮箱和密码即可注册，注册后<b>等待管理员审批</b>通过即可登录使用。
         </div>
         <div style="margin-bottom:12px;">
           <label style="font-size:12px;color:var(--text-2);">邮箱</label>
@@ -1299,6 +1366,26 @@
         </div>
       </div>
       <div id="prepList"></div>
+    </div>
+
+    <!-- ============== 等待审批页 ============== -->
+    <div class="page" id="page-pending" style="max-width:980px;">
+      <div class="welcome-hero">
+        <div class="welcome-eyebrow">ACCOUNT PENDING</div>
+        <h1 style="font-size:28px;font-weight:700;margin-bottom:8px;color:var(--text);">⏳ 等待管理员审批</h1>
+        <p style="font-size:var(--font-sm,21px);color:var(--text-2);line-height:1.7;margin-top:12px;">
+          你的账号 <b id="pendingEmail" style="color:var(--text);">--</b> 已注册成功，<br>
+          但需要<b style="color:var(--accent);">管理员审批</b>后才能使用。
+        </p>
+        <div style="background:var(--surface-2);border-radius:8px;padding:14px 18px;margin-top:20px;font-size:13px;color:var(--text-2);line-height:1.8;text-align:left;display:inline-block;">
+          💡 审批通过后，<b>刷新页面</b>即可进入系统。<br>
+          如需催审，请联系管理员：<b>liuzhenlzstiles@icloud.com</b>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:24px;">
+        <button onclick="checkApprovalStatus()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px;">🔄 重新检查</button>
+        <button onclick="doLogout()" style="padding:8px 20px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);border-radius:6px;cursor:pointer;font-size:13px;">退出登录</button>
+      </div>
     </div>
 
     <!-- ============== 管理员页（仅管理员可见） ============== -->
@@ -2110,6 +2197,30 @@ function setupDocxDrop() {
   });
 }
 
+// ── 浮动回到顶部 ──
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setupFloatBackTop() {
+  var btn = document.getElementById('floatBackTop');
+  if (!btn) return;
+  var ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(function() {
+        if (window.scrollY > 400) {
+          btn.classList.add('visible');
+        } else {
+          btn.classList.remove('visible');
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+}
+
 function init() {
   document.documentElement.style.setProperty('--font-base', '24px');
   document.documentElement.style.setProperty('--font-lg', '25px');
@@ -2134,6 +2245,7 @@ function init() {
   setupBatchDrop();
   setupPrepDrop();
   setupDocxDrop();
+  setupFloatBackTop();
   navigateHome('cards');
 
   // ========== 云同步启动 ==========
@@ -2156,6 +2268,14 @@ async function onCloudStateChange(state) {
   if (state.viewingUserId) {
     document.getElementById('adminViewingEmail').textContent = state.viewingEmail || '';
   }
+
+  // 待审批状态控制
+  if (state.user && !state.approved) {
+    document.body.classList.add('pending');
+    document.getElementById('pendingEmail').textContent = state.user.email || '';
+    return;
+  }
+  document.body.classList.remove('pending');
 
   var newUserKey = (state.user ? state.user.id : '') + '|' + (state.viewingUserId || '');
   if (newUserKey === _lastCloudUser) return;
@@ -2229,7 +2349,8 @@ function renderUserPill(state) {
     var email = state.user.email || '';
     var short = email.length > 22 ? email.slice(0, 20) + '…' : email;
     var adminTag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
-    el.innerHTML = adminTag + '<span title="' + email + '" style="color:var(--text);">' + short + '</span>'
+    var pendingTag = !state.approved ? '<span style="background:var(--orange);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">待审批</span>' : '';
+    el.innerHTML = adminTag + pendingTag + '<span title="' + email + '" style="color:var(--text);">' + short + '</span>'
       + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
   } else {
     el.innerHTML = '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
@@ -2470,13 +2591,24 @@ async function renderAdminPage() {
   list.forEach(function(u) {
     var signin = u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleString('zh-CN') : '从未';
     var created = u.created_at ? new Date(u.created_at).toLocaleDateString('zh-CN') : '';
+    var approvedBadge = u.approved
+      ? '<span style="color:var(--green);font-weight:600;font-size:12px;">✅ 已通过</span>'
+      : '<span style="color:var(--orange);font-weight:600;font-size:12px;">⏳ 待审批</span>';
+    var actionBtns = '';
+    if (!u.approved) {
+      actionBtns = '<div style="margin-top:8px;display:flex;gap:8px;">'
+        + '<button onclick="event.stopPropagation();adminApproveUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✓ 通过</button>'
+        + '<button onclick="event.stopPropagation();adminRejectUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ 拒绝</button>'
+        + '</div>';
+    }
     html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + (u.email||'').replace(/'/g, "\\'") + '\')">'
-          + '<div class="prep-list-title">' + (u.email || '(无邮箱)') + '</div>'
+          + '<div class="prep-list-title">' + (u.email || '(无邮箱)') + ' ' + approvedBadge + '</div>'
           + '<div class="prep-list-meta">'
           + '<span>注册：' + created + '</span>'
           + '<span>最近登录：' + signin + '</span>'
           + '<span style="color:var(--accent);">📝 ' + u.error_count + ' 错题 · 📋 ' + u.prep_count + ' 备课</span>'
           + '</div>'
+          + actionBtns
           + '</div>';
   });
   html += '</div>';
@@ -2488,6 +2620,28 @@ async function adminViewUser(userId, email) {
   _lastCloudUser = null;     // 强制刷新数据加载
   await onCloudStateChange(window.cloud.state);
   switchPage('error-book');  // 跳到错题本查看
+}
+
+async function adminApproveUser(userId, email) {
+  if (!confirm('确认通过 ' + email + ' 的注册申请？')) return;
+  try {
+    await window.cloud.approveUser(userId);
+    alert(email + ' 已通过审批');
+    renderAdminPage();
+  } catch (e) {
+    alert('操作失败：' + (e.message || e));
+  }
+}
+
+async function adminRejectUser(userId, email) {
+  if (!confirm('确认拒绝并删除 ' + email + '？\n此操作不可恢复。')) return;
+  try {
+    await window.cloud.rejectUser(userId);
+    alert(email + ' 已被拒绝');
+    renderAdminPage();
+  } catch (e) {
+    alert('操作失败：' + (e.message || e));
+  }
 }
 
 async function exitViewAs() {
@@ -2578,6 +2732,12 @@ function updateBackButton() {
   } else {
     btn.textContent = '← 返回首页';
   }
+}
+
+async function checkApprovalStatus() {
+  if (!window.cloud) return;
+  _lastCloudUser = null;
+  await window.cloud.checkApproved();
 }
 
 function goHome() {
@@ -3052,6 +3212,9 @@ function toggleKnowledgeCard(key) {
 
 init();
 </script>
+<!-- 浮动回到顶部 -->
+<div class="float-back-top" id="floatBackTop" onclick="scrollToTop()" title="回到顶部">↑</div>
+
 <!-- AI 解析加载遮罩 -->
 <div id="aiOverlay" class="ai-overlay" style="display:none;">
   <div class="ai-card">
