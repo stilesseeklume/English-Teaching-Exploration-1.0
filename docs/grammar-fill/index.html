@@ -3009,6 +3009,10 @@ var _abortAiParse = false;
 function cancelAiParse() {
   _abortAiParse = true;
   hideAiOverlay();
+  stopAiDrift();
+  // 清掉 file input，否则下次点上传可能不触发 change 事件
+  var input = document.getElementById('docxFileInput');
+  if (input) input.value = '';
 }
 
 // ────────── AI 解析进度条 ──────────
@@ -3189,6 +3193,19 @@ async function parseWithDeepSeek(text) {
       seenSigs[sig] = p;
       return true;
     });
+
+    // 验证每篇的空格标记数与 blanks 数量一致
+    for (var pi = 0; pi < passagesArr.length; pi++) {
+      var markerMatch = passagesArr[pi].passage.match(/___\d+___/g);
+      var markerCount = markerMatch ? markerMatch.length : 0;
+      if (markerCount !== passagesArr[pi].blanks.length) {
+        throw new Error(
+          '解析结果不一致：原文有 ' + markerCount + ' 个空格标记，' +
+          '但解析出 ' + passagesArr[pi].blanks.length + ' 道题。\n' +
+          '请手动核对 Word 文档中的空格格式是否清晰。'
+        );
+      }
+    }
 
     if (passagesArr.length === 0) {
       throw new Error('AI 没有识别出任何题目');
@@ -4595,24 +4612,26 @@ function renderExam() {
     document.getElementById('passageBox').innerHTML = html;
   } else if (currentExam.mode === 'prep' || currentExam.mode === 'exam') {
     var passage = currentExam.passage || currentQuestions[0].passage;
-    // 按位置顺序替换：passage 中的第 N 个空格  第 N 道题（不依赖编号一致）
+    // 按位置顺序替换：passage 中的第 N 个空格 → 第 N 道题
+    // 显示原文标记中的编号，data-blank-idx 用于高亮定位
     var qi = 0;
-    passage = passage.replace(/_{2,}\s*\d+\s*_{2,}/g, function(fullMatch) {
+    passage = passage.replace(/_{2,}\s*(\d+)\s*_{2,}/g, function(fullMatch, numStr) {
       if (qi >= currentQuestions.length) return fullMatch;
       var q = currentQuestions[qi];
+      var idx = qi;
       qi++;
       if (showAnswers) {
-        return '<span class="answer-filled">' + q.answer + '</span>';
+        return '<span class="answer-filled" data-blank-idx="' + idx + '">' + q.answer + '</span>';
       } else {
-        return '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>';
+        return '<span class="blank-inline" data-blank-idx="' + idx + '" onclick="showAnalysisByIdx(' + idx + ')">' + numStr + '</span>';
       }
     });
     passage = passage.split('\n\n').map(function(p) { return '<p>' + p + '</p>'; }).join('');
-    // 如果原文标记数少于题目数，剩余题目在文末显示
     if (qi < currentQuestions.length) {
       passage += '<div style="margin-top:16px;padding:12px;border:1px dashed var(--orange);border-radius:8px;background:var(--orange-bg);"><div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:6px;">以下空格在原文中未找到位置标记，请手动核对：</div>' +
-        currentQuestions.slice(qi).map(function(q) {
-          return '<span style="display:inline-block;margin:3px 8px 3px 0;font-size:14px;"><span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span></span>';
+        currentQuestions.slice(qi).map(function(q, i) {
+          var gIdx = qi + i;
+          return '<span style="display:inline-block;margin:3px 8px 3px 0;font-size:14px;"><span class="blank-inline" data-blank-idx="' + gIdx + '" onclick="showAnalysisByIdx(' + gIdx + ')">' + q.no + '</span></span>';
         }).join('') +
         '</div>';
     }
@@ -4704,7 +4723,7 @@ function showAnalysisByIdx(idx) {
   if (!q) return;
   selectedQuestion = q;
   clearBlankHighlight();
-  highlightBlankInPassage(q.no);
+  highlightBlankByIdx(idx);
 
   document.getElementById('drawerQInfo').textContent =
     '第' + q.no + '题 · ' + (CATEGORY_MAP[q.category] || q.category) +
@@ -4945,6 +4964,17 @@ function showAnalysis(no) {
 function findBlankIndex() {
   if (!selectedQuestion) return -1;
   return currentQuestions.findIndex(function(q) { return q.no === selectedQuestion.no; });
+}
+
+function highlightBlankByIdx(idx) {
+  var box = document.getElementById('passageBox');
+  if (!box) return;
+  var target = box.querySelector('.blank-inline[data-blank-idx="' + idx + '"]');
+  if (target) {
+    target.classList.add('highlight');
+    var p = target.closest('p');
+    if (p) p.classList.add('paragraph-active');
+  }
 }
 
 function highlightBlankInPassage(no) {
@@ -5461,6 +5491,11 @@ init();
 </script>
 <!-- macOS 风格 Dock -->
 <div class="dock" id="mainDock">
+  <div class="dock-item" data-label="首页" onclick="window.location.href='/'">
+    🏠
+    <div class="dock-dot"></div>
+  </div>
+  <div class="dock-divider"></div>
   <div class="dock-item" data-label="套卷" data-page="home" onclick="navigateHome('exams')">
     📋
     <div class="dock-dot"></div>
