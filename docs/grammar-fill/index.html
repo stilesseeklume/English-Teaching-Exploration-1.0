@@ -1259,69 +1259,45 @@
 }
 .docx-upload-btn:hover { background: #256b42 !important; }
 
-/* ── Word 导入格式演示 ── */
+/* ── Word 导入格式演示：真实文档效果 ── */
 .import-demo-popover {
   position: fixed; z-index: 300;
-  width: 520px; max-width: 94vw;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.04);
-  padding: 0; overflow: hidden;
+  width: 600px; max-width: 94vw;
+  background: #e8e6e1; border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
+  padding: 16px; overflow: hidden;
   opacity: 0; pointer-events: none; transform: translateY(6px);
   transition: opacity .2s, transform .2s;
+  max-height: 80vh; overflow-y: auto;
 }
 .import-demo-popover.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.import-demo-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 16px; background: var(--surface-3); border-bottom: 1px solid var(--border);
-  font-size: 13px; font-weight: 600; color: var(--text);
+
+/* 模拟 Word 纸张 */
+.word-doc-page {
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04);
+  padding: 32px 36px;
+  font-family: 'Times New Roman', 'STSong', 'SimSun', serif;
+  font-size: 10.5px;
+  line-height: 1.9;
+  color: #000000;
+  border-radius: 1px;
 }
-.import-demo-header .demo-badge {
-  font-size: 10px; background: var(--green); color: #fff; padding: 2px 8px; border-radius: 10px;
-  font-weight: 500;
+.word-doc-page .wd-p {
+  margin: 0 0 2px 0;
+  font: 10.5px 'Times New Roman', 'STSong', 'SimSun', serif;
+  color: #000000;
 }
-.import-demo-body { padding: 14px 16px; font-size: 12px; }
-.import-demo-section { margin-bottom: 12px; }
-.import-demo-section:last-child { margin-bottom: 0; }
-.import-demo-label {
-  font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase;
-  letter-spacing: .5px; margin-bottom: 6px;
-  display: flex; align-items: center; gap: 6px;
-}
-.import-demo-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.import-demo-passage {
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
-  padding: 12px 14px; font-size: 13px; line-height: 2; color: var(--text);
-  font-family: "Georgia", "Times New Roman", serif;
-}
-.import-demo-passage .blank-marker {
-  display: inline; background: #fef3c7; color: var(--accent); font-weight: 700;
-  padding: 1px 4px; border-radius: 3px; font-family: inherit; font-size: 12px;
-  border: 1px solid #fcd34d;
-}
-.import-demo-passage .blank-hint {
-  display: inline; color: var(--text-3); font-size: 11px; font-family: inherit;
-}
-.import-demo-answer-box {
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
-  padding: 10px 14px; font-size: 13px; line-height: 2.2; color: var(--text);
-  font-family: inherit;
-}
-.import-demo-answer-box .ans-label { font-weight: 700; color: var(--accent); font-size: 13px; }
-.import-demo-answer-box .ans-val { font-weight: 700; color: var(--green); margin: 0 6px 0 2px; }
-.import-demo-analysis-box {
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
-  padding: 10px 14px; font-size: 12px; line-height: 1.9; color: var(--text-2);
-  font-family: inherit; margin-top: 8px;
-}
-.import-demo-analysis-box .ana-title { font-weight: 700; color: var(--accent); font-size: 13px; }
-.import-demo-analysis-box .ana-q { font-weight: 600; color: var(--text); font-size: 12px; margin-top: 6px; display: block; }
-.import-demo-analysis-box .ana-body { font-size: 11px; color: var(--text-2); }
-.import-demo-footer {
-  padding: 8px 16px; background: var(--surface-3); border-top: 1px solid var(--border);
-  font-size: 11px; color: var(--text-3); text-align: center;
+.word-doc-page .wd-title { font: 10.5px 'Times New Roman', 'STSong', 'SimSun', serif; }
+.word-doc-page .wd-blue { color: #2e75b6; }
+.word-doc-page .wd-blank { text-decoration: underline; }
+.word-doc-page .wd-justify { text-align: justify; }
+.word-doc-page .wd-more {
+  text-align: center; color: #999; font: 10px 'PingFang SC', -apple-system, sans-serif;
+  margin-top: 10px; border-top: 1px dashed #e0e0e0; padding-top: 8px;
 }
 
-/* ── 浮动快捷按钮组 ── */
+/* ── 浮动快捷按钮组 ── *//* ── 浮动快捷按钮组 ── */
 .float-actions {
   position: fixed;
   bottom: 28px;
@@ -2778,7 +2754,7 @@ function showImportDemo(e) {
   var rect = btn.getBoundingClientRect();
   // Position below the button, left-aligned
   popover.style.top = (rect.bottom + 8) + 'px';
-  popover.style.left = Math.min(rect.left, window.innerWidth - 540) + 'px';
+  popover.style.left = Math.min(rect.left, window.innerWidth - 620) + 'px';
   popover.classList.add('show');
   // Also add mouseenter to popover itself so it stays open
   popover.onmouseenter = function() { clearTimeout(_demoTimer); };
@@ -5215,43 +5191,23 @@ init();
 </div>
 
   
-      <!-- Word 导入格式演示 -->
+      <!-- Word 导入格式演示 — 真实 Word 文档效果 -->
       <div class="import-demo-popover" id="importDemoPopover">
-        <div class="import-demo-header">
-          <span>📋 Word 文档格式模板</span>
-          <span class="demo-badge">演示</span>
-        </div>
-        <div class="import-demo-body">
-          <div class="import-demo-section">
-            <div class="import-demo-label">上半部分：题目（全文 + 空格编号 + 提示词）</div>
-            <div class="import-demo-passage">
-              When Charles Dewees from France read the Chinese web novel <i>Coiling Dragon</i> a decade ago, it was like unearthing a hidden treasure. <span class="blank-marker">___36___</span> <span class="blank-hint">(draw)</span> by features like cultivation, martial arts, and traditional Eastern elements, Dewees gradually learned Chinese to break free from translations and <span class="blank-marker">___37___</span> <span class="blank-hint">(begin)</span> reading the original texts.
-            </div>
-          </div>
-          <div class="import-demo-section">
-            <div class="import-demo-label">下半部分：【答案】+【解析】</div>
-            <div class="import-demo-answer-box">
-              <span class="ans-label">【答案】</span>
-              <span class="ans-val">36. Drawn</span>
-              <span class="ans-val">37. began</span>
-              <span class="ans-val">38. to</span>
-              <span class="ans-val">39. an</span>
-              <span class="ans-val">40. favourites</span>
-              <span class="ans-val">41. further</span>
-              <span class="ans-val">42. introducing</span>
-              <span class="ans-val">43. where</span>
-              <span class="ans-val">44. freely</span>
-              <span class="ans-val">45. enjoyment</span>
-            </div>
-            <div class="import-demo-analysis-box">
-              <span class="ana-title">【解析】</span><br>
-              <span class="ana-q">【36题详解】</span>
-              <span class="ana-body">考查非谓语动词。主语和 draw 之间为被动关系，用过去分词形式，句首首字母大写。故填 Drawn。</span>
-              <span class="ana-q">【37题详解】</span>
-              <span class="ana-body">考查谓语动词。根据 learned 可知时态为一般过去时，主语和 begin 为主动关系。故填 began。</span>
-            </div>
-          </div>
-        </div>
-        <div class="import-demo-footer">AI 会自动解析以上格式 · 无需严格排版 · 纯文本即可</div>
+        <div class="word-doc-page">
+  <p class="wd-p wd-title">33.龙岗区2025-2026学年高三上学期期末英语试题</p>
+  <p class="wd-p">When Charles Dewees from France read the Chinese web novel <i>Coiling Dragon</i> a decade ago, it was like unearthing a hidden treasure. <span class="wd-blank">____36____</span> (draw) by features like cultivation, martial arts, and traditional Eastern elements, Dewees gradually learned Chinese to break free from translations and <span class="wd-blank">____37____</span> (begin)reading the original texts. From one Chinese web novel <span class="wd-blank">____38____</span> another, his grasp of the Chinese language and culture deepened.</p>
+  <p class="wd-p">Today, Chinese web novels have <span class="wd-blank">____39____</span> overseas fan base of about 200 million active readers. Many works have been translated into English, Spanish, and other languages in the past few years. In Canada, young people would read a few chapters after work, discussing their <span class="wd-blank">____40____</span> (favourite) online with fellow enthusiasts. Unlike most readers, Dewees took his passion one step <span class="wd-blank">____41____</span> (far). He not only enjoyed this new experience for himself but also set out to build a bridge, <span class="wd-blank">____42____</span> (introduce) Chinese web novels to the world through translations and recommendations. Together with friends, he founded an online reading community <span class="wd-blank">____43____</span>fans help translate and upload Chinese web novels into French, making them <span class="wd-blank">____44____</span> (free) accessible to internet users worldwide.</p>
+  <p class="wd-p">As a volunteer &ldquo;bridge builder,&rdquo; Dewees admitted that it was the charm of Chinese web novels that motivated him to run this community. In his view, Chinese web novels not only bring spiritual <span class="wd-blank">_____45_____</span> (enjoy) to overseas readers, but also open a window for them to discover and understand China.</p>
+  <p class="wd-p"><span class="wd-blue">【答案】</span>36. Drawn &nbsp; 37. began &nbsp; 38. to &nbsp; 39. an &nbsp; 40. favourites/favorites &nbsp; 41. further &nbsp; 42. introducing &nbsp; 43. where &nbsp; 44. freely &nbsp; 45. enjoyment</p>
+  <p class="wd-p"><span class="wd-blue">【解析】</span></p>
+  <p class="wd-p wd-justify">【导语】本文是一篇说明文。文章以法国读者Charles Dewees与中国网络小说的结缘经历为切入点，介绍了中国网络小说的海外传播现状。</p>
+  <p class="wd-p wd-justify">【36题详解】</p>
+  <p class="wd-p wd-justify">考查非谓语动词。主语和 draw 之间为被动关系，用过去分词，句首首字母大写。故填 Drawn。</p>
+  <p class="wd-p wd-justify">【37题详解】</p>
+  <p class="wd-p wd-justify">考查谓语动词。根据 learned 可知时态为一般过去时。故填 began。</p>
+  <p class="wd-p wd-justify">【38题详解】</p>
+  <p class="wd-p wd-justify">考查介词。构成短语 from…to…，意为&ldquo;从……到……&rdquo;。故填 to。</p>
+  <p class="wd-more">… 更多题目省略 …</p>
+</div>
       </div>
 </body>
