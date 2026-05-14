@@ -880,7 +880,7 @@
   body.in-modules .page:not(#page-modules) { display: none !important; }
   body.in-modules .dock { display: none; }
 
-  #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+  #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); margin: 0 auto; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
   #page-practice { max-width: none; padding: 0; }
   #page-knowledge { max-width: none; padding: 0; }
 
@@ -1174,11 +1174,16 @@
     line-height: 1.75;
   }
   .modules-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 16px;
-    max-width: clamp(960px, calc(100% - 200px), 2200px);
+    max-width: clamp(560px, calc(100% - 32px), 1856px);
     margin: 0 auto 48px;
+  }
+  .modules-grid .module-card {
+    flex: 0 1 296px;
+    min-width: 280px;
   }
   .module-card {
     background: var(--surface);
