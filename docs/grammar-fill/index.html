@@ -4209,6 +4209,9 @@ function goBack() {
 }
 
 function navigateHome(view) {
+  if (!document.getElementById('page-home').classList.contains('active')) {
+    switchPage('home');
+  }
   _currentHomeView = view;
   document.getElementById('homeCards').style.display = view === 'cards' ? '' : 'none';
   document.getElementById('homeExams').classList.toggle('active', view === 'exams');
