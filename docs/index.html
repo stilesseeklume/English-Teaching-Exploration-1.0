@@ -777,7 +777,7 @@
     <section class="scene scene-hero" data-scene="0">
       <div class="hero" style="padding:0;">
         <div class="eyebrow fade-up">Early Access</div>
-        <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
+        <h1 class="fade-up delay-1">Lesson Snippets</h1>
         <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
         <p class="humble fade-up delay-3">如果能帮到你，便是最开心的事。它还不完美，会持续打磨。</p>
         <div class="cta fade-up delay-4">
@@ -1128,7 +1128,7 @@
     if (state.user) {
       var nm = displayName();
       var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
-      var tag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
+      var tag = state.isAdmin ? '<button onclick="location.href=\'./grammar-fill/?admin\'" title="管理员面板" style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;border:none;cursor:pointer;margin-right:6px;font-family:inherit;">管理员</button>' : '';
       el.innerHTML = tag +
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
