@@ -63,7 +63,7 @@
 
 
   /* ===== 滚动 + 入场动画 ===== */
-  html { scroll-behavior: smooth; background: var(--bg); }
+  html { background: var(--bg); }
   #view-welcome .scene {
     min-height: 100vh; min-height: 100svh;
     display: flex; flex-direction: column;
@@ -81,16 +81,16 @@
 
   .fade-up {
     opacity: 0; transform: translateY(40px);
-    transition: opacity .9s cubic-bezier(.22,.61,.36,1),
-                transform .9s cubic-bezier(.22,.61,.36,1);
+    transition: opacity .55s cubic-bezier(.22,.61,.36,1),
+                transform .55s cubic-bezier(.22,.61,.36,1);
   }
   .fade-up.in-view { opacity: 1; transform: translateY(0); }
-  .fade-up.delay-1 { transition-delay: 60ms; }
-  .fade-up.delay-2 { transition-delay: 120ms; }
-  .fade-up.delay-3 { transition-delay: 180ms; }
-  .fade-up.delay-4 { transition-delay: 240ms; }
-  .fade-up.delay-5 { transition-delay: 300ms; }
-  .fade-up.delay-6 { transition-delay: 360ms; }
+  .fade-up.delay-1 { transition-delay: 50ms; }
+  .fade-up.delay-2 { transition-delay: 100ms; }
+  .fade-up.delay-3 { transition-delay: 150ms; }
+  .fade-up.delay-4 { transition-delay: 200ms; }
+  .fade-up.delay-5 { transition-delay: 250ms; }
+  .fade-up.delay-6 { transition-delay: 300ms; }
 
   /* Hero h1 */
   .hero h1.fade-up {
@@ -275,12 +275,13 @@
     animation-play-state: paused;
   }
   .ai-panel.after.animating .result-line { animation-play-state: running; }
-  .ai-panel.after .result-line:nth-child(2) { animation-delay: 0.5s; }
-  .ai-panel.after .result-line:nth-child(3) { animation-delay: 0.9s; }
-  .ai-panel.after .result-line:nth-child(4) { animation-delay: 1.3s; }
-  .ai-panel.after .result-line:nth-child(5) { animation-delay: 1.7s; }
-  .ai-panel.after .result-line:nth-child(6) { animation-delay: 2.1s; }
-  .ai-panel.after .result-line:nth-child(7) { animation-delay: 2.5s; }
+  .ai-panel.after .result-line:nth-child(3)  { animation-delay: 0s; }
+  .ai-panel.after .result-line:nth-child(4)  { animation-delay: 0.4s; }
+  .ai-panel.after .result-line:nth-child(5)  { animation-delay: 0.8s; }
+  .ai-panel.after .result-line:nth-child(6)  { animation-delay: 1.2s; }
+  .ai-panel.after .result-line:nth-child(7)  { animation-delay: 1.6s; }
+  .ai-panel.after .result-line:nth-child(8)  { animation-delay: 2.0s; }
+  .ai-panel.after .result-line:nth-child(9)  { animation-delay: 2.4s; }
   @keyframes resultIn {
     to { opacity: 1; transform: translateX(0); }
   }
@@ -306,16 +307,16 @@
   .scan-line {
     position: absolute; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    animation: scanDown 2.4s ease-in-out infinite;
+    animation: scanDown 3s ease-in-out infinite;
     pointer-events: none;
     opacity: 0;
   }
   .ai-panel.after.animating .scan-line { opacity: var(--scan-line-opacity); }
   @keyframes scanDown {
-    0%   { top: 0%; opacity: 0; }
-    25%  { opacity: 0.6; }
-    75%  { opacity: 0.6; }
-    100% { top: 100%; opacity: 0; }
+    0%   { top: 12%; opacity: 0; }
+    10%  { opacity: 0.6; }
+    80%  { opacity: 0.6; }
+    100% { top: 82%; opacity: 0; }
   }
 
   /* ===== Error Book panels (Scene 1) ===== */
@@ -625,39 +626,6 @@
   .module-card p { font-size: 13px; color: var(--text-2); line-height: 1.65; }
   .module-meta { font-size: 12px; color: var(--text-3); margin-top: 8px; }
 
-  /* ===== Pause Toast ===== */
-  .pause-toast {
-    position: fixed; bottom: 92px; left: 50%;
-    transform: translateX(-50%) translateY(16px);
-    z-index: 1002;
-    background: var(--toast-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 0.5px solid var(--toast-border);
-    border-radius: 100px;
-    padding: 9px 22px;
-    font-size: 11px;
-    color: var(--toast-text);
-    letter-spacing: 0.8px;
-    opacity: 0;
-    transition: opacity .4s, transform .4s;
-    pointer-events: none;
-    display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  }
-  .pause-toast { bottom: 92px; }
-  .pause-toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  .pause-toast .resume-dot {
-    width: 5px; height: 5px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: blink 1s ease-in-out infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.15;} }
-
   /* ===== Disclaimer ===== */
   .disclaimer {
     background: var(--surface);
@@ -760,9 +728,7 @@
 
   @media (max-width: 600px) {
     .scene { padding: 72px 20px 64px; }
-    .about-dark { padding: 40px 24px; }
-    .pause-toast { bottom: 64px; }
-    .screen-body { padding: 16px; }
+    .about-dark { padding: 40px 24px; }    .screen-body { padding: 16px; }
   }
 </style>
 <style id="boot-cloak">
@@ -811,11 +777,6 @@
 
 <main>
   <div class="scene-dots" id="sceneDots" aria-hidden="true"></div>
-
-  <!-- 暂停提示 -->
-  <div class="pause-toast" id="pauseToast">
-    <span class="resume-dot"></span>已暂停 · 12 秒后自动继续
-  </div>
 
   <!-- ========== Welcome View ========== -->
   <div class="view" id="view-welcome">
@@ -1303,10 +1264,8 @@
   /* ===== Idle Autoscroll ===== */
   var _autoscrollEnabled = true;
   var _autoscrollTimer = null;
-  var _resumeTimer = null;
   var IDLE_BEFORE_PLAY = 2000;
   var SCENE_DWELL = 5000;
-  var RESUME_AFTER = 12000;
 
   function setupIdleAutoscroll() {
     scheduleNextAdvance(IDLE_BEFORE_PLAY);
@@ -1363,22 +1322,10 @@
     else stopDemoLoop();
   }
   function stopAutoscroll() {
-    var wasActive = _autoscrollEnabled;
     _autoscrollEnabled = false;
     if (_autoscrollTimer) { clearTimeout(_autoscrollTimer); _autoscrollTimer = null; }
     var dotsEl = document.getElementById('sceneDots');
     if (dotsEl) dotsEl.classList.remove('is-playing');
-    if (wasActive) {
-      document.getElementById('pauseToast').classList.add('show');
-      if (_resumeTimer) clearTimeout(_resumeTimer);
-      _resumeTimer = setTimeout(resumeAutoscroll, RESUME_AFTER);
-    }
-  }
-  function resumeAutoscroll() {
-    _autoscrollEnabled = true;
-    document.getElementById('pauseToast').classList.remove('show');
-    if (_resumeTimer) { clearTimeout(_resumeTimer); _resumeTimer = null; }
-    scheduleNextAdvance(SCENE_DWELL);
   }
 
   /* ===== Page-by-page Wheel Scrolling ===== */
