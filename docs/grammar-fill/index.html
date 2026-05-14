@@ -216,25 +216,31 @@
     border-right: 0.5px solid var(--border);
     box-shadow: var(--shadow-lg);
     transform: translateX(calc(-100% + 8px));
-    transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform .32s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow .32s ease;
     overflow-y: auto; overflow-x: hidden;
     border-radius: 0 var(--radius) var(--radius) 0;
   }
-  /* 隐藏时可见的 8px 手柄条 */
+  /* 隐藏时可见的手柄条 + grip 指示器 */
   .context-sidebar::before {
     content: '';
     position: absolute;
     right: 0; top: 0; bottom: 0;
     width: 8px;
-    background: linear-gradient(to right, transparent, rgba(139,105,20,0.08));
     pointer-events: none;
+    /* 三条细线 grip */
+    background:
+      linear-gradient(to top, transparent calc(50% - 12px), rgba(139,105,20,0.12) calc(50% - 12px), rgba(139,105,20,0.12) calc(50% - 10px), transparent calc(50% - 10px)),
+      linear-gradient(to top, transparent calc(50% - 2px), rgba(139,105,20,0.15) calc(50% - 2px), rgba(139,105,20,0.15) 50%, transparent 50%),
+      linear-gradient(to top, transparent calc(50% + 8px), rgba(139,105,20,0.12) calc(50% + 8px), rgba(139,105,20,0.12) calc(50% + 10px), transparent calc(50% + 10px));
+    border-radius: 0 4px 4px 0;
+    transition: opacity .2s ease;
   }
   .context-sidebar:hover::before { opacity: 0; }
   /* 触发热区或侧栏本身 hover → 滑出 */
   .sidebar-edge-trigger:hover ~ .context-sidebar,
   .context-sidebar:hover {
     transform: translateX(0);
-    box-shadow: 8px 0 32px rgba(0,0,0,0.12);
+    box-shadow: 8px 0 40px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04);
   }
   .context-sidebar-content { padding: 8px 0; }
   .context-sidebar-empty { padding: 24px 12px; font-size: 12px; color: var(--text-3); text-align: center; }
@@ -814,9 +820,10 @@
   body.compact .card { padding: 12px 14px; }
   body.compact .grid-11 { gap: 8px; }
   body.compact .font-ctrl-btn { width: 20px; height: 20px; font-size: 11px; line-height: 18px; }
-  body.compact .dock { padding: 3px 8px; gap: 0px; border-radius: 14px; bottom: 6px; }
-  body.compact .dock-item { padding: 4px 10px; min-width: 44px; }
-  body.compact .dock-item-icon { font-size: 16px; }
+  body.compact .dock { padding: 4px 6px; gap: 0; border-radius: 16px; bottom: 6px; }
+  body.compact .dock-item { padding: 5px 10px; min-width: 40px; gap: 2px; }
+  body.compact .dock-item-icon { width: 20px; height: 20px; }
+  body.compact .dock-item-icon svg { width: 18px; height: 18px; }
   body.compact .dock-item-label { font-size: 9px; }
 
   /* ============== 套卷侧边栏 ============== */
@@ -1360,7 +1367,7 @@
 /* ── 浮动快捷按钮组 ── *//* ── 浮动快捷按钮组 ── */
 .float-actions {
   position: fixed;
-  bottom: 90px;
+  bottom: 92px;
   right: 28px;
   z-index: 200;
   display: flex;
@@ -1406,7 +1413,7 @@
 
 /* ====== AI 助手 ====== */
 .assistant-fab {
-  position: fixed; bottom: 90px; right: 88px; z-index: 200;
+  position: fixed; bottom: 92px; right: 88px; z-index: 200;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
   color: #fff; font-size: 22px;
@@ -1433,6 +1440,11 @@
 }
 
 .assistant-panel {
+[data-theme="dark"] .dock {
+  background: rgba(38,38,40,0.68);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 4px 28px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.05);
+}
   position: fixed; top: 0; right: 0; bottom: 0;
   width: 400px; max-width: 100vw;
   background: var(--surface);
@@ -1590,66 +1602,76 @@
 }
 .assistant-backdrop.show { opacity: 1; pointer-events: auto; }
 
-/* ====== Bottom Dock ====== */
+/* ====== Bottom Dock · macOS 毛玻璃 ====== */
 .dock {
   position: fixed;
-  bottom: 12px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 200;
   display: flex;
-  gap: 4px;
-  padding: 6px 10px;
-  background: rgba(255,255,255,0.82);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.04);
+  gap: 2px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.52);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(0,0,0,0.07);
+  border-radius: 20px;
+  box-shadow: 0 2px 28px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.03);
 }
 .dock-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 14px;
-  border-radius: 12px;
+  gap: 3px;
+  padding: 8px 16px;
+  border-radius: 14px;
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--text-2);
+  color: var(--text-3);
   font-size: 11px;
   font-family: inherit;
-  transition: all .2s ease;
-  min-width: 56px;
+  transition: all .28s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 52px;
   position: relative;
   -webkit-tap-highlight-color: transparent;
 }
+.dock-item-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+}
+.dock-item-icon svg {
+  width: 22px; height: 22px;
+  transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .dock-item:hover {
   color: var(--text);
-  background: var(--surface-3);
-  transform: translateY(-4px);
+  background: rgba(0,0,0,0.04);
+  transform: translateY(-6px);
+}
+.dock-item:hover .dock-item-icon svg {
+  transform: scale(1.08);
 }
 .dock-item.active {
   color: var(--accent);
-  font-weight: 600;
 }
 .dock-item.active::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  width: 4px; height: 4px;
+  bottom: 3px;
+  width: 3px; height: 3px;
   border-radius: 50%;
   background: var(--accent);
+  opacity: 0.8;
 }
-.dock-item-icon { font-size: 20px; line-height: 1; }
-.dock-item-label { font-size: 10px; font-weight: inherit; }
+.dock-item-label { font-size: 10px; letter-spacing: 0.2px; }
 
 @media (max-width: 480px) {
   .assistant-panel { width: 100vw; }
-  .assistant-fab { right: 18px; bottom: 96px; }
-  .float-actions { bottom: 96px; }
+  .assistant-fab { right: 18px; bottom: 98px; }
+  .float-actions { bottom: 98px; }
 }
 </style>
 <script src="../data/grammar_bank.js"></script>
@@ -1907,19 +1929,19 @@
   <!-- ============== 底部导航 Dock ============== -->
   <nav class="dock" id="mainDock" style="display:none;">
     <button class="dock-item active" data-page="home" onclick="switchPage('home')">
-      <span class="dock-item-icon">🏠</span>
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></span>
       <span class="dock-item-label">练习</span>
     </button>
     <button class="dock-item" data-page="knowledge" onclick="switchPage('knowledge')">
-      <span class="dock-item-icon">📖</span>
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
       <span class="dock-item-label">考点</span>
     </button>
     <button class="dock-item" data-page="error-book" onclick="switchPage('error-book')">
-      <span class="dock-item-icon">📝</span>
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
       <span class="dock-item-label">错题</span>
     </button>
     <button class="dock-item" data-page="lesson-prep" onclick="switchPage('lesson-prep')">
-      <span class="dock-item-icon">📋</span>
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
       <span class="dock-item-label">备课</span>
     </button>
   </nav>

@@ -33,6 +33,43 @@
     --radius-sm: 6px;
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
     --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+    --modal-bg: #ffffff;
+    --modal-backdrop: rgba(0,0,0,0.35);
+    --input-bg: #ffffff;
+    --input-border: #e5e0d9;
+  }
+
+  /* ===== Dark Theme ===== */
+  [data-theme="dark"] {
+    --bg: #08090b;
+    --surface: rgba(255,255,255,0.045);
+    --surface-2: rgba(255,255,255,0.07);
+    --surface-3: rgba(255,255,255,0.025);
+    --border: rgba(255,255,255,0.07);
+    --text: #ede8dd;
+    --text-2: rgba(255,255,255,0.52);
+    --text-3: rgba(255,255,255,0.26);
+    --accent: #c8963e;
+    --accent-light: #e0b864;
+    --accent-bg: rgba(200,150,62,0.1);
+    --green: #4ea87c;
+    --green-bg: rgba(78,168,124,0.1);
+    --blue: #5ea8d4;
+    --blue-bg: rgba(94,168,212,0.1);
+    --red: #d4525e;
+    --red-bg: rgba(212,82,94,0.1);
+    --orange: #c88a36;
+    --orange-bg: rgba(200,138,54,0.1);
+    --purple: #a088c8;
+    --purple-bg: rgba(160,136,200,0.1);
+    --teal: #4ea8a4;
+    --teal-bg: rgba(78,168,164,0.1);
+    --shadow: 0 1px 3px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,0.05);
+    --modal-bg: #161618;
+    --modal-backdrop: rgba(0,0,0,0.65);
+    --input-bg: rgba(255,255,255,0.06);
+    --input-border: rgba(255,255,255,0.1);
   }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -44,10 +81,21 @@
     line-height: 1.6;
     min-height: 100vh;
   }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 20%, rgba(200,150,62,0.04) 0%, transparent 100%),
+      radial-gradient(ellipse 60% 50% at 80% 70%, rgba(94,168,212,0.02) 0%, transparent 100%);
+    opacity: 1;
+  }
+  [data-theme="light"] body::before,
+  body:not([data-theme]) body::before { opacity: 0; }
 
   header {
     background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 0.5px solid var(--border);
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -81,7 +129,9 @@
   }
   .home-entry-card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 28px 24px;
     cursor: pointer;
@@ -114,7 +164,9 @@
   }
   .card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 16px;
     cursor: pointer;
@@ -143,37 +195,53 @@
   }
 
   .practice-layout {
-    display: flex; gap: 0; align-items: flex-start;
-    min-height: calc(100vh - 120px);
-    padding-bottom: 48px;
     max-width: 1400px; margin: 0 auto; padding: 16px;
   }
+  /* 侧栏触发带：左边缘不可见热区 */
+  .sidebar-edge-trigger {
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 10px;
+    z-index: 149;
+  }
+  /* 侧栏本体：固定定位，隐藏于左边缘外，hover 滑出 */
   .context-sidebar {
-    width: 210px; flex-shrink: 0;
-    border-right: 1px solid var(--border);
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 220px;
+    z-index: 150;
     background: var(--surface);
-    overflow-y: auto; max-height: calc(100vh - 100px);
-    position: sticky; top: 16px;
-    padding: 0; border-radius: var(--radius);
-    transition: width .2s;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 0.5px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(calc(-100% + 8px));
+    transition: transform .32s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow .32s ease;
+    overflow-y: auto; overflow-x: hidden;
+    border-radius: 0 var(--radius) var(--radius) 0;
   }
-  .context-sidebar.collapsed {
-    width: 36px;
+  /* 隐藏时可见的手柄条 + grip 指示器 */
+  .context-sidebar::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 8px;
+    pointer-events: none;
+    /* 三条细线 grip */
+    background:
+      linear-gradient(to top, transparent calc(50% - 12px), rgba(139,105,20,0.12) calc(50% - 12px), rgba(139,105,20,0.12) calc(50% - 10px), transparent calc(50% - 10px)),
+      linear-gradient(to top, transparent calc(50% - 2px), rgba(139,105,20,0.15) calc(50% - 2px), rgba(139,105,20,0.15) 50%, transparent 50%),
+      linear-gradient(to top, transparent calc(50% + 8px), rgba(139,105,20,0.12) calc(50% + 8px), rgba(139,105,20,0.12) calc(50% + 10px), transparent calc(50% + 10px));
+    border-radius: 0 4px 4px 0;
+    transition: opacity .2s ease;
   }
-  .context-sidebar.collapsed .context-sidebar-content { display: none; }
-  .context-sidebar.collapsed .context-sidebar-toggle-label { display: none; }
-  .context-sidebar-toggle {
-    display: flex; align-items: center; gap: 6px;
-    width: 100%; padding: 8px 10px; cursor: pointer;
-    border: none; background: none; color: var(--text-3);
-    font-size: 13px; transition: color .12s;
-    border-bottom: 1px solid var(--border);
+  .context-sidebar:hover::before { opacity: 0; }
+  /* 触发热区或侧栏本身 hover → 滑出 */
+  .sidebar-edge-trigger:hover ~ .context-sidebar,
+  .context-sidebar:hover {
+    transform: translateX(0);
+    box-shadow: 8px 0 40px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04);
   }
-  .context-sidebar.collapsed .context-sidebar-toggle {
-    border-bottom: none; padding: 8px 6px; justify-content: center;
-  }
-  .context-sidebar-toggle:hover { color: var(--text); }
-  .context-sidebar-toggle-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
   .context-sidebar-content { padding: 8px 0; }
   .context-sidebar-empty { padding: 24px 12px; font-size: 12px; color: var(--text-3); text-align: center; }
   .context-sidebar-title {
@@ -203,7 +271,7 @@
   .context-sidebar-item .cs-cat {
     font-size: 10px; color: var(--text-3); margin-left: auto; flex-shrink: 0;
   }
-  .left-panel { flex: 1; min-width: 0; padding-left: 20px; }
+  .left-panel { padding-left: 0; }
 
   .back-btn {
     display: inline-block; padding: 6px 14px; font-size: 13px; color: var(--accent);
@@ -231,7 +299,9 @@
 
   .passage-box {
     background: var(--surface);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 28px 32px;
     font-size: var(--passage-font-size, 24px);
@@ -738,14 +808,11 @@
   body.compact .hint-text { display: none; }
   body.compact .category-stats { display: none; }
   body.compact .practice-layout { min-height: auto; padding-bottom: 16px; padding: 10px; }
-  body.compact .context-sidebar { width: 170px; max-height: calc(100vh - 80px); top: 10px; }
-  body.compact .context-sidebar.collapsed { width: 32px; }
+  body.compact .context-sidebar { width: 180px; }
   body.compact .context-sidebar-title { font-size: 11px; padding: 4px 8px 8px; }
   body.compact .context-sidebar-item { padding: 4px 8px; font-size: 11px; }
   body.compact .context-sidebar-year { padding: 6px 8px 1px; font-size: 9px; }
-  body.compact .context-sidebar-toggle { padding: 5px 8px; font-size: 11px; }
-  body.compact .context-sidebar-toggle-label { font-size: 11px; }
-  body.compact .left-panel { padding-left: 14px; }
+  body.compact .left-panel { padding-left: 0; }
   body.compact .home-entry-card { padding: 16px 18px; }
   body.compact .home-entry-cards { gap: 10px; }
   body.compact .category-section { margin-bottom: 14px; }
@@ -753,22 +820,29 @@
   body.compact .card { padding: 12px 14px; }
   body.compact .grid-11 { gap: 8px; }
   body.compact .font-ctrl-btn { width: 20px; height: 20px; font-size: 11px; line-height: 18px; }
+  body.compact .dock { padding: 4px 6px; gap: 0; border-radius: 16px; bottom: 6px; }
+  body.compact .dock-item { padding: 5px 10px; min-width: 40px; gap: 2px; }
+  body.compact .dock-item-icon { width: 20px; height: 20px; }
+  body.compact .dock-item-icon svg { width: 18px; height: 18px; }
+  body.compact .dock-item-label { font-size: 9px; }
+
+  /* ============== 套卷侧边栏 ============== */
+
 
   /* ============== 欢迎页 + 登录墙 ============== */
-  body.guest .nav,
   body.guest .header-font-ctrl,
   body.guest #syncStatus { display: none !important; }
   body.guest #page-welcome { display: block !important; }
   body.guest .page:not(#page-welcome) { display: none !important; }
   body.guest header { background: rgba(255,255,255,0.7); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); }
+  body.guest .dock { display: none; }
 
   /* ============== 模块选择页（登录后默认）============== */
-  body.in-modules .nav .nav-btn:not(#navBtnModules):not(#navBtnAdmin),
   body.in-modules .header-font-ctrl,
   body.in-modules #syncStatus { display: none !important; }
-  body.in-modules #navBtnModules { display: none !important; } /* 在模块页本身，不需要再显示返回按钮 */
   body.in-modules #page-modules { display: block !important; }
   body.in-modules .page:not(#page-modules) { display: none !important; }
+  body.in-modules .dock { display: none; }
 
   #page-welcome, #page-modules { max-width: 1020px; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
 
@@ -1293,7 +1367,7 @@
 /* ── 浮动快捷按钮组 ── *//* ── 浮动快捷按钮组 ── */
 .float-actions {
   position: fixed;
-  bottom: 28px;
+  bottom: 92px;
   right: 28px;
   z-index: 200;
   display: flex;
@@ -1323,10 +1397,23 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.14);
 }
 .float-btn:active { transform: scale(0.95); }
+[data-theme="dark"] .float-btn {
+  background: rgba(30,30,30,0.85);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+[data-theme="dark"] .float-btn:hover {
+  background: rgba(45,45,45,0.9);
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+}
 
 /* ====== AI 助手 ====== */
 .assistant-fab {
-  position: fixed; bottom: 28px; right: 88px; z-index: 200;
+  position: fixed; bottom: 92px; right: 88px; z-index: 200;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
   color: #fff; font-size: 22px;
@@ -1345,8 +1432,19 @@
   font-weight: 600; letter-spacing: 0.5px;
   border: 2px solid var(--bg);
 }
+[data-theme="dark"] .assistant-fab {
+  box-shadow: 0 4px 20px rgba(212,168,67,0.3), 0 2px 4px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .assistant-fab:hover {
+  box-shadow: 0 8px 28px rgba(212,168,67,0.45), 0 4px 8px rgba(0,0,0,0.3);
+}
 
 .assistant-panel {
+[data-theme="dark"] .dock {
+  background: rgba(38,38,40,0.68);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 4px 28px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.05);
+}
   position: fixed; top: 0; right: 0; bottom: 0;
   width: 400px; max-width: 100vw;
   background: var(--surface);
@@ -1358,6 +1456,13 @@
   box-shadow: -8px 0 32px rgba(0,0,0,0.06);
 }
 .assistant-panel.open { transform: translateX(0); }
+[data-theme="dark"] .assistant-panel {
+  background: rgba(20,20,20,0.95);
+  border-left-color: rgba(255,255,255,0.08);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
 .assistant-head {
   padding: 16px 20px; border-bottom: 1px solid var(--border);
   display: flex; justify-content: space-between; align-items: center;
@@ -1401,6 +1506,10 @@
 .assistant-msg.user .bubble {
   background: var(--accent); color: #fff;
   border-bottom-right-radius: 4px;
+}
+[data-theme="dark"] .assistant-msg.assistant .bubble {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.06);
 }
 .assistant-msg.assistant .bubble {
   background: var(--surface-2); color: var(--text);
@@ -1493,12 +1602,79 @@
 }
 .assistant-backdrop.show { opacity: 1; pointer-events: auto; }
 
+/* ====== Bottom Dock · macOS 毛玻璃 ====== */
+.dock {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.52);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(0,0,0,0.07);
+  border-radius: 20px;
+  box-shadow: 0 2px 28px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.03);
+}
+.dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 11px;
+  font-family: inherit;
+  transition: all .28s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 52px;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.dock-item-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+}
+.dock-item-icon svg {
+  width: 22px; height: 22px;
+  transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dock-item:hover {
+  color: var(--text);
+  background: rgba(0,0,0,0.04);
+  transform: translateY(-6px);
+}
+.dock-item:hover .dock-item-icon svg {
+  transform: scale(1.08);
+}
+.dock-item.active {
+  color: var(--accent);
+}
+.dock-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.8;
+}
+.dock-item-label { font-size: 10px; letter-spacing: 0.2px; }
+
 @media (max-width: 480px) {
   .assistant-panel { width: 100vw; }
-  .assistant-fab { right: 18px; bottom: 90px; }
+  .assistant-fab { right: 18px; bottom: 98px; }
+  .float-actions { bottom: 98px; }
 }
 </style>
-<script src="../../data/grammar_bank.js"></script>
+<script src="../data/grammar_bank.js"></script>
 <script src="../../data/grammar_knowledge.js"></script>
 
 <!-- ============== Supabase 云同步 · 配置 + 客户端 ============== -->
@@ -1536,7 +1712,7 @@
   /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
   html.has-session body.guest #page-welcome { display: none !important; }
   html.has-session body.guest #page-home    { display: block !important; }
-  html.has-session body.guest .nav,
+  html.has-session body.guest .dock,
   html.has-session body.guest .header-font-ctrl,
   html.has-session body.guest #syncStatus { display: flex !important; }
 </style>
@@ -1737,6 +1913,7 @@
   <header>
     <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
+      <button class="theme-toggle" onclick="toggleTheme()" title="切换深色模式" id="themeToggle" style="width:32px;height:32px;border:none;border-radius:50%;background:transparent;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);line-height:1;">🌙</button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
@@ -1744,22 +1921,34 @@
         <span id="passageFontVal" style="font-size:11px;min-width:28px;text-align:center;">24px</span>
         <button class="font-ctrl-btn" onclick="adjustFont('passage',1)">+</button>
       </div>
-      <nav class="nav">
-        <button class="nav-btn" data-page="modules" id="navBtnModules" style="display:none;">📚 模块</button>
-        <button class="nav-btn active" data-page="home" id="navBtnHome">🏠 练习</button>
-        <button class="nav-btn" data-page="knowledge">📖 考点速查</button>
-        <button class="nav-btn" data-page="error-book">📝 错题</button>
-        <button class="nav-btn" data-page="lesson-prep">📋 备课</button>
-        <button class="nav-btn" data-page="admin" id="navBtnAdmin" style="display:none;">👥 管理员</button>
-      </nav>
       <span id="syncStatus" style="font-size:12px;display:none;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;"></span>
       <div id="userPill" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);"></div>
     </div>
   </header>
 
+  <!-- ============== 底部导航 Dock ============== -->
+  <nav class="dock" id="mainDock" style="display:none;">
+    <button class="dock-item active" data-page="home" onclick="switchPage('home')">
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></span>
+      <span class="dock-item-label">练习</span>
+    </button>
+    <button class="dock-item" data-page="knowledge" onclick="switchPage('knowledge')">
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+      <span class="dock-item-label">考点</span>
+    </button>
+    <button class="dock-item" data-page="error-book" onclick="switchPage('error-book')">
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      <span class="dock-item-label">错题</span>
+    </button>
+    <button class="dock-item" data-page="lesson-prep" onclick="switchPage('lesson-prep')">
+      <span class="dock-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
+      <span class="dock-item-label">备课</span>
+    </button>
+  </nav>
+
   <!-- ============== 登录/注册 模态框 ============== -->
-  <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
+  <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:var(--modal-backdrop);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:var(--modal-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
       <!-- 表单态 -->
       <div id="authFormPanel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
@@ -1772,15 +1961,15 @@
         </div>
         <div style="margin-bottom:12px;">
           <label style="font-size:12px;color:var(--text-2);">邮箱</label>
-          <input id="authEmail" type="email" autocomplete="email" placeholder="your@email.com" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="authEmail" type="email" autocomplete="email" placeholder="your@email.com" style="width:100%;padding:8px 10px;margin-top:4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-size:14px;color:var(--text);">
         </div>
         <div id="authUsernameRow" style="display:none;margin-bottom:12px;">
           <label style="font-size:12px;color:var(--text-2);">用户名</label>
-          <input id="authUsername" type="text" autocomplete="username" placeholder="你喜欢的名字" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="authUsername" type="text" autocomplete="username" placeholder="你喜欢的名字" style="width:100%;padding:8px 10px;margin-top:4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-size:14px;color:var(--text);">
         </div>
         <div style="margin-bottom:16px;">
           <label style="font-size:12px;color:var(--text-2);">密码（≥ 6 位）</label>
-          <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()" style="width:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()" style="width:100%;padding:8px 10px;margin-top:4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-size:14px;color:var(--text);">
         </div>
         <div id="authError" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;line-height:1.55;"></div>
         <div id="authInfo"  style="display:none;color:var(--green);font-size:12px;margin-bottom:12px;"></div>
@@ -1810,15 +1999,15 @@
   </div>
 
   <!-- ============== 用户设置 模态框 ============== -->
-  <div id="settingsModal" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1001;align-items:center;justify-content:center;">
-    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
+  <div id="settingsModal" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:var(--modal-backdrop);z-index:1001;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:var(--modal-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div style="font-size:18px;font-weight:700;color:var(--text);">账户设置</div>
         <button onclick="closeSettingsModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
       </div>
       <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
         <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">修改密码</div>
-        <input id="settingsNewPwd" type="password" placeholder="新密码（至少 6 位）" style="width:100%;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        <input id="settingsNewPwd" type="password" placeholder="新密码（至少 6 位）" style="width:100%;padding:8px 10px;margin-bottom:8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-size:14px;color:var(--text);">
         <button onclick="changeMyPassword()" style="padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">更新密码</button>
         <span id="settingsPwdMsg" style="font-size:12px;margin-left:8px;"></span>
       </div>
@@ -1828,7 +2017,7 @@
         <div id="pendingUsernameInfo" style="display:none;background:var(--accent-bg);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:var(--accent);">
           待审批：<b id="pendingUsernameVal"></b>
         </div>
-        <input id="settingsNewUsername" type="text" placeholder="新用户名（至少 2 个字符，不含 @）" style="width:100%;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        <input id="settingsNewUsername" type="text" placeholder="新用户名（至少 2 个字符，不含 @）" style="width:100%;padding:8px 10px;margin-bottom:8px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-size:14px;color:var(--text);">
         <button onclick="requestMyUsernameChange()" style="padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">提交申请</button>
         <span id="settingsUnameMsg" style="font-size:12px;margin-left:8px;"></span>
       </div>
@@ -2047,7 +2236,7 @@
         <div class="category-section-title">一、谓语动词 · 非谓语动词</div>
         <div class="grid-11">
           <div class="card" onclick="startByCategory('predicate')">
-            <span class="card-tag" style="background:#fce4a8;color:#8b6914;">谓语</span>
+            <span class="card-tag">谓语</span>
             <div class="card-title">谓语动词</div>
             <div class="card-desc">时态 · 语态 · 主谓一致</div>
             <div class="card-count" id="count-predicate">--</div>
@@ -2107,25 +2296,25 @@
         <div class="category-section-title">四、连词</div>
         <div class="grid-11">
           <div class="card" onclick="startByCategory('logic')">
-            <span class="card-tag" style="background:#f3e8ff;color:#6a4c93;">逻辑</span>
+            <span class="card-tag purple">逻辑</span>
             <div class="card-title">逻辑连词</div>
             <div class="card-desc">and · but · or · so</div>
             <div class="card-count" id="count-logic">--</div>
           </div>
           <div class="card" onclick="startByCategory('attrib')">
-            <span class="card-tag" style="background:#fce4ec;color:#c1121f;">定从</span>
+            <span class="card-tag red">定从</span>
             <div class="card-title">定语从句连词</div>
             <div class="card-desc">关系代词 · 关系副词</div>
             <div class="card-count" id="count-attrib">--</div>
           </div>
           <div class="card" onclick="startByCategory('nounclause')">
-            <span class="card-tag" style="background:#e0f2f1;color:#0e7c7b;">名从</span>
+            <span class="card-tag teal">名从</span>
             <div class="card-title">名词性从句连词</div>
             <div class="card-desc">主语 · 宾语 · 表语 · 同位语</div>
             <div class="card-count" id="count-nounclause">--</div>
           </div>
           <div class="card" onclick="startByCategory('advclause')">
-            <span class="card-tag" style="background:#e8f5e9;color:#2d6a4f;">状从</span>
+            <span class="card-tag green">状从</span>
             <div class="card-title">状语从句连词</div>
             <div class="card-desc">时间 · 条件 · 原因 · 让步等</div>
             <div class="card-count" id="count-advclause">--</div>
@@ -2136,14 +2325,11 @@
     </div>
 
     <div class="page" id="page-practice">
+      <div class="sidebar-edge-trigger"></div>
+      <div class="context-sidebar" id="contextSidebar" style="display:none;">
+        <div class="context-sidebar-content" id="contextSidebarContent"></div>
+      </div>
       <div class="practice-layout">
-        <div class="context-sidebar" id="contextSidebar" style="display:none;">
-          <button class="context-sidebar-toggle" onclick="toggleContextSidebar()" title="折叠侧栏">
-            <span id="contextSidebarToggleIcon">◀</span>
-            <span class="context-sidebar-toggle-label" id="contextSidebarToggleLabel">折叠</span>
-          </button>
-          <div class="context-sidebar-content" id="contextSidebarContent"></div>
-        </div>
         <div class="left-panel">
           <div class="back-btn" id="practiceBackBtn" onclick="goBack()">← 返回首页</div>
           <div class="source-info">
@@ -2273,6 +2459,31 @@
 </div>
 
 <script>
+// ────────── 主题切换 ──────────
+(function(){
+  var t = localStorage.getItem('theme');
+  if (!t) t = 'dark';
+  if (t === 'light') document.documentElement.dataset.theme = 'light';
+  else document.documentElement.dataset.theme = 'dark';
+})();
+function toggleTheme() {
+  var html = document.documentElement;
+  var isLight = html.dataset.theme === 'light';
+  if (isLight) {
+    html.dataset.theme = 'dark';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    html.dataset.theme = 'light';
+    localStorage.setItem('theme', 'light');
+  }
+  var btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = html.dataset.theme === 'light' ? '🌙' : '☀️';
+}
+(function(){
+  var btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = document.documentElement.dataset.theme === 'light' ? '🌙' : '☀️';
+})();
+
 const CATEGORY_MAP = (window.GRAMMAR_BANK && window.GRAMMAR_BANK.category_names) || {
   'predicate': '谓语动词',
   'nonpredicate': '非谓语动词',
@@ -3208,13 +3419,8 @@ function init() {
   loadErrorBook();
   loadPrepPassages();
   runErrorBookCleanup();
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // 「📚 模块」按钮回到顶层模块选择页（hub）
-      if (btn.dataset.page === 'modules') { window.location.href = '/'; return; }
-      switchPage(btn.dataset.page);
-    });
-  });
+  // Clean up old sidebar collapsed state
+  try { localStorage.removeItem('grammar-context-sidebar-collapsed'); } catch(e) {}
   renderBankStat();
   renderExamGrid();
   updateCounts();
@@ -3264,10 +3470,6 @@ let _migrationPromptShown = false;
 
 async function onCloudStateChange(state) {
   renderUserPill(state);
-  document.getElementById('navBtnAdmin').style.display = state.isAdmin ? '' : 'none';
-  // 已登录时「📚 模块」可见（在 modules 页本身又会被 body.in-modules 隐藏）
-  var navBtnModules = document.getElementById('navBtnModules');
-  if (navBtnModules) navBtnModules.style.display = state.user ? '' : 'none';
   document.getElementById('adminBanner').style.display = state.viewingUserId ? '' : 'none';
   if (state.viewingUserId) {
     document.getElementById('adminViewingEmail').textContent = state.viewingEmail || '';
@@ -3855,15 +4057,7 @@ function renderExamGrid() {
   grid.innerHTML = html;
 }
 
-// ────────── 上下文侧边栏 ──────────
-function toggleContextSidebar() {
-  var el = document.getElementById('contextSidebar');
-  if (!el) return;
-  var collapsed = el.classList.toggle('collapsed');
-  document.getElementById('contextSidebarToggleIcon').textContent = collapsed ? '▶' : '◀';
-  localStorage.setItem('grammar-context-sidebar-collapsed', collapsed ? '1' : '0');
-}
-
+// ────────── 套卷侧边栏（macOS Dock 风格 auto-hide）──────────
 function renderContextSidebar() {
   var el = document.getElementById('contextSidebar');
   if (!el) return;
@@ -3922,16 +4116,6 @@ function renderContextSidebar() {
 
   html = '<div class="context-sidebar-title">' + title + '</div>' + html;
   document.getElementById('contextSidebarContent').innerHTML = html;
-  document.getElementById('contextSidebarToggleLabel').textContent = title;
-  // restore collapsed state
-  var collapsed = localStorage.getItem('grammar-context-sidebar-collapsed') === '1';
-  if (collapsed) {
-    el.classList.add('collapsed');
-    document.getElementById('contextSidebarToggleIcon').textContent = '▶';
-  } else {
-    el.classList.remove('collapsed');
-    document.getElementById('contextSidebarToggleIcon').textContent = '◀';
-  }
   el.style.display = '';
 }
 
@@ -3953,12 +4137,19 @@ function switchPage(page) {
   }
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  // Update dock active state
+  document.querySelectorAll('.dock-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === page);
+  });
   var pageEl = document.getElementById('page-' + page);
   if (pageEl) pageEl.classList.add('active');
-  var navBtn = document.querySelector('[data-page="' + page + '"]');
-  if (navBtn) navBtn.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'instant' });
+
+  // Dock visibility
+  var dock = document.getElementById('mainDock');
+  if (dock) {
+    dock.style.display = (page === 'welcome') ? 'none' : '';
+  }
 
   if (page === 'practice') updateBackButton();
   if (page !== 'practice') {
@@ -5167,8 +5358,8 @@ init();
 </div>
 
 <!-- 统一导入选择面板：整篇进备课资料 + 勾选的题进错题本 -->
-<div id="unifiedImportOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);border-radius:14px;box-shadow:var(--shadow-lg);width:720px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;">
+<div id="unifiedImportOverlay" style="display:none;position:fixed;inset:0;background:var(--modal-backdrop);z-index:300;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+  <div style="background:var(--modal-bg);border-radius:14px;box-shadow:var(--shadow-lg);width:720px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;">
     <div style="padding:22px 26px 14px;border-bottom:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
