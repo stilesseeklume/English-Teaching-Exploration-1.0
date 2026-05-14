@@ -833,7 +833,7 @@
   body.in-modules .page:not(#page-modules) { display: none !important; }
   body.in-modules .dock { display: none; }
 
-  #page-welcome, #page-modules { max-width: min(94%, 2400px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+  #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
 
   /* ── 欢迎页 Hero ── */
   .welcome-hero {
