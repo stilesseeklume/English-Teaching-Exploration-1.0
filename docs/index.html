@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Snippets · 语法填空教学小工具</title>
+<title>Seeklume · Lesson Snippets</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -167,20 +167,14 @@
     opacity: 0.7;
   }
   .hero h1 {
-    font-size: clamp(44px, 6.5vw, 76px);
+    font-size: 44px;
     color: var(--hero-title-color); margin-bottom: 20px;
-    letter-spacing: -2px; line-height: 1.02; font-weight: 300;
+    letter-spacing: -1px; line-height: 1.2; font-weight: 700;
   }
   .gradient-text {
-    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-light) 30%, var(--accent) 60%, var(--accent-light) 100%);
-    background-size: 300% 100%;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 50%, var(--accent) 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: gradientShimmer 6s ease-in-out infinite;
-  }
-  @keyframes gradientShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50%      { background-position: 100% 50%; }
   }
   .hero p.sub {
     font-size: 17px; color: var(--text-2); max-width: 680px;
@@ -296,9 +290,8 @@
     font-weight: 500;
   }
   .ai-panel.after .result-line.ap-highlight {
-    color: var(--accent); font-weight: 500;
+    font-weight: 500;
   }
-  .ai-panel.after .result-line.ap-highlight .check { color: var(--accent); }
   .ai-panel.before {
     background-image:
       radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
@@ -307,7 +300,7 @@
   .scan-line {
     position: absolute; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    animation: scanDown 3s ease-in-out infinite;
+    animation: scanDown 2.8s ease-in-out infinite;
     pointer-events: none;
     opacity: 0;
   }
@@ -767,7 +760,7 @@
 
 
 <header>
-  <div class="logo" onclick="goHome()" style="cursor:pointer;">Lesson Snippets</div>
+  <div class="logo" onclick="goHome()" style="cursor:pointer;">Seeklume · Lesson Snippets</div>
   <div class="header-right" id="headerRight">
     <button class="header-btn ghost" onclick="showView('modules')">免费体验</button>
     <button class="header-btn ghost" onclick="openModal('signin')">登录</button>
@@ -785,7 +778,7 @@
     <section class="scene scene-hero" data-scene="0">
       <div class="hero" style="padding:0;">
         <div class="eyebrow fade-up">Early Access</div>
-        <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
+        <h1 class="fade-up delay-1">Seeklume<br><span class="gradient-text">Lesson Snippets</span></h1>
         <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
         <p class="humble fade-up delay-3">如果能帮到你，便是最开心的事。它还不完美，会持续打磨。</p>
         <div class="cta fade-up delay-4">
@@ -984,7 +977,7 @@
           <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
         </ul>
       </div>
-      <div class="footer-note fade-up delay-5">Lesson Snippets · seeklume.work</div>
+      <div class="footer-note fade-up delay-5">Seeklume · Lesson Snippets</div>
     </section>
   </div>
 
@@ -1296,7 +1289,11 @@
     if (dotsEl) dotsEl.classList.add('is-playing');
     _autoscrollTimer = setTimeout(advanceScene, delay);
   }
+  var _lastAdvanceTime = 0;
   function advanceScene() {
+    var now = Date.now();
+    if (now - _lastAdvanceTime < 800) return;
+    _lastAdvanceTime = now;
     if (!document.body.classList.contains('welcome-mode')) {
       stopAutoscroll(); return;
     }

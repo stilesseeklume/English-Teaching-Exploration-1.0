@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>语法填空 · Lesson Snippets</title>
+<title>Seeklume · Lesson Snippets</title>
 <style>
   :root {
-    --bg: #f5f3ef;
+    --bg: #f5f5f7;
     --surface: #ffffff;
-    --surface-2: #faf8f5;
-    --surface-3: #f3f0eb;
-    --border: #e5e0d9;
-    --text: #2c2416;
-    --text-2: #6b5e4a;
-    --text-3: #9b8d7a;
-    --accent: #8b6914;
-    --accent-light: #b8942f;
-    --accent-bg: #fdf6e8;
-    --green: #2d6a4f;
-    --green-bg: #edf7f1;
-    --blue: #1e6091;
-    --blue-bg: #edf4f9;
-    --red: #c1121f;
-    --red-bg: #fef2f3;
-    --orange: #bc6c25;
-    --orange-bg: #fef8f2;
-    --purple: #6a4c93;
-    --purple-bg: #f8f5fb;
-    --teal: #0e7c7b;
-    --teal-bg: #edf7f7;
+    --surface-2: #fafafa;
+    --surface-3: #f0f0f2;
+    --border: #e5e5ea;
+    --text: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #aeaeb2;
+    --accent: #0071e3;
+    --accent-light: #409cff;
+    --accent-bg: #f0f7ff;
+    --green: #34c759;
+    --green-bg: #e8f8ed;
+    --blue: #007aff;
+    --blue-bg: #e8f2fd;
+    --red: #ff3b30;
+    --red-bg: #fee8e7;
+    --orange: #ff9500;
+    --orange-bg: #fff3e0;
+    --purple: #af52de;
+    --purple-bg: #f6edfb;
+    --teal: #5ac8fa;
+    --teal-bg: #e6f7fd;
     --radius: 10px;
     --radius-sm: 6px;
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
@@ -36,7 +36,7 @@
     --modal-bg: #ffffff;
     --modal-backdrop: rgba(0,0,0,0.35);
     --input-bg: #ffffff;
-    --input-border: #e5e0d9;
+    --input-border: #e5e5ea;
   }
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -124,10 +124,10 @@
     font-size: 22px;
     line-height: 1;
   }
-  .home-entry-card-icon.exams    { background: #eef2ff; }
-  .home-entry-card-icon.categories { background: #fdf3e7; }
-  .home-entry-card-icon.errors   { background: #fef0f2; }
-  .home-entry-card-icon.prep     { background: #edf7f1; }
+  .home-entry-card-icon.exams    { background: #e8f2fd; }
+  .home-entry-card-icon.categories { background: #fff3e0; }
+  .home-entry-card-icon.errors   { background: #fee8e7; }
+  .home-entry-card-icon.prep     { background: #e8f8ed; }
   .home-entry-card-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 3px; letter-spacing: -.2px; }
   .home-entry-card-desc { font-size: 13px; color: var(--text-3); line-height: 1.5; }
   .home-entry-card-arrow {
@@ -323,8 +323,8 @@
     position: relative;
     vertical-align: baseline;
   }
-  .blank-inline:hover { background: #f5e6c8; border-bottom-color: var(--accent-light); }
-  .blank-inline.highlight { background: #fce4a8; border-bottom-color: var(--orange); color: var(--orange); }
+  .blank-inline:hover { background: #cce5ff; border-bottom-color: var(--accent-light); }
+  .blank-inline.highlight { background: #ffd60a; border-bottom-color: var(--orange); color: var(--orange); }
 
   .hint-text { font-size: var(--font-sm, 21px); color: var(--text-3); margin-bottom: 12px; }
 
@@ -399,7 +399,7 @@
     font-size: 14px; line-height: 1.8; color: var(--text); margin-bottom: 14px;
     padding: 12px; background: var(--surface-3); border-radius: 6px;
   }
-  .hl { color: var(--accent); font-weight: 700; background: #fce4a8; padding: 1px 4px; border-radius: 3px; }
+  .hl { color: var(--accent); font-weight: 700; background: #ffd60a; padding: 1px 4px; border-radius: 3px; }
   .analysis-steps { font-size: 13px; color: var(--text-2); line-height: 1.8; }
   .analysis-steps p { margin-bottom: 6px; }
 
@@ -436,7 +436,7 @@
   .drawer-fold-body ul { padding-left: 18px; margin: 4px 0; }
   .drawer-fold-body li { margin-bottom: 3px; line-height: 1.7; }
   .drawer-fold-body .highlight-box {
-    background: #fefce8; border-left: 3px solid var(--orange); padding: 8px 12px;
+    background: #fff9e6; border-left: 3px solid var(--accent); padding: 8px 12px;
     border-radius: 4px; margin: 8px 0; font-weight: 500;
   }
 
@@ -497,7 +497,7 @@
   .search-result-item .sr-cat { font-size: 10px; color: var(--text-3); }
   .search-result-item .sr-title { font-weight: 600; font-size: 12px; color: var(--text); }
   .search-result-item .sr-snippet { font-size: 10px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .search-result-item mark { background: #fef08a; color: inherit; padding: 0 1px; border-radius: 1px; }
+  .search-result-item mark { background: #ffd60a; color: inherit; padding: 0 1px; border-radius: 1px; }
   .search-no-results { padding: 12px; font-size: 12px; color: var(--text-3); text-align: center; }
 
   /* 手风琴 */
@@ -562,7 +562,7 @@
   .knowledge-subsection-body li { margin-bottom: 3px; }
   .knowledge-subsection-body p { margin: 6px 0; }
   .tip-box {
-    background: #fefce8; border-left: 3px solid var(--orange); padding: 10px 14px;
+    background: #fff9e6; border-left: 3px solid var(--accent); padding: 10px 14px;
     border-radius: 4px; margin: 12px 0; font-weight: 500; font-size: 13px; line-height: 1.7;
   }
   .ref-table {
@@ -598,7 +598,7 @@
     touch-action: none;
   }
   .drawer-handle-bar {
-    width: 40px; height: 4px; border-radius: 2px; background: #d0ccc4;
+    width: 40px; height: 4px; border-radius: 2px; background: #d2d2d7;
   }
   .drawer-handle-hint {
     font-size: 10px; color: var(--text-3); margin-top: 4px;
@@ -667,7 +667,7 @@
   .migration-card-sentence .blank-hl {
     display: inline-block; min-width: 44px; text-align: center;
     padding: 2px 6px; border-bottom: 2px dashed var(--accent);
-    background: #fef3c7; border-radius: 3px; font-weight: 700; color: var(--accent);
+    background: #fff9e6; border-radius: 3px; font-weight: 700; color: var(--accent);
   }
   .migration-card-body {
     display: none; padding: 14px 16px; border-top: 1px solid var(--border);
@@ -1311,13 +1311,13 @@
   color: #fff !important;
   border: 1px solid var(--green) !important;
 }
-.docx-upload-btn:hover { background: #256b42 !important; }
+.docx-upload-btn:hover { background: #248a3d !important; }
 
 /* ── Word 导入格式演示：真实文档效果 ── */
 .import-demo-popover {
   position: fixed; z-index: 300;
   width: 600px; max-width: 94vw;
-  background: #e8e6e1; border-radius: 6px;
+  background: #f0f0f2; border-radius: 6px;
   box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
   padding: 16px; overflow: hidden;
   opacity: 0; pointer-events: none; transform: translateY(6px);
@@ -1334,21 +1334,21 @@
   font-family: 'Times New Roman', 'STSong', 'SimSun', serif;
   font-size: 10.5px;
   line-height: 1.9;
-  color: #000000;
+  color: #1d1d1f;
   border-radius: 1px;
 }
 .word-doc-page .wd-p {
   margin: 0 0 2px 0;
   font: 10.5px 'Times New Roman', 'STSong', 'SimSun', serif;
-  color: #000000;
+  color: #1d1d1f;
 }
 .word-doc-page .wd-title { font: 10.5px 'Times New Roman', 'STSong', 'SimSun', serif; }
-.word-doc-page .wd-blue { color: #2e75b6; }
+.word-doc-page .wd-blue { color: #007aff; }
 .word-doc-page .wd-blank { text-decoration: underline; }
 .word-doc-page .wd-justify { text-align: justify; }
 .word-doc-page .wd-more {
-  text-align: center; color: #999; font: 10px 'PingFang SC', -apple-system, sans-serif;
-  margin-top: 10px; border-top: 1px dashed #e0e0e0; padding-top: 8px;
+  text-align: center; color: #aeaeb2; font: 10px 'PingFang SC', -apple-system, sans-serif;
+  margin-top: 10px; border-top: 1px dashed #e5e5ea; padding-top: 8px;
 }
 
 /* ====== macOS 风格 Dock ====== */
@@ -1377,7 +1377,7 @@
   border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; position: relative;
-  color: #5e5e5e;
+  color: #6e6e73;
   transition: all .28s cubic-bezier(.22,.61,.36,1);
   -webkit-tap-highlight-color: transparent;
   transform-origin: bottom center;
@@ -1425,11 +1425,11 @@
 }
 /* AI 高亮项 */
 .dock-item.ai-dock {
-  color: #7c5ce7;
+  color: #af52de;
 }
 .dock-item.ai-dock:hover {
-  color: #5b3dc7;
-  background: rgba(124,92,231,0.08);
+  color: #8944c9;
+  background: rgba(175,82,222,0.08);
 }
 
 /* ====== AI 助手 ====== */
@@ -1823,7 +1823,7 @@
 
 <div class="app-container">
   <header>
-    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 Lesson Snippets</div>
+    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">Seeklume · Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
@@ -1926,7 +1926,7 @@
     <div class="page" id="page-welcome">
       <div class="welcome-hero">
         <div class="welcome-eyebrow">EARLY ACCESS · v0.1</div>
-        <h1>Lesson<br><span class="gradient-text">Snippets</span></h1>
+        <h1>Seeklume<br><span class="gradient-text">Lesson Snippets</span></h1>
         <p class="welcome-sub">
           先从最常讲的「语法填空」开始，按考点分类、跨卷迁移、错题归档。<br>
           后面会慢慢加上完形、七选五、阅读、读后续写、应用文。
@@ -4820,17 +4820,17 @@ function renderCategoryStats() {
   });
 
   var catColors = {
-    predicate: { bg: '#fce4a8', color: '#8b6914' },
+    predicate: { bg: '#ffd60a', color: '#947000' },
     nonpredicate: { bg: 'var(--green-bg)', color: 'var(--green)' },
     word: { bg: 'var(--blue-bg)', color: 'var(--blue)' },
     number: { bg: 'var(--purple-bg)', color: 'var(--purple)' },
     article: { bg: 'var(--orange-bg)', color: 'var(--orange)' },
     pronoun: { bg: 'var(--red-bg)', color: 'var(--red)' },
     preposition: { bg: 'var(--teal-bg)', color: 'var(--teal)' },
-    logic: { bg: '#f3e8ff', color: '#6a4c93' },
-    attrib: { bg: '#fce4ec', color: 'var(--red)' },
-    nounclause: { bg: '#e0f2f1', color: 'var(--teal)' },
-    advclause: { bg: '#e8f5e9', color: 'var(--green)' },
+    logic: { bg: '#f6edfb', color: '#af52de' },
+    attrib: { bg: '#fee8e7', color: 'var(--red)' },
+    nounclause: { bg: '#e6f7fd', color: 'var(--teal)' },
+    advclause: { bg: '#e8f8ed', color: 'var(--green)' },
   };
 
   var html = '<span class="category-stats-label">考点分布</span>';
@@ -5282,7 +5282,7 @@ init();
 <div class="assistant-backdrop" onclick="toggleAssistant(false)"></div>
 <div class="assistant-panel" id="assistantPanel">
   <div class="assistant-head">
-    <h3><span class="dot"></span>Lesson Snippets 助手</h3>
+    <h3><span class="dot"></span>Seeklume · Lesson Snippets 助手</h3>
     <div class="assistant-head-actions">
       <button onclick="clearAssistantHistory()" title="清空对话">🗑</button>
       <button onclick="toggleAssistant(false)" title="关闭">×</button>
