@@ -287,9 +287,14 @@
     50%      { background-position: 100% 50%; }
   }
   .hero p.sub {
-    font-size: 17px; color: var(--text-2); max-width: 480px;
-    margin: 0 auto 32px; line-height: 1.55;
+    font-size: 17px; color: var(--text-2); max-width: 680px;
+    margin: 0 auto 8px; line-height: 1.55;
     font-weight: 300;
+  }
+  .hero .humble {
+    font-size: 14px; color: var(--text-3);
+    margin: 0 auto 32px; font-weight: 300;
+    font-style: italic;
   }
   .hero .hero-cn {
     font-size: 26px; font-weight: 500; color: var(--text);
@@ -952,6 +957,7 @@
         <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
         <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
         <p class="sub fade-up delay-3">上传 Word 文档自动解析，课堂上点空格出答案，同考点真题一键关联</p>
+        <p class="humble fade-up delay-3">如果能帮你省下一点点备课的时间，就是它最好的用处。</p>
         <div class="cta fade-up delay-4">
           <button class="btn primary" onclick="openModal('signup')">注册试用</button>
           <button class="btn" onclick="openModal('signin')">登录</button>
@@ -1079,17 +1085,8 @@
       </div>
     </section>
 
-    <!-- Scene 4 · About -->
-    <section class="scene" data-scene="4" style="padding:0;">
-      <div class="about-dark fade-up" style="max-width:1020px;width:calc(100% - 48px);margin:0 auto;border-radius:18px;padding:80px 48px;">
-        <div class="eyebrow">About</div>
-        <h2 class="fade-up delay-1">一份在备课台前<br>慢慢长出来的工具。</h2>
-        <p class="fade-up delay-2">把日常讲题用到的那几招——按考点归类、跨卷找同款、错题留存——做成一个可以放在浏览器里随手打开的小系统。希望它能帮你省下一点点整理材料的时间，多留一点给学生。</p>
-      </div>
-    </section>
-
-    <!-- Scene 5 · Modules -->
-    <section class="scene scene-modules" data-scene="5">
+    <!-- Scene 4 · Modules -->
+    <section class="scene scene-modules" data-scene="4">
       <div class="scene-bg"></div>
       <div class="section-eyebrow fade-up" style="text-align:center;">Modules</div>
       <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">六个模块 · 一个已上线</h2>
@@ -1141,7 +1138,7 @@
     </section>
 
     <!-- Scene 6 · CTA -->
-    <section class="scene scene-cta" data-scene="6">
+    <section class="scene scene-cta" data-scene="5">
       <div class="scene-bg"></div>
       <div class="footer-cta" style="padding:0;">
         <div class="section-eyebrow fade-up" style="text-align:center;">Get started</div>
