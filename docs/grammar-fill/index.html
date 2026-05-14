@@ -56,9 +56,11 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    overflow: hidden;
+    contain: layout style;
   }
   .logo { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: -.3px; }
-  .nav { display: flex; gap: 4px; }
+  .nav { display: flex; gap: 4px; min-width: 0; flex-shrink: 1; }
   .nav-btn {
     border: none; background: none; padding: 6px 16px;
     border-radius: 6px; font-size: 14px; cursor: pointer;
@@ -1257,6 +1259,68 @@
 }
 .docx-upload-btn:hover { background: #256b42 !important; }
 
+/* ── Word 导入格式演示 ── */
+.import-demo-popover {
+  position: fixed; z-index: 300;
+  width: 520px; max-width: 94vw;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.04);
+  padding: 0; overflow: hidden;
+  opacity: 0; pointer-events: none; transform: translateY(6px);
+  transition: opacity .2s, transform .2s;
+}
+.import-demo-popover.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.import-demo-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: var(--surface-3); border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.import-demo-header .demo-badge {
+  font-size: 10px; background: var(--green); color: #fff; padding: 2px 8px; border-radius: 10px;
+  font-weight: 500;
+}
+.import-demo-body { padding: 14px 16px; font-size: 12px; }
+.import-demo-section { margin-bottom: 12px; }
+.import-demo-section:last-child { margin-bottom: 0; }
+.import-demo-label {
+  font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: .5px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.import-demo-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.import-demo-passage {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 12px 14px; font-size: 13px; line-height: 2; color: var(--text);
+  font-family: "Georgia", "Times New Roman", serif;
+}
+.import-demo-passage .blank-marker {
+  display: inline; background: #fef3c7; color: var(--accent); font-weight: 700;
+  padding: 1px 4px; border-radius: 3px; font-family: inherit; font-size: 12px;
+  border: 1px solid #fcd34d;
+}
+.import-demo-passage .blank-hint {
+  display: inline; color: var(--text-3); font-size: 11px; font-family: inherit;
+}
+.import-demo-answer-box {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 14px; font-size: 13px; line-height: 2.2; color: var(--text);
+  font-family: inherit;
+}
+.import-demo-answer-box .ans-label { font-weight: 700; color: var(--accent); font-size: 13px; }
+.import-demo-answer-box .ans-val { font-weight: 700; color: var(--green); margin: 0 6px 0 2px; }
+.import-demo-analysis-box {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 14px; font-size: 12px; line-height: 1.9; color: var(--text-2);
+  font-family: inherit; margin-top: 8px;
+}
+.import-demo-analysis-box .ana-title { font-weight: 700; color: var(--accent); font-size: 13px; }
+.import-demo-analysis-box .ana-q { font-weight: 600; color: var(--text); font-size: 12px; margin-top: 6px; display: block; }
+.import-demo-analysis-box .ana-body { font-size: 11px; color: var(--text-2); }
+.import-demo-footer {
+  padding: 8px 16px; background: var(--surface-3); border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--text-3); text-align: center;
+}
+
 /* ── 浮动快捷按钮组 ── */
 .float-actions {
   position: fixed;
@@ -2190,36 +2254,8 @@
     <div class="page" id="page-error-book" style="max-width:1100px;">
       <h1 class="page-title">错题本</h1>
       <p class="page-desc"><span id="errorBookStat">加载中…</span> 上传 Word 或粘贴 JSON，自动分类入库；下次自动联动同考点题做迁移训练。</p>
-      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word（自动归档 · 勾选错题）</button>
-      <button class="error-import-toggle" onclick="toggleImportForm()">+ 逐题添加</button>
+      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()" onmouseenter="showImportDemo(event)" onmouseleave="hideImportDemoDelayed()">📄 上传 Word（自动归档 · 勾选错题）</button>
       <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
-      <div class="error-import-form" id="errorImportForm">
-        <label>原文句子（用 ___1___ 标出空格位置）</label>
-        <textarea id="errPassage" placeholder="例如：The company, ___1___ (found) in 1998, has grown rapidly."></textarea>
-        <label>答案</label>
-        <input id="errAnswer" placeholder="例如：founded">
-        <label>考点分类</label>
-        <select id="errCategory">
-          <option value="">-- 选择考点 --</option>
-          <option value="predicate">谓语动词</option>
-          <option value="nonpredicate">非谓语动词</option>
-          <option value="word">词性转换</option>
-          <option value="number">数词</option>
-          <option value="article">冠词</option>
-          <option value="pronoun">代词</option>
-          <option value="preposition">介词</option>
-          <option value="logic">逻辑连词</option>
-          <option value="attrib">定语从句连词</option>
-          <option value="nounclause">名词性从句连词</option>
-          <option value="advclause">状语从句连词</option>
-        </select>
-        <label>解析（可选）</label>
-        <textarea id="errAnalysis" placeholder="解题思路、技巧提示…"></textarea>
-        <div class="error-import-btns">
-          <button onclick="toggleImportForm()">取消</button>
-          <button class="primary" onclick="importErrorQuestion()">保存到错题本</button>
-        </div>
-      </div>
       <div class="error-import-form" id="batchImportForm">
         <label>粘贴 JSON 或直接上传文件</label>
         <textarea id="batchJson" placeholder='[{"passage":"...","answer":"...","category":"...","analysis":"..."}, ...]' style="min-height:120px;"></textarea>
@@ -2241,22 +2277,10 @@
     <div class="page" id="page-lesson-prep" style="max-width:1100px;">
       <h1 class="page-title">备课资料</h1>
       <p class="page-desc"><span id="prepStat">加载中…</span> 导入完整语法填空篇章，像套卷一样讲题，迁移训练自动关联主题库。</p>
-      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()">📄 上传 Word（自动归档 · 勾选错题）</button>
+      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()" onmouseenter="showImportDemo(event)" onmouseleave="hideImportDemoDelayed()">📄 上传 Word（自动归档 · 勾选错题）</button>
       <input type="file" id="docxFileInput" accept=".docx" onchange="processDocxFile(this)" style="display:none;">
-      <button class="error-import-toggle" onclick="togglePrepImportForm()">+ 逐篇添加</button>
+
       <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="togglePrepBatchImport()">📥 批量导入 JSON</button>
-      <div class="error-import-form" id="prepImportForm">
-        <label>篇章标题</label>
-        <input id="prepTitle" placeholder="例如：雅礼中学期末 - 建水紫陶">
-        <label>原文（用 ___题号___ 标出空格，如 ___36___）</label>
-        <textarea id="prepPassage" placeholder="粘贴完整原文，空格处用 ___36___ 格式标记…"></textarea>
-        <label>答案与解析（每行一个空，格式：题号|答案|考点|解析）</label>
-        <textarea id="prepBlanks" placeholder="36|has been shaped|predicate|现在完成时被动语态&#10;37|The|article|特指用定冠词&#10;38|inlaid|nonpredicate|过去分词作定语"></textarea>
-        <div class="error-import-btns">
-          <button onclick="togglePrepImportForm()">取消</button>
-          <button class="primary" onclick="importPrepPassage()">保存</button>
-        </div>
-      </div>
       <div class="error-import-form" id="prepBatchForm">
         <label>粘贴 JSON 或直接上传文件（自动导入）</label>
         <textarea id="prepBatchJson" placeholder='[{"title":"...","passage":"...","blanks":[{"no":36,"answer":"...","category":"...","analysis":"..."}]}]' style="min-height:120px;"></textarea>
@@ -2457,10 +2481,6 @@ function setupDrawerResize() {
   applyDrawerHeight();
 }
 
-function toggleImportForm() {
-  document.getElementById('errorImportForm').classList.toggle('show');
-}
-
 function toggleBatchImport() {
   document.getElementById('batchImportForm').classList.toggle('show');
 }
@@ -2537,44 +2557,6 @@ function batchImportJson() {
   alert('成功导入 ' + count + ' 道错题');
 }
 
-function importErrorQuestion() {
-  var passage = document.getElementById('errPassage').value.trim();
-  var answer = document.getElementById('errAnswer').value.trim();
-  var category = document.getElementById('errCategory').value;
-  var analysis = document.getElementById('errAnalysis').value.trim();
-
-  if (!passage || !answer || !category || passage.indexOf('___1___') === -1) {
-    alert('请填写原文句子（含 ___1___）、答案和考点分类');
-    return;
-  }
-
-  var q = {
-    id: 'err_' + Date.now(),
-    passage: extractSentence(passage, 1) || passage,
-    answer: answer,
-    category: category,
-    category_name: CATEGORY_MAP[category] || category,
-    grammar_point: '',
-    analysis: analysis || ('答案：' + answer + '。'),
-    technique: '考点：' + (CATEGORY_MAP[category] || category) +
-               '。' + (CATEGORY_TIPS[category] || '先判空格成分，再确定词形。'),
-    exam: '错题本',
-    exam_id: '错题本',
-    no: 1,
-    created_at: new Date().toISOString()
-  };
-
-  errorBookQuestions.unshift(q);
-  saveErrorBook();
-  renderErrorBook();
-  renderBankStat();
-  toggleImportForm();
-
-  document.getElementById('errPassage').value = '';
-  document.getElementById('errAnswer').value = '';
-  document.getElementById('errAnalysis').value = '';
-}
-
 function deleteErrorQuestion(id) {
   if (!confirm('确定要删除这道错题吗？')) return;
   errorBookQuestions = errorBookQuestions.filter(function(q) { return q.id !== id; });
@@ -2640,10 +2622,6 @@ function renderErrorBook() {
 }
 
 // ────────── 备课资料 ──────────
-function togglePrepImportForm() {
-  document.getElementById('prepImportForm').classList.toggle('show');
-}
-
 function togglePrepBatchImport() {
   document.getElementById('prepBatchForm').classList.toggle('show');
 }
@@ -2674,54 +2652,6 @@ function setupPrepDrop() {
     };
     reader.readAsText(file);
   });
-}
-
-function importPrepPassage() {
-  var title = document.getElementById('prepTitle').value.trim();
-  var passage = document.getElementById('prepPassage').value.trim();
-  var blanksRaw = document.getElementById('prepBlanks').value.trim();
-
-  if (!title || !passage || !blanksRaw) {
-    alert('请填写标题、原文和答案解析');
-    return;
-  }
-
-  var blankLines = blanksRaw.split('\n').filter(function(l) { return l.trim(); });
-  var blanks = [];
-  for (var i = 0; i < blankLines.length; i++) {
-    var parts = blankLines[i].split('|');
-    if (parts.length < 3) continue;
-    var no = parseInt(parts[0].trim(), 10);
-    if (isNaN(no)) continue;
-    blanks.push({
-      no: no,
-      answer: (parts[1] || '').trim(),
-      category: (parts[2] || '').trim(),
-      analysis: (parts[3] || '').trim()
-    });
-  }
-
-  if (blanks.length === 0) {
-    alert('未能解析任何空格，请检查格式：题号|答案|考点|解析');
-    return;
-  }
-
-  prepPassages.unshift({
-    id: 'prep_' + Date.now(),
-    title: title,
-    passage: passage,
-    blanks: blanks,
-    created_at: new Date().toISOString()
-  });
-
-  savePrepPassages();
-  renderPrepList();
-  renderBankStat();
-  togglePrepImportForm();
-
-  document.getElementById('prepTitle').value = '';
-  document.getElementById('prepPassage').value = '';
-  document.getElementById('prepBlanks').value = '';
 }
 
 function batchImportPrepJson() {
@@ -2837,6 +2767,32 @@ function renderPrepList() {
 // ========== Word 文档上传 + DeepSeek AI 解析 ==========
 
 var _docxImportTarget = 'prep'; // 'prep' | 'error'
+
+var _demoTimer = null;
+
+function showImportDemo(e) {
+  clearTimeout(_demoTimer);
+  var popover = document.getElementById('importDemoPopover');
+  if (!popover) return;
+  var btn = e.currentTarget;
+  var rect = btn.getBoundingClientRect();
+  // Position below the button, left-aligned
+  popover.style.top = (rect.bottom + 8) + 'px';
+  popover.style.left = Math.min(rect.left, window.innerWidth - 540) + 'px';
+  popover.classList.add('show');
+  // Also add mouseenter to popover itself so it stays open
+  popover.onmouseenter = function() { clearTimeout(_demoTimer); };
+  popover.onmouseleave = function() { hideImportDemo(); };
+}
+
+function hideImportDemo() {
+  var popover = document.getElementById('importDemoPopover');
+  if (popover) popover.classList.remove('show');
+}
+
+function hideImportDemoDelayed() {
+  _demoTimer = setTimeout(hideImportDemo, 200);
+}
 
 function handleDocxUpload() {
   _docxImportTarget = 'prep';
@@ -3304,7 +3260,6 @@ function init() {
   setupBatchDrop();
   setupPrepDrop();
   setupDocxDrop();
-  navigateHome('cards');
 
   // 紧凑模式（白板/投影）从 localStorage 恢复
   try {
@@ -3988,15 +3943,8 @@ document.addEventListener('keydown', function(e) {
 function switchPage(page) {
   // 访客守卫：错题本/备课资料/管理员需要登录
   if ((page === 'error-book' || page === 'lesson-prep' || page === 'admin') && !requireAuth()) return;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  var pageEl = document.getElementById('page-' + page);
-  if (pageEl) pageEl.classList.add('active');
-  var navBtn = document.querySelector('[data-page="' + page + '"]');
-  if (navBtn) navBtn.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'instant' });
 
-  // body class 状态机
+  // body class 状态机（先于 DOM 操作，避免中间态 layout）
   if (page === 'welcome') {
     document.body.classList.add('guest');
     document.body.classList.remove('in-modules');
@@ -4008,6 +3956,14 @@ function switchPage(page) {
     document.body.classList.remove('guest');
     document.body.classList.remove('in-modules');
   }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  var pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.add('active');
+  var navBtn = document.querySelector('[data-page="' + page + '"]');
+  if (navBtn) navBtn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
   if (page === 'practice') updateBackButton();
   if (page === 'home') navigateHome('cards');
@@ -5257,5 +5213,45 @@ init();
     <button class="ai-card-cancel" onclick="cancelAiParse()" style="margin-top:18px;">取消</button>
   </div>
 </div>
+
+  
+      <!-- Word 导入格式演示 -->
+      <div class="import-demo-popover" id="importDemoPopover">
+        <div class="import-demo-header">
+          <span>📋 Word 文档格式模板</span>
+          <span class="demo-badge">演示</span>
+        </div>
+        <div class="import-demo-body">
+          <div class="import-demo-section">
+            <div class="import-demo-label">上半部分：题目（全文 + 空格编号 + 提示词）</div>
+            <div class="import-demo-passage">
+              When Charles Dewees from France read the Chinese web novel <i>Coiling Dragon</i> a decade ago, it was like unearthing a hidden treasure. <span class="blank-marker">___36___</span> <span class="blank-hint">(draw)</span> by features like cultivation, martial arts, and traditional Eastern elements, Dewees gradually learned Chinese to break free from translations and <span class="blank-marker">___37___</span> <span class="blank-hint">(begin)</span> reading the original texts.
+            </div>
+          </div>
+          <div class="import-demo-section">
+            <div class="import-demo-label">下半部分：【答案】+【解析】</div>
+            <div class="import-demo-answer-box">
+              <span class="ans-label">【答案】</span>
+              <span class="ans-val">36. Drawn</span>
+              <span class="ans-val">37. began</span>
+              <span class="ans-val">38. to</span>
+              <span class="ans-val">39. an</span>
+              <span class="ans-val">40. favourites</span>
+              <span class="ans-val">41. further</span>
+              <span class="ans-val">42. introducing</span>
+              <span class="ans-val">43. where</span>
+              <span class="ans-val">44. freely</span>
+              <span class="ans-val">45. enjoyment</span>
+            </div>
+            <div class="import-demo-analysis-box">
+              <span class="ana-title">【解析】</span><br>
+              <span class="ana-q">【36题详解】</span>
+              <span class="ana-body">考查非谓语动词。主语和 draw 之间为被动关系，用过去分词形式，句首首字母大写。故填 Drawn。</span>
+              <span class="ana-q">【37题详解】</span>
+              <span class="ana-body">考查谓语动词。根据 learned 可知时态为一般过去时，主语和 begin 为主动关系。故填 began。</span>
+            </div>
+          </div>
+        </div>
+        <div class="import-demo-footer">AI 会自动解析以上格式 · 无需严格排版 · 纯文本即可</div>
+      </div>
 </body>
-</html>
