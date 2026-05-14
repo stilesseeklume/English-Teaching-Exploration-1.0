@@ -75,7 +75,12 @@
   #view-welcome .scene > .hero,
   #view-welcome .scene > .footer-cta,
   #view-welcome .scene > .modules-grid,
-  #view-welcome .scene > .features { width: 100%; }
+  #view-welcome .scene > .features,
+  #view-welcome .scene > h2,
+  #view-welcome .scene > .sub,
+  #view-welcome .scene > .section-eyebrow,
+  #view-welcome .scene > .footer-note,
+  #view-welcome .scene > .disclaimer { width: 100%; }
 
 
 
@@ -229,7 +234,7 @@
   /* ===== AI Split Panel ===== */
   .ai-split {
     display: flex; gap: 20px;
-    max-width: min(92%, 1024px); width: 100%;
+    max-width: min(92%, 1400px); width: 100%;
     position: relative;
   }
   @media (max-width: 640px) { .ai-split { flex-direction: column; } }
@@ -348,7 +353,7 @@
 
   /* ===== Fake Screen Recording Demo ===== */
   .screen-mock {
-    max-width: min(92%, 1080px); width: 100%;
+    max-width: min(92%, 1400px); width: 100%;
     background: var(--screen-bg);
     border: 0.5px solid var(--screen-border);
     border-radius: 12px;
@@ -630,7 +635,7 @@
     padding: 24px 28px;
     margin-bottom: 80px;
     width: 100%;
-    max-width: 680px;
+    max-width: 880px;
     margin-left: auto;
     margin-right: auto;
   }
