@@ -594,6 +594,10 @@
   .error-list-item:hover { border-color: var(--accent); box-shadow: var(--shadow); }
   .error-list-left { flex: 1; min-width: 0; }
   .error-list-sentence { font-size: var(--font-base, 24px); line-height: 1.8; color: var(--text); }
+  .error-list-sentence-truncated {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: ellipsis;
+  }
   .error-list-meta { font-size: 12px; color: var(--text-3); margin-top: 4px; }
   .error-list-delete {
     width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border);
@@ -2370,6 +2374,22 @@ function runErrorBookCleanup() {
     saveErrorBook();
     localStorage.setItem('grammar-error-book-cleaned', '1');
   }
+  // Phase 2: fix entries that still store the full passage instead of just the sentence
+  var cleanedV2 = localStorage.getItem('grammar-error-book-cleaned-v2');
+  if (!cleanedV2 && errorBookQuestions.length > 0) {
+    var fixed = 0;
+    errorBookQuestions.forEach(function(q) {
+      if (q.passage && q.passage.length > 300) {
+        var sent = extractSentence(q.passage, q.no) || extractContextWindow(q.passage, q.no);
+        if (sent && sent.length < q.passage.length) {
+          q.passage = sent;
+          fixed++;
+        }
+      }
+    });
+    if (fixed > 0) saveErrorBook();
+    localStorage.setItem('grammar-error-book-cleaned-v2', '1');
+  }
 }
 
 const DRAWER_STORAGE_KEY = 'grammar-fill-drawer-height';
@@ -2605,9 +2625,10 @@ function renderErrorBook() {
       var blankMarker = '___' + q.no + '___';
       var sent = q.passage.replace(blankMarker,
         '<span style="display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-bottom:2px dashed var(--accent);background:var(--accent-bg);border-radius:3px;font-weight:600;color:var(--accent);">' + blankMarker + '</span>');
+      var truncateCls = q.passage.length > 160 ? ' error-list-sentence-truncated' : '';
       html += '<div class="error-list-item" onclick="viewErrorQuestion(\'' + q.id + '\')">'
             + '<div class="error-list-left">'
-            + '<div class="error-list-sentence">' + sent + '</div>'
+            + '<div class="error-list-sentence' + truncateCls + '">' + sent + '</div>'
             + '<div class="error-list-meta">答案：' + q.answer + ' · ' + (q.analysis || '').substring(0, 40) + '</div>'
             + '</div>'
             + '<button class="error-list-delete" onclick="event.stopPropagation();deleteErrorQuestion(\'' + q.id + '\')" title="删除">✕</button>'
@@ -3183,7 +3204,7 @@ function importDeepSeekResultToErrorBook(result, silent) {
   var count = 0;
   (result.blanks || []).forEach(function(b) {
     var no = b.no || (count + 1);
-    var sent = extractSentence(result.passage, no) || result.passage;
+    var sent = extractSentence(result.passage, no) || extractContextWindow(result.passage, no) || result.passage;
     errorBookQuestions.unshift({
       id: 'err_' + Date.now() + '_' + count + '_' + Math.random().toString(36).slice(2, 6),
       passage: sent,
@@ -4461,6 +4482,19 @@ function extractSentence(passage, no) {
     if (ch === '\n' && i + 1 < passage.length && passage[i + 1] === '\n') { end = i; break; }
   }
 
+  return passage.substring(start, end).trim();
+}
+
+function extractContextWindow(passage, no) {
+  var pattern = '___' + no + '___';
+  var idx = passage.indexOf(pattern);
+  if (idx === -1) return '';
+  var start = Math.max(0, idx - 120);
+  while (start > 0 && passage[start] !== '.' && passage[start] !== '\n') start--;
+  if (passage[start] === '.' || passage[start] === '\n') start++;
+  var end = Math.min(passage.length, idx + pattern.length + 120);
+  while (end < passage.length && passage[end] !== '.' && passage[end] !== '\n') end++;
+  if (passage[end] === '.') end++;
   return passage.substring(start, end).trim();
 }
 
