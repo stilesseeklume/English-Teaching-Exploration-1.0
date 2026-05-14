@@ -1970,6 +1970,7 @@
             <span class="source-tag" id="sourceName">--</span>
             <span class="source-count" id="sourceCount">--</span>
             <div class="source-switcher">
+              <button class="source-switch-btn" id="btnToggleChinese" onclick="toggleChinese()">中/英</button>
               <button class="source-switch-btn" id="btnToggleAnswers" onclick="toggleAnswers()">👁 显示答案</button>
             </div>
           </div>
@@ -2187,6 +2188,7 @@ let selectedQuestion = null;
 let passageFontSize = 24;
 let drawerFontSize = 24;
 let showAnswers = false;
+let showChinese = false;
 let previousView = null;
 
 const ERROR_BOOK_KEY = 'grammar-error-book';
@@ -3966,6 +3968,36 @@ function renderExam() {
 
   renderCategoryStats();
 
+  // Chinese mode: show translation inline, replace passage content
+  var btnChinese = document.getElementById('btnToggleChinese');
+  if (showChinese) {
+    if (btnChinese) btnChinese.textContent = '英/中';
+    if (btnToggle) btnToggle.style.display = 'none';
+
+    var chineseText = '';
+    if (currentExam.mode === 'exam' || currentExam.mode === 'prep') {
+      chineseText = currentExam.chinese_translation || '';
+    } else if (currentExam.mode === 'category') {
+      var firstQ = currentQuestions[0];
+      if (firstQ && firstQ.exam_id) {
+        var ex = EXAMS_BY_ID[firstQ.exam_id];
+        if (ex) chineseText = ex.chinese_translation || '';
+      }
+    }
+
+    if (chineseText) {
+      var paras = chineseText.split(/\n\n|\n/).filter(function(p) { return p.trim(); });
+      var chineseHtml = paras.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+      document.getElementById('passageBox').innerHTML = chineseHtml;
+    } else {
+      document.getElementById('passageBox').innerHTML = '<p style="color:var(--text-3);">暂无中文翻译</p>';
+    }
+    document.getElementById('translationSection').style.display = 'none';
+    return;
+  }
+  if (btnChinese) btnChinese.textContent = '中/英';
+  if (btnToggle) btnToggle.style.display = '';
+
   if (currentExam.mode === 'error') {
     var q = currentQuestions[0];
     var passage = q.passage;
@@ -4436,6 +4468,13 @@ function toggleAnswers() {
   showAnswers = !showAnswers;
   var btn = document.getElementById('btnToggleAnswers');
   if (btn) btn.textContent = showAnswers ? '👁 显示空格' : '👁 显示答案';
+  renderExam();
+}
+
+function toggleChinese() {
+  showChinese = !showChinese;
+  // 切到中文时关闭答案模式，回到原文时恢复
+  if (showChinese) showAnswers = false;
   renderExam();
 }
 
