@@ -620,15 +620,6 @@
   }
 
 
-  /* ============== 待审批状态 ============== */
-  body.pending .nav,
-  body.pending .header-font-ctrl,
-  body.pending #syncStatus { display: none !important; }
-  body.pending #page-pending { display: block !important; }
-  body.pending .page:not(#page-pending) { display: none !important; }
-
-  #page-pending { max-width: 980px; padding: 24px 24px 80px; animation: fadeIn .35s ease; }
-
   /* ============== 欢迎页 + 登录墙 ============== */
   body.guest .nav,
   body.guest .header-font-ctrl,
@@ -1388,7 +1379,7 @@
   var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
   window._sb = sb;
   var listeners = [];
-  var state = { user: null, isAdmin: false, approved: false, viewingUserId: null, viewingEmail: null };
+  var state = { user: null, isAdmin: false, viewingUserId: null, viewingEmail: null };
 
   function notify() { listeners.forEach(function(cb){ try { cb(state); } catch(e){} }); }
 
@@ -1400,30 +1391,17 @@
     } catch(e) { state.isAdmin = false; }
   }
 
-  async function checkApproved() {
-    if (!sb || !state.user) { state.approved = false; return; }
-    try {
-      var r = await sb.rpc('check_approved');
-      state.approved = !r.error && r.data === true;
-    } catch(e) {
-      // RPC 不存在或 profiles 表未建 → 放行已有用户
-      state.approved = true;
-    }
-    notify();
-  }
-
   async function init() {
     if (!sb) return;
     var s = await sb.auth.getSession();
     state.user = s.data && s.data.session ? s.data.session.user : null;
-    await Promise.all([detectAdmin(), checkApproved()]);
+    await detectAdmin();
     notify();
     sb.auth.onAuthStateChange(async function(_evt, session){
       state.user = session ? session.user : null;
       state.viewingUserId = null;
       state.viewingEmail = null;
-      state.approved = false;
-      await Promise.all([detectAdmin(), checkApproved()]);
+      await detectAdmin();
       notify();
     });
   }
@@ -1575,7 +1553,6 @@
     pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,
-    checkApproved: checkApproved,
     viewAs: viewAs, clearViewAs: clearViewAs
   };
 })();
@@ -2139,27 +2116,6 @@
         </div>
       </div>
       <div id="prepList"></div>
-    </div>
-
-    <!-- ============== 等待审批页 ============== -->
-    <div class="page" id="page-pending" style="max-width:980px;">
-      <div class="welcome-hero">
-        <div class="welcome-eyebrow">PENDING · 等待开通</div>
-        <h1 style="font-size:32px;font-weight:700;margin-bottom:14px;color:var(--text);">已收到你的注册，谢谢 🙏</h1>
-        <p style="font-size:16px;color:var(--text-2);line-height:1.8;margin:0 auto 8px;max-width:540px;">
-          账号 <b id="pendingEmail" style="color:var(--text);">--</b> 已经在排队等审批了。<br>
-          因为是早期版本，所以加了人工审核这一道，麻烦稍等片刻 🌱
-        </p>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin:24px auto 0;font-size:13px;color:var(--text-2);line-height:1.9;text-align:left;max-width:520px;">
-          💡 通过后刷新一下页面就能进。<br>
-          如果等急了，可以联系作者催一催：<br>
-          📧 <b>liuzhenlzstiles@icloud.com</b>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:24px;">
-        <button onclick="checkApprovalStatus()" class="welcome-btn primary" style="margin-right:10px;">🔄 重新检查</button>
-        <button onclick="doLogout()" class="welcome-btn secondary">退出登录</button>
-      </div>
     </div>
 
     <!-- ============== 管理员页（仅管理员可见） ============== -->
@@ -3171,12 +3127,13 @@ function init() {
 
   // ========== 云同步启动 ==========
   if (window.cloud && window.cloud.isConfigured()) {
-    // 如果同步检测到 session，跳过欢迎页直接进 home，避免闪烁；否则默认 guest 显示欢迎页
+    // 已登录直接进 home；未登录进入访客模式（也可浏览首页/考点/套卷/知识库）
     if (document.documentElement.classList.contains('has-session')) {
       document.body.classList.remove('guest');
       switchPage('home');
     } else {
-      switchPage('welcome');
+      document.body.classList.remove('guest');
+      switchPage('home');
     }
     window.cloud.onChange(onCloudStateChange);
     window.cloud.init();
@@ -3198,43 +3155,35 @@ let _migrationPromptShown = false;
 async function onCloudStateChange(state) {
   renderUserPill(state);
   document.getElementById('navBtnAdmin').style.display = state.isAdmin ? '' : 'none';
-  // 登录后 nav 上的「📚 模块」可见（在 modules 页本身又会被 body.in-modules 隐藏）
+  // 已登录时「📚 模块」可见（在 modules 页本身又会被 body.in-modules 隐藏）
   var navBtnModules = document.getElementById('navBtnModules');
-  if (navBtnModules) navBtnModules.style.display = (state.user && state.approved) ? '' : 'none';
+  if (navBtnModules) navBtnModules.style.display = state.user ? '' : 'none';
   document.getElementById('adminBanner').style.display = state.viewingUserId ? '' : 'none';
   if (state.viewingUserId) {
     document.getElementById('adminViewingEmail').textContent = state.viewingEmail || '';
   }
 
-  // 1. 未登录 → 欢迎页
+  // 1. 未登录 → 访客模式（可浏览首页/考点面板/套卷列表/考点速查）
   if (!state.user) {
     document.documentElement.classList.remove('has-session');
     document.body.classList.remove('pending');
-    switchPage('welcome');
+    if (document.getElementById('page-welcome').classList.contains('active') ||
+        document.body.classList.contains('guest')) {
+      switchPage('home');
+    }
     return;
   }
   document.documentElement.classList.add('has-session');
-
-  // 2. 已登录但待审批 → 等待审批页
-  if (!state.approved) {
-    document.body.classList.add('pending');
-    document.body.classList.remove('guest');
-    document.body.classList.remove('in-modules');
-    document.getElementById('pendingEmail').textContent = getUserDisplayName(state.user);
-    return;
-  }
   document.body.classList.remove('pending');
 
   var newUserKey = (state.user ? state.user.id : '') + '|' + (state.viewingUserId || '');
   var firstAuthForThisUser = (newUserKey !== _lastCloudUser);
   if (firstAuthForThisUser) _lastCloudUser = newUserKey;
 
-  // 3. 已登录且通过：第一次到达本用户的状态 → 直接进入语法填空主页
-  //    （顶层域名根目录有完整的模块选择页，此处不再重复展示；内部「📚 模块」按钮仍可用作返回入口）
+  // 2. 已登录：第一次到达本用户的状态 → 直接进入语法填空主页
   if (firstAuthForThisUser && !state.viewingUserId) {
     if (document.body.classList.contains('guest') ||
-        document.getElementById('page-welcome').classList.contains('active') ||
-        document.getElementById('page-pending').classList.contains('active')) {
+        document.getElementById('page-welcome').classList.contains('active')) {
       switchPage('home');
     }
   }
@@ -3307,13 +3256,19 @@ function renderUserPill(state) {
     var name = getUserDisplayName(state.user);
     var short = name.length > 20 ? name.slice(0, 18) + '…' : name;
     var adminTag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
-    var pendingTag = !state.approved ? '<span style="background:var(--orange);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">待审批</span>' : '';
-    el.innerHTML = adminTag + pendingTag + '<span title="' + name + '" style="color:var(--text);">' + short + '</span>'
+    el.innerHTML = adminTag + '<span title="' + name + '" style="color:var(--text);">' + short + '</span>'
       + '<button onclick="openSettingsModal()" title="账户设置" style="border:none;background:var(--surface-3);padding:4px 7px;border-radius:4px;font-size:13px;cursor:pointer;">⚙</button>'
       + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
   } else {
-    el.innerHTML = '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
+    el.innerHTML = '<span style="color:var(--text-3);font-size:11px;margin-right:8px;">免费体验中</span>'
+      + '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
   }
+}
+
+function requireAuth(actionLabel) {
+  if (window.cloud && window.cloud.state && window.cloud.state.user) return true;
+  openAuthModal('signup');
+  return false;
 }
 
 let _authMode = 'signin';
@@ -3490,7 +3445,6 @@ async function doLogout() {
   document.body.classList.remove('pending');
   window.cloud.state.user = null;
   window.cloud.state.isAdmin = false;
-  window.cloud.state.approved = false;
   renderUserPill({ user: null, isAdmin: false });
   // 退出登录后回到顶层欢迎页（保持品牌一致，避免在子页面再展示一份欢迎）
   window.location.href = '/';
@@ -3792,6 +3746,8 @@ function renderExamGrid() {
 }
 
 function switchPage(page) {
+  // 访客守卫：错题本/备课资料/管理员需要登录
+  if ((page === 'error-book' || page === 'lesson-prep' || page === 'admin') && !requireAuth()) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   var pageEl = document.getElementById('page-' + page);
@@ -3821,11 +3777,8 @@ function switchPage(page) {
 
 // 顶部 logo 点击：已登录 → 回顶层模块选择页（hub）；未登录 → 唤起登录
 function logoClick() {
-  var authed = window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.state.approved;
-  if (authed) {
+  if (window.cloud && window.cloud.state && window.cloud.state.user) {
     window.location.href = '/';
-  } else if (window.cloud && window.cloud.state && window.cloud.state.user && !window.cloud.state.approved) {
-    // 待审批：不动
   } else {
     openAuthModal('signin');
   }
@@ -3874,12 +3827,6 @@ function updateBackButton() {
   } else {
     btn.textContent = '← 返回首页';
   }
-}
-
-async function checkApprovalStatus() {
-  if (!window.cloud) return;
-  _lastCloudUser = null;
-  await window.cloud.checkApproved();
 }
 
 function getUserDisplayName(user) {
@@ -3951,6 +3898,7 @@ function updateCounts() {
 }
 
 function startByCategory(cat) {
+  if (!requireAuth('开始练习')) return;
   currentQuestions = ALL_QUESTIONS.filter(q => q.category === cat);
   if (currentQuestions.length === 0) {
     alert('该考点暂无题目');
@@ -3968,6 +3916,7 @@ function startByCategory(cat) {
 }
 
 function startByExam(examId) {
+  if (!requireAuth('开始练习')) return;
   const ex = EXAMS_BY_ID[examId];
   if (!ex) {
     alert('未找到该套卷：' + examId);
@@ -4773,7 +4722,9 @@ async function sendAssistantMsg() {
     if (!res.ok) {
       var errData;
       try { errData = await res.json(); } catch(e) { errData = {}; }
-      throw new Error(errData.error || ('AI 服务错误 ' + res.status));
+      var errMsg = errData.error || ('AI 服务错误 ' + res.status);
+      if (errData.detail) errMsg += ' [' + errData.detail + ']';
+      throw new Error(errMsg);
     }
     var data = await res.json();
     var content = data.content || '(空回复)';

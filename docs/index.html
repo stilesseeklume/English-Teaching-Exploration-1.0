@@ -66,6 +66,19 @@
   .fade-up.delay-5 { transition-delay: 400ms; }
   .fade-up.delay-6 { transition-delay: 480ms; }
 
+  /* Hero h1 单独「啪」一下入场：略带回弹 + 模糊收紧 */
+  .hero h1.fade-up {
+    transform: translateY(60px) scale(0.92);
+    filter: blur(8px);
+    transition: opacity .9s ease-out,
+                transform 1.05s cubic-bezier(.22,1.4,.36,1),
+                filter .9s ease-out;
+  }
+  .hero h1.fade-up.in-view {
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
   /* 数字滚动柱 */
   .stat-num.counter { font-variant-numeric: tabular-nums; }
 
@@ -533,6 +546,7 @@
 <header>
   <div class="logo" onclick="goHome()" style="cursor:pointer;">Lesson Snippets</div>
   <div class="header-right" id="headerRight">
+    <button class="header-btn ghost" onclick="showView('modules')">免费体验</button>
     <button class="header-btn ghost" onclick="openModal('signin')">登录</button>
     <button class="header-btn primary" onclick="openModal('signup')">注册</button>
   </div>
@@ -651,7 +665,7 @@
       <h2 class="fade-up delay-1">六个模块 · 一个已上线</h2>
       <p class="sub fade-up delay-2">语法填空已可用，其余题型还在打磨中。</p>
       <div class="modules-grid">
-        <div class="module-card available fade-up delay-1" onclick="openModal('signup')">
+        <div class="module-card available fade-up delay-1" onclick="showView('modules')">
           <span class="module-badge live">Live</span>
           <div class="module-num">01</div>
           <h3>语法填空</h3>
@@ -703,6 +717,7 @@
         <h2 class="fade-up delay-1">开始用。</h2>
         <p class="fade-up delay-2" style="font-size:17px;color:var(--text-2);max-width:520px;margin:8px auto 28px;line-height:1.55;">注册一个账号，立刻进入语法填空模块。</p>
         <div class="fade-up delay-3" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+          <button class="btn secondary" onclick="showView('modules')">免费体验</button>
           <button class="btn primary" onclick="openModal('signup')">注册</button>
           <button class="btn secondary" onclick="openModal('signin')">登录</button>
         </div>
@@ -778,22 +793,6 @@
     </div>
   </div>
 
-  <!-- ============== 待审批视图 ============== -->
-  <div class="view" id="view-pending">
-    <div style="text-align:center; padding: 96px 24px 40px;">
-      <div class="eyebrow">Pending · 等待开通</div>
-      <h1 style="font-size:clamp(32px,4.5vw,48px);font-weight:500;letter-spacing:-1.2px;line-height:1.1;color:var(--text);margin-bottom:18px;">已收到你的注册</h1>
-      <p style="font-size:17px;color:var(--text-2);line-height:1.55;max-width:540px;margin:0 auto;">账号 <b id="pendingName" style="color:var(--text);font-weight:500;">--</b> 已经在排队等审批。<br>麻烦稍等一会儿。</p>
-      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:20px 24px;margin:32px auto 0;font-size:13px;color:var(--text-2);line-height:1.85;max-width:480px;text-align:left;">
-        通过后刷新页面即可进入。如果等急了，可以联系：<br>
-        <b style="color:var(--text);">liuzhenlzstiles@icloud.com</b>
-      </div>
-    </div>
-    <div class="pending-actions">
-      <button class="btn primary" onclick="checkApproval()">重新检查</button>
-      <button class="btn secondary" onclick="doLogout()">退出登录</button>
-    </div>
-  </div>
 </main>
 
 <!-- ============== 登录/注册 模态框 ============== -->
@@ -840,7 +839,7 @@
 (function(){
   var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1;
   var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
-  var state = { user: null, approved: false, isAdmin: false };
+  var state = { user: null, isAdmin: false };
 
   async function detectAdmin() {
     if (!sb || !state.user) { state.isAdmin = false; return; }
@@ -849,13 +848,6 @@
       state.isAdmin = !r.error;
     } catch (e) { state.isAdmin = false; }
   }
-  async function detectApproved() {
-    if (!sb || !state.user) { state.approved = false; return; }
-    try {
-      var r = await sb.rpc('check_approved');
-      state.approved = !r.error && r.data === true;
-    } catch (e) { state.approved = true; }
-  }
 
   async function refreshAndRoute() {
     if (!sb) { showView('welcome'); document.documentElement.classList.remove('has-session'); return; }
@@ -863,17 +855,14 @@
     state.user = (s.data && s.data.session) ? s.data.session.user : null;
     if (state.user) {
       document.documentElement.classList.add('has-session');
-      await Promise.all([detectAdmin(), detectApproved()]);
+      await detectAdmin();
     } else {
       document.documentElement.classList.remove('has-session');
-      state.approved = false; state.isAdmin = false;
+      state.isAdmin = false;
     }
     renderUserPill();
     if (!state.user) showView('welcome');
-    else if (!state.approved) {
-      document.getElementById('pendingName').textContent = displayName();
-      showView('pending');
-    } else {
+    else {
       renderGreeting();
       showView('modules');
     }
@@ -891,19 +880,21 @@
     if (state.user) {
       var nm = displayName();
       var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
-      var tag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>'
-              : !state.approved ? '<span style="background:var(--orange);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">待审批</span>' : '';
+      var tag = state.isAdmin ? '<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;margin-right:6px;">管理员</span>' : '';
       el.innerHTML = tag +
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
-      el.innerHTML = '<button class="header-btn primary" onclick="openModal(\'signin\')">登录 / 注册</button>';
+      el.innerHTML = '<button class="header-btn ghost" onclick="showView(\'modules\')">免费体验</button>' +
+        '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录</button>' +
+        '<button class="header-btn primary" onclick="openModal(\'signup\')">注册</button>';
     }
   }
 
   function renderGreeting() {
     var el = document.getElementById('modulesGreeting');
     if (!el) return;
+    if (!state.user) { el.textContent = '免费体验中 · 注册后解锁全部功能'; return; }
     var h = new Date().getHours();
     var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
           : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
@@ -916,6 +907,7 @@
     if (v) v.classList.add('active');
     document.body.classList.toggle('welcome-mode', name === 'welcome');
     window.scrollTo({ top: 0, behavior: 'instant' });
+    if (name === 'modules') renderGreeting();
     if (name === 'welcome') setTimeout(initWelcomeAnimations, 30);
   }
 
@@ -1191,26 +1183,23 @@
   async function doLogout() {
     if (!confirm('确定要退出登录吗？')) return;
     try { await sb.auth.signOut(); } catch (e) {}
-    state.user = null; state.approved = false; state.isAdmin = false;
+    state.user = null; state.isAdmin = false;
     await refreshAndRoute();
   }
 
-  function checkApproval() { refreshAndRoute(); }
-
   function goHome() {
-    if (state.user && state.approved) showView('modules');
-    else if (state.user && !state.approved) showView('pending');
+    if (state.user) showView('modules');
     else showView('welcome');
   }
 
   // 导出全局
+  window.showView = showView;
   window.openModal = openModal;
   window.closeModal = closeModal;
   window.toggleMode = toggleMode;
   window.submitAuth = submitAuth;
   window.afterSignupGoSignin = afterSignupGoSignin;
   window.doLogout = doLogout;
-  window.checkApproval = checkApproval;
   window.goHome = goHome;
 
   // 启动前先确定初始视图，避免任何闪烁
