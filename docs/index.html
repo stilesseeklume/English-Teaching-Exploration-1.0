@@ -15,10 +15,10 @@
     --text: #1d1d1f;
     --text-2: #86868b;
     --text-3: #aeaeb2;
-    --accent: #d4912a;
-    --accent-light: #e8b84c;
-    --accent-bg: #fef8ee;
-    --accent-glow: rgba(212,145,42,0.18);
+    --accent: #0071e3;
+    --accent-light: #409cff;
+    --accent-bg: #f0f7ff;
+    --accent-glow: rgba(0,113,227,0.18);
     --green: #34c759;
     --green-bg: #e8f8ed;
     --red: #ff3b30;
@@ -139,8 +139,8 @@
     position: sticky; top: 0; z-index: 100;
   }
   .logo {
-    font-size: 14px; font-weight: 500; color: var(--text);
-    letter-spacing: -0.1px; user-select: none;
+    font-size: 17px; font-weight: 700; color: var(--accent);
+    letter-spacing: -.3px; user-select: none;
   }
   .header-right { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
   .header-btn {
@@ -329,7 +329,7 @@
   .eb-stat-item.warn .eb-count { color: var(--orange); }
   .eb-tag {
     display: inline-block;
-    background: rgba(212,154,62,0.15);
+    background: rgba(255,149,0,0.15);
     color: var(--orange);
     padding: 0 8px; border-radius: 100px;
     font-size: 10px; font-weight: 500;
@@ -762,7 +762,6 @@
 <header>
   <div class="logo" onclick="goHome()" style="cursor:pointer;">Seeklume · Lesson Snippets</div>
   <div class="header-right" id="headerRight">
-    <button class="header-btn ghost" onclick="showView('modules')">免费体验</button>
     <button class="header-btn ghost" onclick="openModal('signin')">登录</button>
     <button class="header-btn primary" onclick="openModal('signup')">注册</button>
   </div>
@@ -778,11 +777,12 @@
     <section class="scene scene-hero" data-scene="0">
       <div class="hero" style="padding:0;">
         <div class="eyebrow fade-up">Early Access</div>
-        <h1 class="fade-up delay-1">Seeklume<br><span class="gradient-text">Lesson Snippets</span></h1>
+        <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
         <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
         <p class="humble fade-up delay-3">如果能帮到你，便是最开心的事。它还不完美，会持续打磨。</p>
         <div class="cta fade-up delay-4">
-          <button class="btn primary" onclick="openModal('signup')">注册试用</button>
+          <button class="btn" onclick="showView('modules')">体验</button>
+          <button class="btn primary" onclick="openModal('signup')">注册</button>
           <button class="btn" onclick="openModal('signin')">登录</button>
         </div>
         <div class="cta-fineprint fade-up delay-5">已有账号？点登录。没账号注册后就能用。</div>
@@ -917,7 +917,7 @@
           <div class="module-num">01</div>
           <h3>语法填空</h3>
           <p>按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
-          <div class="module-meta">注册后即可使用 · 也可免费体验</div>
+          <div class="module-meta">注册后即可使用</div>
         </div>
         <div class="module-card coming fade-up delay-2">
           <span class="module-badge soon">Soon</span>
@@ -964,7 +964,7 @@
         <h2 class="fade-up delay-1">开始用。</h2>
         <p class="fade-up delay-2" style="font-size:16px;color:var(--text-2);max-width:440px;margin:8px auto 28px;line-height:1.55;">注册一个账号，立刻进入语法填空模块。</p>
         <div class="fade-up delay-3" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-          <button class="btn" onclick="showView('modules')">免费体验</button>
+          <button class="btn" onclick="showView('modules')">体验</button>
           <button class="btn primary" onclick="openModal('signup')">注册</button>
           <button class="btn" onclick="openModal('signin')">登录</button>
         </div>
@@ -1133,8 +1133,7 @@
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
-      el.innerHTML = '<button class="header-btn ghost" onclick="showView(\'modules\')">免费体验</button>' +
-        '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录</button>' +
+      el.innerHTML = '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录</button>' +
         '<button class="header-btn primary" onclick="openModal(\'signup\')">注册</button>';
     }
   }
@@ -1142,7 +1141,7 @@
   function renderGreeting() {
     var el = document.getElementById('modulesGreeting');
     if (!el) return;
-    if (!state.user) { el.textContent = '免费体验中 · 注册后解锁全部功能'; return; }
+    if (!state.user) { el.textContent = '访客模式 · 注册后解锁全部功能'; return; }
     var h = new Date().getHours();
     var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
           : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
@@ -1343,8 +1342,10 @@
   /* ===== Fake Screen Recording Demo ===== */
   var _demoInterval = null;
   var _demoStepTimers = [];
+  var _demoFirstRun = true;
   function startDemoLoop() {
     if (_demoInterval) return;
+    _demoFirstRun = true;
     runDemoStep();
     _demoInterval = setInterval(function() {
       if (_currentSceneIdx !== 2) { stopDemoLoop(); return; }
@@ -1371,7 +1372,8 @@
     clearDemoStepTimers();
     var blanks = document.querySelectorAll('.passage-text .blank-word');
     if (!blanks.length) return;
-    var idx = Math.floor(Math.random() * blanks.length);
+    var idx = _demoFirstRun ? 0 : Math.floor(Math.random() * blanks.length);
+    _demoFirstRun = false;
     var blank = blanks[idx];
     var qno = blank.dataset.q;
     var fakeCursor = document.getElementById('fakeCursor');
