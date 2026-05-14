@@ -33,6 +33,8 @@
     --radius-sm: 6px;
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
     --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+    --modal-bg: #ffffff;
+    --modal-backdrop: rgba(0,0,0,0.35);
   }
 
   /* ===== Dark Theme ===== */
@@ -62,6 +64,8 @@
     --teal-bg: rgba(92,184,183,0.1);
     --shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,0.04);
     --shadow-lg: 0 4px 16px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,0.04);
+    --modal-bg: #1c1c1c;
+    --modal-backdrop: rgba(0,0,0,0.65);
   }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -172,37 +176,45 @@
   }
 
   .practice-layout {
-    display: flex; gap: 0; align-items: flex-start;
-    min-height: calc(100vh - 120px);
-    padding-bottom: 48px;
     max-width: 1400px; margin: 0 auto; padding: 16px;
   }
+  /* 侧栏触发带：左边缘不可见热区 */
+  .sidebar-edge-trigger {
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 10px;
+    z-index: 149;
+  }
+  /* 侧栏本体：固定定位，隐藏于左边缘外，hover 滑出 */
   .context-sidebar {
-    width: 210px; flex-shrink: 0;
-    border-right: 1px solid var(--border);
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 220px;
+    z-index: 150;
     background: var(--surface);
-    overflow-y: auto; max-height: calc(100vh - 100px);
-    position: sticky; top: 16px;
-    padding: 0; border-radius: var(--radius);
-    transition: width .2s;
+    border-right: 1px solid var(--border);
+    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+    transform: translateX(calc(-100% + 8px));
+    transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto; overflow-x: hidden;
+    border-radius: 0 var(--radius) var(--radius) 0;
   }
-  .context-sidebar.collapsed {
-    width: 36px;
+  /* 隐藏时可见的 8px 手柄条 */
+  .context-sidebar::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 8px;
+    background: linear-gradient(to right, transparent, rgba(139,105,20,0.08));
+    pointer-events: none;
   }
-  .context-sidebar.collapsed .context-sidebar-content { display: none; }
-  .context-sidebar.collapsed .context-sidebar-toggle-label { display: none; }
-  .context-sidebar-toggle {
-    display: flex; align-items: center; gap: 6px;
-    width: 100%; padding: 8px 10px; cursor: pointer;
-    border: none; background: none; color: var(--text-3);
-    font-size: 13px; transition: color .12s;
-    border-bottom: 1px solid var(--border);
+  .context-sidebar:hover::before { opacity: 0; }
+  /* 触发热区或侧栏本身 hover → 滑出 */
+  .sidebar-edge-trigger:hover ~ .context-sidebar,
+  .context-sidebar:hover {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0,0,0,0.12);
   }
-  .context-sidebar.collapsed .context-sidebar-toggle {
-    border-bottom: none; padding: 8px 6px; justify-content: center;
-  }
-  .context-sidebar-toggle:hover { color: var(--text); }
-  .context-sidebar-toggle-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
   .context-sidebar-content { padding: 8px 0; }
   .context-sidebar-empty { padding: 24px 12px; font-size: 12px; color: var(--text-3); text-align: center; }
   .context-sidebar-title {
@@ -232,7 +244,7 @@
   .context-sidebar-item .cs-cat {
     font-size: 10px; color: var(--text-3); margin-left: auto; flex-shrink: 0;
   }
-  .left-panel { flex: 1; min-width: 0; padding-left: 20px; }
+  .left-panel { padding-left: 0; }
 
   .back-btn {
     display: inline-block; padding: 6px 14px; font-size: 13px; color: var(--accent);
@@ -767,14 +779,11 @@
   body.compact .hint-text { display: none; }
   body.compact .category-stats { display: none; }
   body.compact .practice-layout { min-height: auto; padding-bottom: 16px; padding: 10px; }
-  body.compact .context-sidebar { width: 170px; max-height: calc(100vh - 80px); top: 10px; }
-  body.compact .context-sidebar.collapsed { width: 32px; }
+  body.compact .context-sidebar { width: 180px; }
   body.compact .context-sidebar-title { font-size: 11px; padding: 4px 8px 8px; }
   body.compact .context-sidebar-item { padding: 4px 8px; font-size: 11px; }
   body.compact .context-sidebar-year { padding: 6px 8px 1px; font-size: 9px; }
-  body.compact .context-sidebar-toggle { padding: 5px 8px; font-size: 11px; }
-  body.compact .context-sidebar-toggle-label { font-size: 11px; }
-  body.compact .left-panel { padding-left: 14px; }
+  body.compact .left-panel { padding-left: 0; }
   body.compact .home-entry-card { padding: 16px 18px; }
   body.compact .home-entry-cards { gap: 10px; }
   body.compact .category-section { margin-bottom: 14px; }
@@ -782,25 +791,29 @@
   body.compact .card { padding: 12px 14px; }
   body.compact .grid-11 { gap: 8px; }
   body.compact .font-ctrl-btn { width: 20px; height: 20px; font-size: 11px; line-height: 18px; }
+  body.compact .dock { padding: 3px 8px; gap: 0px; border-radius: 14px; bottom: 6px; }
+  body.compact .dock-item { padding: 4px 10px; min-width: 44px; }
+  body.compact .dock-item-icon { font-size: 16px; }
+  body.compact .dock-item-label { font-size: 9px; }
 
   /* ============== 套卷侧边栏 ============== */
 
 
   /* ============== 欢迎页 + 登录墙 ============== */
-  body.guest .nav,
   body.guest .header-font-ctrl,
   body.guest #syncStatus { display: none !important; }
   body.guest #page-welcome { display: block !important; }
   body.guest .page:not(#page-welcome) { display: none !important; }
   body.guest header { background: rgba(255,255,255,0.7); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); }
+  body.guest .dock { display: none; }
 
   /* ============== 模块选择页（登录后默认）============== */
-  body.in-modules .nav .nav-btn:not(#navBtnModules):not(#navBtnAdmin),
   body.in-modules .header-font-ctrl,
   body.in-modules #syncStatus { display: none !important; }
-  body.in-modules #navBtnModules { display: none !important; } /* 在模块页本身，不需要再显示返回按钮 */
+  body.in-modules #navBtnModules { display: none !important; }
   body.in-modules #page-modules { display: block !important; }
   body.in-modules .page:not(#page-modules) { display: none !important; }
+  body.in-modules .dock { display: none; }
 
   #page-welcome, #page-modules { max-width: 1020px; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
 
@@ -1325,7 +1338,7 @@
 /* ── 浮动快捷按钮组 ── *//* ── 浮动快捷按钮组 ── */
 .float-actions {
   position: fixed;
-  bottom: 28px;
+  bottom: 90px;
   right: 28px;
   z-index: 200;
   display: flex;
@@ -1355,10 +1368,23 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.14);
 }
 .float-btn:active { transform: scale(0.95); }
+[data-theme="dark"] .float-btn {
+  background: rgba(30,30,30,0.85);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+[data-theme="dark"] .float-btn:hover {
+  background: rgba(45,45,45,0.9);
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+}
 
 /* ====== AI 助手 ====== */
 .assistant-fab {
-  position: fixed; bottom: 28px; right: 88px; z-index: 200;
+  position: fixed; bottom: 90px; right: 88px; z-index: 200;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
   color: #fff; font-size: 22px;
@@ -1525,9 +1551,66 @@
 }
 .assistant-backdrop.show { opacity: 1; pointer-events: auto; }
 
+/* ====== Bottom Dock ====== */
+.dock {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.04);
+}
+.dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 11px;
+  font-family: inherit;
+  transition: all .2s ease;
+  min-width: 56px;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.dock-item:hover {
+  color: var(--text);
+  background: var(--surface-3);
+  transform: translateY(-4px);
+}
+.dock-item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.dock-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.dock-item-icon { font-size: 20px; line-height: 1; }
+.dock-item-label { font-size: 10px; font-weight: inherit; }
+
 @media (max-width: 480px) {
   .assistant-panel { width: 100vw; }
-  .assistant-fab { right: 18px; bottom: 90px; }
+  .assistant-fab { right: 18px; bottom: 96px; }
+  .float-actions { bottom: 96px; }
 }
 </style>
 <script src="../data/grammar_bank.js"></script>
@@ -1568,7 +1651,7 @@
   /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
   html.has-session body.guest #page-welcome { display: none !important; }
   html.has-session body.guest #page-home    { display: block !important; }
-  html.has-session body.guest .nav,
+  html.has-session body.guest .dock,
   html.has-session body.guest .header-font-ctrl,
   html.has-session body.guest #syncStatus { display: flex !important; }
 </style>
@@ -1777,22 +1860,34 @@
         <span id="passageFontVal" style="font-size:11px;min-width:28px;text-align:center;">24px</span>
         <button class="font-ctrl-btn" onclick="adjustFont('passage',1)">+</button>
       </div>
-      <nav class="nav">
-        <button class="nav-btn" data-page="modules" id="navBtnModules" style="display:none;">📚 模块</button>
-        <button class="nav-btn active" data-page="home" id="navBtnHome">🏠 练习</button>
-        <button class="nav-btn" data-page="knowledge">📖 考点速查</button>
-        <button class="nav-btn" data-page="error-book">📝 错题</button>
-        <button class="nav-btn" data-page="lesson-prep">📋 备课</button>
-        <button class="nav-btn" data-page="admin" id="navBtnAdmin" style="display:none;">👥 管理员</button>
-      </nav>
       <span id="syncStatus" style="font-size:12px;display:none;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;"></span>
       <div id="userPill" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);"></div>
     </div>
   </header>
 
+  <!-- ============== 底部导航 Dock ============== -->
+  <nav class="dock" id="mainDock" style="display:none;">
+    <button class="dock-item active" data-page="home" onclick="switchPage('home')">
+      <span class="dock-item-icon">🏠</span>
+      <span class="dock-item-label">练习</span>
+    </button>
+    <button class="dock-item" data-page="knowledge" onclick="switchPage('knowledge')">
+      <span class="dock-item-icon">📖</span>
+      <span class="dock-item-label">考点</span>
+    </button>
+    <button class="dock-item" data-page="error-book" onclick="switchPage('error-book')">
+      <span class="dock-item-icon">📝</span>
+      <span class="dock-item-label">错题</span>
+    </button>
+    <button class="dock-item" data-page="lesson-prep" onclick="switchPage('lesson-prep')">
+      <span class="dock-item-icon">📋</span>
+      <span class="dock-item-label">备课</span>
+    </button>
+  </nav>
+
   <!-- ============== 登录/注册 模态框 ============== -->
-  <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
+  <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:var(--modal-backdrop);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:var(--modal-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
       <!-- 表单态 -->
       <div id="authFormPanel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
@@ -1843,8 +1938,8 @@
   </div>
 
   <!-- ============== 用户设置 模态框 ============== -->
-  <div id="settingsModal" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1001;align-items:center;justify-content:center;">
-    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
+  <div id="settingsModal" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:var(--modal-backdrop);z-index:1001;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:var(--modal-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:400px;max-width:92vw;padding:28px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div style="font-size:18px;font-weight:700;color:var(--text);">账户设置</div>
         <button onclick="closeSettingsModal()" style="border:none;background:none;font-size:20px;color:var(--text-3);cursor:pointer;">×</button>
@@ -2169,14 +2264,11 @@
     </div>
 
     <div class="page" id="page-practice">
+      <div class="sidebar-edge-trigger"></div>
+      <div class="context-sidebar" id="contextSidebar" style="display:none;">
+        <div class="context-sidebar-content" id="contextSidebarContent"></div>
+      </div>
       <div class="practice-layout">
-        <div class="context-sidebar" id="contextSidebar" style="display:none;">
-          <button class="context-sidebar-toggle" onclick="toggleContextSidebar()" title="折叠侧栏">
-            <span id="contextSidebarToggleIcon">◀</span>
-            <span class="context-sidebar-toggle-label" id="contextSidebarToggleLabel">折叠</span>
-          </button>
-          <div class="context-sidebar-content" id="contextSidebarContent"></div>
-        </div>
         <div class="left-panel">
           <div class="back-btn" id="practiceBackBtn" onclick="goBack()">← 返回首页</div>
           <div class="source-info">
@@ -5225,8 +5317,8 @@ init();
 </div>
 
 <!-- 统一导入选择面板：整篇进备课资料 + 勾选的题进错题本 -->
-<div id="unifiedImportOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);border-radius:14px;box-shadow:var(--shadow-lg);width:720px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;">
+<div id="unifiedImportOverlay" style="display:none;position:fixed;inset:0;background:var(--modal-backdrop);z-index:300;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+  <div style="background:var(--modal-bg);border-radius:14px;box-shadow:var(--shadow-lg);width:720px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;">
     <div style="padding:22px 26px 14px;border-bottom:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>

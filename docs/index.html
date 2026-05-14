@@ -247,16 +247,20 @@
 
   /* Theme toggle */
   .theme-toggle {
-    width: 32px; height: 32px;
-    border: none; border-radius: 50%;
-    background: transparent;
+    width: 34px; height: 34px;
+    border: 1px solid var(--border); border-radius: 50%;
+    background: var(--surface);
     font-size: 16px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
+    transition: background .15s, border-color .15s, box-shadow .15s;
     color: var(--text);
     line-height: 1;
   }
-  .theme-toggle:hover { background: var(--surface-2); }
+  .theme-toggle:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 4px var(--surface-3);
+  }
 
   main { max-width: 1020px; margin: 0 auto; padding: 0 24px 80px; animation: fadeIn .4s ease; }
 
@@ -292,9 +296,9 @@
     font-weight: 300;
   }
   .hero .humble {
-    font-size: 14px; color: var(--text-3);
-    margin: 0 auto 32px; font-weight: 300;
-    font-style: italic;
+    font-size: 15px; color: var(--text-2);
+    margin: 0 auto 32px; font-weight: 350;
+    font-style: italic; line-height: 1.7;
   }
   .hero .hero-cn {
     font-size: 26px; font-weight: 500; color: var(--text);
@@ -697,11 +701,12 @@
   }
   body.welcome-mode .scene-dots { opacity: 1; pointer-events: auto; }
   .scene-dots .dot {
-    width: 7px; height: 7px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     background: var(--dot-bg);
+    border: 0.5px solid rgba(255,255,255,0.08);
     cursor: pointer;
-    transition: background .2s, transform .2s;
+    transition: background .2s, transform .2s, border-color .2s;
     position: relative;
   }
   .scene-dots .dot::after {
@@ -957,7 +962,7 @@
         <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
         <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
         <p class="sub fade-up delay-3">上传 Word 文档自动解析，课堂上点空格出答案，同考点真题一键关联</p>
-        <p class="humble fade-up delay-3">如果能帮你省下一点点备课的时间，就是它最好的用处。</p>
+        <p class="humble fade-up delay-3">如果能帮到你，便是最开心的事。<br>它还不完美，会持续打磨。</p>
         <div class="cta fade-up delay-4">
           <button class="btn primary" onclick="openModal('signup')">注册试用</button>
           <button class="btn" onclick="openModal('signin')">登录</button>
