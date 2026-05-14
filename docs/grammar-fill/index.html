@@ -1407,6 +1407,12 @@
   font-weight: 600; letter-spacing: 0.5px;
   border: 2px solid var(--bg);
 }
+[data-theme="dark"] .assistant-fab {
+  box-shadow: 0 4px 20px rgba(212,168,67,0.3), 0 2px 4px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .assistant-fab:hover {
+  box-shadow: 0 8px 28px rgba(212,168,67,0.45), 0 4px 8px rgba(0,0,0,0.3);
+}
 
 .assistant-panel {
   position: fixed; top: 0; right: 0; bottom: 0;
@@ -1420,6 +1426,13 @@
   box-shadow: -8px 0 32px rgba(0,0,0,0.06);
 }
 .assistant-panel.open { transform: translateX(0); }
+[data-theme="dark"] .assistant-panel {
+  background: rgba(20,20,20,0.95);
+  border-left-color: rgba(255,255,255,0.08);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
 .assistant-head {
   padding: 16px 20px; border-bottom: 1px solid var(--border);
   display: flex; justify-content: space-between; align-items: center;
@@ -1463,6 +1476,10 @@
 .assistant-msg.user .bubble {
   background: var(--accent); color: #fff;
   border-bottom-right-radius: 4px;
+}
+[data-theme="dark"] .assistant-msg.assistant .bubble {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.06);
 }
 .assistant-msg.assistant .bubble {
   background: var(--surface-2); color: var(--text);
@@ -3362,13 +3379,8 @@ function init() {
   loadErrorBook();
   loadPrepPassages();
   runErrorBookCleanup();
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // 「📚 模块」按钮回到顶层模块选择页（hub）
-      if (btn.dataset.page === 'modules') { window.location.href = '/'; return; }
-      switchPage(btn.dataset.page);
-    });
-  });
+  // Clean up old sidebar collapsed state
+  try { localStorage.removeItem('grammar-context-sidebar-collapsed'); } catch(e) {}
   renderBankStat();
   renderExamGrid();
   updateCounts();
