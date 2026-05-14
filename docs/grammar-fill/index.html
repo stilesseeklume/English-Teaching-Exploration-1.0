@@ -200,7 +200,7 @@
     border-bottom: 2px dashed var(--accent);
     background: var(--accent-bg);
     border-radius: 3px;
-    font-weight: 600; font-size: 0.58em;
+    font-weight: 600; font-size: 0.85em;
     cursor: pointer;
     color: var(--accent);
     transition: all .15s;
@@ -594,7 +594,7 @@
     min-width: 52px; text-align: center; padding: 0.1em 0.4em; margin: 0 2px;
     border-bottom: 2px solid var(--green);
     background: var(--green-bg); border-radius: 3px;
-    font-size: 0.58em; vertical-align: baseline;
+    font-size: 0.85em; vertical-align: baseline;
   }
 
   .category-stats {
@@ -2445,8 +2445,9 @@ function renderErrorBook() {
     html += '<div class="category-section">'
           + '<div class="category-section-title">' + (CATEGORY_MAP[cat] || cat) + ' · ' + list.length + ' 题</div>';
     list.forEach(function(q) {
-      var sent = q.passage.replace('___1___',
-        '<span style="display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-bottom:2px dashed var(--accent);background:var(--accent-bg);border-radius:3px;font-weight:600;color:var(--accent);">___1___</span>');
+      var blankMarker = '___' + q.no + '___';
+      var sent = q.passage.replace(blankMarker,
+        '<span style="display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-bottom:2px dashed var(--accent);background:var(--accent-bg);border-radius:3px;font-weight:600;color:var(--accent);">' + blankMarker + '</span>');
       html += '<div class="error-list-item" onclick="viewErrorQuestion(\'' + q.id + '\')">'
             + '<div class="error-list-left">'
             + '<div class="error-list-sentence">' + sent + '</div>'
@@ -3024,9 +3025,11 @@ function importDeepSeekResult(result, silent) {
 function importDeepSeekResultToErrorBook(result, silent) {
   var count = 0;
   (result.blanks || []).forEach(function(b) {
+    var no = b.no || (count + 1);
+    var sent = extractSentence(result.passage, no) || result.passage;
     errorBookQuestions.unshift({
       id: 'err_' + Date.now() + '_' + count + '_' + Math.random().toString(36).slice(2, 6),
-      passage: result.passage,
+      passage: sent,
       answer: b.answer || '?',
       category: b.category || 'word',
       category_name: CATEGORY_MAP[b.category] || b.category,
@@ -3036,7 +3039,7 @@ function importDeepSeekResultToErrorBook(result, silent) {
                  '。' + (CATEGORY_TIPS[b.category] || '先判空格成分，再确定词形。'),
       exam: '错题本',
       exam_id: '错题本',
-      no: b.no || (count + 1),
+      no: no,
       created_at: new Date().toISOString()
     });
     count++;
@@ -3962,13 +3965,15 @@ function renderExam() {
   renderCategoryStats();
 
   if (currentExam.mode === 'error') {
-    var passage = currentQuestions[0].passage;
+    var q = currentQuestions[0];
+    var passage = q.passage;
+    var blankMarker = '___' + q.no + '___';
     if (showAnswers) {
-      passage = passage.replace('___1___',
-        '<span class="answer-filled">' + currentQuestions[0].answer + '</span>');
+      passage = passage.replace(blankMarker,
+        '<span class="answer-filled">' + q.answer + '</span>');
     } else {
-      passage = passage.replace('___1___',
-        '<span class="blank-inline" onclick="showAnalysis(1)">1</span>');
+      passage = passage.replace(blankMarker,
+        '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>');
     }
     document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
     updateTranslationSection();
