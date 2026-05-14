@@ -1661,7 +1661,7 @@
         </div>
         <div id="authSignupHint" style="display:none;background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.65;">
           🌱 <b>欢迎试用 · 早期版本</b><br>
-          填邮箱 + 用户名 + 密码即可。因为还在小范围测试，注册后会有一小段管理员审批的等待，麻烦多包涵～
+          填邮箱 + 用户名 + 密码即可。注册成功即可直接使用。
         </div>
         <div style="margin-bottom:12px;">
           <label style="font-size:12px;color:var(--text-2);">邮箱</label>
@@ -1717,7 +1717,7 @@
       </div>
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">修改用户名</div>
-        <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;">修改后需管理员审批才能生效</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;">修改后立即生效</div>
         <div id="pendingUsernameInfo" style="display:none;background:var(--accent-bg);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:var(--accent);">
           待审批：<b id="pendingUsernameVal"></b>
         </div>
@@ -1789,7 +1789,7 @@
       <div class="welcome-section">
         <h2>怎么开始用</h2>
         <ol class="welcome-steps">
-          <li><b>注册账号</b>：邮箱 + 用户名 + 密码。注册后会有一小段管理员审批的等待，多包涵。</li>
+          <li><b>注册账号</b>：邮箱 + 用户名 + 密码，注册成功即可直接使用。</li>
           <li><b>选一套真题</b>，或者按考点直接练，点空格弹出解析。</li>
           <li>讲过的题<b>加入错题本</b>，下次自动把别的卷子里同考点的题列出来，做迁移训练。</li>
         </ol>
@@ -3523,7 +3523,7 @@ async function requestMyUsernameChange() {
   try {
     await window.cloud.requestUsernameChange(uname);
     msg.style.color = 'var(--green)';
-    msg.textContent = '已提交申请，等待管理员审批';
+    msg.textContent = '用户名已更新';
     document.getElementById('settingsNewUsername').value = '';
     document.getElementById('pendingUsernameInfo').style.display = '';
     document.getElementById('pendingUsernameVal').textContent = uname;
