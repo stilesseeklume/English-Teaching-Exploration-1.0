@@ -83,7 +83,6 @@
     opacity: 0; transform: translateY(40px);
     transition: opacity .9s cubic-bezier(.22,.61,.36,1),
                 transform .9s cubic-bezier(.22,.61,.36,1);
-    will-change: opacity, transform;
   }
   .fade-up.in-view { opacity: 1; transform: translateY(0); }
   .fade-up.delay-1 { transition-delay: 60ms; }
@@ -96,14 +95,11 @@
   /* Hero h1 */
   .hero h1.fade-up {
     transform: translateY(60px) scale(0.92);
-    filter: blur(8px);
     transition: opacity .9s ease-out,
-                transform 1.05s cubic-bezier(.22,1.4,.36,1),
-                filter .9s ease-out;
+                transform 1.05s cubic-bezier(.22,1.4,.36,1);
   }
   .hero h1.fade-up.in-view {
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 
   .stat-num.counter { font-variant-numeric: tabular-nums; }
@@ -246,8 +242,6 @@
     border: 0.5px solid var(--ai-panel-border);
     border-radius: 14px;
     padding: 20px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     position: relative;
     overflow: hidden;
   }
@@ -1292,9 +1286,12 @@
       panel.classList.remove('animating');
       var lines = panel.querySelectorAll('.result-line');
       lines.forEach(function(l) { l.style.animation = 'none'; });
-      void panel.offsetWidth;
-      lines.forEach(function(l) { l.style.animation = ''; });
-      panel.classList.add('animating');
+      requestAnimationFrame(function() {
+        lines.forEach(function(l) { l.style.animation = ''; });
+        requestAnimationFrame(function() {
+          panel.classList.add('animating');
+        });
+      });
     }
     replay();
     _aiAnimInterval = setInterval(function() {
@@ -1361,6 +1358,9 @@
     scenes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
     _currentSceneIdx = idx;
     updateDotsActive();
+    if (idx === 1) triggerAIAnimation();
+    if (idx === 2) startDemoLoop();
+    else stopDemoLoop();
   }
   function stopAutoscroll() {
     var wasActive = _autoscrollEnabled;
@@ -1387,13 +1387,14 @@
   window.addEventListener('wheel', function(e) {
     if (!document.body.classList.contains('welcome-mode')) return;
     if (e.target.closest && (e.target.closest('#authModal') || e.target.closest('.modal-overlay'))) return;
-    if (_wheelDebounce) return;
+    if (_wheelDebounce) { e.preventDefault(); return; }
     _wheelDebounce = true;
     setTimeout(function() { _wheelDebounce = false; }, WHEEL_DEBOUNCE_MS);
+    e.preventDefault();
     if (_autoscrollEnabled) stopAutoscroll();
     if (e.deltaY > 0) advanceScene();
     else goToPrevScene();
-  }, { passive: true });
+  }, { passive: false });
 
   /* ===== Fake Screen Recording Demo ===== */
   var _demoInterval = null;
