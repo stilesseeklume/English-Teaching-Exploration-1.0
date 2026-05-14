@@ -72,7 +72,8 @@
     width: 100%; margin: 0 auto;
     position: relative;
   }
-  #view-welcome .scene > * { width: 100%; }
+  #view-welcome .scene > .modules-grid,
+  #view-welcome .scene > .features { width: 100%; }
 
 
 
@@ -167,7 +168,7 @@
     opacity: 0.7;
   }
   .hero h1 {
-    font-size: 44px;
+    font-size: clamp(36px, 5vw, 56px);
     color: var(--hero-title-color); margin-bottom: 20px;
     letter-spacing: -1px; line-height: 1.2; font-weight: 700;
   }
@@ -226,7 +227,7 @@
   /* ===== AI Split Panel ===== */
   .ai-split {
     display: flex; gap: 20px;
-    max-width: 800px; width: 100%;
+    max-width: min(92%, 1024px); width: 100%;
     position: relative;
   }
   @media (max-width: 640px) { .ai-split { flex-direction: column; } }
@@ -345,7 +346,7 @@
 
   /* ===== Fake Screen Recording Demo ===== */
   .screen-mock {
-    max-width: 860px; width: 100%;
+    max-width: min(92%, 1080px); width: 100%;
     background: var(--screen-bg);
     border: 0.5px solid var(--screen-border);
     border-radius: 12px;
@@ -626,6 +627,10 @@
     border-radius: 14px;
     padding: 24px 28px;
     margin-bottom: 80px;
+    width: 100%;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .disclaimer h3 {
     font-size: 14px; color: var(--text); margin-bottom: 10px;
@@ -754,7 +759,6 @@
   html.has-session #view-welcome { display: none !important; }
   html.has-session #view-modules { display: block !important; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -969,7 +973,7 @@
           <button class="btn" onclick="openModal('signin')">登录</button>
         </div>
       </div>
-      <div class="disclaimer fade-up delay-4" style="margin-top:64px;max-width:680px;">
+      <div class="disclaimer fade-up delay-4" style="margin-top:64px;">
         <h3>关于这个早期版本</h3>
         <p>目前仅上线语法填空模块，后续会逐步拓展其他题型。使用中如遇问题或有建议，欢迎联系。</p>
         <ul>
@@ -1082,6 +1086,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1;
