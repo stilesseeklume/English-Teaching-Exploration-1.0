@@ -3331,6 +3331,7 @@ function init() {
 // ========== 云同步：UI + 数据 ==========
 let _lastCloudUser = null;
 let _migrationPromptShown = false;
+let _adminParamChecked = false;
 
 async function onCloudStateChange(state) {
   renderUserPill(state);
@@ -3362,6 +3363,11 @@ async function onCloudStateChange(state) {
     if (document.body.classList.contains('guest') ||
         document.getElementById('page-welcome').classList.contains('active')) {
       switchPage('home');
+    }
+    // URL ?admin 参数：管理员直接从首页进入管理后台
+    if (!_adminParamChecked && state.isAdmin && /[?&]admin/.test(location.search)) {
+      _adminParamChecked = true;
+      switchPage('admin');
     }
   }
 
