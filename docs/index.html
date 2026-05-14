@@ -3,70 +3,186 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Snippets · 英语教学小工具</title>
+<title>Lesson Snippets · 语法填空教学小工具</title>
 <style>
+  /* ===== Light Theme (default, matches grammar-fill page) ===== */
   :root {
-    /* Apple-clean palette + 一点暖金做点缀 */
-    --bg: #fafaf9;
+    --bg: #f5f3ef;
     --surface: #ffffff;
-    --surface-2: #f5f5f4;
-    --surface-3: #ececeb;
-    --border: rgba(0,0,0,0.08);
-    --border-strong: rgba(0,0,0,0.12);
-    --text: #1d1d1f;
-    --text-2: rgba(0,0,0,0.62);
-    --text-3: rgba(0,0,0,0.42);
+    --surface-2: #faf8f5;
+    --surface-3: #f3f0eb;
+    --border: #e5e0d9;
+    --border-strong: #d0ccc4;
+    --text: #2c2416;
+    --text-2: #6b5e4a;
+    --text-3: #9b8d7a;
     --accent: #8b6914;
     --accent-light: #b8942f;
     --accent-bg: #fdf6e8;
-    --green: #1f7a4d;
-    --green-bg: #e6f4ec;
+    --accent-glow: rgba(139,105,20,0.2);
+    --green: #2d6a4f;
+    --green-bg: #edf7f1;
     --red: #c1121f;
     --orange: #bc6c25;
-    --radius: 12px;
-    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
-    --shadow-lg: 0 12px 32px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    /* theme-specific */
+    --header-bg: rgba(245,243,239,0.85);
+    --btn-primary-bg: var(--accent);
+    --btn-primary-text: #ffffff;
+    --btn-secondary-text: var(--text);
+    --btn-secondary-border: var(--border-strong);
+    --modal-bg: #ffffff;
+    --modal-border: var(--border);
+    --input-bg: #ffffff;
+    --input-border: var(--border);
+    --film-grain-opacity: 0;
+    --letterbox-height: 0px;
+    --scene-bg-display: none;
+    --dot-bg: rgba(0,0,0,0.12);
+    --dot-active-bg: var(--accent);
+    --toast-bg: rgba(255,255,255,0.95);
+    --toast-border: var(--border);
+    --toast-text: var(--text-2);
+    --about-bg: var(--surface-2);
+    --about-border: var(--border);
+    --about-text: var(--text-2);
+    --about-heading: var(--text);
+    --screen-bg: #ffffff;
+    --screen-chrome-bg: #f5f3ef;
+    --screen-border: var(--border);
+    --screen-url-bg: rgba(0,0,0,0.04);
+    --screen-url-text: var(--text-3);
+    --ai-panel-bg: var(--surface);
+    --ai-panel-border: var(--border);
+    --ai-panel-label: var(--text-3);
+    --passage-text: var(--text);
+    --ap-cross-item-bg: var(--surface-2);
+    --mod-coming-opacity: 0.45;
+    --hero-title-color: var(--text);
+    --section-heading-color: var(--text);
+    --scan-line-opacity: 0.35;
   }
+
+  /* ===== Dark Theme ===== */
+  [data-theme="dark"] {
+    --bg: #080808;
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.06);
+    --surface-3: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+    --border-strong: rgba(255,255,255,0.12);
+    --text: #f0ede8;
+    --text-2: rgba(255,255,255,0.55);
+    --text-3: rgba(255,255,255,0.30);
+    --accent: #d4a843;
+    --accent-light: #e8c96a;
+    --accent-bg: rgba(212,168,67,0.08);
+    --accent-glow: rgba(212,168,67,0.35);
+    --green: #52b788;
+    --green-bg: rgba(82,183,136,0.1);
+    --red: #e0556a;
+    --orange: #d49a3e;
+
+    --header-bg: rgba(8,8,8,0.78);
+    --btn-primary-bg: #ffffff;
+    --btn-primary-text: #111111;
+    --btn-secondary-text: #ffffff;
+    --btn-secondary-border: rgba(255,255,255,0.2);
+    --modal-bg: #1a1a1a;
+    --modal-border: rgba(255,255,255,0.1);
+    --input-bg: rgba(255,255,255,0.05);
+    --input-border: rgba(255,255,255,0.1);
+    --film-grain-opacity: 0.038;
+    --letterbox-height: 72px;
+    --scene-bg-display: block;
+    --dot-bg: rgba(255,255,255,0.15);
+    --dot-active-bg: var(--accent);
+    --toast-bg: rgba(30,30,30,0.9);
+    --toast-border: rgba(255,255,255,0.1);
+    --toast-text: rgba(255,255,255,0.55);
+    --about-bg: rgba(255,255,255,0.02);
+    --about-border: rgba(255,255,255,0.05);
+    --about-text: rgba(255,255,255,0.5);
+    --about-heading: #ffffff;
+    --screen-bg: #141414;
+    --screen-chrome-bg: #1c1c1c;
+    --screen-border: rgba(255,255,255,0.1);
+    --screen-url-bg: rgba(255,255,255,0.05);
+    --screen-url-text: rgba(255,255,255,0.3);
+    --ai-panel-bg: rgba(255,255,255,0.03);
+    --ai-panel-border: rgba(255,255,255,0.06);
+    --ai-panel-label: rgba(255,255,255,0.22);
+    --passage-text: rgba(255,255,255,0.8);
+    --ap-cross-item-bg: rgba(255,255,255,0.03);
+    --mod-coming-opacity: 0.35;
+    --hero-title-color: #ffffff;
+    --section-heading-color: #ffffff;
+    --scan-line-opacity: 0.5;
+  }
+
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-  /* ====== 滚动捕捉 + 入场动画（仅 welcome 视图）====== */
-  html { scroll-behavior: smooth; }
+  /* ===== Film Grain + Letterbox（暗色模式才显示）===== */
+  .film-grain {
+    position: fixed; inset: 0; z-index: 999; pointer-events: none;
+    opacity: var(--film-grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+  .letterbox-top, .letterbox-bottom {
+    position: fixed; left: 0; right: 0; z-index: 1000; pointer-events: none;
+    background-color: #000;
+  }
+  .letterbox-top    { top: 0;    height: var(--letterbox-height); background: linear-gradient(180deg, #000 0%, transparent 100%); }
+  .letterbox-bottom { bottom: 0; height: var(--letterbox-height); background: linear-gradient(0deg, #000 0%, transparent 100%); }
+
+  /* ===== 滚动捕捉 + 入场动画 ===== */
+  html { scroll-behavior: smooth; background: var(--bg); }
   body.welcome-mode { scroll-snap-type: y proximity; }
   #view-welcome .scene {
-    min-height: 100vh;
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 80px 24px;
-    scroll-snap-align: start;
-    scroll-snap-stop: normal;
-    width: 100%;
-    max-width: 1080px;
-    margin: 0 auto;
+    min-height: 100vh; min-height: 100svh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 100px 24px 80px;
+    scroll-snap-align: start; scroll-snap-stop: normal;
+    width: 100%; max-width: 1020px; margin: 0 auto;
     position: relative;
   }
-  #view-welcome .scene.tight { justify-content: flex-start; padding-top: 96px; padding-bottom: 64px; }
   #view-welcome .scene > * { width: 100%; }
 
+  /* ===== 场景背景图（暗色模式才显示）===== */
+  .scene-bg {
+    position: absolute; inset: 0; z-index: -1;
+    background-size: cover; background-position: center;
+    display: var(--scene-bg-display);
+  }
+  .scene-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(8,8,8,0.65) 0%, rgba(8,8,8,0.88) 60%, rgba(8,8,8,0.97) 100%);
+  }
+  .scene-hero    .scene-bg { background-image: url('https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=1400&q=80'); }
+  .scene-ai      .scene-bg { background-image: url('https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1400&q=80'); }
+  .scene-demo    .scene-bg { background-image: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&q=80'); }
+  .scene-modules .scene-bg { background-image: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1400&q=80'); }
+  .scene-cta     .scene-bg { background-image: url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1400&q=80'); }
+
   .fade-up {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 1s cubic-bezier(.22,.61,.36,1),
-                transform 1s cubic-bezier(.22,.61,.36,1);
+    opacity: 0; transform: translateY(40px);
+    transition: opacity .9s cubic-bezier(.22,.61,.36,1),
+                transform .9s cubic-bezier(.22,.61,.36,1);
     will-change: opacity, transform;
   }
   .fade-up.in-view { opacity: 1; transform: translateY(0); }
-  .fade-up.delay-1 { transition-delay: 80ms; }
-  .fade-up.delay-2 { transition-delay: 160ms; }
-  .fade-up.delay-3 { transition-delay: 240ms; }
-  .fade-up.delay-4 { transition-delay: 320ms; }
-  .fade-up.delay-5 { transition-delay: 400ms; }
-  .fade-up.delay-6 { transition-delay: 480ms; }
+  .fade-up.delay-1 { transition-delay: 60ms; }
+  .fade-up.delay-2 { transition-delay: 120ms; }
+  .fade-up.delay-3 { transition-delay: 180ms; }
+  .fade-up.delay-4 { transition-delay: 240ms; }
+  .fade-up.delay-5 { transition-delay: 300ms; }
+  .fade-up.delay-6 { transition-delay: 360ms; }
 
-  /* Hero h1 单独「啪」一下入场：略带回弹 + 模糊收紧 */
+  /* Hero h1 */
   .hero h1.fade-up {
     transform: translateY(60px) scale(0.92);
     filter: blur(8px);
@@ -79,36 +195,37 @@
     filter: blur(0);
   }
 
-  /* 数字滚动柱 */
   .stat-num.counter { font-variant-numeric: tabular-nums; }
 
-  /* 滚动指示器 */
+  /* ===== Scroll Hint ===== */
   .scroll-hint {
-    position: absolute;
-    bottom: 28px;
+    position: absolute; bottom: 88px;
     left: 50%; transform: translateX(-50%);
-    font-size: 11px; color: var(--text-3);
-    letter-spacing: 2px;
+    font-size: 9px; color: var(--text-3);
+    letter-spacing: 3px;
     display: flex; flex-direction: column;
-    align-items: center; gap: 8px;
-    animation: bob 2.2s ease-in-out infinite;
+    align-items: center; gap: 10px;
     pointer-events: none;
+    animation: bob 2.4s ease-in-out infinite;
   }
-  @keyframes bob { 0%,100% { transform: translate(-50%, 0); opacity: .8; } 50% { transform: translate(-50%, 6px); opacity: 1; } }
+  @keyframes bob { 0%,100% { transform: translate(-50%, 0); opacity: .4; } 50% { transform: translate(-50%, 8px); opacity: 1; } }
   .scroll-hint .arrow {
-    width: 1px; height: 32px;
+    width: 1px; height: 34px;
     background: linear-gradient(180deg, transparent, var(--text-3));
   }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
     background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
   }
+
+  /* ===== Header ===== */
   header {
-    background: rgba(250,250,249,0.78);
+    background: var(--header-bg);
     backdrop-filter: saturate(180%) blur(14px);
     -webkit-backdrop-filter: saturate(180%) blur(14px);
-    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    border-bottom: 0.5px solid var(--border);
     padding: 0 28px;
     display: flex; align-items: center; justify-content: space-between;
     height: 52px;
@@ -118,226 +235,452 @@
     font-size: 14px; font-weight: 500; color: var(--text);
     letter-spacing: -0.1px; user-select: none;
   }
-  .header-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); }
+  .header-right { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
   .header-btn {
     padding: 7px 16px; border: none; border-radius: 100px; font-size: 13px;
     font-family: inherit; cursor: pointer; font-weight: 500;
     transition: background .15s, transform .12s, opacity .15s;
   }
-  .header-btn.primary { background: var(--text); color: #fff; }
+  .header-btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
   .header-btn.primary:hover { opacity: 0.85; }
   .header-btn.ghost { background: transparent; color: var(--text); }
   .header-btn.ghost:hover { background: var(--surface-2); }
 
-  main { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; animation: fadeIn .4s ease; }
-
-  /* ==== Hero ==== */
-  .hero {
-    text-align: center;
-    padding: 96px 24px 64px;
+  /* Theme toggle */
+  .theme-toggle {
+    width: 32px; height: 32px;
+    border: none; border-radius: 50%;
+    background: transparent;
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+    color: var(--text);
+    line-height: 1;
   }
+  .theme-toggle:hover { background: var(--surface-2); }
+
+  main { max-width: 1020px; margin: 0 auto; padding: 0 24px 80px; animation: fadeIn .4s ease; }
+
+  /* ===== Hero ===== */
+  .hero { text-align: center; padding: 96px 24px 64px; }
   .eyebrow {
     display: inline-block;
-    font-size: 11px; letter-spacing: 2.5px;
+    font-size: 10px; letter-spacing: 3px;
     color: var(--accent);
-    margin-bottom: 28px; font-weight: 500;
+    margin-bottom: 24px; font-weight: 500;
     text-transform: uppercase;
+    opacity: 0.7;
   }
   .hero h1 {
-    font-size: clamp(40px, 6vw, 64px);
-    color: var(--text); margin-bottom: 22px;
-    letter-spacing: -1.5px; line-height: 1.05; font-weight: 500;
+    font-size: clamp(44px, 6.5vw, 76px);
+    color: var(--hero-title-color); margin-bottom: 20px;
+    letter-spacing: -2px; line-height: 1.02; font-weight: 300;
   }
   .gradient-text {
-    background: linear-gradient(110deg, var(--accent) 0%, #b8942f 35%, var(--accent) 70%, #b8942f 100%);
-    background-size: 250% 100%;
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-light) 30%, var(--accent) 60%, var(--accent-light) 100%);
+    background-size: 300% 100%;
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: gradientShimmer 9s ease-in-out infinite;
+    animation: gradientShimmer 6s ease-in-out infinite;
   }
   @keyframes gradientShimmer {
     0%, 100% { background-position: 0% 50%; }
     50%      { background-position: 100% 50%; }
   }
   .hero p.sub {
-    font-size: 18px; color: var(--text-2); max-width: 560px;
-    margin: 0 auto 36px; line-height: 1.55;
-    font-weight: 400;
+    font-size: 17px; color: var(--text-2); max-width: 480px;
+    margin: 0 auto 32px; line-height: 1.55;
+    font-weight: 300;
+  }
+  .hero .hero-cn {
+    font-size: 26px; font-weight: 500; color: var(--text);
+    margin: 10px 0 4px; letter-spacing: 1px;
   }
   .cta { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
   .btn {
-    padding: 12px 30px; border: 1px solid transparent;
+    padding: 13px 32px;
     border-radius: 100px;
     font-size: 14px; font-weight: 500;
     font-family: inherit; cursor: pointer;
-    transition: opacity .15s, background .15s, transform .12s, border-color .15s;
+    transition: background .15s, transform .12s, border-color .15s;
+    background: transparent; color: var(--btn-secondary-text);
+    border: 1px solid var(--btn-secondary-border);
   }
-  .btn:hover { transform: translateY(-1px); }
+  .btn:hover { background: var(--surface-2); border-color: var(--text-3); transform: translateY(-1px); }
   .btn:active { transform: translateY(0); }
-  .btn.primary {
-    background: var(--text); color: #fff;
-  }
+  .btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-text); border-color: var(--btn-primary-bg); font-weight: 600; }
   .btn.primary:hover { opacity: 0.85; }
-  .btn.secondary {
-    background: transparent; color: var(--text);
-    border-color: var(--border-strong);
-  }
-  .btn.secondary:hover { background: var(--surface-2); border-color: var(--text-2); }
   .cta-fineprint { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 16px; }
 
-  /* ==== 统计条（Apple 风大数字）==== */
-  .stats {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-    padding: 44px 0;
-    border-top: 0.5px solid var(--border);
-    border-bottom: 0.5px solid var(--border);
-    margin-bottom: 80px;
-    text-align: center;
-  }
-  .stat-num {
-    font-size: clamp(40px, 5vw, 56px);
-    line-height: 1; font-weight: 500;
-    color: var(--text);
-    letter-spacing: -2px;
-  }
-  .stat-label {
-    font-size: 13px; color: var(--text-2);
-    margin-top: 10px;
-  }
-
-  /* ==== 通用段落 ==== */
-  .section { margin-bottom: 80px; }
+  /* ===== 通用段落 ===== */
+  .section { margin-bottom: 0; }
   .section-eyebrow {
-    font-size: 11px; letter-spacing: 2.5px; color: var(--text-3);
+    font-size: 10px; letter-spacing: 3px; color: var(--text-3);
     margin-bottom: 12px; font-weight: 500;
     text-transform: uppercase;
   }
   .section h2 {
-    font-size: clamp(28px, 4vw, 40px); color: var(--text);
-    margin-bottom: 12px; font-weight: 500; letter-spacing: -1px;
+    font-size: clamp(26px, 4vw, 42px); color: var(--section-heading-color);
+    margin-bottom: 10px; font-weight: 300; letter-spacing: -1px;
     line-height: 1.15;
   }
   .section .sub {
-    font-size: 17px; color: var(--text-2); max-width: 620px;
-    margin-bottom: 32px; line-height: 1.55;
+    font-size: 16px; color: var(--text-2); max-width: 560px;
+    margin-bottom: 36px; line-height: 1.55;
   }
 
-  /* ==== 产品预览卡 ==== */
-  .preview-card {
+  /* ===== AI Split Panel ===== */
+  .ai-split {
+    display: flex; gap: 20px;
+    max-width: 800px; width: 100%;
+    position: relative;
+  }
+  @media (max-width: 640px) { .ai-split { flex-direction: column; } }
+  .ai-panel {
+    flex: 1;
+    background: var(--ai-panel-bg);
+    border: 0.5px solid var(--ai-panel-border);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-panel .panel-label {
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--ai-panel-label);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .ai-panel.before .doc-line {
+    font-size: 12px; color: var(--text-3);
+    line-height: 2.4;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    letter-spacing: 0.3px;
+  }
+  .ai-panel.before .doc-line .hl {
+    display: inline;
+    background: var(--accent-bg);
+    color: var(--accent);
+    padding: 2px 4px;
+    border-radius: 2px;
+  }
+  .ai-panel.after .result-line {
+    font-size: 13px; color: var(--text-2);
+    line-height: 2.2;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0;
+    transform: translateX(12px);
+    animation: resultIn 0.5s ease-out forwards;
+    animation-play-state: paused;
+  }
+  .ai-panel.after.animating .result-line { animation-play-state: running; }
+  .ai-panel.after .result-line:nth-child(2) { animation-delay: 0.5s; }
+  .ai-panel.after .result-line:nth-child(3) { animation-delay: 0.9s; }
+  .ai-panel.after .result-line:nth-child(4) { animation-delay: 1.3s; }
+  .ai-panel.after .result-line:nth-child(5) { animation-delay: 1.7s; }
+  .ai-panel.after .result-line:nth-child(6) { animation-delay: 2.1s; }
+  .ai-panel.after .result-line:nth-child(7) { animation-delay: 2.5s; }
+  @keyframes resultIn {
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .ai-panel.after .check { color: var(--green); font-weight: 600; }
+  .ai-panel.after .tag-pill {
+    display: inline-block;
+    background: var(--accent-bg);
+    color: var(--accent);
+    padding: 1px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .ai-panel.after .result-line.ap-highlight {
+    color: var(--accent); font-weight: 500;
+  }
+  .ai-panel.after .result-line.ap-highlight .check { color: var(--accent); }
+  .ai-panel.before {
+    background-image:
+      radial-gradient(circle, rgba(139,105,20,0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  [data-theme="dark"] .ai-panel.before {
+    background-image:
+      radial-gradient(circle, rgba(212,168,67,0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scanDown 2.4s ease-in-out infinite;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .ai-panel.after.animating .scan-line { opacity: var(--scan-line-opacity); }
+  @keyframes scanDown {
+    0%   { top: 0%; opacity: 0; }
+    25%  { opacity: 0.6; }
+    75%  { opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* ===== Error Book panels (Scene 1) ===== */
+  .eb-class-name {
+    font-size: 14px; font-weight: 500; color: var(--text);
+    margin-bottom: 2px;
+  }
+  .eb-sub {
+    font-size: 11px; color: var(--text-3); margin-bottom: 14px;
+  }
+  .eb-stat-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-2); line-height: 2.2;
+  }
+  .eb-stat-item .eb-count { margin-left: auto; font-size: 12px; color: var(--text-3); }
+  .eb-stat-item.warn { color: var(--orange); font-weight: 500; }
+  .eb-stat-item.warn .eb-count { color: var(--orange); }
+  .eb-tag {
+    display: inline-block;
+    background: rgba(188,108,37,0.12);
+    color: var(--orange);
+    padding: 0 8px; border-radius: 100px;
+    font-size: 10px; font-weight: 500;
+  }
+  [data-theme="dark"] .eb-tag { background: rgba(212,154,62,0.15); }
+  .eb-footer {
+    margin-top: 12px; padding-top: 10px;
+    border-top: 0.5px solid var(--border);
+    font-size: 11px; color: var(--text-3);
+  }
+  .eb-student-name {
+    font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 10px;
+  }
+
+  /* ===== Fake Screen Recording Demo ===== */
+  .screen-mock {
+    max-width: 860px; width: 100%;
+    background: var(--screen-bg);
+    border: 0.5px solid var(--screen-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    position: relative;
+  }
+  [data-theme="dark"] .screen-mock { box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .screen-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px;
+    background: var(--screen-chrome-bg);
+    border-bottom: 0.5px solid var(--screen-border);
+  }
+  .chrome-dots { display: flex; gap: 6px; }
+  .chrome-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+  }
+  .chrome-dot.r { background: #e0556a; }
+  .chrome-dot.y { background: #d49a3e; }
+  .chrome-dot.g { background: #52b788; }
+  .chrome-url {
+    flex: 1;
+    background: var(--screen-url-bg);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 11px; color: var(--screen-url-text);
+    text-align: center;
+    font-family: "SF Mono", "Menlo", monospace;
+  }
+  .screen-body {
+    padding: 24px 28px;
+    display: flex; gap: 24px;
+    min-height: 340px;
+    position: relative;
+  }
+  @media (max-width: 700px) { .screen-body { flex-direction: column; } }
+  .passage-pane { flex: 1.2; }
+  .passage-pane .passage-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .passage-pane .passage-text {
+    font-size: 14px; line-height: 2.1;
+    color: var(--passage-text);
+  }
+  .passage-text .blank-word {
+    display: inline-block;
+    min-width: 44px;
+    border-bottom: 1.5px dashed var(--accent);
+    text-align: center;
+    margin: 0 2px;
+    padding: 0 4px;
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .3s;
+    position: relative;
+    opacity: 0.7;
+  }
+  .passage-text .blank-word.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    border-style: solid;
+    border-radius: 4px;
+    box-shadow: 0 0 14px var(--accent-glow);
+    opacity: 1;
+  }
+  .answer-pane {
+    flex: 0.8;
     background: var(--surface);
     border: 0.5px solid var(--border);
-    border-radius: 14px;
-    padding: 22px 24px;
-    font-size: 15px;
-    line-height: 1.95;
-    color: var(--text);
+    border-radius: 10px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    min-width: 220px;
   }
-  .preview-card .blank {
-    display: inline-block;
-    background: var(--accent-bg); color: var(--accent);
-    border: 1px dashed var(--accent-light);
-    border-radius: 4px;
-    padding: 0 8px;
-    font-weight: 500;
-    margin: 0 1px;
-    transition: background .6s, color .6s, transform .6s;
+  .answer-pane .ap-title {
+    font-size: 11px; color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
   }
-  .preview-card .blank.pulse {
-    animation: blankPulse 2.4s ease-in-out;
+  .answer-pane .ap-empty {
+    font-size: 13px; color: var(--text-3);
+    text-align: center;
+    padding-top: 36px;
   }
-  @keyframes blankPulse {
-    0%, 100% { transform: scale(1); background: var(--accent-bg); color: var(--accent); }
-    35%      { transform: scale(1.08); background: var(--accent); color: #fff; }
-    70%      { transform: scale(1.02); }
+  .answer-pane .ap-content {
+    display: none;
+    animation: fadeIn .35s ease;
   }
-  .preview-card .answer-block {
-    margin-top: 20px;
-    border-top: 0.5px solid var(--border);
-    padding-top: 16px;
-    font-size: 13px;
-    color: var(--text-2);
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .preview-card .answer-block .head {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 6px;
+  .answer-pane .ap-content.show { display: block; }
+  .answer-pane .ap-qno { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .answer-pane .ap-answer { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+  .answer-pane .ap-reason { font-size: 12px; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
+  .answer-pane .ap-cross { border-top: 0.5px solid var(--border); padding-top: 12px; }
+  .answer-pane .ap-cross-label {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-3);
+    margin-bottom: 8px;
   }
-  .preview-card .answer-block .head .qno {
-    color: var(--text); font-weight: 500; font-size: 14px;
+  .answer-pane .ap-cross-item {
+    font-size: 11px; color: var(--text-2);
+    padding: 6px 8px;
+    background: var(--ap-cross-item-bg);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
   }
-  .preview-card .answer-block .head .tag {
-    background: var(--accent-bg); color: var(--accent);
-    padding: 3px 10px; border-radius: 100px;
-    font-size: 11px; font-weight: 500;
+  .ap-cross-item .cross-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
   }
 
-  /* ==== 功能卡片 ==== */
+  /* Fake cursor */
+  .fake-cursor {
+    position: absolute;
+    width: 18px; height: 18px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .fake-cursor.show { opacity: 1; }
+  .fake-cursor .cursor-arrow {
+    width: 0; height: 0;
+    border-left: 8px solid #333;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 5px solid transparent;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  }
+  [data-theme="dark"] .fake-cursor .cursor-arrow {
+    border-left-color: #fff;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  }
+
+  /* ===== Features Grid ===== */
   .features {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;
   }
   .feature {
     background: var(--surface); border: 0.5px solid var(--border);
     border-radius: 14px; padding: 24px;
-    transition: transform .2s, border-color .2s;
+    transition: background .25s, border-color .25s, transform .2s;
   }
-  .feature:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+  .feature:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
   .feature-icon {
     display: inline-flex; width: 36px; height: 36px;
     align-items: center; justify-content: center;
     color: var(--accent); font-size: 22px;
     margin-bottom: 14px;
+    opacity: 0.75;
   }
   .feature h3 { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; letter-spacing: -.2px; }
   .feature p { font-size: 13px; color: var(--text-2); line-height: 1.65; }
 
-  /* ==== 深色 about ==== */
+  /* ===== About ===== */
   .about-dark {
-    background: var(--text); color: #fff;
-    border-radius: 18px;
-    padding: 56px 36px;
-    margin-bottom: 80px;
+    background: var(--about-bg);
+    border: 0.5px solid var(--about-border);
+    color: var(--text); border-radius: 18px;
+    padding: 72px 48px; margin-bottom: 0;
   }
   .about-dark .eyebrow {
-    color: rgba(255,255,255,0.5); margin-bottom: 16px;
+    color: var(--text-3); margin-bottom: 20px;
   }
   .about-dark h2 {
-    font-size: clamp(26px, 3.5vw, 36px);
-    font-weight: 500;
-    color: #fff;
-    line-height: 1.3;
-    margin-bottom: 18px;
+    font-size: clamp(24px, 3.5vw, 36px);
+    font-weight: 300; color: var(--about-heading);
+    line-height: 1.35; margin-bottom: 20px;
     letter-spacing: -.6px;
   }
   .about-dark p {
-    font-size: 15px;
-    color: rgba(255,255,255,0.65);
-    line-height: 1.8;
-    max-width: 560px;
+    font-size: 15px; color: var(--about-text);
+    line-height: 1.85; max-width: 520px;
   }
 
-  /* ==== 模块卡（编号 + LIVE/SOON）==== */
+  /* ===== Modules Grid ===== */
   .modules-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;
   }
   .module-card {
     background: var(--surface); border: 0.5px solid var(--border);
     border-radius: 14px; padding: 22px;
-    transition: transform .2s, border-color .2s;
+    transition: background .25s, border-color .25s, box-shadow .5s;
     position: relative; text-decoration: none; color: inherit; display: block;
   }
   .module-card.available { cursor: pointer; }
   .module-card.available:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
     transform: translateY(-2px);
-    border-color: var(--text);
   }
-  .module-card.coming { opacity: 0.5; cursor: not-allowed; }
+  .module-card.coming { opacity: var(--mod-coming-opacity); cursor: default; }
   .module-card.spotlit {
     border-color: var(--accent) !important;
-    box-shadow: 0 0 0 1px var(--accent), 0 10px 30px rgba(139,105,20,0.18);
+    box-shadow: 0 0 0 1px rgba(139,105,20,0.15), 0 4px 20px rgba(139,105,20,0.08);
+    background: var(--accent-bg);
     transform: translateY(-3px);
     transition: all .55s ease;
   }
+  [data-theme="dark"] .module-card.spotlit {
+    box-shadow: 0 0 0 1px rgba(212,168,67,0.3), 0 8px 32px rgba(212,168,67,0.1);
+  }
 
-  /* ── 场景圆点（idle autoscroll 进度指示）── */
+  /* ===== Scene Dots ===== */
   .scene-dots {
     position: fixed;
     right: 24px; top: 50%;
@@ -350,28 +693,26 @@
   }
   body.welcome-mode .scene-dots { opacity: 1; pointer-events: auto; }
   .scene-dots .dot {
-    width: 9px; height: 9px;
+    width: 7px; height: 7px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.18);
+    background: var(--dot-bg);
     cursor: pointer;
-    transition: background .2s, transform .2s, width .2s, height .2s;
+    transition: background .2s, transform .2s;
     position: relative;
   }
   .scene-dots .dot::after {
     content: ''; position: absolute;
-    inset: -6px; border-radius: 50%;
+    inset: -8px; border-radius: 50%;
   }
-  .scene-dots .dot:hover { background: rgba(0,0,0,0.35); }
-  .scene-dots .dot.active {
-    background: var(--accent); transform: scale(1.35);
-  }
+  .scene-dots .dot:hover { background: var(--text-3); }
+  .scene-dots .dot.active { background: var(--dot-active-bg); transform: scale(1.45); }
   .scene-dots.is-playing .dot.active {
-    box-shadow: 0 0 0 0 rgba(139,105,20,0.4);
-    animation: dotProgress 7s linear forwards;
+    box-shadow: 0 0 0 0 var(--accent-glow);
+    animation: dotProgress 5s linear forwards;
   }
   @keyframes dotProgress {
-    0%   { box-shadow: 0 0 0 0   rgba(139,105,20,0.5); }
-    100% { box-shadow: 0 0 0 11px rgba(139,105,20,0); }
+    0%   { box-shadow: 0 0 0 0   var(--accent-glow); }
+    100% { box-shadow: 0 0 0 14px var(--accent-glow); }
   }
   @media (max-width: 600px) {
     .scene-dots { right: 12px; gap: 10px; }
@@ -385,23 +726,51 @@
     font-weight: 500;
   }
   .module-badge.live { background: var(--green-bg); color: var(--green); }
-  .module-badge.soon { background: var(--surface-3); color: var(--text-3); }
+  .module-badge.soon { background: var(--surface-2); color: var(--text-3); }
   .module-num {
     font-size: 28px; color: var(--accent);
-    font-weight: 500; letter-spacing: -.5px;
+    font-weight: 400; letter-spacing: -.5px;
     margin-bottom: 14px;
   }
   .module-card.coming .module-num { color: var(--text-3); }
-  .module-card h3 {
-    font-size: 17px; font-weight: 500;
-    margin-bottom: 6px; letter-spacing: -.2px;
-  }
-  .module-card p {
-    font-size: 13px; color: var(--text-2); line-height: 1.65;
-  }
+  .module-card h3 { font-size: 17px; font-weight: 500; margin-bottom: 6px; letter-spacing: -.2px; color: var(--text); }
+  .module-card p { font-size: 13px; color: var(--text-2); line-height: 1.65; }
   .module-meta { font-size: 12px; color: var(--text-3); margin-top: 8px; }
 
-  /* ==== 早期版本说明 ==== */
+  /* ===== Pause Toast ===== */
+  .pause-toast {
+    position: fixed; bottom: 92px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    z-index: 1002;
+    background: var(--toast-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid var(--toast-border);
+    border-radius: 100px;
+    padding: 9px 22px;
+    font-size: 11px;
+    color: var(--toast-text);
+    letter-spacing: 0.8px;
+    opacity: 0;
+    transition: opacity .4s, transform .4s;
+    pointer-events: none;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"] .pause-toast { bottom: 92px; }
+  .pause-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .pause-toast .resume-dot {
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.15;} }
+
+  /* ===== Disclaimer ===== */
   .disclaimer {
     background: var(--surface);
     border: 0.5px solid var(--border);
@@ -410,16 +779,10 @@
     margin-bottom: 80px;
   }
   .disclaimer h3 {
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 10px;
-    font-weight: 500;
-    letter-spacing: -.1px;
+    font-size: 14px; color: var(--text); margin-bottom: 10px;
+    font-weight: 500; letter-spacing: -.1px;
   }
-  .disclaimer p {
-    font-size: 14px; color: var(--text-2);
-    line-height: 1.7; margin-bottom: 12px;
-  }
+  .disclaimer p { font-size: 14px; color: var(--text-2); line-height: 1.7; margin-bottom: 12px; }
   .disclaimer ul {
     list-style: none; padding: 0; margin: 14px 0 4px;
     display: flex; flex-wrap: wrap; gap: 8px;
@@ -436,86 +799,93 @@
   .footer-cta { text-align: center; padding: 48px 0 8px; }
   .footer-cta h2 {
     font-size: clamp(32px, 4.5vw, 48px);
-    color: var(--text);
-    font-weight: 500;
-    letter-spacing: -1.2px;
-    margin-bottom: 16px;
+    color: var(--hero-title-color); font-weight: 300;
+    letter-spacing: -1.2px; margin-bottom: 16px;
     line-height: 1.1;
   }
-  .footer-note {
-    text-align: center; font-size: 12px;
-    color: var(--text-3); margin-top: 36px;
-    line-height: 1.7;
-  }
+  .footer-note { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 36px; line-height: 1.7; }
 
-  /* ==== 模态框 ==== */
+  /* ===== Modals ===== */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,.5); z-index: 1000;
     align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   }
   .modal-overlay.show { display: flex; }
   .modal {
-    background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-lg);
+    background: var(--modal-bg); border: 0.5px solid var(--modal-border);
+    border-radius: 14px;
     width: 420px; max-width: 100%; padding: 28px;
     animation: fadeIn .25s ease;
   }
   .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-  .modal-head h3 { font-size: 18px; font-weight: 700; color: var(--text); }
-  .modal-close { border: none; background: none; font-size: 20px; color: var(--text-3); cursor: pointer; padding: 0 6px; }
+  .modal-head h3 { font-size: 18px; font-weight: 600; color: var(--text); }
+  .modal-close { border: none; background: none; font-size: 20px; color: var(--text-3); cursor: pointer; padding: 0 6px; line-height: 1; }
   .modal label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 4px; margin-top: 12px; }
   .modal input {
-    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 14px; font-family: inherit;
+    width: 100%; padding: 9px 12px;
+    background: var(--input-bg);
+    border: 0.5px solid var(--input-border);
+    border-radius: 8px; font-size: 14px; font-family: inherit;
+    color: var(--text);
   }
   .modal input:focus { outline: none; border-color: var(--accent); }
   .modal .hint {
     font-size: 12px; color: var(--text); line-height: 1.7;
-    background: var(--accent-bg); border: 1px solid #d4b884;
+    background: var(--accent-bg); border: 0.5px solid var(--accent);
     border-radius: 8px; padding: 10px 12px; margin-top: 4px;
+    opacity: 0.8;
   }
   .modal .err { font-size: 12px; color: var(--red); line-height: 1.6; margin-top: 12px; display: none; }
   .modal .err.show { display: block; }
   .modal-actions { margin-top: 18px; }
-  .modal-actions button { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .modal-actions button {
+    width: 100%; padding: 11px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
   .modal-actions button:hover:not(:disabled) { background: var(--accent-light); }
-  .modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .modal-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
   .modal-switch { margin-top: 14px; text-align: center; font-size: 12px; color: var(--text-2); }
   .modal-switch a { color: var(--accent); text-decoration: none; cursor: pointer; }
 
-  /* 视图切换 */
   .view { display: none; }
   .view.active { display: block; }
 
-  /* 等待审批 */
   .pending-box {
     text-align: center; padding: 80px 24px 56px;
     background: linear-gradient(180deg, var(--accent-bg) 0%, transparent 100%);
     border-radius: 16px; margin-bottom: 32px;
   }
-  .pending-box h1 { font-size: 32px; font-weight: 700; margin-bottom: 14px; }
+  .pending-box h1 { font-size: 32px; font-weight: 600; margin-bottom: 14px; }
   .pending-box p { font-size: 16px; color: var(--text-2); line-height: 1.8; max-width: 540px; margin: 0 auto; }
   .pending-actions { text-align: center; margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 
-  /* 加载圈 */
   .loading-spinner {
     display: inline-block; width: 14px; height: 14px;
     border: 2px solid var(--border); border-top-color: var(--accent);
     border-radius: 50%; animation: spin .8s linear infinite;
     vertical-align: -2px; margin-right: 6px;
   }
+
+  @media (max-width: 600px) {
+    .scene { padding: 72px 20px 64px; }
+    .about-dark { padding: 40px 24px; }
+    .pause-toast { bottom: 64px; }
+    .screen-body { padding: 16px; }
+  }
 </style>
-<!-- 防闪烁：body 在 JS 决定好正确视图前完全不可见，决定后淡入 -->
 <style id="boot-cloak">
   html:not(.ready) body { visibility: hidden !important; }
   html.ready body { animation: bootFadeIn .25s ease-out both; }
   @keyframes bootFadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
-<noscript><style>html { } body { visibility: visible !important; }</style></noscript>
+<noscript><style>body { visibility: visible !important; }</style></noscript>
 <script>
   window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
   window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
-  // 同步检测 session 状态
   window.__hasSessionSync = (function(){
     try {
       var raw = localStorage.getItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token');
@@ -531,11 +901,14 @@
     } catch(e) {}
     return false;
   })();
-  // 安全网：如果 800ms 后还没 ready，强制 ready 防止永久白屏
+  // 恢复主题偏好
+  (function(){
+    var t = localStorage.getItem('theme');
+    if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+  })();
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 800);
 </script>
 <style>
-  /* 已登录用户首屏直接渲染模块选择视图，避免闪欢迎页 */
   html.has-session #view-welcome { display: none !important; }
   html.has-session #view-modules { display: block !important; }
 </style>
@@ -543,9 +916,16 @@
 </head>
 <body>
 
+<div class="film-grain" aria-hidden="true"></div>
+<div class="letterbox-top" aria-hidden="true"></div>
+<div class="letterbox-bottom" aria-hidden="true"></div>
+
 <header>
   <div class="logo" onclick="goHome()" style="cursor:pointer;">Lesson Snippets</div>
   <div class="header-right" id="headerRight">
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换深色模式" id="themeToggle">
+      <span class="theme-icon" id="themeIcon">🌙</span>
+    </button>
     <button class="header-btn ghost" onclick="showView('modules')">免费体验</button>
     <button class="header-btn ghost" onclick="openModal('signin')">登录</button>
     <button class="header-btn primary" onclick="openModal('signup')">注册</button>
@@ -553,69 +933,117 @@
 </header>
 
 <main>
-  <!-- 场景进度圆点（idle autoscroll 指示） -->
   <div class="scene-dots" id="sceneDots" aria-hidden="true"></div>
 
-  <!-- ============== 欢迎视图（未登录） · 整屏滚动 ============== -->
+  <!-- 暂停提示 -->
+  <div class="pause-toast" id="pauseToast">
+    <span class="resume-dot"></span>已暂停 · 12 秒后自动继续
+  </div>
+
+  <!-- ========== Welcome View ========== -->
   <div class="view" id="view-welcome">
 
-    <!-- Scene 1 · Hero -->
-    <section class="scene" style="position:relative;">
+    <!-- Scene 0 · Hero -->
+    <section class="scene scene-hero" data-scene="0">
+      <div class="scene-bg"></div>
       <div class="hero" style="padding:0;">
-        <div class="eyebrow fade-up">Early Access · v0.1</div>
+        <div class="eyebrow fade-up">Early Access</div>
         <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
-        <p class="sub fade-up delay-2">语法填空 · 按考点训练 · 跨卷迁移 · 错题归档</p>
-        <div class="cta fade-up delay-3">
-          <button class="btn primary" onclick="openModal('signup')">注册</button>
-          <button class="btn secondary" onclick="openModal('signin')">登录</button>
+        <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
+        <p class="sub fade-up delay-3">上传 Word 文档自动解析，课堂上点空格出答案，同考点真题一键关联</p>
+        <div class="cta fade-up delay-4">
+          <button class="btn primary" onclick="openModal('signup')">注册试用</button>
+          <button class="btn" onclick="openModal('signin')">登录</button>
         </div>
-        <div class="cta-fineprint fade-up delay-4">已有账号？右上角和此处都能直接登录</div>
+        <div class="cta-fineprint fade-up delay-5">已有账号？点登录。没账号注册后就能用。</div>
       </div>
-      <div class="scroll-hint"><span>SCROLL</span><span class="arrow"></span></div>
+      <div class="scroll-hint"><span>SCROLL</span><div class="arrow"></div></div>
     </section>
 
-    <!-- Scene 2 · Stats -->
-    <section class="scene">
-      <div class="section-eyebrow fade-up" style="text-align:center;">By the numbers</div>
-      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(26px,4vw,40px);color:var(--text);margin-bottom:48px;font-weight:500;letter-spacing:-1px;line-height:1.15;">已经为讲题准备好的素材</h2>
-      <div class="stats fade-up delay-2" style="border:none;padding:0;margin:0;">
-        <div>
-          <div class="stat-num counter" data-target="20">0</div>
-          <div class="stat-label">真题 · 模拟卷</div>
+    <!-- Scene 1 · AI 自动处理 + 错题归档 -->
+    <section class="scene scene-ai" data-scene="1">
+      <div class="scene-bg"></div>
+      <div class="section-eyebrow fade-up" style="text-align:center;">AI Pipeline · 错题归档</div>
+      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">一份语法填空 Word 文档丢进去<br>AI 自动解析、打标签、归档错题本</h2>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:560px;margin:0 auto 36px;">教师只需要上传。剩下的——识别空格、提取考点、关联题库、错题自动归档到班级和个人——全是自动的。</p>
+
+      <div class="ai-split fade-up delay-3">
+        <div class="ai-panel before">
+          <div class="panel-label">上传的 Word 文档</div>
+          <div class="doc-line">An exhibition at the Jiushi Art</div>
+          <div class="doc-line">Museum in Shanghai is featuring</div>
+          <div class="doc-line">artwork inspired by Go, or weiqi</div>
+          <div class="doc-line">in Chinese, <span class="hl">___56___</span> originated</div>
+          <div class="doc-line">in China more than 4,000 years ago.</div>
+          <div class="doc-line">"We hope <span class="hl">___58___</span></div>
+          <div class="doc-line"><span class="hl">(present)</span> the abstract Go game..."</div>
         </div>
-        <div>
-          <div class="stat-num counter" data-target="11">0</div>
-          <div class="stat-label">考点分类</div>
-        </div>
-        <div>
-          <div class="stat-num counter" data-target="380">0</div>
-          <div class="stat-label">已入库题目</div>
+        <div class="ai-panel after" id="aiAfterPanel">
+          <div class="scan-line"></div>
+          <div class="panel-label">AI 解析结果</div>
+          <div class="result-line"><span class="check">&#10003;</span> 题型：语法填空</div>
+          <div class="result-line"><span class="check">&#10003;</span> 第 56 题 <span class="tag-pill">定语从句</span></div>
+          <div class="result-line"><span class="check">&#10003;</span> 答案：which（关系代词指代先行词）</div>
+          <div class="result-line"><span class="check">&#10003;</span> 第 58 题 <span class="tag-pill">非谓语动词</span></div>
+          <div class="result-line"><span class="check">&#10003;</span> 答案：to present（不定式作宾语）</div>
+          <div class="result-line"><span class="check">&#10003;</span> 关联题库 11 道同类题</div>
+          <div class="result-line ap-highlight"><span class="check">&#10003;</span> 错题本：已同步班级 + 学生个人</div>
         </div>
       </div>
     </section>
 
-    <!-- Scene 3 · Preview -->
-    <section class="scene">
-      <div class="section-eyebrow fade-up">It does this</div>
-      <h2 class="fade-up delay-1">点空格 · 弹解析 · 跨卷迁移</h2>
-      <p class="sub fade-up delay-2">讲题时点原文里任意空格，解析自动弹出。同时调出别的卷子里同考点的题做举一反三。</p>
-      <div class="preview-card fade-up delay-3" style="max-width:760px;">
-        <div>The Bilibili Up master Jiang Sheng, <span class="blank">whose</span> livestreams attract huge audiences, <span class="blank">___37___</span> (grow) a loyal fanbase by being himself.</div>
-        <div class="answer-block">
-          <div class="head">
-            <span class="qno">第 36 题</span>
-            <span class="tag">定语从句</span>
+    <!-- Scene 2 · 产品实操 Demo -->
+    <section class="scene scene-demo" data-scene="2">
+      <div class="scene-bg"></div>
+      <div class="section-eyebrow fade-up" style="text-align:center;">Live Demo</div>
+      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">点空格 · 出解析 · 跨卷迁移</h2>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:560px;margin:0 auto 36px;">讲题时点一下原文里的空格，答案和解析立刻弹出来。系统自动从真题库和错题本里找出同考点的题，当场举一反三。</p>
+
+      <div class="screen-mock fade-up delay-3" id="screenMock">
+        <div class="screen-chrome">
+          <div class="chrome-dots">
+            <div class="chrome-dot r"></div>
+            <div class="chrome-dot y"></div>
+            <div class="chrome-dot g"></div>
           </div>
-          <div>答案：<b style="color:var(--text);font-weight:500;">whose</b> · 先行词 Jiang Sheng，后接 livestreams 表所属关系</div>
+          <div class="chrome-url">app.lessonsnippets.com / 语法填空 / 2025全国一卷</div>
+        </div>
+        <div class="screen-body" id="screenBody">
+          <div class="fake-cursor" id="fakeCursor">
+            <div class="cursor-arrow"></div>
+          </div>
+          <div class="passage-pane">
+            <div class="passage-title">2025年全国一卷 · 语法填空</div>
+            <div class="passage-text">
+              An exhibition at the Jiushi Art Museum in Shanghai is featuring artwork inspired by Go, or weiqi in Chinese, <span class="blank-word" data-q="56">which</span> originated in China more than 4,000 years ago.<br><br>
+              "We hope <span class="blank-word" data-q="58">to present</span> (present) the rather abstract Go game and AI in a visual context, and initiate dialogues with minimalist art, conceptual art and expressionism," says Tu Ningning, who is in charge of the exhibition.<br><br>
+              "You try to lead the opponent into your trap and force them to follow your <span class="blank-word" data-q="59">guidance</span> (guide) till they lose," explains Wang Wei, a Go player. "The players' personalities <span class="blank-word" data-q="60">are revealed</span> (reveal) during the game, and one's weaknesses are exposed to the opponent."
+            </div>
+          </div>
+          <div class="answer-pane" id="answerPane">
+            <div class="ap-title">题目解析</div>
+            <div class="ap-empty" id="apEmpty">← 点击左侧空格查看解析</div>
+            <div class="ap-content" id="apContent">
+              <div class="ap-qno" id="apQno">第 56 题</div>
+              <div class="ap-answer" id="apAnswer">which</div>
+              <div class="ap-reason" id="apReason"></div>
+              <div class="ap-cross" id="apCross">
+                <div class="ap-cross-label">同考点题目 · 跨卷迁移</div>
+                <div class="ap-cross-item" id="apCross1"><span class="cross-dot"></span></div>
+                <div class="ap-cross-item" id="apCross2"><span class="cross-dot"></span></div>
+                <div class="ap-cross-item" id="apCross3"><span class="cross-dot"></span></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Scene 4 · Features -->
-    <section class="scene tight">
-      <div class="section-eyebrow fade-up">Features</div>
-      <h2 class="fade-up delay-1">它能做什么</h2>
-      <p class="sub fade-up delay-2">围绕"讲题"这一件事，把零散的环节串起来。</p>
+    <!-- Scene 3 · Features -->
+    <section class="scene scene-features" data-scene="3">
+      <div class="section-eyebrow fade-up" style="text-align:center;">Features</div>
+      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">围绕"讲题"这一件事</h2>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:560px;margin:0 auto 36px;">从看到题目到举一反三，一条线走完。</p>
       <div class="features">
         <div class="feature fade-up delay-1">
           <div class="feature-icon">📋</div>
@@ -623,81 +1051,82 @@
           <p>2023–2026 全国卷、浙江、广州、深圳，开箱即用</p>
         </div>
         <div class="feature fade-up delay-2">
-          <div class="feature-icon">📖</div>
-          <h3>按考点专题训练</h3>
-          <p>11 类常考点：谓语、非谓语、词性、冠词、代词、介词、连词…</p>
+          <div class="feature-icon">📄</div>
+          <h3>Word 上传 · AI 自动归档</h3>
+          <p>丢一份语法填空 Word 进去 → AI 解析题目 → 勾选高频错题 → 自动进错题本和备课资料</p>
         </div>
         <div class="feature fade-up delay-3">
-          <div class="feature-icon">📄</div>
-          <h3>Word 一键归档</h3>
-          <p>上传一份 Word → AI 解析 → 勾选高频错题 → 整篇进备课、勾的题进错题本</p>
-        </div>
-        <div class="feature fade-up delay-4">
           <div class="feature-icon">🔗</div>
           <h3>同考点跨卷迁移</h3>
-          <p>讲一道题，自动调出真题库 / 我的错题里同考点的题，举一反三</p>
+          <p>讲一道定语从句，自动拉出真题库和错题本里所有同类题，举一反三</p>
+        </div>
+        <div class="feature fade-up delay-4">
+          <div class="feature-icon">📖</div>
+          <h3>按考点专题训练</h3>
+          <p>谓语、非谓语、词性、冠词、代词、介词、连词… 11 类全覆盖</p>
         </div>
         <div class="feature fade-up delay-5">
           <div class="feature-icon">📝</div>
-          <h3>错题本 · 自动同步</h3>
-          <p>办公室攒的题，回家手机上也能看，按考点自动分类</p>
+          <h3>错题本 · 云端同步</h3>
+          <p>办公室电脑攒的题，回家手机也能看。按考点自动分类，一键迁移训练</p>
         </div>
         <div class="feature fade-up delay-6">
           <div class="feature-icon">💬</div>
           <h3>AI 助手</h3>
-          <p>问网站怎么用，或者讨论一道题的语法点，DeepSeek 提供回答</p>
+          <p>问网站怎么用，或者跟 DeepSeek 讨论一道题的语法点</p>
         </div>
       </div>
     </section>
 
-    <!-- Scene 5 · About (dark) -->
-    <section class="scene" style="padding:0;">
-      <div class="about-dark fade-up" style="max-width:1080px;width:calc(100% - 48px);margin:0 auto;border-radius:18px;padding:96px 48px;">
+    <!-- Scene 4 · About -->
+    <section class="scene" data-scene="4" style="padding:0;">
+      <div class="about-dark fade-up" style="max-width:1020px;width:calc(100% - 48px);margin:0 auto;border-radius:18px;padding:80px 48px;">
         <div class="eyebrow">About</div>
         <h2 class="fade-up delay-1">一份在备课台前<br>慢慢长出来的工具。</h2>
         <p class="fade-up delay-2">把日常讲题用到的那几招——按考点归类、跨卷找同款、错题留存——做成一个可以放在浏览器里随手打开的小系统。希望它能帮你省下一点点整理材料的时间，多留一点给学生。</p>
       </div>
     </section>
 
-    <!-- Scene 6 · Modules -->
-    <section class="scene tight">
-      <div class="section-eyebrow fade-up">Modules</div>
-      <h2 class="fade-up delay-1">六个模块 · 一个已上线</h2>
-      <p class="sub fade-up delay-2">语法填空已可用，其余题型还在打磨中。</p>
+    <!-- Scene 5 · Modules -->
+    <section class="scene scene-modules" data-scene="5">
+      <div class="scene-bg"></div>
+      <div class="section-eyebrow fade-up" style="text-align:center;">Modules</div>
+      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">六个模块 · 一个已上线</h2>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:560px;margin:0 auto 36px;">语法填空目前可用。其余题型方法论已备好，会陆续开放。</p>
       <div class="modules-grid">
         <div class="module-card available fade-up delay-1" onclick="showView('modules')">
           <span class="module-badge live">Live</span>
           <div class="module-num">01</div>
           <h3>语法填空</h3>
-          <p>按考点训练 · 同考点跨卷迁移 · 错题本与备课资料</p>
-          <div class="module-meta">注册后即可使用</div>
+          <p>按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
+          <div class="module-meta">注册后即可使用 · 也可免费体验</div>
         </div>
         <div class="module-card coming fade-up delay-2">
           <span class="module-badge soon">Soon</span>
           <div class="module-num">02</div>
           <h3>完形填空</h3>
-          <p>语义关联、前置线索、后置支撑分类讲题</p>
+          <p>语义关联 · 前置线索 · 后置支撑</p>
           <div class="module-meta">规划中</div>
         </div>
         <div class="module-card coming fade-up delay-3">
           <span class="module-badge soon">Soon</span>
           <div class="module-num">03</div>
           <h3>七选五</h3>
-          <p>逻辑衔接 · 四步解题法 · 代词指代/同义复现分类</p>
+          <p>逻辑衔接 · 四步解题法</p>
           <div class="module-meta">规划中</div>
         </div>
         <div class="module-card coming fade-up delay-4">
           <span class="module-badge soon">Soon</span>
           <div class="module-num">04</div>
           <h3>阅读理解</h3>
-          <p>细节、推断、主旨、词义猜测 · 7 项能力分类</p>
+          <p>7 项能力分类 · 三层导问</p>
           <div class="module-meta">规划中</div>
         </div>
         <div class="module-card coming fade-up delay-5">
           <span class="module-badge soon">Soon</span>
           <div class="module-num">05</div>
           <h3>读后续写</h3>
-          <p>情节维 + 情感维 + 语言维三维协同，含双轨提纲训练</p>
+          <p>情节维 + 情感维 + 语言维 · 双轨提纲训练</p>
           <div class="module-meta">课堂模板已就绪</div>
         </div>
         <div class="module-card coming fade-up delay-6">
@@ -710,21 +1139,22 @@
       </div>
     </section>
 
-    <!-- Scene 7 · Outro -->
-    <section class="scene">
+    <!-- Scene 6 · CTA -->
+    <section class="scene scene-cta" data-scene="6">
+      <div class="scene-bg"></div>
       <div class="footer-cta" style="padding:0;">
         <div class="section-eyebrow fade-up" style="text-align:center;">Get started</div>
         <h2 class="fade-up delay-1">开始用。</h2>
-        <p class="fade-up delay-2" style="font-size:17px;color:var(--text-2);max-width:520px;margin:8px auto 28px;line-height:1.55;">注册一个账号，立刻进入语法填空模块。</p>
+        <p class="fade-up delay-2" style="font-size:16px;color:var(--text-2);max-width:440px;margin:8px auto 28px;line-height:1.55;">注册一个账号，立刻进入语法填空模块。</p>
         <div class="fade-up delay-3" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-          <button class="btn secondary" onclick="showView('modules')">免费体验</button>
+          <button class="btn" onclick="showView('modules')">免费体验</button>
           <button class="btn primary" onclick="openModal('signup')">注册</button>
-          <button class="btn secondary" onclick="openModal('signin')">登录</button>
+          <button class="btn" onclick="openModal('signin')">登录</button>
         </div>
       </div>
       <div class="disclaimer fade-up delay-4" style="margin-top:64px;max-width:680px;">
         <h3>关于这个早期版本</h3>
-        <p>目前仅上线语法填空模块，后续会逐步拓展其他题型。使用中如遇问题或有建议，欢迎联系作者一起把它做得更好。</p>
+        <p>目前仅上线语法填空模块，后续会逐步拓展其他题型。使用中如遇问题或有建议，欢迎联系。</p>
         <ul>
           <li>📧 <code>liuzhenlzstiles@icloud.com</code></li>
           <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
@@ -734,7 +1164,7 @@
     </section>
   </div>
 
-  <!-- ============== 模块选择视图（登录后） ============== -->
+  <!-- ========== Modules View ========== -->
   <div class="view" id="view-modules">
     <div class="hero" style="padding: 72px 24px 48px;">
       <div class="eyebrow" id="modulesGreeting">欢迎回来</div>
@@ -746,35 +1176,35 @@
         <span class="module-badge live">Live</span>
         <div class="module-num">01</div>
         <h3>语法填空</h3>
-        <p>20 套真题 + 按考点训练 + 同考点跨卷迁移 + 错题本与备课资料</p>
+        <p>20 套真题 + 按考点训练 + 跨卷迁移 + 错题本与备课资料</p>
         <div class="module-meta">v1.0 · 已可用</div>
       </a>
       <div class="module-card coming">
         <span class="module-badge soon">Soon</span>
         <div class="module-num">02</div>
         <h3>完形填空</h3>
-        <p>语义关联、前置线索、后置支撑分类讲题</p>
+        <p>语义关联 · 前置线索 · 后置支撑</p>
         <div class="module-meta">规划中</div>
       </div>
       <div class="module-card coming">
         <span class="module-badge soon">Soon</span>
         <div class="module-num">03</div>
         <h3>七选五</h3>
-        <p>逻辑衔接 · 四步解题法 · 代词指代/同义复现分类</p>
+        <p>逻辑衔接 · 四步解题法</p>
         <div class="module-meta">规划中</div>
       </div>
       <div class="module-card coming">
         <span class="module-badge soon">Soon</span>
         <div class="module-num">04</div>
         <h3>阅读理解</h3>
-        <p>细节、推断、主旨、词义猜测 · 7 项能力分类</p>
+        <p>7 项能力分类 · 三层导问</p>
         <div class="module-meta">规划中</div>
       </div>
       <div class="module-card coming">
         <span class="module-badge soon">Soon</span>
         <div class="module-num">05</div>
         <h3>读后续写</h3>
-        <p>情节维 + 情感维 + 语言维三维协同，含双轨提纲训练</p>
+        <p>情节维 + 情感维 + 语言维 · 双轨提纲训练</p>
         <div class="module-meta">课堂模板已就绪</div>
       </div>
       <div class="module-card coming">
@@ -795,7 +1225,7 @@
 
 </main>
 
-<!-- ============== 登录/注册 模态框 ============== -->
+<!-- ========== Auth Modal ========== -->
 <div class="modal-overlay" id="authModal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div id="authFormPanel">
@@ -804,7 +1234,7 @@
         <button class="modal-close" onclick="closeModal()">×</button>
       </div>
       <div id="signupHint" class="hint" style="display:none;">
-        🌱 <b>欢迎试用 · 早期版本</b><br>填邮箱 + 用户名 + 密码即可。因为还在小范围测试，注册后会有一小段管理员审批的等待，麻烦多包涵～
+        欢迎试用 · 早期版本<br>填邮箱 + 用户名 + 密码即可。
       </div>
       <label>邮箱</label>
       <input id="authEmail" type="email" placeholder="your@email.com" autocomplete="email">
@@ -824,11 +1254,11 @@
       </div>
     </div>
     <div id="authSuccessPanel" style="display:none;text-align:center;">
-      <div style="font-size:48px;color:var(--green);margin-bottom:10px;">🌱</div>
-      <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">注册成功</h3>
+      <div style="font-size:48px;color:var(--green);margin-bottom:10px;"></div>
+      <h3 style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px;">注册成功</h3>
       <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:18px;">
         账号 <b id="successName" style="color:var(--text);"></b> 已创建。<br>
-        因为是早期版本，需要一小段人工审批 —— 通过后会自动登录。
+        因为还在小范围测试，需要一小段管理员审批——通过后会通知你。
       </p>
       <button class="btn primary" style="width:100%;padding:11px;" onclick="afterSignupGoSignin()">好的 · 去登录</button>
     </div>
@@ -840,6 +1270,27 @@
   var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1;
   var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
   var state = { user: null, isAdmin: false };
+
+  /* ===== Theme Toggle ===== */
+  function toggleTheme() {
+    var html = document.documentElement;
+    var isDark = html.dataset.theme === 'dark';
+    if (isDark) {
+      delete html.dataset.theme;
+      localStorage.setItem('theme', 'light');
+    } else {
+      html.dataset.theme = 'dark';
+      localStorage.setItem('theme', 'dark');
+    }
+    updateThemeIcon();
+  }
+  function updateThemeIcon() {
+    var icon = document.getElementById('themeIcon');
+    if (!icon) return;
+    icon.textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
+  }
+  updateThemeIcon();
+  window.toggleTheme = toggleTheme;
 
   async function detectAdmin() {
     if (!sb || !state.user) { state.isAdmin = false; return; }
@@ -885,7 +1336,9 @@
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
-      el.innerHTML = '<button class="header-btn ghost" onclick="showView(\'modules\')">免费体验</button>' +
+      el.innerHTML = '<button class="theme-toggle" onclick="toggleTheme()" title="切换深色模式" id="themeToggle2">' +
+        '<span class="theme-icon" id="themeIcon2">' + (document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙') + '</span></button>' +
+        '<button class="header-btn ghost" onclick="showView(\'modules\')">免费体验</button>' +
         '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录</button>' +
         '<button class="header-btn primary" onclick="openModal(\'signup\')">注册</button>';
     }
@@ -911,18 +1364,15 @@
     if (name === 'welcome') setTimeout(initWelcomeAnimations, 30);
   }
 
-  // ─── 欢迎页：入场动画 + 数字滚动 + 自动播放 + 内置循环 ───
   var _welcomeAnimInited = false;
   function initWelcomeAnimations() {
     if (_welcomeAnimInited) return;
     _welcomeAnimInited = true;
 
-    // IntersectionObserver 触发 fade-up + 维护当前 scene
     var io = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting) {
           entry.target.classList.add('in-view');
-          // 不立刻 unobserve scene 本身，需要持续追踪当前可见 scene
           if (entry.target.classList.contains('counter')) {
             animateCounter(entry.target);
           } else if (entry.target.querySelector) {
@@ -942,7 +1392,6 @@
     setupSceneLoopAnimations();
   }
 
-  // ─── 场景圆点 ───
   function setupSceneDots() {
     var dotsEl = document.getElementById('sceneDots');
     if (!dotsEl) return;
@@ -957,25 +1406,27 @@
   window.__jumpToScene = function(idx) {
     var scenes = document.querySelectorAll('#view-welcome .scene');
     if (!scenes[idx]) return;
-    stopAutoscrollPermanent();
+    stopAutoscroll();
     scenes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // ─── 当前 scene 追踪 ───
   var _currentSceneIdx = 0;
   function setupSceneTracking() {
     var scenes = document.querySelectorAll('#view-welcome .scene');
     var sceneIo = new IntersectionObserver(function(entries) {
       entries.forEach(function(e) {
-        if (e.isIntersecting && e.intersectionRatio > 0.55) {
+        if (e.isIntersecting && e.intersectionRatio > 0.5) {
           var idx = Array.prototype.indexOf.call(scenes, e.target);
           if (idx >= 0 && idx !== _currentSceneIdx) {
             _currentSceneIdx = idx;
             updateDotsActive();
+            if (idx === 1) triggerAIAnimation();
+            if (idx === 2) startDemoLoop();
+            else stopDemoLoop();
           }
         }
       });
-    }, { threshold: [0.55, 0.8] });
+    }, { threshold: [0.5, 0.8] });
     scenes.forEach(function(s) { sceneIo.observe(s); });
   }
   function updateDotsActive() {
@@ -984,20 +1435,43 @@
     });
   }
 
-  // ─── Idle autoscroll：8 秒无操作 → 自动播放，每屏停 7 秒 ───
+  /* ===== AI Split Panel 动画 ===== */
+  var _aiAnimated = false;
+  var _aiAnimInterval = null;
+  function triggerAIAnimation() {
+    if (_aiAnimated) return;
+    _aiAnimated = true;
+    function replay() {
+      var panel = document.getElementById('aiAfterPanel');
+      if (!panel) return;
+      panel.classList.remove('animating');
+      void panel.offsetWidth;
+      panel.classList.add('animating');
+    }
+    replay();
+    _aiAnimInterval = setInterval(function() {
+      if (_currentSceneIdx !== 1) return;
+      replay();
+    }, 5000);
+  }
+
+  /* ===== Idle Autoscroll ===== */
   var _autoscrollEnabled = true;
   var _autoscrollTimer = null;
-  var IDLE_BEFORE_PLAY = 8000;
-  var SCENE_DWELL = 7000;
+  var _resumeTimer = null;
+  var IDLE_BEFORE_PLAY = 3500;
+  var SCENE_DWELL = 5000;
+  var RESUME_AFTER = 12000;
 
   function setupIdleAutoscroll() {
     var dotsEl = document.getElementById('sceneDots');
     if (!dotsEl) return;
     scheduleNextAdvance(IDLE_BEFORE_PLAY);
 
-    // 任何用户操作都停掉自动播放
     ['wheel','touchstart','keydown','mousedown'].forEach(function(evt) {
-      window.addEventListener(evt, stopAutoscrollPermanent, { passive: true, once: true });
+      window.addEventListener(evt, function() {
+        if (_autoscrollEnabled) stopAutoscroll();
+      }, { passive: true });
     });
   }
   function scheduleNextAdvance(delay) {
@@ -1009,9 +1483,8 @@
   }
   function advanceScene() {
     if (!_autoscrollEnabled) return;
-    // 检查用户是否还在 welcome view
     if (!document.body.classList.contains('welcome-mode')) {
-      stopAutoscrollPermanent(); return;
+      stopAutoscroll(); return;
     }
     var scenes = document.querySelectorAll('#view-welcome .scene');
     var next = (_currentSceneIdx + 1) % scenes.length;
@@ -1020,30 +1493,115 @@
     updateDotsActive();
     scheduleNextAdvance(SCENE_DWELL);
   }
-  function stopAutoscrollPermanent() {
+  function stopAutoscroll() {
+    var wasActive = _autoscrollEnabled;
     _autoscrollEnabled = false;
     if (_autoscrollTimer) { clearTimeout(_autoscrollTimer); _autoscrollTimer = null; }
     var dotsEl = document.getElementById('sceneDots');
     if (dotsEl) dotsEl.classList.remove('is-playing');
+    if (wasActive) {
+      document.getElementById('pauseToast').classList.add('show');
+      if (_resumeTimer) clearTimeout(_resumeTimer);
+      _resumeTimer = setTimeout(resumeAutoscroll, RESUME_AFTER);
+    }
+  }
+  function resumeAutoscroll() {
+    _autoscrollEnabled = true;
+    document.getElementById('pauseToast').classList.remove('show');
+    if (_resumeTimer) { clearTimeout(_resumeTimer); _resumeTimer = null; }
+    scheduleNextAdvance(SCENE_DWELL);
   }
 
-  // ─── Scene 内置循环动画 ───
-  function setupSceneLoopAnimations() {
-    // 1) Preview card 的两个 blank 轮流脉动
-    var blanks = document.querySelectorAll('.preview-card .blank');
-    if (blanks.length) {
-      var pi = 0;
-      setInterval(function() {
-        if (!document.body.classList.contains('welcome-mode')) return;
-        blanks.forEach(function(b) { b.classList.remove('pulse'); });
-        // 强制 reflow，重启动画
-        void blanks[pi].offsetWidth;
-        blanks[pi].classList.add('pulse');
-        pi = (pi + 1) % blanks.length;
-      }, 3200);
-    }
+  /* ===== Fake Screen Recording Demo ===== */
+  var _demoInterval = null;
+  var _demoStepTimer = null;
+  function startDemoLoop() {
+    if (_demoInterval) return;
+    runDemoStep();
+    _demoInterval = setInterval(function() {
+      if (_currentSceneIdx !== 2) { stopDemoLoop(); return; }
+      runDemoStep();
+    }, 5000);
+  }
+  function stopDemoLoop() {
+    if (_demoInterval) { clearInterval(_demoInterval); _demoInterval = null; }
+    if (_demoStepTimer) { clearTimeout(_demoStepTimer); _demoStepTimer = null; }
+    var fc = document.getElementById('fakeCursor');
+    if (fc) fc.classList.remove('show');
+    var blanks = document.querySelectorAll('.passage-text .blank-word');
+    blanks.forEach(function(b) { b.classList.remove('active'); });
+    var ac = document.getElementById('apContent');
+    if (ac) ac.classList.remove('show');
+    var ae = document.getElementById('apEmpty');
+    if (ae) ae.style.display = '';
+  }
+  function runDemoStep() {
+    var blanks = document.querySelectorAll('.passage-text .blank-word');
+    if (!blanks.length) return;
+    var idx = Math.floor(Math.random() * blanks.length);
+    var blank = blanks[idx];
+    var qno = blank.dataset.q;
+    var fakeCursor = document.getElementById('fakeCursor');
+    var screenBody = document.getElementById('screenBody');
+    var apEmpty = document.getElementById('apEmpty');
+    var apContent = document.getElementById('apContent');
+    var apQno = document.getElementById('apQno');
+    var apAnswer = document.getElementById('apAnswer');
+    var apReason = document.getElementById('apReason');
 
-    // 2) Modules 卡片每 3 秒轮换一张高亮
+    if (!fakeCursor || !screenBody) return;
+
+    fakeCursor.classList.remove('show');
+    blanks.forEach(function(b) { b.classList.remove('active'); });
+    if (apContent) apContent.classList.remove('show');
+    if (apEmpty) apEmpty.style.display = '';
+
+    _demoStepTimer = setTimeout(function() {
+      var blankRect = blank.getBoundingClientRect();
+      var bodyRect = screenBody.getBoundingClientRect();
+      fakeCursor.style.left = (blankRect.left - bodyRect.left + blankRect.width / 2 - 9) + 'px';
+      fakeCursor.style.top = (blankRect.top - bodyRect.top + blankRect.height / 2 - 12) + 'px';
+      fakeCursor.classList.add('show');
+    }, 200);
+
+    _demoStepTimer = setTimeout(function() {
+      blank.classList.add('active');
+    }, 500);
+
+    _demoStepTimer = setTimeout(function() {
+      if (apEmpty) apEmpty.style.display = 'none';
+      if (apContent) apContent.classList.add('show');
+      if (apQno) apQno.textContent = '第 ' + qno + ' 题';
+      if (apAnswer) apAnswer.textContent = blank.textContent;
+      if (apReason) {
+        var reasons = {
+          '56': '考点：定语从句（非限制性定语从句）<br>先行词 Go, or weiqi in Chinese 指物，且从句缺少主语，填 which。',
+          '58': '考点：非谓语动词（不定式作宾语）<br>固定搭配 hope to do sth.，填 to present。',
+          '59': '考点：词性转换（动词→名词）<br>形容词性物主代词 your 后接名词，guide → guidance。',
+          '60': '考点：谓语动词（被动语态）<br>主语 personalities 与 reveal 是被动关系，一般现在时复数，填 are revealed。'
+        };
+        apReason.innerHTML = reasons[qno] || '';
+      }
+        var cross1 = document.getElementById('apCross1');
+        var cross2 = document.getElementById('apCross2');
+        var cross3 = document.getElementById('apCross3');
+        if (cross1 && cross2 && cross3) {
+          var crossData = {
+            '56': ['2024 全国二卷 · 第 36 题 — 定语从句 (who)', '2024 全国一卷 · 第 64 题 — 定语从句 (that/which)', '错题本 · 3天前 — 定语从句'],
+            '58': ['2024 全国二卷 · 第 44 题 — 非谓语动词 (Recalling)', '2023 全国一卷 · 第 65 题 — 非谓语动词 (wanting)', '错题本 · 昨天 — 非谓语动词'],
+            '59': ['2024 全国二卷 · 第 42 题 — 词性转换 (visibility)', '2025 深圳一模 · 第 39 题 — 词性转换 (recovery)', '错题本 · 5天前 — 词性转换'],
+            '60': ['2023 浙江首考 · 第 59 题 — 动词语态 (were permitted)', '2025 深圳一模 · 第 40 题 — 动词语态 (was forced)', '错题本 · 上周 — 动词语态']
+          };
+          var items = crossData[qno] || ['', '', ''];
+          cross1.innerHTML = '<span class="cross-dot"></span> ' + (items[0] || '');
+          cross2.innerHTML = '<span class="cross-dot"></span> ' + (items[1] || '');
+          cross3.innerHTML = '<span class="cross-dot"></span> ' + (items[2] || '');
+        }
+    }, 800);
+  }
+
+  /* ===== Scene 循环动画 ===== */
+  function setupSceneLoopAnimations() {
     var moduleCards = document.querySelectorAll('.modules-grid .module-card');
     if (moduleCards.length) {
       var mi = -1;
@@ -1054,12 +1612,10 @@
         if (moduleCards[mi]) moduleCards[mi].classList.add('spotlit');
       }, 3000);
     }
-
-    // 3) Stats 数字每 35 秒重新播一次
     setInterval(function() {
       if (!document.body.classList.contains('welcome-mode')) return;
       document.querySelectorAll('.stat-num.counter').forEach(function(el) {
-        el.dataset.done = '';   // 清掉 done 标记
+        el.dataset.done = '';
         animateCounter(el);
       });
     }, 35000);
@@ -1073,7 +1629,6 @@
     var start = performance.now();
     function tick(now) {
       var t = Math.min(1, (now - start) / dur);
-      // easeOutCubic
       var e = 1 - Math.pow(1 - t, 3);
       el.textContent = Math.round(target * e);
       if (t < 1) requestAnimationFrame(tick);
@@ -1082,7 +1637,7 @@
     requestAnimationFrame(tick);
   }
 
-  // ─── 模态框 ───
+  /* ===== Auth Modal ===== */
   var _mode = 'signin';
   function openModal(mode) {
     _mode = mode || 'signin';
@@ -1192,7 +1747,6 @@
     else showView('welcome');
   }
 
-  // 导出全局
   window.showView = showView;
   window.openModal = openModal;
   window.closeModal = closeModal;
@@ -1202,7 +1756,6 @@
   window.doLogout = doLogout;
   window.goHome = goHome;
 
-  // 启动前先确定初始视图，避免任何闪烁
   (function syncInitView() {
     var has = window.__hasSessionSync;
     var w = document.getElementById('view-welcome');
@@ -1217,7 +1770,6 @@
       document.body.classList.add('welcome-mode');
       try { initWelcomeAnimations(); } catch(e) {}
     }
-    // 视图就位，揭开 body
     document.documentElement.classList.add('ready');
   })();
 
