@@ -834,6 +834,7 @@
   body.in-modules .dock { display: none; }
 
   #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+  #page-practice { max-width: none; padding: 0; }
 
   /* ── 欢迎页 Hero ── */
   .welcome-hero {
@@ -2567,6 +2568,22 @@ function setupBatchDrop() {
   });
 }
 
+function getErrorFingerprint(q) {
+  var passage = (q.passage || '').replace(/\s+/g, ' ').trim();
+  var answer = (q.answer || '').trim();
+  var category = (q.category || '').trim();
+  return passage + '|||' + answer + '|||' + category;
+}
+
+function getPrepFingerprint(p) {
+  var title = (p.title || '').replace(/\s+/g, ' ').trim();
+  var passage = (p.passage || '').replace(/\s+/g, ' ').trim();
+  var blanksKey = (p.blanks || []).map(function(b) {
+    return (b.no || '') + '::' + (b.answer || '').trim() + '::' + (b.category || '').trim();
+  }).sort().join('||');
+  return title + '|||' + passage + '|||' + blanksKey;
+}
+
 function batchImportJson() {
   var raw = document.getElementById('batchJson').value.trim();
   if (!raw) return;
@@ -2579,14 +2596,17 @@ function batchImportJson() {
     alert('请输入一个非空 JSON 数组');
     return;
   }
+  var existingFps = new Set();
+  errorBookQuestions.forEach(function(q) { existingFps.add(getErrorFingerprint(q)); });
   var count = 0;
+  var skipCount = 0;
   list.forEach(function(item) {
     if (!item.passage || !item.answer || !item.category) return;
     var no = item.no || 1;
     var marker = '___' + no + '___';
     if (item.passage.indexOf(marker) === -1) return;
     var sent = extractSentence(item.passage, no) || item.passage;
-    errorBookQuestions.unshift({
+    var q = {
       id: 'err_' + Date.now() + '_' + count,
       passage: sent,
       answer: item.answer,
@@ -2600,7 +2620,11 @@ function batchImportJson() {
       exam_id: '错题本',
       no: no,
       created_at: new Date().toISOString()
-    });
+    };
+    var fp = getErrorFingerprint(q);
+    if (existingFps.has(fp)) { skipCount++; return; }
+    existingFps.add(fp);
+    errorBookQuestions.unshift(q);
     count++;
   });
   saveErrorBook();
@@ -2608,7 +2632,9 @@ function batchImportJson() {
   renderBankStat();
   toggleBatchImport();
   document.getElementById('batchJson').value = '';
-  alert('成功导入 ' + count + ' 道错题');
+  var msg = '成功导入 ' + count + ' 道错题';
+  if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 道重复题';
+  alert(msg);
 }
 
 function deleteErrorQuestion(id) {
@@ -2721,10 +2747,13 @@ function batchImportPrepJson() {
     alert('请输入一个非空 JSON 数组');
     return;
   }
+  var existingFps = new Set();
+  prepPassages.forEach(function(p) { existingFps.add(getPrepFingerprint(p)); });
   var count = 0;
+  var skipCount = 0;
   list.forEach(function(item) {
     if (!item.title || !item.passage || !item.blanks || !Array.isArray(item.blanks)) return;
-    prepPassages.unshift({
+    var p = {
       id: 'prep_' + Date.now() + '_' + count,
       title: item.title,
       passage: item.passage,
@@ -2732,7 +2761,11 @@ function batchImportPrepJson() {
         return { no: b.no, answer: b.answer, category: b.category, analysis: b.analysis || '' };
       }),
       created_at: new Date().toISOString()
-    });
+    };
+    var fp = getPrepFingerprint(p);
+    if (existingFps.has(fp)) { skipCount++; return; }
+    existingFps.add(fp);
+    prepPassages.unshift(p);
     count++;
   });
   savePrepPassages();
@@ -2740,7 +2773,9 @@ function batchImportPrepJson() {
   renderBankStat();
   togglePrepBatchImport();
   document.getElementById('prepBatchJson').value = '';
-  alert('成功导入 ' + count + ' 份备课资料');
+  var msg = '成功导入 ' + count + ' 份备课资料';
+  if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 份重复资料';
+  alert(msg);
 }
 
 function deletePrepPassage(id) {
@@ -3149,13 +3184,14 @@ function confirmUnifiedImport() {
 
   // 1) 整篇进备课资料
   var prepCount = 0;
+  var prepSkip = 0;
   passages.forEach(function(p){
-    importDeepSeekResult(p, true);
-    prepCount++;
+    if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
   });
 
   // 2) 勾选的单题进错题本
   var errorCount = 0;
+  var errorSkip = 0;
   var checks = document.querySelectorAll('.unified-blank-check:checked');
   checks.forEach(function(cb){
     var pi = parseInt(cb.dataset.passage, 10);
@@ -3169,8 +3205,9 @@ function confirmUnifiedImport() {
       passage: p.passage,
       blanks: [b]
     };
-    importDeepSeekResultToErrorBook(oneBlank, true);
-    errorCount++;
+    var r = importDeepSeekResultToErrorBook(oneBlank, true);
+    if (r && r.count > 0) errorCount += r.count;
+    if (r && r.skipCount > 0) errorSkip += r.skipCount;
   });
 
   // 3) 渲染 + 同步（save 包装器自动推云）
@@ -3181,12 +3218,14 @@ function confirmUnifiedImport() {
   closeUnifiedImport();
 
   var msg = '已导入：\n📋 备课资料 ' + prepCount + ' 篇';
+  if (prepSkip > 0) msg += '（跳过 ' + prepSkip + ' 篇重复）';
   if (errorCount > 0) msg += '\n📝 错题本 ' + errorCount + ' 道（按考点分类，迁移训练自动联动）';
+  if (errorSkip > 0) msg += '（跳过 ' + errorSkip + ' 道重复）';
   alert(msg);
 }
 
 function importDeepSeekResult(result, silent) {
-  prepPassages.unshift({
+  var p = {
     id: 'prep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
     title: result.title || '无标题',
     passage: result.passage,
@@ -3199,10 +3238,19 @@ function importDeepSeekResult(result, silent) {
       };
     }),
     created_at: new Date().toISOString()
-  });
+  };
+
+  var fp = getPrepFingerprint(p);
+  var isDup = prepPassages.some(function(existing) { return getPrepFingerprint(existing) === fp; });
+  if (isDup) {
+    if (!silent) alert('这篇备课资料已存在，跳过：' + (result.title || '无标题'));
+    return false;
+  }
+
+  prepPassages.unshift(p);
 
   savePrepPassages();
-  if (silent) return;
+  if (silent) return true;
 
   renderPrepList();
   renderBankStat();
@@ -3211,14 +3259,18 @@ function importDeepSeekResult(result, silent) {
   uploadLocalToCloud().catch(function(e) {
     console.warn('云端同步失败，已保存到本地：', e);
   });
+  return true;
 }
 
 function importDeepSeekResultToErrorBook(result, silent) {
+  var existingFps = new Set();
+  errorBookQuestions.forEach(function(q) { existingFps.add(getErrorFingerprint(q)); });
   var count = 0;
+  var skipCount = 0;
   (result.blanks || []).forEach(function(b) {
     var no = b.no || (count + 1);
     var sent = extractSentence(result.passage, no) || extractContextWindow(result.passage, no) || result.passage;
-    errorBookQuestions.unshift({
+    var q = {
       id: 'err_' + Date.now() + '_' + count + '_' + Math.random().toString(36).slice(2, 6),
       passage: sent,
       answer: b.answer || '?',
@@ -3232,20 +3284,27 @@ function importDeepSeekResultToErrorBook(result, silent) {
       exam_id: '错题本',
       no: no,
       created_at: new Date().toISOString()
-    });
+    };
+    var fp = getErrorFingerprint(q);
+    if (existingFps.has(fp)) { skipCount++; return; }
+    existingFps.add(fp);
+    errorBookQuestions.unshift(q);
     count++;
   });
 
   saveErrorBook();
-  if (silent) return;
+  if (silent) return { count: count, skipCount: skipCount };
 
   renderErrorBook();
   renderBankStat();
-  alert('成功导入 ' + count + ' 道错题到错题本');
+  var msg = '成功导入 ' + count + ' 道错题到错题本';
+  if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 道重复题';
+  alert(msg);
 
   uploadLocalToCloud().catch(function(e) {
     console.warn('云端同步失败，已保存到本地：', e);
   });
+  return { count: count, skipCount: skipCount };
 }
 
 function showRawTextFallback(text) {

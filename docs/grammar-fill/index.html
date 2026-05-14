@@ -38,6 +38,40 @@
     --modal-backdrop: rgba(0,0,0,0.35);
     --input-bg: #ffffff;
     --input-border: #e5e5ea;
+    --grip-line: rgba(0,0,0,0.18);
+  }
+
+  [data-theme="dark"] {
+    --bg: #1c1c1e;
+    --surface: #2c2c2e;
+    --surface-2: #3a3a3c;
+    --surface-3: #48484a;
+    --border: #38383a;
+    --text: #f5f5f7;
+    --text-2: #98989d;
+    --text-3: #636366;
+    --accent: #409cff;
+    --accent-light: #70b5ff;
+    --accent-bg: rgba(64,156,255,0.15);
+    --green: #30d158;
+    --green-bg: rgba(48,209,88,0.15);
+    --blue: #409cff;
+    --blue-bg: rgba(64,156,255,0.15);
+    --red: #ff453a;
+    --red-bg: rgba(255,69,58,0.15);
+    --orange: #ff9f0a;
+    --orange-bg: rgba(255,159,10,0.15);
+    --purple: #bf5af2;
+    --purple-bg: rgba(191,90,242,0.15);
+    --teal: #64d2ff;
+    --teal-bg: rgba(100,210,255,0.15);
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.06);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.06);
+    --modal-bg: #2c2c2e;
+    --modal-backdrop: rgba(0,0,0,0.6);
+    --input-bg: #1c1c1e;
+    --input-border: #38383a;
+    --grip-line: rgba(255,255,255,0.2);
   }
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -79,6 +113,18 @@
   }
   .nav-btn:hover { background: var(--surface-3); }
   .nav-btn.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    background: none; border: none; cursor: pointer;
+    font-size: 15px; padding: 4px 8px; border-radius: 6px;
+    color: var(--text-2); line-height: 1;
+    transition: background .15s;
+  }
+  .theme-toggle:hover { background: var(--surface-3); }
+  .theme-toggle .icon-sun { display: none; }
+  .theme-toggle .icon-moon { display: inline; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
   .page { display: none; padding: 24px; margin: 0 auto; max-width: clamp(960px, calc(100% - 320px), 2200px); }
   .page.active { display: block; }
@@ -835,6 +881,7 @@
   body.in-modules .dock { display: none; }
 
   #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+  #page-practice { max-width: none; padding: 0; }
 
   /* ── 欢迎页 Hero ── */
   .welcome-hero {
@@ -1589,6 +1636,15 @@
 @media (max-width: 480px) {
   .assistant-panel { width: 100vw; }
 }
+
+[data-theme="dark"] .home-entry-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .context-sidebar:hover { box-shadow: 8px 0 40px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.08); }
+[data-theme="dark"] .home-entry-card-icon.exams { background: rgba(64,156,255,0.18); }
+[data-theme="dark"] .home-entry-card-icon.categories { background: rgba(255,159,10,0.18); }
+[data-theme="dark"] .home-entry-card-icon.knowledge { background: rgba(191,90,242,0.18); }
+[data-theme="dark"] .home-entry-card-icon.errors { background: rgba(255,69,58,0.18); }
+[data-theme="dark"] .home-entry-card-icon.prep { background: rgba(48,209,88,0.18); }
+[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
 </style>
 <script src="../data/grammar_bank.js"></script>
 <script src="../../data/grammar_knowledge.js"></script>
@@ -1623,6 +1679,18 @@
   })();
   // 安全网：1.2 秒后强制 ready，避免 JS 卡住时白屏
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 1200);
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }
 </script>
 <style>
   /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
@@ -1640,6 +1708,10 @@
   <header>
     <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">Seeklume · Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
+      <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
+        <span class="icon-sun">&#9788;</span>
+        <span class="icon-moon">&#9790;</span>
+      </button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
@@ -2569,6 +2641,22 @@ function setupBatchDrop() {
   });
 }
 
+function getErrorFingerprint(q) {
+  var passage = (q.passage || '').replace(/\s+/g, ' ').trim();
+  var answer = (q.answer || '').trim();
+  var category = (q.category || '').trim();
+  return passage + '|||' + answer + '|||' + category;
+}
+
+function getPrepFingerprint(p) {
+  var title = (p.title || '').replace(/\s+/g, ' ').trim();
+  var passage = (p.passage || '').replace(/\s+/g, ' ').trim();
+  var blanksKey = (p.blanks || []).map(function(b) {
+    return (b.no || '') + '::' + (b.answer || '').trim() + '::' + (b.category || '').trim();
+  }).sort().join('||');
+  return title + '|||' + passage + '|||' + blanksKey;
+}
+
 function batchImportJson() {
   var raw = document.getElementById('batchJson').value.trim();
   if (!raw) return;
@@ -2581,14 +2669,17 @@ function batchImportJson() {
     alert('请输入一个非空 JSON 数组');
     return;
   }
+  var existingFps = new Set();
+  errorBookQuestions.forEach(function(q) { existingFps.add(getErrorFingerprint(q)); });
   var count = 0;
+  var skipCount = 0;
   list.forEach(function(item) {
     if (!item.passage || !item.answer || !item.category) return;
     var no = item.no || 1;
     var marker = '___' + no + '___';
     if (item.passage.indexOf(marker) === -1) return;
     var sent = extractSentence(item.passage, no) || item.passage;
-    errorBookQuestions.unshift({
+    var q = {
       id: 'err_' + Date.now() + '_' + count,
       passage: sent,
       answer: item.answer,
@@ -2602,7 +2693,11 @@ function batchImportJson() {
       exam_id: '错题本',
       no: no,
       created_at: new Date().toISOString()
-    });
+    };
+    var fp = getErrorFingerprint(q);
+    if (existingFps.has(fp)) { skipCount++; return; }
+    existingFps.add(fp);
+    errorBookQuestions.unshift(q);
     count++;
   });
   saveErrorBook();
@@ -2610,7 +2705,9 @@ function batchImportJson() {
   renderBankStat();
   toggleBatchImport();
   document.getElementById('batchJson').value = '';
-  alert('成功导入 ' + count + ' 道错题');
+  var msg = '成功导入 ' + count + ' 道错题';
+  if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 道重复题';
+  alert(msg);
 }
 
 function deleteErrorQuestion(id) {
@@ -2723,10 +2820,13 @@ function batchImportPrepJson() {
     alert('请输入一个非空 JSON 数组');
     return;
   }
+  var existingFps = new Set();
+  prepPassages.forEach(function(p) { existingFps.add(getPrepFingerprint(p)); });
   var count = 0;
+  var skipCount = 0;
   list.forEach(function(item) {
     if (!item.title || !item.passage || !item.blanks || !Array.isArray(item.blanks)) return;
-    prepPassages.unshift({
+    var p = {
       id: 'prep_' + Date.now() + '_' + count,
       title: item.title,
       passage: item.passage,
@@ -2734,7 +2834,11 @@ function batchImportPrepJson() {
         return { no: b.no, answer: b.answer, category: b.category, analysis: b.analysis || '' };
       }),
       created_at: new Date().toISOString()
-    });
+    };
+    var fp = getPrepFingerprint(p);
+    if (existingFps.has(fp)) { skipCount++; return; }
+    existingFps.add(fp);
+    prepPassages.unshift(p);
     count++;
   });
   savePrepPassages();
@@ -2742,7 +2846,9 @@ function batchImportPrepJson() {
   renderBankStat();
   togglePrepBatchImport();
   document.getElementById('prepBatchJson').value = '';
-  alert('成功导入 ' + count + ' 份备课资料');
+  var msg = '成功导入 ' + count + ' 份备课资料';
+  if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 份重复资料';
+  alert(msg);
 }
 
 function deletePrepPassage(id) {
@@ -3151,13 +3257,14 @@ function confirmUnifiedImport() {
 
   // 1) 整篇进备课资料
   var prepCount = 0;
+  var prepSkip = 0;
   passages.forEach(function(p){
-    importDeepSeekResult(p, true);
-    prepCount++;
+    if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
   });
 
   // 2) 勾选的单题进错题本
   var errorCount = 0;
+  var errorSkip = 0;
   var checks = document.querySelectorAll('.unified-blank-check:checked');
   checks.forEach(function(cb){
     var pi = parseInt(cb.dataset.passage, 10);
@@ -3171,8 +3278,9 @@ function confirmUnifiedImport() {
       passage: p.passage,
       blanks: [b]
     };
-    importDeepSeekResultToErrorBook(oneBlank, true);
-    errorCount++;
+    var r = importDeepSeekResultToErrorBook(oneBlank, true);
+    if (r && r.count > 0) errorCount += r.count;
+    if (r && r.skipCount > 0) errorSkip += r.skipCount;
   });
 
   // 3) 渲染 + 同步（save 包装器自动推云）
@@ -3183,12 +3291,14 @@ function confirmUnifiedImport() {
   closeUnifiedImport();
 
   var msg = '已导入：\n📋 备课资料 ' + prepCount + ' 篇';
+  if (prepSkip > 0) msg += '（跳过 ' + prepSkip + ' 篇重复）';
   if (errorCount > 0) msg += '\n📝 错题本 ' + errorCount + ' 道（按考点分类，迁移训练自动联动）';
+  if (errorSkip > 0) msg += '（跳过 ' + errorSkip + ' 道重复）';
   alert(msg);
 }
 
 function importDeepSeekResult(result, silent) {
-  prepPassages.unshift({
+  var p = {
     id: 'prep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
     title: result.title || '无标题',
     passage: result.passage,
@@ -3201,10 +3311,19 @@ function importDeepSeekResult(result, silent) {
       };
     }),
     created_at: new Date().toISOString()
-  });
+  };
+
+  var fp = getPrepFingerprint(p);
+  var isDup = prepPassages.some(function(existing) { return getPrepFingerprint(existing) === fp; });
+  if (isDup) {
+    if (!silent) alert('这篇备课资料已存在，跳过：' + (result.title || '无标题'));
+    return false;
+  }
+
+  prepPassages.unshift(p);
 
   savePrepPassages();
-  if (silent) return;
+  if (silent) return true;
 
   renderPrepList();
   renderBankStat();
@@ -3213,14 +3332,18 @@ function importDeepSeekResult(result, silent) {
   uploadLocalToCloud().catch(function(e) {
     console.warn('云端同步失败，已保存到本地：', e);
   });
+  return true;
 }
 
 function importDeepSeekResultToErrorBook(result, silent) {
+  var existingFps = new Set();
+  errorBookQuestions.forEach(function(q) { existingFps.add(getErrorFingerprint(q)); });
   var count = 0;
+  var skipCount = 0;
   (result.blanks || []).forEach(function(b) {
     var no = b.no || (count + 1);
     var sent = extractSentence(result.passage, no) || extractContextWindow(result.passage, no) || result.passage;
-    errorBookQuestions.unshift({
+    var q = {
       id: 'err_' + Date.now() + '_' + count + '_' + Math.random().toString(36).slice(2, 6),
       passage: sent,
       answer: b.answer || '?',
@@ -3234,20 +3357,27 @@ function importDeepSeekResultToErrorBook(result, silent) {
       exam_id: '错题本',
       no: no,
       created_at: new Date().toISOString()
-    });
+    };
+    var fp = getErrorFingerprint(q);
+    if (existingFps.has(fp)) { skipCount++; return; }
+    existingFps.add(fp);
+    errorBookQuestions.unshift(q);
     count++;
   });
 
   saveErrorBook();
-  if (silent) return;
+  if (silent) return { count: count, skipCount: skipCount };
 
   renderErrorBook();
   renderBankStat();
-  alert('成功导入 ' + count + ' 道错题到错题本');
+  var msg = '成功导入 ' + count + ' 道错题到错题本';
+  if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 道重复题';
+  alert(msg);
 
   uploadLocalToCloud().catch(function(e) {
     console.warn('云端同步失败，已保存到本地：', e);
   });
+  return { count: count, skipCount: skipCount };
 }
 
 function showRawTextFallback(text) {
@@ -4381,13 +4511,16 @@ function renderExam() {
   if (currentExam.mode === 'error') {
     var q = currentQuestions[0];
     var passage = q.passage;
-    var blankMarker = '___' + q.no + '___';
-    if (showAnswers) {
-      passage = passage.replace(blankMarker,
-        '<span class="answer-filled">' + q.answer + '</span>');
+    // 定位替换：找到 passage 中与 q.no 匹配的空格（优先），否则替换第一个空格
+    var exactRe = new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}', 'g');
+    var replacement = showAnswers
+      ? '<span class="answer-filled">' + q.answer + '</span>'
+      : '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>';
+    if (exactRe.test(passage)) {
+      exactRe.lastIndex = 0;
+      passage = passage.replace(exactRe, replacement);
     } else {
-      passage = passage.replace(blankMarker,
-        '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>');
+      passage = passage.replace(/_{2,}\s*\d+\s*_{2,}/, replacement);
     }
     document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
     return;
@@ -4407,12 +4540,16 @@ function renderExam() {
       byExam[examId].forEach(function(item) {
         var q = item.q;
         var sent = extractSentence(q.passage, q.no) || ('___' + q.no + '___');
-        if (showAnswers) {
-          sent = sent.replace('___' + q.no + '___',
-            '<span class="answer-filled">' + q.answer + '</span>');
+        // 优先精确匹配 q.no，否则替换句中第一个空格
+        var exactRe2 = new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}', 'g');
+        var repl = showAnswers
+          ? '<span class="answer-filled">' + q.answer + '</span>'
+          : '<span class="blank-inline" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>';
+        if (exactRe2.test(sent)) {
+          exactRe2.lastIndex = 0;
+          sent = sent.replace(exactRe2, repl);
         } else {
-          sent = sent.replace('___' + q.no + '___',
-            '<span class="blank-inline" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>');
+          sent = sent.replace(/_{2,}\s*\d+\s*_{2,}/, repl);
         }
         html += '<div class="cat-sentence">' + sent + '</div>';
       });
@@ -4421,16 +4558,27 @@ function renderExam() {
     document.getElementById('passageBox').innerHTML = html;
   } else if (currentExam.mode === 'prep' || currentExam.mode === 'exam') {
     var passage = currentExam.passage || currentQuestions[0].passage;
-    currentQuestions.forEach(function(q) {
+    // 按位置顺序替换：passage 中的第 N 个空格  第 N 道题（不依赖编号一致）
+    var qi = 0;
+    passage = passage.replace(/_{2,}\s*\d+\s*_{2,}/g, function(fullMatch) {
+      if (qi >= currentQuestions.length) return fullMatch;
+      var q = currentQuestions[qi];
+      qi++;
       if (showAnswers) {
-        passage = passage.replace('___' + q.no + '___',
-          '<span class="answer-filled">' + q.answer + '</span>');
+        return '<span class="answer-filled">' + q.answer + '</span>';
       } else {
-        passage = passage.replace('___' + q.no + '___',
-          '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>');
+        return '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>';
       }
     });
     passage = passage.split('\n\n').map(function(p) { return '<p>' + p + '</p>'; }).join('');
+    // 如果原文标记数少于题目数，剩余题目在文末显示
+    if (qi < currentQuestions.length) {
+      passage += '<div style="margin-top:16px;padding:12px;border:1px dashed var(--orange);border-radius:8px;background:var(--orange-bg);"><div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:6px;">以下空格在原文中未找到位置标记，请手动核对：</div>' +
+        currentQuestions.slice(qi).map(function(q) {
+          return '<span style="display:inline-block;margin:3px 8px 3px 0;font-size:14px;"><span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span></span>';
+        }).join('') +
+        '</div>';
+    }
     document.getElementById('passageBox').innerHTML = passage;
   }
 }
