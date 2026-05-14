@@ -83,31 +83,61 @@
 
   .home-entry-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
   }
   .home-entry-card {
     background: var(--surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px 24px;
+    border-radius: 16px;
+    padding: 28px 24px 24px;
     cursor: pointer;
-    transition: all .18s;
+    transition: all .22s cubic-bezier(.22,.61,.36,1);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-entry-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    opacity: 0;
+    transition: opacity .22s ease;
+    pointer-events: none;
   }
   .home-entry-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-1px);
-    border-color: var(--accent);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+    border-color: rgba(0,0,0,0.12);
   }
-  .home-entry-card-icon { font-size: 28px; margin-bottom: 8px; }
-  .home-entry-card-title { font-size: var(--font-lg, 25px); font-weight: 700; color: var(--text); margin-bottom: 4px; }
-  .home-entry-card-desc { font-size: var(--font-sm, 21px); color: var(--text-2); }
-  .home-entry-card-arrow { font-size: 20px; color: var(--text-3); }
+  .home-entry-card:active { transform: translateY(0) scale(0.985); }
+  .home-entry-card-icon {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+  .home-entry-card-icon svg { width: 22px; height: 22px; }
+  .home-entry-card-icon.exams    { background: #eef2ff; color: #4f6ef7; }
+  .home-entry-card-icon.categories { background: #fdf3e7; color: #d98b3a; }
+  .home-entry-card-icon.errors   { background: #fef0f2; color: #dc5b6e; }
+  .home-entry-card-icon.prep     { background: #edf7f1; color: #3d8b5e; }
+  .home-entry-card-icon.ai       { background: #f3f1fc; color: #7c5ce7; }
+  .home-entry-card-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 3px; letter-spacing: -.2px; }
+  .home-entry-card-desc { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+  .home-entry-card-arrow {
+    font-size: 16px; color: var(--text-3);
+    opacity: 0; transform: translateX(-4px);
+    transition: all .22s ease;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .home-entry-card:hover .home-entry-card-arrow { opacity: 1; transform: translateX(0); }
+  .home-entry-card.ai-card { border-color: rgba(124,92,231,0.2); }
+  .home-entry-card.ai-card:hover { border-color: rgba(124,92,231,0.45); box-shadow: 0 8px 30px rgba(124,92,231,0.1), 0 0 0 0.5px rgba(124,92,231,0.15); }
   .home-subview { display: none; }
   .home-subview.active { display: block; }
 
@@ -1324,61 +1354,7 @@
   margin-top: 10px; border-top: 1px dashed #e0e0e0; padding-top: 8px;
 }
 
-/* ── 浮动快捷按钮组 ── *//* ── 浮动快捷按钮组 ── */
-.float-actions {
-  position: fixed;
-  bottom: 92px;
-  right: 28px;
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.float-btn {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: var(--text-2);
-  transition: background .15s, color .15s, box-shadow .15s;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.float-btn:hover {
-  background: var(--surface-2);
-  color: var(--text);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
-}
-.float-btn:active { transform: scale(0.95); }
-
 /* ====== AI 助手 ====== */
-.assistant-fab {
-  position: fixed; bottom: 92px; right: 88px; z-index: 200;
-  width: 52px; height: 52px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-  color: #fff; font-size: 22px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; user-select: none;
-  box-shadow: 0 6px 22px rgba(139,105,20,0.35), 0 2px 6px rgba(0,0,0,0.08);
-  transition: transform .15s ease, box-shadow .2s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.assistant-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(139,105,20,0.45); }
-.assistant-fab:active { transform: translateY(0) scale(0.97); }
-.assistant-fab .badge {
-  position: absolute; top: -2px; right: -2px;
-  background: var(--green); color: #fff;
-  font-size: 9px; padding: 2px 6px; border-radius: 100px;
-  font-weight: 600; letter-spacing: 0.5px;
-  border: 2px solid var(--bg);
-}
 
 .assistant-panel {
   position: fixed; top: 0; right: 0; bottom: 0;
@@ -1595,8 +1571,6 @@
 
 @media (max-width: 480px) {
   .assistant-panel { width: 100vw; }
-  .assistant-fab { right: 18px; bottom: 98px; }
-  .float-actions { bottom: 98px; }
 }
 </style>
 <script src="../data/grammar_bank.js"></script>
@@ -2116,7 +2090,7 @@
         <div class="home-entry-cards">
           <div class="home-entry-card" onclick="navigateHome('exams')">
             <div>
-              <div class="home-entry-card-icon">📋</div>
+              <div class="home-entry-card-icon exams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
               <div class="home-entry-card-title">按套卷练习</div>
               <div class="home-entry-card-desc" id="homeExamCount">-- 套真题/模拟卷</div>
             </div>
@@ -2124,7 +2098,7 @@
           </div>
           <div class="home-entry-card" onclick="navigateHome('categories')">
             <div>
-              <div class="home-entry-card-icon">📚</div>
+              <div class="home-entry-card-icon categories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="1"/><circle cx="6.5" cy="6.5" r=".8" fill="currentColor"/><rect x="3" y="14" width="18" height="7" rx="1"/><circle cx="6.5" cy="17.5" r=".8" fill="currentColor"/></svg></div>
               <div class="home-entry-card-title">按考点练习</div>
               <div class="home-entry-card-desc">11 个考点分类</div>
             </div>
@@ -2132,7 +2106,7 @@
           </div>
           <div class="home-entry-card" onclick="switchPage('error-book')">
             <div>
-              <div class="home-entry-card-icon">📝</div>
+              <div class="home-entry-card-icon errors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="15" y1="14" x2="9" y2="14"/></svg></div>
               <div class="home-entry-card-title">错题本</div>
               <div class="home-entry-card-desc" id="homeErrorCount">-- 道错题</div>
             </div>
@@ -2140,9 +2114,17 @@
           </div>
           <div class="home-entry-card" onclick="switchPage('lesson-prep')">
             <div>
-              <div class="home-entry-card-icon">📋</div>
+              <div class="home-entry-card-icon prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg></div>
               <div class="home-entry-card-title">备课资料</div>
               <div class="home-entry-card-desc" id="homePrepCount">-- 份资料</div>
+            </div>
+            <div class="home-entry-card-arrow">→</div>
+          </div>
+          <div class="home-entry-card ai-card" onclick="toggleAssistant()">
+            <div>
+              <div class="home-entry-card-icon ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></div>
+              <div class="home-entry-card-title">AI 助手</div>
+              <div class="home-entry-card-desc">问用法 · 讨论语法点</div>
             </div>
             <div class="home-entry-card-arrow">→</div>
           </div>
@@ -3304,10 +3286,6 @@ function setupDocxDrop() {
 }
 
 // ── 浮动回到顶部 ──
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 function init() {
   document.documentElement.style.setProperty('--font-base', '24px');
   document.documentElement.style.setProperty('--font-lg', '25px');
@@ -5230,14 +5208,7 @@ renderAssistantMsgs();
 
 init();
 </script>
-<!-- 浮动快捷按钮 -->
-<div class="float-actions">
-  <div class="float-btn" onclick="goHome()" title="返回首页">←</div>
-  <div class="float-btn" onclick="scrollToTop()" title="回到顶部">↑</div>
-</div>
-
 <!-- AI 助手 -->
-<div class="assistant-fab" onclick="toggleAssistant()" title="AI 助手">💬<span class="badge">AI</span></div>
 <div class="assistant-backdrop" onclick="toggleAssistant(false)"></div>
 <div class="assistant-panel" id="assistantPanel">
   <div class="assistant-head">

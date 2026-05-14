@@ -1290,7 +1290,10 @@
       var panel = document.getElementById('aiAfterPanel');
       if (!panel) return;
       panel.classList.remove('animating');
+      var lines = panel.querySelectorAll('.result-line');
+      lines.forEach(function(l) { l.style.animation = 'none'; });
       void panel.offsetWidth;
+      lines.forEach(function(l) { l.style.animation = ''; });
       panel.classList.add('animating');
     }
     replay();
@@ -1394,7 +1397,7 @@
 
   /* ===== Fake Screen Recording Demo ===== */
   var _demoInterval = null;
-  var _demoStepTimer = null;
+  var _demoStepTimers = [];
   function startDemoLoop() {
     if (_demoInterval) return;
     runDemoStep();
@@ -1405,7 +1408,7 @@
   }
   function stopDemoLoop() {
     if (_demoInterval) { clearInterval(_demoInterval); _demoInterval = null; }
-    if (_demoStepTimer) { clearTimeout(_demoStepTimer); _demoStepTimer = null; }
+    clearDemoStepTimers();
     var fc = document.getElementById('fakeCursor');
     if (fc) fc.classList.remove('show');
     var blanks = document.querySelectorAll('.passage-text .blank-word');
@@ -1415,7 +1418,12 @@
     var ae = document.getElementById('apEmpty');
     if (ae) ae.style.display = '';
   }
+  function clearDemoStepTimers() {
+    _demoStepTimers.forEach(function(t) { clearTimeout(t); });
+    _demoStepTimers = [];
+  }
   function runDemoStep() {
+    clearDemoStepTimers();
     var blanks = document.querySelectorAll('.passage-text .blank-word');
     if (!blanks.length) return;
     var idx = Math.floor(Math.random() * blanks.length);
@@ -1436,19 +1444,19 @@
     if (apContent) apContent.classList.remove('show');
     if (apEmpty) apEmpty.style.display = '';
 
-    _demoStepTimer = setTimeout(function() {
+    _demoStepTimers.push(setTimeout(function() {
       var blankRect = blank.getBoundingClientRect();
       var bodyRect = screenBody.getBoundingClientRect();
       fakeCursor.style.left = (blankRect.left - bodyRect.left + blankRect.width / 2 - 9) + 'px';
       fakeCursor.style.top = (blankRect.top - bodyRect.top + blankRect.height / 2 - 12) + 'px';
       fakeCursor.classList.add('show');
-    }, 200);
+    }, 200));
 
-    _demoStepTimer = setTimeout(function() {
+    _demoStepTimers.push(setTimeout(function() {
       blank.classList.add('active');
-    }, 500);
+    }, 500));
 
-    _demoStepTimer = setTimeout(function() {
+    _demoStepTimers.push(setTimeout(function() {
       if (apEmpty) apEmpty.style.display = 'none';
       if (apContent) apContent.classList.add('show');
       if (apQno) apQno.textContent = '第 ' + qno + ' 题';
@@ -1477,7 +1485,7 @@
           cross2.innerHTML = '<span class="cross-dot"></span> ' + (items[1] || '');
           cross3.innerHTML = '<span class="cross-dot"></span> ' + (items[2] || '');
         }
-    }, 800);
+    }, 800));
   }
 
   /* ===== Scene 循环动画 ===== */
