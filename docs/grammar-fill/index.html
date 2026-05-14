@@ -41,32 +41,32 @@
 
   /* ===== Dark Theme ===== */
   [data-theme="dark"] {
-    --bg: #080808;
-    --surface: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.06);
-    --surface-3: rgba(255,255,255,0.03);
-    --border: rgba(255,255,255,0.06);
-    --text: #f0ede8;
-    --text-2: rgba(255,255,255,0.55);
-    --text-3: rgba(255,255,255,0.30);
-    --accent: #d4a843;
-    --accent-light: #e8c96a;
-    --accent-bg: rgba(212,168,67,0.08);
-    --green: #52b788;
-    --green-bg: rgba(82,183,136,0.1);
-    --blue: #6cb4e4;
-    --blue-bg: rgba(108,180,228,0.1);
-    --red: #e0556a;
-    --red-bg: rgba(224,85,106,0.1);
-    --orange: #d49a3e;
-    --orange-bg: rgba(212,154,62,0.1);
-    --purple: #b392d9;
-    --purple-bg: rgba(179,146,217,0.1);
-    --teal: #5cb8b7;
-    --teal-bg: rgba(92,184,183,0.1);
-    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,0.04);
-    --shadow-lg: 0 4px 16px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,0.04);
-    --modal-bg: #1c1c1c;
+    --bg: #08090b;
+    --surface: rgba(255,255,255,0.045);
+    --surface-2: rgba(255,255,255,0.07);
+    --surface-3: rgba(255,255,255,0.025);
+    --border: rgba(255,255,255,0.07);
+    --text: #ede8dd;
+    --text-2: rgba(255,255,255,0.52);
+    --text-3: rgba(255,255,255,0.26);
+    --accent: #c8963e;
+    --accent-light: #e0b864;
+    --accent-bg: rgba(200,150,62,0.1);
+    --green: #4ea87c;
+    --green-bg: rgba(78,168,124,0.1);
+    --blue: #5ea8d4;
+    --blue-bg: rgba(94,168,212,0.1);
+    --red: #d4525e;
+    --red-bg: rgba(212,82,94,0.1);
+    --orange: #c88a36;
+    --orange-bg: rgba(200,138,54,0.1);
+    --purple: #a088c8;
+    --purple-bg: rgba(160,136,200,0.1);
+    --teal: #4ea8a4;
+    --teal-bg: rgba(78,168,164,0.1);
+    --shadow: 0 1px 3px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,0.05);
+    --modal-bg: #161618;
     --modal-backdrop: rgba(0,0,0,0.65);
     --input-bg: rgba(255,255,255,0.06);
     --input-border: rgba(255,255,255,0.1);
@@ -81,10 +81,21 @@
     line-height: 1.6;
     min-height: 100vh;
   }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 20%, rgba(200,150,62,0.04) 0%, transparent 100%),
+      radial-gradient(ellipse 60% 50% at 80% 70%, rgba(94,168,212,0.02) 0%, transparent 100%);
+    opacity: 1;
+  }
+  [data-theme="light"] body::before,
+  body:not([data-theme]) body::before { opacity: 0; }
 
   header {
     background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 0.5px solid var(--border);
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -118,7 +129,9 @@
   }
   .home-entry-card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 28px 24px;
     cursor: pointer;
@@ -151,7 +164,9 @@
   }
   .card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 16px;
     cursor: pointer;
@@ -196,8 +211,10 @@
     width: 220px;
     z-index: 150;
     background: var(--surface);
-    border-right: 1px solid var(--border);
-    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 0.5px solid var(--border);
+    box-shadow: var(--shadow-lg);
     transform: translateX(calc(-100% + 8px));
     transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto; overflow-x: hidden;
@@ -276,7 +293,9 @@
 
   .passage-box {
     background: var(--surface);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 28px 32px;
     font-size: var(--passage-font-size, 24px);
@@ -814,7 +833,6 @@
   /* ============== 模块选择页（登录后默认）============== */
   body.in-modules .header-font-ctrl,
   body.in-modules #syncStatus { display: none !important; }
-  body.in-modules #navBtnModules { display: none !important; }
   body.in-modules #page-modules { display: block !important; }
   body.in-modules .page:not(#page-modules) { display: none !important; }
   body.in-modules .dock { display: none; }
@@ -3430,10 +3448,6 @@ let _migrationPromptShown = false;
 
 async function onCloudStateChange(state) {
   renderUserPill(state);
-  document.getElementById('navBtnAdmin').style.display = state.isAdmin ? '' : 'none';
-  // 已登录时「📚 模块」可见（在 modules 页本身又会被 body.in-modules 隐藏）
-  var navBtnModules = document.getElementById('navBtnModules');
-  if (navBtnModules) navBtnModules.style.display = state.user ? '' : 'none';
   document.getElementById('adminBanner').style.display = state.viewingUserId ? '' : 'none';
   if (state.viewingUserId) {
     document.getElementById('adminViewingEmail').textContent = state.viewingEmail || '';

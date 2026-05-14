@@ -7,59 +7,59 @@
 <style>
   /* ===== Dark Theme (default) ===== */
   :root {
-    --bg: #080808;
-    --surface: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.06);
-    --surface-3: rgba(255,255,255,0.03);
-    --border: rgba(255,255,255,0.06);
+    --bg: #08090b;
+    --surface: rgba(255,255,255,0.045);
+    --surface-2: rgba(255,255,255,0.07);
+    --surface-3: rgba(255,255,255,0.025);
+    --border: rgba(255,255,255,0.07);
     --border-strong: rgba(255,255,255,0.12);
-    --text: #f0ede8;
-    --text-2: rgba(255,255,255,0.55);
-    --text-3: rgba(255,255,255,0.30);
-    --accent: #d4a843;
-    --accent-light: #e8c96a;
-    --accent-bg: rgba(212,168,67,0.08);
-    --accent-glow: rgba(212,168,67,0.35);
-    --green: #52b788;
-    --green-bg: rgba(82,183,136,0.1);
-    --red: #e0556a;
-    --orange: #d49a3e;
+    --text: #ede8dd;
+    --text-2: rgba(255,255,255,0.52);
+    --text-3: rgba(255,255,255,0.26);
+    --accent: #c8963e;
+    --accent-light: #e0b864;
+    --accent-bg: rgba(200,150,62,0.1);
+    --accent-glow: rgba(200,150,62,0.25);
+    --green: #4ea87c;
+    --green-bg: rgba(78,168,124,0.1);
+    --red: #d4525e;
+    --orange: #c88a36;
 
-    --header-bg: rgba(8,8,8,0.78);
+    --header-bg: rgba(8,9,11,0.75);
     --btn-primary-bg: #ffffff;
     --btn-primary-text: #111111;
-    --btn-secondary-text: #ffffff;
-    --btn-secondary-border: rgba(255,255,255,0.2);
-    --modal-bg: #1a1a1a;
+    --btn-secondary-text: #ede8dd;
+    --btn-secondary-border: rgba(255,255,255,0.16);
+    --modal-bg: #161618;
     --modal-border: rgba(255,255,255,0.1);
-    --input-bg: rgba(255,255,255,0.05);
+    --input-bg: rgba(255,255,255,0.06);
     --input-border: rgba(255,255,255,0.1);
-    --film-grain-opacity: 0.038;
+    --film-grain-opacity: 0.026;
     --letterbox-height: 72px;
     --scene-bg-display: none;
-    --dot-bg: rgba(255,255,255,0.15);
+    --dot-bg: rgba(255,255,255,0.12);
     --dot-active-bg: var(--accent);
-    --toast-bg: rgba(30,30,30,0.9);
+    --toast-bg: rgba(22,22,24,0.92);
     --toast-border: rgba(255,255,255,0.1);
-    --toast-text: rgba(255,255,255,0.55);
-    --about-bg: rgba(255,255,255,0.02);
-    --about-border: rgba(255,255,255,0.05);
-    --about-text: rgba(255,255,255,0.5);
-    --about-heading: #ffffff;
-    --screen-bg: #141414;
-    --screen-chrome-bg: #1c1c1c;
-    --screen-border: rgba(255,255,255,0.1);
+    --toast-text: rgba(255,255,255,0.52);
+    --about-bg: rgba(255,255,255,0.025);
+    --about-border: rgba(255,255,255,0.06);
+    --about-text: rgba(255,255,255,0.45);
+    --about-heading: #ede8dd;
+    --screen-bg: #0e0f11;
+    --screen-chrome-bg: #141416;
+    --screen-border: rgba(255,255,255,0.08);
     --screen-url-bg: rgba(255,255,255,0.05);
-    --screen-url-text: rgba(255,255,255,0.3);
-    --ai-panel-bg: rgba(255,255,255,0.03);
+    --screen-url-text: rgba(255,255,255,0.26);
+    --ai-panel-bg: rgba(255,255,255,0.035);
     --ai-panel-border: rgba(255,255,255,0.06);
-    --ai-panel-label: rgba(255,255,255,0.22);
-    --passage-text: rgba(255,255,255,0.8);
-    --ap-cross-item-bg: rgba(255,255,255,0.03);
-    --mod-coming-opacity: 0.35;
-    --hero-title-color: #ffffff;
-    --section-heading-color: #ffffff;
-    --scan-line-opacity: 0.5;
+    --ai-panel-label: rgba(255,255,255,0.18);
+    --passage-text: rgba(255,255,255,0.78);
+    --ap-cross-item-bg: rgba(255,255,255,0.035);
+    --mod-coming-opacity: 0.30;
+    --hero-title-color: #ede8dd;
+    --section-heading-color: #ede8dd;
+    --scan-line-opacity: 0.45;
   }
 
   /* ===== Light Theme ===== */
@@ -137,15 +137,13 @@
   .letterbox-top    { top: 0;    height: var(--letterbox-height); background: linear-gradient(180deg, #000 0%, transparent 100%); }
   .letterbox-bottom { bottom: 0; height: var(--letterbox-height); background: linear-gradient(0deg, #000 0%, transparent 100%); }
 
-  /* ===== 滚动捕捉 + 入场动画 ===== */
+  /* ===== 滚动 + 入场动画 ===== */
   html { scroll-behavior: smooth; background: var(--bg); }
-  body.welcome-mode { scroll-snap-type: y mandatory; scroll-padding-top: 0; }
   #view-welcome .scene {
     min-height: 100vh; min-height: 100svh;
     display: flex; flex-direction: column;
     justify-content: center; align-items: center;
     padding: 100px 24px 80px;
-    scroll-snap-align: start; scroll-snap-stop: always;
     width: 100%; max-width: 1020px; margin: 0 auto;
     position: relative;
   }
@@ -218,6 +216,14 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
     background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
   }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 20%, rgba(200,150,62,0.04) 0%, transparent 100%),
+      radial-gradient(ellipse 60% 50% at 80% 70%, rgba(94,168,212,0.02) 0%, transparent 100%);
+    opacity: 1;
+  }
+  [data-theme="light"] body::before { opacity: 0; }
 
   /* ===== Header ===== */
   header {
@@ -961,8 +967,7 @@
         <div class="eyebrow fade-up">Early Access</div>
         <h1 class="fade-up delay-1">Lesson<br><span class="gradient-text">Snippets</span></h1>
         <p class="hero-cn fade-up delay-2">语法填空教学小工具</p>
-        <p class="sub fade-up delay-3">上传 Word 文档自动解析，课堂上点空格出答案，同考点真题一键关联</p>
-        <p class="humble fade-up delay-3">如果能帮到你，便是最开心的事。<br>它还不完美，会持续打磨。</p>
+        <p class="humble fade-up delay-3">如果能帮到你，便是最开心的事。它还不完美，会持续打磨。</p>
         <div class="cta fade-up delay-4">
           <button class="btn primary" onclick="openModal('signup')">注册试用</button>
           <button class="btn" onclick="openModal('signin')">登录</button>
@@ -1463,7 +1468,7 @@
   var _autoscrollEnabled = true;
   var _autoscrollTimer = null;
   var _resumeTimer = null;
-  var IDLE_BEFORE_PLAY = 3500;
+  var IDLE_BEFORE_PLAY = 2000;
   var SCENE_DWELL = 5000;
   var RESUME_AFTER = 12000;
 
