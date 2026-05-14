@@ -136,9 +136,15 @@
     letter-spacing: -1.5px; line-height: 1.05; font-weight: 500;
   }
   .gradient-text {
-    background: linear-gradient(135deg, var(--accent) 0%, #b8942f 100%);
+    background: linear-gradient(110deg, var(--accent) 0%, #b8942f 35%, var(--accent) 70%, #b8942f 100%);
+    background-size: 250% 100%;
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: gradientShimmer 9s ease-in-out infinite;
+  }
+  @keyframes gradientShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
   }
   .hero p.sub {
     font-size: 18px; color: var(--text-2); max-width: 560px;
@@ -221,6 +227,15 @@
     padding: 0 8px;
     font-weight: 500;
     margin: 0 1px;
+    transition: background .6s, color .6s, transform .6s;
+  }
+  .preview-card .blank.pulse {
+    animation: blankPulse 2.4s ease-in-out;
+  }
+  @keyframes blankPulse {
+    0%, 100% { transform: scale(1); background: var(--accent-bg); color: var(--accent); }
+    35%      { transform: scale(1.08); background: var(--accent); color: #fff; }
+    70%      { transform: scale(1.02); }
   }
   .preview-card .answer-block {
     margin-top: 20px;
@@ -302,6 +317,52 @@
     border-color: var(--text);
   }
   .module-card.coming { opacity: 0.5; cursor: not-allowed; }
+  .module-card.spotlit {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent), 0 10px 30px rgba(139,105,20,0.18);
+    transform: translateY(-3px);
+    transition: all .55s ease;
+  }
+
+  /* ── 场景圆点（idle autoscroll 进度指示）── */
+  .scene-dots {
+    position: fixed;
+    right: 24px; top: 50%;
+    transform: translateY(-50%);
+    z-index: 60;
+    display: flex; flex-direction: column; gap: 14px;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  body.welcome-mode .scene-dots { opacity: 1; pointer-events: auto; }
+  .scene-dots .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.18);
+    cursor: pointer;
+    transition: background .2s, transform .2s, width .2s, height .2s;
+    position: relative;
+  }
+  .scene-dots .dot::after {
+    content: ''; position: absolute;
+    inset: -6px; border-radius: 50%;
+  }
+  .scene-dots .dot:hover { background: rgba(0,0,0,0.35); }
+  .scene-dots .dot.active {
+    background: var(--accent); transform: scale(1.35);
+  }
+  .scene-dots.is-playing .dot.active {
+    box-shadow: 0 0 0 0 rgba(139,105,20,0.4);
+    animation: dotProgress 7s linear forwards;
+  }
+  @keyframes dotProgress {
+    0%   { box-shadow: 0 0 0 0   rgba(139,105,20,0.5); }
+    100% { box-shadow: 0 0 0 11px rgba(139,105,20,0); }
+  }
+  @media (max-width: 600px) {
+    .scene-dots { right: 12px; gap: 10px; }
+  }
   .module-badge {
     position: absolute; top: 18px; right: 18px;
     font-size: 10px; letter-spacing: 1.2px;
@@ -478,6 +539,9 @@
 </header>
 
 <main>
+  <!-- 场景进度圆点（idle autoscroll 指示） -->
+  <div class="scene-dots" id="sceneDots" aria-hidden="true"></div>
+
   <!-- ============== 欢迎视图（未登录） · 整屏滚动 ============== -->
   <div class="view" id="view-welcome">
 
@@ -537,7 +601,7 @@
     <section class="scene tight">
       <div class="section-eyebrow fade-up">Features</div>
       <h2 class="fade-up delay-1">它能做什么</h2>
-      <p class="sub fade-up delay-2">目前只覆盖<b style="color:var(--text);">语法填空</b>一个模块，其它模块还在路上。</p>
+      <p class="sub fade-up delay-2">围绕"讲题"这一件事，把零散的环节串起来。</p>
       <div class="features">
         <div class="feature fade-up delay-1">
           <div class="feature-icon">📋</div>
@@ -550,24 +614,24 @@
           <p>11 类常考点：谓语、非谓语、词性、冠词、代词、介词、连词…</p>
         </div>
         <div class="feature fade-up delay-3">
-          <div class="feature-icon">🔗</div>
-          <h3>同考点跨卷迁移</h3>
-          <p>讲一道，自动调出别的卷里同考点的题，方便举一反三</p>
+          <div class="feature-icon">📄</div>
+          <h3>Word 一键归档</h3>
+          <p>上传一份 Word → AI 解析 → 勾选高频错题 → 整篇进备课、勾的题进错题本</p>
         </div>
         <div class="feature fade-up delay-4">
-          <div class="feature-icon">📝</div>
-          <h3>错题本 · 自动同步</h3>
-          <p>办公室攒的题，回家手机上也能看，不用导来导去</p>
+          <div class="feature-icon">🔗</div>
+          <h3>同考点跨卷迁移</h3>
+          <p>讲一道题，自动调出真题库 / 我的错题里同考点的题，举一反三</p>
         </div>
         <div class="feature fade-up delay-5">
-          <div class="feature-icon">📋</div>
-          <h3>备课资料导入</h3>
-          <p>粘贴或上传一篇语法填空，立刻进入和真题一样的讲题模式</p>
+          <div class="feature-icon">📝</div>
+          <h3>错题本 · 自动同步</h3>
+          <p>办公室攒的题，回家手机上也能看，按考点自动分类</p>
         </div>
         <div class="feature fade-up delay-6">
-          <div class="feature-icon">💡</div>
-          <h3>考点速查</h3>
-          <p>每个考点的解题思路一页讲完，参考赢在微点二轮复习整理</p>
+          <div class="feature-icon">💬</div>
+          <h3>AI 助手</h3>
+          <p>问网站怎么用，或者讨论一道题的语法点，DeepSeek 提供回答</p>
         </div>
       </div>
     </section>
@@ -855,19 +919,18 @@
     if (name === 'welcome') setTimeout(initWelcomeAnimations, 30);
   }
 
-  // ─── 欢迎页：入场动画 + 数字滚动 ───
+  // ─── 欢迎页：入场动画 + 数字滚动 + 自动播放 + 内置循环 ───
   var _welcomeAnimInited = false;
   function initWelcomeAnimations() {
     if (_welcomeAnimInited) return;
     _welcomeAnimInited = true;
 
-    // IntersectionObserver 触发 fade-up
+    // IntersectionObserver 触发 fade-up + 维护当前 scene
     var io = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting) {
           entry.target.classList.add('in-view');
-          io.unobserve(entry.target);
-          // 如果是数字 counter，启动滚动
+          // 不立刻 unobserve scene 本身，需要持续追踪当前可见 scene
           if (entry.target.classList.contains('counter')) {
             animateCounter(entry.target);
           } else if (entry.target.querySelector) {
@@ -880,6 +943,134 @@
 
     document.querySelectorAll('#view-welcome .fade-up, #view-welcome .counter')
       .forEach(function(el) { io.observe(el); });
+
+    setupSceneDots();
+    setupSceneTracking();
+    setupIdleAutoscroll();
+    setupSceneLoopAnimations();
+  }
+
+  // ─── 场景圆点 ───
+  function setupSceneDots() {
+    var dotsEl = document.getElementById('sceneDots');
+    if (!dotsEl) return;
+    var scenes = document.querySelectorAll('#view-welcome .scene');
+    var html = '';
+    scenes.forEach(function(_, i) {
+      html += '<div class="dot' + (i === 0 ? ' active' : '') + '" data-scene="' + i + '" '
+           +  'onclick="window.__jumpToScene && window.__jumpToScene(' + i + ')"></div>';
+    });
+    dotsEl.innerHTML = html;
+  }
+  window.__jumpToScene = function(idx) {
+    var scenes = document.querySelectorAll('#view-welcome .scene');
+    if (!scenes[idx]) return;
+    stopAutoscrollPermanent();
+    scenes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // ─── 当前 scene 追踪 ───
+  var _currentSceneIdx = 0;
+  function setupSceneTracking() {
+    var scenes = document.querySelectorAll('#view-welcome .scene');
+    var sceneIo = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting && e.intersectionRatio > 0.55) {
+          var idx = Array.prototype.indexOf.call(scenes, e.target);
+          if (idx >= 0 && idx !== _currentSceneIdx) {
+            _currentSceneIdx = idx;
+            updateDotsActive();
+          }
+        }
+      });
+    }, { threshold: [0.55, 0.8] });
+    scenes.forEach(function(s) { sceneIo.observe(s); });
+  }
+  function updateDotsActive() {
+    document.querySelectorAll('#sceneDots .dot').forEach(function(d, i) {
+      d.classList.toggle('active', i === _currentSceneIdx);
+    });
+  }
+
+  // ─── Idle autoscroll：8 秒无操作 → 自动播放，每屏停 7 秒 ───
+  var _autoscrollEnabled = true;
+  var _autoscrollTimer = null;
+  var IDLE_BEFORE_PLAY = 8000;
+  var SCENE_DWELL = 7000;
+
+  function setupIdleAutoscroll() {
+    var dotsEl = document.getElementById('sceneDots');
+    if (!dotsEl) return;
+    scheduleNextAdvance(IDLE_BEFORE_PLAY);
+
+    // 任何用户操作都停掉自动播放
+    ['wheel','touchstart','keydown','mousedown'].forEach(function(evt) {
+      window.addEventListener(evt, stopAutoscrollPermanent, { passive: true, once: true });
+    });
+  }
+  function scheduleNextAdvance(delay) {
+    if (!_autoscrollEnabled) return;
+    if (_autoscrollTimer) clearTimeout(_autoscrollTimer);
+    var dotsEl = document.getElementById('sceneDots');
+    if (dotsEl) dotsEl.classList.add('is-playing');
+    _autoscrollTimer = setTimeout(advanceScene, delay);
+  }
+  function advanceScene() {
+    if (!_autoscrollEnabled) return;
+    // 检查用户是否还在 welcome view
+    if (!document.body.classList.contains('welcome-mode')) {
+      stopAutoscrollPermanent(); return;
+    }
+    var scenes = document.querySelectorAll('#view-welcome .scene');
+    var next = (_currentSceneIdx + 1) % scenes.length;
+    scenes[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    _currentSceneIdx = next;
+    updateDotsActive();
+    scheduleNextAdvance(SCENE_DWELL);
+  }
+  function stopAutoscrollPermanent() {
+    _autoscrollEnabled = false;
+    if (_autoscrollTimer) { clearTimeout(_autoscrollTimer); _autoscrollTimer = null; }
+    var dotsEl = document.getElementById('sceneDots');
+    if (dotsEl) dotsEl.classList.remove('is-playing');
+  }
+
+  // ─── Scene 内置循环动画 ───
+  function setupSceneLoopAnimations() {
+    // 1) Preview card 的两个 blank 轮流脉动
+    var blanks = document.querySelectorAll('.preview-card .blank');
+    if (blanks.length) {
+      var pi = 0;
+      setInterval(function() {
+        if (!document.body.classList.contains('welcome-mode')) return;
+        blanks.forEach(function(b) { b.classList.remove('pulse'); });
+        // 强制 reflow，重启动画
+        void blanks[pi].offsetWidth;
+        blanks[pi].classList.add('pulse');
+        pi = (pi + 1) % blanks.length;
+      }, 3200);
+    }
+
+    // 2) Modules 卡片每 3 秒轮换一张高亮
+    var moduleCards = document.querySelectorAll('.modules-grid .module-card');
+    if (moduleCards.length) {
+      var mi = -1;
+      setInterval(function() {
+        if (!document.body.classList.contains('welcome-mode')) return;
+        if (mi >= 0 && moduleCards[mi]) moduleCards[mi].classList.remove('spotlit');
+        mi = (mi + 1) % moduleCards.length;
+        if (moduleCards[mi]) moduleCards[mi].classList.add('spotlit');
+      }, 3000);
+    }
+
+    // 3) Stats 数字每 35 秒重新播一次
+    setInterval(function() {
+      if (!document.body.classList.contains('welcome-mode')) return;
+      document.querySelectorAll('.stat-num.counter').forEach(function(el) {
+        el.dataset.done = '';   // 清掉 done 标记
+        animateCounter(el);
+      });
+    }, 35000);
   }
 
   function animateCounter(el) {
