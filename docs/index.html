@@ -237,7 +237,7 @@
   /* ===== AI Split Panel ===== */
   .ai-split {
     display: flex; gap: 20px;
-    width: min(94%, 2400px);
+    width: min(calc(100% - 140px), 2400px);
     position: relative;
   }
   @media (max-width: 640px) { .ai-split { flex-direction: column; } }
@@ -356,7 +356,7 @@
 
   /* ===== Fake Screen Recording Demo ===== */
   .screen-mock {
-    width: min(94%, 2400px);
+    width: min(calc(100% - 140px), 2400px);
     background: var(--screen-bg);
     border: 0.5px solid var(--screen-border);
     border-radius: 12px;
