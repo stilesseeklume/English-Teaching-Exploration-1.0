@@ -1827,7 +1827,7 @@
     <div class="page" id="page-error-book" style="max-width:1100px;">
       <h1 class="page-title">错题本</h1>
       <p class="page-desc"><span id="errorBookStat">加载中…</span> 上传 Word 或粘贴 JSON，自动分类入库；下次自动联动同考点题做迁移训练。</p>
-      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word 并 AI 解析</button>
+      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word（自动归档 · 勾选错题）</button>
       <button class="error-import-toggle" onclick="toggleImportForm()">+ 逐题添加</button>
       <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
       <div class="error-import-form" id="errorImportForm">
@@ -1878,7 +1878,7 @@
     <div class="page" id="page-lesson-prep" style="max-width:1100px;">
       <h1 class="page-title">备课资料</h1>
       <p class="page-desc"><span id="prepStat">加载中…</span> 导入完整语法填空篇章，像套卷一样讲题，迁移训练自动关联主题库。</p>
-      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()">📄 上传 Word 并 AI 解析</button>
+      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()">📄 上传 Word（自动归档 · 勾选错题）</button>
       <input type="file" id="docxFileInput" accept=".docx" onchange="processDocxFile(this)" style="display:none;">
       <button class="error-import-toggle" onclick="togglePrepImportForm()">+ 逐篇添加</button>
       <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="togglePrepBatchImport()">📥 批量导入 JSON</button>
@@ -2701,35 +2701,12 @@ async function parseWithDeepSeek(text) {
       { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
       { label: '上传到云端 AI', status: 'done' },
       { label: 'AI 正在解析', status: 'done' },
-      { label: '整理结果并入库（共 ' + passagesArr.length + ' 篇）', status: 'done' },
+      { label: '整理结果（共 ' + passagesArr.length + ' 篇 · ' + passagesArr.reduce(function(s,p){return s + p.blanks.length;},0) + ' 题）', status: 'done' },
     ]);
     setTimeout(hideAiOverlay, 400);
 
-    var isErrorBook = (_docxImportTarget === 'error');
-    var targetLabel = isErrorBook ? '错题本' : '备课资料';
-
-    var summary = passagesArr.map(function(p, i) {
-      return (i + 1) + '. 《' + p.title + '》· ' + p.blanks.length + ' 空';
-    }).join('\n');
-
-    if (!confirm(
-      'AI 解析完成！识别到 ' + passagesArr.length + ' 篇：\n\n' +
-      summary +
-      '\n\n确认导入到' + targetLabel + '？'
-    )) return;
-
-    var imported = 0;
-    passagesArr.forEach(function(p) {
-      if (isErrorBook) importDeepSeekResultToErrorBook(p, true);
-      else             importDeepSeekResult(p, true);
-      imported++;
-    });
-
-    // 统一渲染（保存包装器会自动同步到云端，无需再单独调 uploadLocalToCloud）
-    if (isErrorBook) { renderErrorBook(); renderBankStat(); }
-    else             { renderPrepList(); renderBankStat(); }
-
-    alert('已导入 ' + imported + ' 篇 ' + targetLabel + '。');
+    // 不再直接入库，弹出统一选择面板：整篇默认进备课资料，勾选的题再额外进错题本
+    setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, 200);
 
   } catch (err) {
     stopAiDrift();
@@ -2745,6 +2722,117 @@ async function parseWithDeepSeek(text) {
       showRawTextFallback(text);
     }
   }
+}
+
+// ───────── 统一导入面板 ─────────
+var _unifiedImportData = null; // { passages: [...] }
+
+function openUnifiedImportPanel(passagesArr) {
+  _unifiedImportData = { passages: passagesArr };
+
+  // 标题：单篇用文章名，多篇汇总
+  var titleEl = document.getElementById('unifiedImportTitle');
+  if (passagesArr.length === 1) {
+    titleEl.textContent = passagesArr[0].title;
+  } else {
+    titleEl.textContent = passagesArr.length + ' 篇语法填空';
+  }
+
+  // 渲染每篇
+  var html = '';
+  passagesArr.forEach(function(p, pi) {
+    html += '<div style="margin-bottom:18px;padding-bottom:18px;'
+         + (pi < passagesArr.length - 1 ? 'border-bottom:1px dashed var(--border);' : '')
+         + '">';
+    if (passagesArr.length > 1) {
+      html += '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">📄 ' + p.title + '</div>';
+    }
+    // 列出每题
+    p.blanks.forEach(function(b, bi) {
+      var catName = (CATEGORY_MAP && CATEGORY_MAP[b.category]) || b.category || '未分类';
+      var ans = b.answer || '?';
+      var prev = (b.analysis || '').substring(0, 60);
+      html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .12s;" '
+           +  'onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'\'">'
+           +    '<input type="checkbox" class="unified-blank-check" data-passage="' + pi + '" data-blank="' + bi + '" '
+           +      'onchange="updateUnifiedSelectedCount()" style="margin-top:3px;width:16px;height:16px;cursor:pointer;flex-shrink:0;">'
+           +    '<div style="flex:1;font-size:13px;line-height:1.55;">'
+           +      '<div><span style="color:var(--accent);font-weight:600;">第 ' + (b.no || (bi + 1)) + ' 题</span>'
+           +        ' · <b style="color:var(--text);">' + ans + '</b>'
+           +        ' <span style="font-size:11px;background:var(--accent-bg);color:var(--accent);padding:1px 7px;border-radius:10px;margin-left:4px;">' + catName + '</span>'
+           +      '</div>'
+           + (prev ? '<div style="font-size:12px;color:var(--text-3);margin-top:2px;">' + prev + (b.analysis && b.analysis.length > 60 ? '…' : '') + '</div>' : '')
+           +    '</div>'
+           +  '</label>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('unifiedImportBody').innerHTML = html;
+
+  // 底部汇总
+  var totalBlanks = passagesArr.reduce(function(s, p){ return s + p.blanks.length; }, 0);
+  document.getElementById('unifiedImportSummary').textContent =
+    passagesArr.length + ' 篇 · 共 ' + totalBlanks + ' 题';
+
+  document.getElementById('unifiedSelectedCount').textContent = '已勾选 0 题进错题本';
+  document.getElementById('unifiedImportOverlay').style.display = 'flex';
+}
+
+function closeUnifiedImport() {
+  document.getElementById('unifiedImportOverlay').style.display = 'none';
+  _unifiedImportData = null;
+}
+
+function unifiedSelectAll(checked) {
+  document.querySelectorAll('.unified-blank-check').forEach(function(cb){ cb.checked = checked; });
+  updateUnifiedSelectedCount();
+}
+
+function updateUnifiedSelectedCount() {
+  var n = document.querySelectorAll('.unified-blank-check:checked').length;
+  document.getElementById('unifiedSelectedCount').textContent = '已勾选 ' + n + ' 题进错题本';
+}
+
+function confirmUnifiedImport() {
+  if (!_unifiedImportData) return;
+  var passages = _unifiedImportData.passages;
+
+  // 1) 整篇进备课资料
+  var prepCount = 0;
+  passages.forEach(function(p){
+    importDeepSeekResult(p, true);
+    prepCount++;
+  });
+
+  // 2) 勾选的单题进错题本
+  var errorCount = 0;
+  var checks = document.querySelectorAll('.unified-blank-check:checked');
+  checks.forEach(function(cb){
+    var pi = parseInt(cb.dataset.passage, 10);
+    var bi = parseInt(cb.dataset.blank, 10);
+    var p = passages[pi];
+    if (!p) return;
+    var b = p.blanks[bi];
+    if (!b) return;
+    var oneBlank = {
+      title: p.title,
+      passage: p.passage,
+      blanks: [b]
+    };
+    importDeepSeekResultToErrorBook(oneBlank, true);
+    errorCount++;
+  });
+
+  // 3) 渲染 + 同步（save 包装器自动推云）
+  renderPrepList();
+  renderErrorBook();
+  renderBankStat();
+
+  closeUnifiedImport();
+
+  var msg = '已导入：\n📋 备课资料 ' + prepCount + ' 篇';
+  if (errorCount > 0) msg += '\n📝 错题本 ' + errorCount + ' 道（按考点分类，迁移训练自动联动）';
+  alert(msg);
 }
 
 function importDeepSeekResult(result, silent) {
@@ -3987,42 +4075,107 @@ function buildAnalysisContent(q) {
     + '</div>';
 }
 
+// ─── 迁移训练数据源（持久化，登出不清空，方便老师习惯固定一种）───
+var MIGRATION_SOURCE_KEY = 'grammar-migration-source';
+var _migrationSource = (function(){
+  try { return localStorage.getItem(MIGRATION_SOURCE_KEY) || 'bank'; }
+  catch(e) { return 'bank'; }
+})(); // 'bank' | 'errors' | 'all'
+
+function setMigrationSource(src) {
+  _migrationSource = src;
+  try { localStorage.setItem(MIGRATION_SOURCE_KEY, src); } catch(e) {}
+  if (selectedQuestion) {
+    document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedQuestion);
+  }
+}
+
 function buildMigrationContent(q) {
-  var pool = ALL_QUESTIONS.filter(function(item) {
-    return item.exam !== q.exam && item.category === q.category;
+  // 三种来源的题池
+  var bankPool = ALL_QUESTIONS.filter(function(item) {
+    return item.category === q.category && !(item.exam === q.exam && item.no === q.no);
   });
+  var errorPool = errorBookQuestions.filter(function(item) {
+    return item.category === q.category && item.id !== q.id;
+  });
+
+  // 当前选定来源
+  var pool;
+  if (_migrationSource === 'errors') pool = errorPool;
+  else if (_migrationSource === 'all') pool = bankPool.concat(errorPool);
+  else pool = bankPool;
+
+  // 顶部 segmented 控件
+  function tab(key, label, count) {
+    var active = (_migrationSource === key);
+    return '<button onclick="setMigrationSource(\'' + key + '\')" '
+      + 'style="flex:1;padding:7px 10px;border:none;background:' + (active ? 'var(--surface)' : 'transparent')
+      + ';color:' + (active ? 'var(--text)' : 'var(--text-2)')
+      + ';font-size:12px;font-weight:' + (active ? '600' : '500')
+      + ';border-radius:6px;cursor:pointer;transition:all .15s;font-family:inherit;'
+      + (active ? 'box-shadow:0 1px 3px rgba(0,0,0,0.08);' : '')
+      + '">'
+      + label + ' <span style="color:var(--text-3);font-weight:400;">' + count + '</span>'
+      + '</button>';
+  }
+  var tabsHtml = '<div style="display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:8px;margin-bottom:12px;">'
+    + tab('bank',   '真题库', bankPool.length)
+    + tab('errors', '我的错题', errorPool.length)
+    + tab('all',    '全部',   bankPool.length + errorPool.length)
+    + '</div>';
 
   if (pool.length === 0) {
-    return '<div class="empty-hint">题库中暂无同考点（' +
-           (CATEGORY_MAP[q.category] || q.category) +
-           '）的其他题目，可先添加更多套卷到 data/语法填空库 后重新生成题库。</div>';
+    var hint;
+    if (_migrationSource === 'errors') {
+      hint = '错题本里还没有同考点的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选"高频错题"，多积累几道再来。</span>';
+    } else if (_migrationSource === 'all') {
+      hint = '题库和错题本里都没有同考点的题。';
+    } else {
+      hint = '真题库里暂无同考点（' + (CATEGORY_MAP[q.category] || q.category) + '）的其他题目。';
+    }
+    return tabsHtml + '<div class="empty-hint">' + hint + '</div>';
   }
 
-  var byExam = {};
-  pool.forEach(function(item) {
-    if (!byExam[item.exam]) byExam[item.exam] = item;
-  });
-  var migration = Object.values(byExam).slice(0, 6);
+  // 真题库按"每套卷一题"去重，错题本不去重（每道错题都独立有意义）
+  var migration;
+  if (_migrationSource === 'errors') {
+    migration = pool.slice(0, 6);
+  } else if (_migrationSource === 'all') {
+    // 混合：先真题库 1 套 1 题，再补错题本
+    var byExam = {};
+    bankPool.forEach(function(item) { if (!byExam[item.exam]) byExam[item.exam] = item; });
+    var bankDedup = Object.values(byExam);
+    migration = bankDedup.concat(errorPool).slice(0, 6);
+  } else {
+    var byExam2 = {};
+    pool.forEach(function(item) { if (!byExam2[item.exam]) byExam2[item.exam] = item; });
+    migration = Object.values(byExam2).slice(0, 6);
+  }
 
-  var html = '<div style="font-size:12px;color:var(--text-2);margin-bottom:8px;">' +
-             '同考点（<strong>' + (CATEGORY_MAP[q.category] || q.category) +
-             '</strong>）共 <strong>' + pool.length + '</strong> 题，已展示 ' +
-             migration.length + ' 题（每套卷取 1 题）：</div>'
-             + '<div class="migration-list">';
+  var html = tabsHtml
+    + '<div style="font-size:12px;color:var(--text-2);margin-bottom:8px;">'
+    + '同考点（<strong>' + (CATEGORY_MAP[q.category] || q.category)
+    + '</strong>）共 <strong>' + pool.length + '</strong> 题，已展示 '
+    + migration.length + ' 题：</div>'
+    + '<div class="migration-list">';
   migration.forEach(function(item) {
     var sent = extractSentence(item.passage, item.no);
     if (!sent) sent = item.sentence || '(空格上下文不可用)';
     sent = sent.replace('___' + item.no + '___', '<span class="blank-hl">___' + item.no + '___</span>');
 
+    var isError = (item.exam === '错题本' || (item.id && item.id.indexOf('err_') === 0));
+    var srcLabel = isError ? '📝 我的错题' : item.exam;
+
     html += '<div class="migration-card" onclick="this.classList.toggle(\'open\')">'
       + '<div class="migration-card-head">'
-      + '<span class="migration-card-source">' + item.exam + ' · 第' + item.no + '题</span>'
+      + '<span class="migration-card-source"' + (isError ? ' style="color:var(--accent);"' : '') + '>'
+      +    srcLabel + ' · 第' + item.no + '题</span>'
       + '<span class="migration-card-tag">' + (CATEGORY_MAP[item.category] || item.category) + '</span>'
       + '</div>'
       + '<div class="migration-card-sentence">' + sent + '</div>'
       + '<div class="migration-card-body">'
       + '<p><span class="ans">答案：' + item.answer + '</span></p>'
-      + '<p>' + item.analysis + '</p>'
+      + '<p>' + (item.analysis || '') + '</p>'
       + '</div>'
       + '</div>';
   });
@@ -4209,6 +4362,38 @@ init();
 <div class="float-actions">
   <div class="float-btn" onclick="goHome()" title="返回首页">←</div>
   <div class="float-btn" onclick="scrollToTop()" title="回到顶部">↑</div>
+</div>
+
+<!-- 统一导入选择面板：整篇进备课资料 + 勾选的题进错题本 -->
+<div id="unifiedImportOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border-radius:14px;box-shadow:var(--shadow-lg);width:720px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;">
+    <div style="padding:22px 26px 14px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:11px;letter-spacing:2px;color:var(--accent);font-weight:600;margin-bottom:4px;">AI 解析完成</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text);" id="unifiedImportTitle">--</div>
+        </div>
+        <button onclick="closeUnifiedImport()" style="border:none;background:none;font-size:22px;color:var(--text-3);cursor:pointer;padding:0 4px;">×</button>
+      </div>
+      <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-top:10px;">
+        所有篇章会作为<b style="color:var(--text);">备课资料</b>入库（讲题模式整篇可用）。<br>
+        勾选下面任意题目，这些题会<b style="color:var(--text);">额外进入错题本</b>，按考点分类，下次自动联动同考点题做迁移训练。
+      </p>
+      <div style="margin-top:10px;display:flex;gap:8px;font-size:12px;align-items:center;">
+        <button onclick="unifiedSelectAll(true)" style="background:var(--surface-3);border:none;padding:5px 12px;border-radius:14px;font-size:12px;cursor:pointer;color:var(--text-2);">全选</button>
+        <button onclick="unifiedSelectAll(false)" style="background:var(--surface-3);border:none;padding:5px 12px;border-radius:14px;font-size:12px;cursor:pointer;color:var(--text-2);">全不选</button>
+        <span style="color:var(--text-3);margin-left:auto;" id="unifiedSelectedCount">已勾选 0 题进错题本</span>
+      </div>
+    </div>
+    <div id="unifiedImportBody" style="flex:1;overflow-y:auto;padding:14px 26px;"></div>
+    <div style="padding:14px 26px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);border-radius:0 0 14px 14px;">
+      <span style="font-size:12px;color:var(--text-3);" id="unifiedImportSummary">--</span>
+      <div>
+        <button onclick="closeUnifiedImport()" style="background:none;border:1px solid var(--border);padding:8px 18px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text-2);margin-right:8px;">取消</button>
+        <button onclick="confirmUnifiedImport()" style="background:var(--accent);border:none;padding:8px 22px;border-radius:6px;font-size:13px;cursor:pointer;color:#fff;font-weight:600;">确认导入</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- AI 解析加载遮罩 -->
