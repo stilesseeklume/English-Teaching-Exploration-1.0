@@ -1408,10 +1408,8 @@
     dotsEl.innerHTML = html;
   }
   window.__jumpToScene = function(idx) {
-    var scenes = document.querySelectorAll('#view-welcome .scene');
-    if (!scenes[idx]) return;
     stopAutoscroll();
-    scenes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    goToScene(idx);
   };
 
   var _currentSceneIdx = 0;
