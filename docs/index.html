@@ -1324,21 +1324,6 @@
     if (dotsEl) dotsEl.classList.remove('is-playing');
   }
 
-  /* ===== Page-by-page Wheel Scrolling ===== */
-  var _wheelDebounce = false;
-  var WHEEL_DEBOUNCE_MS = 800;
-  window.addEventListener('wheel', function(e) {
-    if (!document.body.classList.contains('welcome-mode')) return;
-    if (e.target.closest && (e.target.closest('#authModal') || e.target.closest('.modal-overlay'))) return;
-    if (_wheelDebounce) { e.preventDefault(); return; }
-    _wheelDebounce = true;
-    setTimeout(function() { _wheelDebounce = false; }, WHEEL_DEBOUNCE_MS);
-    e.preventDefault();
-    if (_autoscrollEnabled) stopAutoscroll();
-    if (e.deltaY > 0) advanceScene();
-    else goToPrevScene();
-  }, { passive: false });
-
   /* ===== Fake Screen Recording Demo ===== */
   var _demoInterval = null;
   var _demoStepTimers = [];
