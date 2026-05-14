@@ -3757,6 +3757,7 @@ function switchPage(page) {
   if (pageEl) pageEl.classList.add('active');
   var navBtn = document.querySelector('[data-page="' + page + '"]');
   if (navBtn) navBtn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
   // body class 状态机
   if (page === 'welcome') {
@@ -3860,6 +3861,7 @@ function navigateHome(view) {
   document.getElementById('homeCards').style.display = view === 'cards' ? '' : 'none';
   document.getElementById('homeExams').classList.toggle('active', view === 'exams');
   document.getElementById('homeCategories').classList.toggle('active', view === 'categories');
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 function adjustFont(target, delta) {
