@@ -1120,11 +1120,18 @@
 
 <!-- ============== Supabase 云同步 · 配置 + 客户端 ============== -->
 <!-- 部署前请把下面两行换成你 Supabase 项目的真实值（Settings → API） -->
+<!-- 防闪烁：body 在 JS 决定好正确视图前完全不可见 -->
+<style id="boot-cloak">
+  html:not(.ready) body { visibility: hidden !important; }
+  html.ready body { animation: bootFadeIn .25s ease-out both; }
+  @keyframes bootFadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+<noscript><style>body { visibility: visible !important; }</style></noscript>
 <script>
   window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
   window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
   // 同步检测 session，避免跨页跳转时闪欢迎页
-  (function(){
+  window.__hasSessionSync = (function(){
     try {
       var raw = localStorage.getItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token');
       if (raw) {
@@ -1133,10 +1140,14 @@
         var exp   = d && (d.expires_at   || (d.currentSession && d.currentSession.expires_at));
         if (token && (!exp || exp * 1000 > Date.now())) {
           document.documentElement.classList.add('has-session');
+          return true;
         }
       }
     } catch(e) {}
+    return false;
   })();
+  // 安全网：1.2 秒后强制 ready，避免 JS 卡住时白屏
+  setTimeout(function() { document.documentElement.classList.add('ready'); }, 1200);
 </script>
 <style>
   /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
@@ -2885,6 +2896,9 @@ function init() {
     switchPage('home');
     renderUserPill({ user: null, isAdmin: false });
   }
+
+  // 视图就位，揭开 body
+  document.documentElement.classList.add('ready');
 }
 
 // ========== 云同步：UI + 数据 ==========

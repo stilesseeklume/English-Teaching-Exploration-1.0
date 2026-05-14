@@ -431,11 +431,18 @@
     vertical-align: -2px; margin-right: 6px;
   }
 </style>
+<!-- 防闪烁：body 在 JS 决定好正确视图前完全不可见，决定后淡入 -->
+<style id="boot-cloak">
+  html:not(.ready) body { visibility: hidden !important; }
+  html.ready body { animation: bootFadeIn .25s ease-out both; }
+  @keyframes bootFadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+<noscript><style>html { } body { visibility: visible !important; }</style></noscript>
 <script>
   window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
   window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
-  // 同步检测 Supabase session，避免 JS 异步前渲染欢迎页造成闪烁
-  (function(){
+  // 同步检测 session 状态
+  window.__hasSessionSync = (function(){
     try {
       var raw = localStorage.getItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token');
       if (raw) {
@@ -444,10 +451,14 @@
         var exp   = d && (d.expires_at   || (d.currentSession && d.currentSession.expires_at));
         if (token && (!exp || exp * 1000 > Date.now())) {
           document.documentElement.classList.add('has-session');
+          return true;
         }
       }
     } catch(e) {}
+    return false;
   })();
+  // 安全网：如果 800ms 后还没 ready，强制 ready 防止永久白屏
+  setTimeout(function() { document.documentElement.classList.add('ready'); }, 800);
 </script>
 <style>
   /* 已登录用户首屏直接渲染模块选择视图，避免闪欢迎页 */
@@ -1011,14 +1022,24 @@
   window.checkApproval = checkApproval;
   window.goHome = goHome;
 
-  // 启动
-  // 默认进入 welcome 视图就启动动画 + scroll-snap
-  if (document.getElementById('view-welcome') &&
-      document.getElementById('view-welcome').classList.contains('active') &&
-      !document.documentElement.classList.contains('has-session')) {
-    document.body.classList.add('welcome-mode');
-    initWelcomeAnimations();
-  }
+  // 启动前先确定初始视图，避免任何闪烁
+  (function syncInitView() {
+    var has = window.__hasSessionSync;
+    var w = document.getElementById('view-welcome');
+    var m = document.getElementById('view-modules');
+    if (has) {
+      if (w) w.classList.remove('active');
+      if (m) m.classList.add('active');
+      document.body.classList.remove('welcome-mode');
+    } else {
+      if (w) w.classList.add('active');
+      if (m) m.classList.remove('active');
+      document.body.classList.add('welcome-mode');
+      try { initWelcomeAnimations(); } catch(e) {}
+    }
+    // 视图就位，揭开 body
+    document.documentElement.classList.add('ready');
+  })();
 
   refreshAndRoute();
   if (sb) {
