@@ -39,6 +39,16 @@
     --input-bg: #ffffff;
     --input-border: #e5e5ea;
     --grip-line: rgba(0,0,0,0.18);
+    --dock-bg: rgba(255,255,255,0.68);
+    --dock-border: rgba(0,0,0,0.06);
+    --dock-shadow-outer: 0 4px 24px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
+    --dock-shadow-inner: inset 0 0.5px 0 rgba(255,255,255,0.6);
+    --dock-item-color: #6e6e73;
+    --dock-item-hover-color: #1d1d1f;
+    --dock-item-hover-bg: rgba(0,0,0,0.04);
+    --dock-label-color: rgba(0,0,0,0.45);
+    --dock-dot-color: rgba(0,0,0,0.35);
+    --dock-divider-color: rgba(0,0,0,0.1);
   }
 
   [data-theme="dark"] {
@@ -72,6 +82,16 @@
     --input-bg: #1c1c1e;
     --input-border: #38383a;
     --grip-line: rgba(255,255,255,0.2);
+    --dock-bg: rgba(44,44,46,0.78);
+    --dock-border: rgba(255,255,255,0.08);
+    --dock-shadow-outer: 0 4px 24px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.06);
+    --dock-shadow-inner: inset 0 0.5px 0 rgba(255,255,255,0.1);
+    --dock-item-color: #98989d;
+    --dock-item-hover-color: #f5f5f7;
+    --dock-item-hover-bg: rgba(255,255,255,0.06);
+    --dock-label-color: rgba(255,255,255,0.5);
+    --dock-dot-color: rgba(255,255,255,0.45);
+    --dock-divider-color: rgba(255,255,255,0.1);
   }
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -197,7 +217,7 @@
   }
   .grid-11 {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 10px;
   }
   .card {
@@ -223,9 +243,9 @@
   .card-tag.orange { background: var(--orange-bg); color: var(--orange); }
   .card-tag.purple { background: var(--purple-bg); color: var(--purple); }
   .card-tag.teal { background: var(--teal-bg); color: var(--teal); }
-  .card-title { font-size: var(--font-base, 24px); font-weight: 600; margin-bottom: 4px; }
-  .card-desc { font-size: var(--font-sm, 21px); color: var(--text-3); }
-  .card-count { font-size: var(--font-sm, 21px); color: var(--text-3); margin-top: 4px; }
+  .card-title { font-size: clamp(14px, var(--font-base, 24px), 30px); font-weight: 600; margin-bottom: 4px; }
+  .card-desc { font-size: clamp(12px, var(--font-sm, 21px), 24px); color: var(--text-3); }
+  .card-count { font-size: clamp(12px, var(--font-sm, 21px), 24px); color: var(--text-3); margin-top: 4px; }
 
   .section-title {
     font-size: var(--font-lg, 25px); font-weight: 700; margin: 28px 0 12px; padding-left: 12px;
@@ -587,11 +607,11 @@
   }
   .knowledge-section { animation: fadeIn .25s ease-out; }
   .knowledge-section-header { margin-bottom: 18px; }
-  .knowledge-section-header h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-  .knowledge-section-header .section-desc { font-size: 14px; color: var(--text-2); }
+  .knowledge-section-header h2 { font-size: var(--k-font-lg, 22px); font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .knowledge-section-header .section-desc { font-size: var(--k-font-sm, 14px); color: var(--text-2); }
   .knowledge-overview-box {
     background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 18px; margin-bottom: 24px; font-size: 14px; line-height: 1.8; color: var(--text-2);
+    padding: 14px 18px; margin-bottom: 24px; font-size: var(--k-font-sm, 14px); line-height: 1.8; color: var(--text-2);
   }
   .knowledge-overview-box em { font-style: normal; font-weight: 600; color: var(--text); }
 
@@ -601,25 +621,25 @@
   }
   .knowledge-subsection:last-child { border-bottom: none; }
   .knowledge-subsection h3 {
-    font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;
+    font-size: var(--k-font-base, 16px); font-weight: 700; color: var(--accent); margin-bottom: 4px;
     padding-left: 12px; border-left: 3px solid var(--accent);
   }
-  .knowledge-subsection .sub-desc { font-size: 12px; color: var(--text-3); margin-bottom: 12px; padding-left: 15px; }
-  .knowledge-subsection-body { padding-left: 15px; font-size: 13px; line-height: 1.9; }
-  .knowledge-subsection-body h4 { font-size: 14px; color: var(--text); margin: 14px 0 6px; font-weight: 600; }
+  .knowledge-subsection .sub-desc { font-size: var(--k-font-sm, 12px); color: var(--text-3); margin-bottom: 12px; padding-left: 15px; }
+  .knowledge-subsection-body { padding-left: 15px; font-size: var(--k-font-sm, 13px); line-height: 1.9; }
+  .knowledge-subsection-body h4 { font-size: var(--k-font-base, 14px); color: var(--text); margin: 14px 0 6px; font-weight: 600; }
   .knowledge-subsection-body h4:first-child { margin-top: 4px; }
   .knowledge-subsection-body ul { padding-left: 18px; margin: 4px 0; }
   .knowledge-subsection-body li { margin-bottom: 3px; }
   .knowledge-subsection-body p { margin: 6px 0; }
   .tip-box {
     background: #fff9e6; border-left: 3px solid var(--accent); padding: 10px 14px;
-    border-radius: 4px; margin: 12px 0; font-weight: 500; font-size: 13px; line-height: 1.7;
+    border-radius: 4px; margin: 12px 0; font-weight: 500; font-size: var(--k-font-sm, 13px); line-height: 1.7;
   }
   .ref-table {
-    width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0;
+    width: 100%; border-collapse: collapse; font-size: var(--k-font-sm, 13px); margin: 10px 0;
     border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden;
   }
-  .ref-table th { background: var(--surface-3); padding: 7px 12px; text-align: left; font-weight: 600; font-size: 12px; color: var(--text-2); white-space: nowrap; }
+  .ref-table th { background: var(--surface-3); padding: 7px 12px; text-align: left; font-weight: 600; font-size: var(--k-font-sm, 12px); color: var(--text-2); white-space: nowrap; }
   .ref-table td { padding: 6px 12px; border-top: 1px solid var(--border); vertical-align: top; }
   .ref-table tr:nth-child(even) td { background: var(--surface-2); }
 
@@ -824,7 +844,7 @@
   }
 
   @media (max-width: 960px) {
-    .grid-11 { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .grid-11 { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
   }
 
   /* ============== 紧凑模式（白板/投影）============== */
@@ -871,14 +891,12 @@
   body.guest #page-welcome { display: block !important; }
   body.guest .page:not(#page-welcome) { display: none !important; }
   body.guest header { background: rgba(255,255,255,0.7); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); }
-  body.guest .dock { display: none; }
 
   /* ============== 模块选择页（登录后默认）============== */
   body.in-modules .header-font-ctrl,
   body.in-modules #syncStatus { display: none !important; }
   body.in-modules #page-modules { display: block !important; }
   body.in-modules .page:not(#page-modules) { display: none !important; }
-  body.in-modules .dock { display: none; }
 
   #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); margin: 0 auto; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
   #page-practice { max-width: none; padding: 0; }
@@ -1420,22 +1438,19 @@
   align-items: flex-end;
   gap: 2px;
   padding: 6px 6px 8px;
-  background: rgba(255,255,255,0.68);
+  background: var(--dock-bg);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border: 0.5px solid rgba(0,0,0,0.06);
+  border: 0.5px solid var(--dock-border);
   border-radius: 20px;
-  box-shadow:
-    0 4px 24px rgba(0,0,0,0.06),
-    0 0 0 0.5px rgba(0,0,0,0.04),
-    inset 0 0.5px 0 rgba(255,255,255,0.6);
+  box-shadow: var(--dock-shadow-outer), var(--dock-shadow-inner);
 }
 .dock-item {
   width: 50px; height: 50px;
   border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; position: relative;
-  color: #6e6e73;
+  color: var(--dock-item-color);
   transition: all .28s cubic-bezier(.22,.61,.36,1);
   -webkit-tap-highlight-color: transparent;
   transform-origin: bottom center;
@@ -1443,8 +1458,8 @@
 }
 .dock-item:hover {
   transform: scale(1.22);
-  color: #1d1d1f;
-  background: rgba(0,0,0,0.04);
+  color: var(--dock-item-hover-color);
+  background: var(--dock-item-hover-bg);
   /* 相邻元素也跟着放大 */
 }
 .dock-item:hover + .dock-item { transform: scale(1.10); }
@@ -1458,7 +1473,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px; font-weight: 500;
-  color: rgba(0,0,0,0.45);
+  color: var(--dock-label-color);
   white-space: nowrap;
   opacity: 0;
   transition: opacity .18s ease;
@@ -1473,21 +1488,21 @@
   transform: translateX(-50%);
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.35);
+  background: var(--dock-dot-color);
 }
 .dock-divider {
   width: 0.5px;
-  background: rgba(0,0,0,0.1);
+  background: var(--dock-divider-color);
   margin: 8px 6px 12px;
   align-self: stretch;
 }
 /* AI 高亮项 */
 .dock-item.ai-dock {
-  color: #af52de;
+  color: var(--purple);
 }
 .dock-item.ai-dock:hover {
-  color: #8944c9;
-  background: rgba(175,82,222,0.08);
+  color: var(--purple);
+  background: var(--purple-bg);
 }
 
 /* ====== AI 助手 ====== */
@@ -3157,6 +3172,24 @@ async function parseWithDeepSeek(text) {
       };
     });
 
+    // 去重：AI 可能把同一篇文章拆成多篇（如加了 B 后缀），用答案指纹合并
+    var seenSigs = {};
+    passagesArr = passagesArr.filter(function(p) {
+      var sig = (p.blanks || []).map(function(b) {
+        return (b.no || '') + '=' + (b.answer || '').trim();
+      }).sort(function(a, b) { return a < b ? -1 : a > b ? 1 : 0; }).join('|');
+      if (!sig) return true; // 没有 blanks 的保留（可能是解析失败）
+      if (seenSigs[sig]) {
+        // 保留 blanks 更多的那个
+        if (p.blanks.length > seenSigs[sig].blanks.length) {
+          seenSigs[sig] = p;
+        }
+        return false;
+      }
+      seenSigs[sig] = p;
+      return true;
+    });
+
     if (passagesArr.length === 0) {
       throw new Error('AI 没有识别出任何题目');
     }
@@ -3432,6 +3465,9 @@ function init() {
   document.documentElement.style.setProperty('--drawer-font-size', '24px');
   document.documentElement.style.setProperty('--drawer-font-size-lg', '25px');
   document.documentElement.style.setProperty('--drawer-font-size-sm', '23px');
+  document.documentElement.style.setProperty('--k-font-lg', '22px');
+  document.documentElement.style.setProperty('--k-font-base', '16px');
+  document.documentElement.style.setProperty('--k-font-sm', '13px');
   loadErrorBook();
   loadPrepPassages();
   runErrorBookCleanup();
@@ -4264,12 +4300,6 @@ function switchPage(page) {
   if (pageEl) pageEl.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'instant' });
 
-  // Dock visibility
-  var dock = document.getElementById('mainDock');
-  if (dock) {
-    dock.style.display = (page === 'welcome') ? 'none' : '';
-  }
-
   if (page === 'practice') updateBackButton();
 
   // 侧边栏：home / 按套件 / 按考点 / 错题本 / 备课 始终展示
@@ -4288,13 +4318,9 @@ function switchPage(page) {
   if (page === 'admin') renderAdminPage();
 }
 
-// 顶部 logo 点击：已登录 → 回顶层模块选择页（hub）；未登录 → 唤起登录
+// 顶部 logo 点击：回到首页
 function logoClick() {
-  if (window.cloud && window.cloud.state && window.cloud.state.user) {
-    window.location.href = '/';
-  } else {
-    openAuthModal('signin');
-  }
+  window.location.href = '/';
 }
 
 // 模块卡点击 → 进入该模块
@@ -4386,6 +4412,10 @@ function adjustFont(target, delta) {
     document.documentElement.style.setProperty('--font-base', passageFontSize + 'px');
     document.documentElement.style.setProperty('--font-lg', (passageFontSize + 1) + 'px');
     document.documentElement.style.setProperty('--font-sm', (passageFontSize - 3) + 'px');
+    // 知识库文字跟随缩放，保持较小比例
+    document.documentElement.style.setProperty('--k-font-lg', Math.round(passageFontSize * 0.92) + 'px');
+    document.documentElement.style.setProperty('--k-font-base', Math.round(passageFontSize * 0.67) + 'px');
+    document.documentElement.style.setProperty('--k-font-sm', Math.round(passageFontSize * 0.54) + 'px');
     document.getElementById('passageFontVal').textContent = passageFontSize + 'px';
   } else {
     drawerFontSize = Math.max(12, Math.min(48, drawerFontSize + delta));
