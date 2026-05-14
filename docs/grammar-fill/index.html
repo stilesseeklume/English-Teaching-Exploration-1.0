@@ -154,8 +154,27 @@
     background: var(--surface);
     overflow-y: auto; max-height: calc(100vh - 100px);
     position: sticky; top: 16px;
-    padding: 8px 0; border-radius: var(--radius);
+    padding: 0; border-radius: var(--radius);
+    transition: width .2s;
   }
+  .context-sidebar.collapsed {
+    width: 36px;
+  }
+  .context-sidebar.collapsed .context-sidebar-content { display: none; }
+  .context-sidebar.collapsed .context-sidebar-toggle-label { display: none; }
+  .context-sidebar-toggle {
+    display: flex; align-items: center; gap: 6px;
+    width: 100%; padding: 8px 10px; cursor: pointer;
+    border: none; background: none; color: var(--text-3);
+    font-size: 13px; transition: color .12s;
+    border-bottom: 1px solid var(--border);
+  }
+  .context-sidebar.collapsed .context-sidebar-toggle {
+    border-bottom: none; padding: 8px 6px; justify-content: center;
+  }
+  .context-sidebar-toggle:hover { color: var(--text); }
+  .context-sidebar-toggle-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .context-sidebar-content { padding: 8px 0; }
   .context-sidebar-empty { padding: 24px 12px; font-size: 12px; color: var(--text-3); text-align: center; }
   .context-sidebar-title {
     font-size: 13px; font-weight: 600; color: var(--text);
@@ -720,9 +739,12 @@
   body.compact .category-stats { display: none; }
   body.compact .practice-layout { min-height: auto; padding-bottom: 16px; padding: 10px; }
   body.compact .context-sidebar { width: 170px; max-height: calc(100vh - 80px); top: 10px; }
+  body.compact .context-sidebar.collapsed { width: 32px; }
   body.compact .context-sidebar-title { font-size: 11px; padding: 4px 8px 8px; }
   body.compact .context-sidebar-item { padding: 4px 8px; font-size: 11px; }
   body.compact .context-sidebar-year { padding: 6px 8px 1px; font-size: 9px; }
+  body.compact .context-sidebar-toggle { padding: 5px 8px; font-size: 11px; }
+  body.compact .context-sidebar-toggle-label { font-size: 11px; }
   body.compact .left-panel { padding-left: 14px; }
   body.compact .home-entry-card { padding: 16px 18px; }
   body.compact .home-entry-cards { gap: 10px; }
@@ -2118,7 +2140,13 @@
 
     <div class="page" id="page-practice">
       <div class="practice-layout">
-        <div class="context-sidebar" id="contextSidebar" style="display:none;"></div>
+        <div class="context-sidebar" id="contextSidebar" style="display:none;">
+          <button class="context-sidebar-toggle" onclick="toggleContextSidebar()" title="折叠侧栏">
+            <span id="contextSidebarToggleIcon">◀</span>
+            <span class="context-sidebar-toggle-label" id="contextSidebarToggleLabel">折叠</span>
+          </button>
+          <div class="context-sidebar-content" id="contextSidebarContent"></div>
+        </div>
         <div class="left-panel">
           <div class="back-btn" id="practiceBackBtn" onclick="goBack()">← 返回首页</div>
           <div class="source-info">
@@ -3831,6 +3859,14 @@ function renderExamGrid() {
 }
 
 // ────────── 套卷侧边栏 ──────────
+function toggleContextSidebar() {
+  var el = document.getElementById('contextSidebar');
+  if (!el) return;
+  var collapsed = el.classList.toggle('collapsed');
+  document.getElementById('contextSidebarToggleIcon').textContent = collapsed ? '▶' : '◀';
+  localStorage.setItem('grammar-context-sidebar-collapsed', collapsed ? '1' : '0');
+}
+
 function renderContextSidebar() {
   var el = document.getElementById('contextSidebar');
   if (!el) return;
@@ -3888,7 +3924,17 @@ function renderContextSidebar() {
   }
 
   html = '<div class="context-sidebar-title">' + title + '</div>' + html;
-  el.innerHTML = html;
+  document.getElementById('contextSidebarContent').innerHTML = html;
+  document.getElementById('contextSidebarToggleLabel').textContent = title;
+  // restore collapsed state
+  var collapsed = localStorage.getItem('grammar-context-sidebar-collapsed') === '1';
+  if (collapsed) {
+    el.classList.add('collapsed');
+    document.getElementById('contextSidebarToggleIcon').textContent = '▶';
+  } else {
+    el.classList.remove('collapsed');
+    document.getElementById('contextSidebarToggleIcon').textContent = '◀';
+  }
   el.style.display = '';
 }
 
