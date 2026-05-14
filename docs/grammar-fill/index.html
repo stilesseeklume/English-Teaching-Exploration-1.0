@@ -1932,7 +1932,7 @@
           后面会慢慢加上完形、七选五、阅读、读后续写、应用文。
         </p>
         <div class="welcome-cta">
-          <button class="welcome-btn primary" onclick="openAuthModal('signup')">免费注册 · 开始使用</button>
+          <button class="welcome-btn primary" onclick="openAuthModal('signup')">注册 · 开始使用</button>
           <button class="welcome-btn secondary" onclick="openAuthModal('signin')">我已注册 · 登录</button>
         </div>
       </div>
@@ -3443,7 +3443,7 @@ function renderUserPill(state) {
       + '<button onclick="openSettingsModal()" title="账户设置" style="border:none;background:var(--surface-3);padding:4px 7px;border-radius:4px;font-size:13px;cursor:pointer;">⚙</button>'
       + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
   } else {
-    el.innerHTML = '<span style="color:var(--text-3);font-size:11px;margin-right:8px;">免费体验中</span>'
+    el.innerHTML = '<span style="color:var(--text-3);font-size:11px;margin-right:8px;">访客模式</span>'
       + '<button onclick="openAuthModal(\'signin\')" style="border:none;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">登录 / 注册</button>';
   }
 }
