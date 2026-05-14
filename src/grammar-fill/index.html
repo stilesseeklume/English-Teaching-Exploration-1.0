@@ -143,11 +143,48 @@
   }
 
   .practice-layout {
-    display: block;
+    display: flex; gap: 0; align-items: flex-start;
     min-height: calc(100vh - 120px);
     padding-bottom: 48px;
+    max-width: 1400px; margin: 0 auto; padding: 16px;
   }
-  .left-panel { max-width: 100%; margin: 0 auto; }
+  .context-sidebar {
+    width: 210px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto; max-height: calc(100vh - 100px);
+    position: sticky; top: 16px;
+    padding: 8px 0; border-radius: var(--radius);
+  }
+  .context-sidebar-empty { padding: 24px 12px; font-size: 12px; color: var(--text-3); text-align: center; }
+  .context-sidebar-title {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    padding: 6px 12px 10px; border-bottom: 1px solid var(--border); margin-bottom: 6px;
+  }
+  .context-sidebar-year {
+    font-size: 10px; font-weight: 600; color: var(--text-3);
+    padding: 8px 12px 2px; letter-spacing: 0.5px;
+  }
+  .context-sidebar-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 12px; color: var(--text);
+    transition: background .12s;
+  }
+  .context-sidebar-item:hover { background: var(--surface-2); }
+  .context-sidebar-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+  .context-sidebar-item .cs-tag {
+    font-size: 9px; padding: 1px 5px; border-radius: 4px;
+    background: var(--surface-3); color: var(--text-3); flex-shrink: 0;
+  }
+  .context-sidebar-item .cs-tag.green { background: var(--green-bg); color: var(--green); }
+  .context-sidebar-item .cs-num {
+    font-size: 10px; color: var(--text-3); margin-left: auto; flex-shrink: 0;
+  }
+  .context-sidebar-item .cs-cat {
+    font-size: 10px; color: var(--text-3); margin-left: auto; flex-shrink: 0;
+  }
+  .left-panel { flex: 1; min-width: 0; padding-left: 20px; }
 
   .back-btn {
     display: inline-block; padding: 6px 14px; font-size: 13px; color: var(--accent);
@@ -681,7 +718,12 @@
   body.compact .passage-box p { margin-bottom: 10px; }
   body.compact .hint-text { display: none; }
   body.compact .category-stats { display: none; }
-  body.compact .practice-layout { min-height: auto; padding-bottom: 16px; }
+  body.compact .practice-layout { min-height: auto; padding-bottom: 16px; padding: 10px; }
+  body.compact .context-sidebar { width: 170px; max-height: calc(100vh - 80px); top: 10px; }
+  body.compact .context-sidebar-title { font-size: 11px; padding: 4px 8px 8px; }
+  body.compact .context-sidebar-item { padding: 4px 8px; font-size: 11px; }
+  body.compact .context-sidebar-year { padding: 6px 8px 1px; font-size: 9px; }
+  body.compact .left-panel { padding-left: 14px; }
   body.compact .home-entry-card { padding: 16px 18px; }
   body.compact .home-entry-cards { gap: 10px; }
   body.compact .category-section { margin-bottom: 14px; }
@@ -690,79 +732,9 @@
   body.compact .grid-11 { gap: 8px; }
   body.compact .font-ctrl-btn { width: 20px; height: 20px; font-size: 11px; line-height: 18px; }
 
-  /* ============== 套卷侧边栏 ============== */
-  .sidebar-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 150;
-    opacity: 0; pointer-events: none; transition: opacity .25s;
-  }
-  .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-
-  .sidebar {
-    position: fixed; top: 0; left: 0; bottom: 0; width: 300px; max-width: 85vw;
-    background: var(--surface); z-index: 151;
-    transform: translateX(-100%); transition: transform .25s cubic-bezier(.4,0,.2,1);
-    display: flex; flex-direction: column;
-    box-shadow: 2px 0 16px rgba(0,0,0,0.1);
-    border-right: 1px solid var(--border);
-  }
-  .sidebar.open { transform: translateX(0); }
-
-  .sidebar-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .sidebar-title { font-size: 14px; font-weight: 600; color: var(--text); }
-  .sidebar-close-btn {
-    border: none; background: none; font-size: 20px; cursor: pointer;
-    color: var(--text-2); padding: 4px 8px; border-radius: 6px; line-height: 1;
-  }
-  .sidebar-close-btn:hover { background: var(--surface-2); color: var(--text); }
-
-  .sidebar-exams {
-    flex: 1; overflow-y: auto; padding: 8px;
-  }
-  .sidebar-year {
-    font-size: 11px; font-weight: 600; color: var(--text-3);
-    padding: 10px 10px 4px; letter-spacing: 0.5px;
-  }
-  .sidebar-exam-item {
-    display: flex; align-items: center; gap: 6px;
-    padding: 7px 10px; border-radius: var(--radius-sm);
-    cursor: pointer; font-size: 13px; color: var(--text);
-    transition: background .12s;
-  }
-  .sidebar-exam-item:hover { background: var(--surface-2); }
-  .sidebar-exam-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
-  .sidebar-exam-item .exam-tag {
-    font-size: 10px; padding: 1px 6px; border-radius: 4px;
-    background: var(--surface-3); color: var(--text-3);
-    flex-shrink: 0;
-  }
-  .sidebar-exam-item .exam-tag.green { background: var(--green-bg); color: var(--green); }
-  .sidebar-exam-item .exam-num {
-    font-size: 10px; color: var(--text-3); margin-left: auto;
-    flex-shrink: 0;
-  }
-
-  .sidebar-toggle-btn {
-    border: none; background: none; font-size: 15px; cursor: pointer;
-    color: var(--text-2); padding: 4px 8px; border-radius: 6px;
-    line-height: 1; transition: background .12s;
-  }
-  .sidebar-toggle-btn:hover { background: var(--surface-2); color: var(--text); }
-
-  /* compact */
-  body.compact .sidebar-header { padding: 8px 12px; }
-  body.compact .sidebar-title { font-size: 13px; }
-  body.compact .sidebar-exam-item { padding: 5px 8px; font-size: 12px; }
-  body.compact .sidebar-year { padding: 6px 8px 2px; font-size: 10px; }
-
-
   /* ============== 欢迎页 + 登录墙 ============== */
   body.guest .nav,
   body.guest .header-font-ctrl,
-  body.guest .sidebar-toggle-btn,
   body.guest #syncStatus { display: none !important; }
   body.guest #page-welcome { display: block !important; }
   body.guest .page:not(#page-welcome) { display: none !important; }
@@ -771,7 +743,6 @@
   /* ============== 模块选择页（登录后默认）============== */
   body.in-modules .nav .nav-btn:not(#navBtnModules):not(#navBtnAdmin),
   body.in-modules .header-font-ctrl,
-  body.in-modules .sidebar-toggle-btn,
   body.in-modules #syncStatus { display: none !important; }
   body.in-modules #navBtnModules { display: none !important; } /* 在模块页本身，不需要再显示返回按钮 */
   body.in-modules #page-modules { display: block !important; }
@@ -1545,7 +1516,6 @@
   html.has-session body.guest #page-home    { display: block !important; }
   html.has-session body.guest .nav,
   html.has-session body.guest .header-font-ctrl,
-  html.has-session body.guest .sidebar-toggle-btn,
   html.has-session body.guest #syncStatus { display: flex !important; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1745,7 +1715,6 @@
   <header>
     <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
-      <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="套卷列表">☰</button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
@@ -1765,16 +1734,6 @@
       <div id="userPill" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);"></div>
     </div>
   </header>
-
-  <!-- ============== 套卷侧边栏 ============== -->
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-  <div class="sidebar" id="examSidebar">
-    <div class="sidebar-header">
-      <span class="sidebar-title">全部套卷</span>
-      <button class="sidebar-close-btn" onclick="closeSidebar()">✕</button>
-    </div>
-    <div class="sidebar-exams" id="sidebarExams"></div>
-  </div>
 
   <!-- ============== 登录/注册 模态框 ============== -->
   <div id="authModal" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
@@ -2156,6 +2115,7 @@
 
     <div class="page" id="page-practice">
       <div class="practice-layout">
+        <div class="context-sidebar" id="contextSidebar" style="display:none;"></div>
         <div class="left-panel">
           <div class="back-btn" id="practiceBackBtn" onclick="goBack()">← 返回首页</div>
           <div class="source-info">
@@ -2698,6 +2658,7 @@ function viewPrepPassage(id) {
 
   currentExam = {
     source: p.title,
+    prepId: id,
     questions: currentQuestions,
     mode: 'prep',
     passage: p.passage,
@@ -3866,55 +3827,67 @@ function renderExamGrid() {
   grid.innerHTML = html;
 }
 
-// ────────── 套卷侧边栏 ──────────
-function toggleSidebar() {
-  var sidebar = document.getElementById('examSidebar');
-  var overlay = document.getElementById('sidebarOverlay');
-  if (sidebar.classList.contains('open')) { closeSidebar(); return; }
-  renderSidebarExams();
-  sidebar.classList.add('open');
-  overlay.classList.add('open');
-}
-
-function closeSidebar() {
-  document.getElementById('examSidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-}
-
-function renderSidebarExams() {
-  var el = document.getElementById('sidebarExams');
+// ────────── 上下文侧边栏 ──────────
+function renderContextSidebar() {
+  var el = document.getElementById('contextSidebar');
   if (!el) return;
-  var byYear = {};
-  BANK.exams.forEach(function(ex) {
-    (byYear[ex.year] = byYear[ex.year] || []).push(ex);
-  });
-  var years = Object.keys(byYear).map(Number).sort(function(a, b) { return b - a; });
-  var activeId = currentExam && currentExam.examId;
+  if (!currentExam || !currentExam.mode) { el.style.display = 'none'; return; }
+
+  var mode = currentExam.mode;
   var html = '';
-  years.forEach(function(y) {
-    html += '<div class="sidebar-year">' + y + ' 年</div>';
-    byYear[y].forEach(function(ex) {
-      var activeCls = (activeId && activeId === ex.exam_id) ? ' active' : '';
-      var tagCls = (ex.type === '模拟卷' || ex.type === '模拟题') ? ' green' : '';
-      html += '<div class="sidebar-exam-item' + activeCls + '" onclick="sidebarSelectExam(\'' + ex.exam_id + '\')">'
-            + '<span class="exam-tag' + tagCls + '">' + (ex.type || '真题') + '</span>'
-            + ex.exam_id
-            + '<span class="exam-num">' + ex.blank_count + '题</span>'
+  var title = '';
+
+  if (mode === 'exam') {
+    title = '全部套卷';
+    var byYear = {};
+    BANK.exams.forEach(function(ex) {
+      (byYear[ex.year] = byYear[ex.year] || []).push(ex);
+    });
+    var years = Object.keys(byYear).map(Number).sort(function(a, b) { return b - a; });
+    var activeId = currentExam && currentExam.examId;
+    years.forEach(function(y) {
+      html += '<div class="context-sidebar-year">' + y + ' 年</div>';
+      byYear[y].forEach(function(ex) {
+        var activeCls = (activeId && activeId === ex.exam_id) ? ' active' : '';
+        var tagCls = (ex.type === '模拟卷' || ex.type === '模拟题') ? ' green' : '';
+        html += '<div class="context-sidebar-item' + activeCls + '" onclick="startByExam(\'' + ex.exam_id + '\')">'
+              + '<span class="cs-tag' + tagCls + '">' + (ex.type || '真题') + '</span>'
+              + ex.exam_id
+              + '<span class="cs-num">' + ex.blank_count + '题</span>'
+              + '</div>';
+      });
+    });
+  } else if (mode === 'error') {
+    title = '全部错题';
+    var activeId = currentQuestions[0] && currentQuestions[0].id;
+    errorBookQuestions.forEach(function(q) {
+      var activeCls = (activeId && activeId === q.id) ? ' active' : '';
+      var catName = CATEGORY_MAP[q.category] || q.category;
+      html += '<div class="context-sidebar-item' + activeCls + '" onclick="viewErrorQuestion(\'' + q.id + '\')">'
+            + '<span class="cs-tag">' + catName + '</span>'
+            + '第' + q.no + '题'
+            + '<span class="cs-cat">' + q.answer + '</span>'
             + '</div>';
     });
-  });
+  } else if (mode === 'prep') {
+    title = '全部备课';
+    var activeId = currentExam && currentExam.prepId;
+    prepPassages.forEach(function(p) {
+      var activeCls = (activeId && activeId === p.id) ? ' active' : '';
+      html += '<div class="context-sidebar-item' + activeCls + '" onclick="viewPrepPassage(\'' + p.id + '\')">'
+            + p.title
+            + '<span class="cs-num">' + (p.blanks || []).length + '题</span>'
+            + '</div>';
+    });
+  } else {
+    el.style.display = 'none';
+    return;
+  }
+
+  html = '<div class="context-sidebar-title">' + title + '</div>' + html;
   el.innerHTML = html;
+  el.style.display = '';
 }
-
-function sidebarSelectExam(examId) {
-  closeSidebar();
-  startByExam(examId);
-}
-
-// Esc 关闭侧边栏
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeSidebar();
-});
 
 function switchPage(page) {
   // 访客守卫：错题本/备课资料/管理员需要登录
@@ -3942,6 +3915,10 @@ function switchPage(page) {
   window.scrollTo({ top: 0, behavior: 'instant' });
 
   if (page === 'practice') updateBackButton();
+  if (page !== 'practice') {
+    var cs = document.getElementById('contextSidebar');
+    if (cs) cs.style.display = 'none';
+  }
   if (page === 'home') navigateHome('cards');
   if (page === 'error-book') renderErrorBook();
   if (page === 'lesson-prep') renderPrepList();
@@ -4129,6 +4106,8 @@ function startByExam(examId) {
 function renderExam() {
   document.getElementById('sourceName').textContent = currentExam.source;
   document.getElementById('sourceCount').textContent = `共${currentQuestions.length}题`;
+
+  renderContextSidebar();
 
   // Update answer toggle button text
   var btnToggle = document.getElementById('btnToggleAnswers');
