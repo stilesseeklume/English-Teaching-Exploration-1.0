@@ -619,6 +619,33 @@
     .grid-11 { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   }
 
+  /* ============== 紧凑模式（白板/投影）============== */
+  body.compact header { height: 38px; padding: 0 14px; }
+  body.compact .logo { font-size: 14px; }
+  body.compact .nav-btn { padding: 3px 10px; font-size: 12px; }
+  body.compact .header-font-ctrl { gap: 2px; }
+  body.compact .header-font-ctrl > span { font-size: 10px; }
+  body.compact .page { padding: 10px; }
+  body.compact .page-title { font-size: 18px; margin-bottom: 2px; }
+  body.compact .page-desc { font-size: 13px; margin-bottom: 12px; }
+  body.compact .back-btn { padding: 2px 8px; font-size: 11px; margin-bottom: 4px; }
+  body.compact .source-info { margin-bottom: 6px; gap: 4px; }
+  body.compact .source-tag { font-size: 11px; padding: 1px 6px; }
+  body.compact .source-count { font-size: 11px; }
+  body.compact .source-switch-btn { padding: 1px 7px; font-size: 11px; }
+  body.compact .passage-box { padding: 14px 18px; margin-bottom: 6px; }
+  body.compact .passage-box p { margin-bottom: 10px; }
+  body.compact .hint-text { display: none; }
+  body.compact .category-stats { display: none; }
+  body.compact .practice-layout { min-height: auto; padding-bottom: 16px; }
+  body.compact .home-entry-card { padding: 16px 18px; }
+  body.compact .home-entry-cards { gap: 10px; }
+  body.compact .category-section { margin-bottom: 14px; }
+  body.compact .category-section-title { font-size: 15px; margin-bottom: 6px; }
+  body.compact .card { padding: 12px 14px; }
+  body.compact .grid-11 { gap: 8px; }
+  body.compact .font-ctrl-btn { width: 20px; height: 20px; font-size: 11px; line-height: 18px; }
+
 
   /* ============== 欢迎页 + 登录墙 ============== */
   body.guest .nav,
@@ -1566,6 +1593,7 @@
     <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
+        <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
         <button class="font-ctrl-btn" onclick="adjustFont('passage',-1)">−</button>
         <span id="passageFontVal" style="font-size:11px;min-width:28px;text-align:center;">24px</span>
@@ -3130,6 +3158,15 @@ function init() {
   setupDocxDrop();
   navigateHome('cards');
 
+  // 紧凑模式（白板/投影）从 localStorage 恢复
+  try {
+    if (localStorage.getItem(COMPACT_KEY) === '1') {
+      document.body.classList.add('compact');
+      var btnC = document.getElementById('btnCompact');
+      if (btnC) { btnC.textContent = '⊞'; btnC.title = '标准模式'; }
+    }
+  } catch(e) {}
+
   // ========== 云同步启动 ==========
   if (window.cloud && window.cloud.isConfigured()) {
     // 已登录直接进 home；未登录进入访客模式（也可浏览首页/考点/套卷/知识库）
@@ -4476,6 +4513,15 @@ function toggleChinese() {
   // 切到中文时关闭答案模式，回到原文时恢复
   if (showChinese) showAnswers = false;
   renderExam();
+}
+
+var COMPACT_KEY = 'grammar-compact';
+function toggleCompact() {
+  var isCompact = document.body.classList.toggle('compact');
+  var btn = document.getElementById('btnCompact');
+  if (btn) btn.textContent = isCompact ? '⊞' : '⊟';
+  if (btn) btn.title = isCompact ? '标准模式' : '紧凑模式：适合白板/投影';
+  try { localStorage.setItem(COMPACT_KEY, isCompact ? '1' : '0'); } catch(e) {}
 }
 
 function renderCategoryStats() {
