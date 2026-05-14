@@ -34,6 +34,35 @@
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
     --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
   }
+
+  /* ===== Dark Theme ===== */
+  [data-theme="dark"] {
+    --bg: #080808;
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.06);
+    --surface-3: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+    --text: #f0ede8;
+    --text-2: rgba(255,255,255,0.55);
+    --text-3: rgba(255,255,255,0.30);
+    --accent: #d4a843;
+    --accent-light: #e8c96a;
+    --accent-bg: rgba(212,168,67,0.08);
+    --green: #52b788;
+    --green-bg: rgba(82,183,136,0.1);
+    --blue: #6cb4e4;
+    --blue-bg: rgba(108,180,228,0.1);
+    --red: #e0556a;
+    --red-bg: rgba(224,85,106,0.1);
+    --orange: #d49a3e;
+    --orange-bg: rgba(212,154,62,0.1);
+    --purple: #b392d9;
+    --purple-bg: rgba(179,146,217,0.1);
+    --teal: #5cb8b7;
+    --teal-bg: rgba(92,184,183,0.1);
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,0.04);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,0.04);
+  }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1740,6 +1769,7 @@
   <header>
     <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">📚 Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
+      <button class="theme-toggle" onclick="toggleTheme()" title="切换深色模式" id="themeToggle" style="width:32px;height:32px;border:none;border-radius:50%;background:transparent;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);line-height:1;">🌙</button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
@@ -2050,7 +2080,7 @@
         <div class="category-section-title">一、谓语动词 · 非谓语动词</div>
         <div class="grid-11">
           <div class="card" onclick="startByCategory('predicate')">
-            <span class="card-tag" style="background:#fce4a8;color:#8b6914;">谓语</span>
+            <span class="card-tag">谓语</span>
             <div class="card-title">谓语动词</div>
             <div class="card-desc">时态 · 语态 · 主谓一致</div>
             <div class="card-count" id="count-predicate">--</div>
@@ -2110,25 +2140,25 @@
         <div class="category-section-title">四、连词</div>
         <div class="grid-11">
           <div class="card" onclick="startByCategory('logic')">
-            <span class="card-tag" style="background:#f3e8ff;color:#6a4c93;">逻辑</span>
+            <span class="card-tag purple">逻辑</span>
             <div class="card-title">逻辑连词</div>
             <div class="card-desc">and · but · or · so</div>
             <div class="card-count" id="count-logic">--</div>
           </div>
           <div class="card" onclick="startByCategory('attrib')">
-            <span class="card-tag" style="background:#fce4ec;color:#c1121f;">定从</span>
+            <span class="card-tag red">定从</span>
             <div class="card-title">定语从句连词</div>
             <div class="card-desc">关系代词 · 关系副词</div>
             <div class="card-count" id="count-attrib">--</div>
           </div>
           <div class="card" onclick="startByCategory('nounclause')">
-            <span class="card-tag" style="background:#e0f2f1;color:#0e7c7b;">名从</span>
+            <span class="card-tag teal">名从</span>
             <div class="card-title">名词性从句连词</div>
             <div class="card-desc">主语 · 宾语 · 表语 · 同位语</div>
             <div class="card-count" id="count-nounclause">--</div>
           </div>
           <div class="card" onclick="startByCategory('advclause')">
-            <span class="card-tag" style="background:#e8f5e9;color:#2d6a4f;">状从</span>
+            <span class="card-tag green">状从</span>
             <div class="card-title">状语从句连词</div>
             <div class="card-desc">时间 · 条件 · 原因 · 让步等</div>
             <div class="card-count" id="count-advclause">--</div>
@@ -2276,6 +2306,31 @@
 </div>
 
 <script>
+// ────────── 主题切换 ──────────
+(function(){
+  var t = localStorage.getItem('theme');
+  if (!t) t = 'dark';
+  if (t === 'light') document.documentElement.dataset.theme = 'light';
+  else document.documentElement.dataset.theme = 'dark';
+})();
+function toggleTheme() {
+  var html = document.documentElement;
+  var isLight = html.dataset.theme === 'light';
+  if (isLight) {
+    html.dataset.theme = 'dark';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    html.dataset.theme = 'light';
+    localStorage.setItem('theme', 'light');
+  }
+  var btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = html.dataset.theme === 'light' ? '🌙' : '☀️';
+}
+(function(){
+  var btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = document.documentElement.dataset.theme === 'light' ? '🌙' : '☀️';
+})();
+
 const CATEGORY_MAP = (window.GRAMMAR_BANK && window.GRAMMAR_BANK.category_names) || {
   'predicate': '谓语动词',
   'nonpredicate': '非谓语动词',

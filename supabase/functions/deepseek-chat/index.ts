@@ -2,7 +2,7 @@
 // 角色：A 客服式 + B 助教式（高考英语语法填空）
 // 严格圈定范围，不做通用 ChatGPT
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.10";
 
 const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY") || "";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
@@ -71,13 +71,33 @@ Deno.serve(async (req: Request) => {
       });
     }
     const token = authHeader.replace("Bearer ", "");
+
+    // 解码 JWT 拿 user id（避免新版 supabase-js getUser 兼容问题）
+    let userId = "";
+    try {
+      const payload = token.split(".")[1];
+      if (payload) {
+        let b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+        while (b64.length % 4) b64 += "=";
+        const json = atob(b64);
+        const claims = JSON.parse(json);
+        userId = claims.sub || "";
+      }
+    } catch { /* ignore decode errors */ }
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "登录已过期，请重新登录", detail: "无法解析 JWT" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") || "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
     );
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabase.auth.admin.getUserById(userId);
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "登录已过期，请重新登录" }), {
+      return new Response(JSON.stringify({ error: "登录已过期，请重新登录", detail: authError?.message || String(authError||'') }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

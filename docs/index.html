@@ -139,15 +139,13 @@
 
   /* ===== 滚动捕捉 + 入场动画 ===== */
   html { scroll-behavior: smooth; background: var(--bg); }
-  body.welcome-mode { scroll-snap-type: y mandatory; }
-  html { scroll-padding-top: 52px; }
+  body.welcome-mode { scroll-snap-type: y mandatory; scroll-padding-top: 0; }
   #view-welcome .scene {
     min-height: 100vh; min-height: 100svh;
     display: flex; flex-direction: column;
     justify-content: center; align-items: center;
     padding: 100px 24px 80px;
-    scroll-snap-align: start; scroll-snap-stop: normal;
-    scroll-margin-top: 52px;
+    scroll-snap-align: start; scroll-snap-stop: always;
     width: 100%; max-width: 1020px; margin: 0 auto;
     position: relative;
   }
@@ -1470,8 +1468,6 @@
   var RESUME_AFTER = 12000;
 
   function setupIdleAutoscroll() {
-    var dotsEl = document.getElementById('sceneDots');
-    if (!dotsEl) return;
     scheduleNextAdvance(IDLE_BEFORE_PLAY);
 
     ['wheel','touchstart','mousedown'].forEach(function(evt) {
@@ -1486,6 +1482,10 @@
         e.preventDefault();
         if (_autoscrollEnabled) stopAutoscroll();
         advanceScene();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (_autoscrollEnabled) stopAutoscroll();
+        goToPrevScene();
       }
     });
   }
@@ -1497,16 +1497,26 @@
     _autoscrollTimer = setTimeout(advanceScene, delay);
   }
   function advanceScene() {
-    if (!_autoscrollEnabled) return;
     if (!document.body.classList.contains('welcome-mode')) {
       stopAutoscroll(); return;
     }
     var scenes = document.querySelectorAll('#view-welcome .scene');
     var next = (_currentSceneIdx + 1) % scenes.length;
-    scenes[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
-    _currentSceneIdx = next;
-    updateDotsActive();
+    goToScene(next);
     scheduleNextAdvance(SCENE_DWELL);
+  }
+  function goToPrevScene() {
+    if (!document.body.classList.contains('welcome-mode')) return;
+    var scenes = document.querySelectorAll('#view-welcome .scene');
+    var prev = _currentSceneIdx <= 0 ? scenes.length - 1 : _currentSceneIdx - 1;
+    goToScene(prev);
+  }
+  function goToScene(idx) {
+    var scenes = document.querySelectorAll('#view-welcome .scene');
+    if (!scenes[idx]) return;
+    scenes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    _currentSceneIdx = idx;
+    updateDotsActive();
   }
   function stopAutoscroll() {
     var wasActive = _autoscrollEnabled;
@@ -1526,6 +1536,20 @@
     if (_resumeTimer) { clearTimeout(_resumeTimer); _resumeTimer = null; }
     scheduleNextAdvance(SCENE_DWELL);
   }
+
+  /* ===== Page-by-page Wheel Scrolling ===== */
+  var _wheelDebounce = false;
+  var WHEEL_DEBOUNCE_MS = 800;
+  window.addEventListener('wheel', function(e) {
+    if (!document.body.classList.contains('welcome-mode')) return;
+    if (e.target.closest && (e.target.closest('#authModal') || e.target.closest('.modal-overlay'))) return;
+    if (_wheelDebounce) return;
+    _wheelDebounce = true;
+    setTimeout(function() { _wheelDebounce = false; }, WHEEL_DEBOUNCE_MS);
+    if (_autoscrollEnabled) stopAutoscroll();
+    if (e.deltaY > 0) advanceScene();
+    else goToPrevScene();
+  }, { passive: true });
 
   /* ===== Fake Screen Recording Demo ===== */
   var _demoInterval = null;
