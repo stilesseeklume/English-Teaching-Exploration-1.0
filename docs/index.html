@@ -139,7 +139,7 @@
 
   /* ===== 滚动捕捉 + 入场动画 ===== */
   html { scroll-behavior: smooth; background: var(--bg); }
-  body.welcome-mode { scroll-snap-type: y proximity; }
+  body.welcome-mode { scroll-snap-type: y mandatory; scroll-padding-top: 52px; }
   #view-welcome .scene {
     min-height: 100vh; min-height: 100svh;
     display: flex; flex-direction: column;
