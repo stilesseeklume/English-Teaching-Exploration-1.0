@@ -53,8 +53,8 @@
 
   header {
     background: var(--surface);
-    backdrop-filter: saturate(180%) blur(16px);
-    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    backdrop-filter: saturate(180%) blur(10px);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
     border-bottom: 0.5px solid var(--border);
     padding: 0 24px;
     display: flex;
@@ -66,6 +66,8 @@
     z-index: 100;
     overflow: hidden;
     contain: layout style;
+    will-change: transform;
+    transform: translateZ(0);
   }
   .logo { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: -.3px; }
   .nav { display: flex; gap: 4px; min-width: 0; flex-shrink: 1; }
@@ -831,7 +833,7 @@
   body.in-modules .page:not(#page-modules) { display: none !important; }
   body.in-modules .dock { display: none; }
 
-  #page-welcome, #page-modules { max-width: 1800px; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+  #page-welcome, #page-modules { max-width: min(94%, 2400px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
 
   /* ── 欢迎页 Hero ── */
   .welcome-hero {
