@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seeklume · Lesson Snippets</title>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
   :root {
     --bg: #ffffff;
@@ -56,6 +57,37 @@
     --hero-title-color: var(--text);
     --section-heading-color: var(--text);
     --scan-line-opacity: 0.35;
+  }
+
+  [data-theme="dark"] {
+    --bg: #1c1c1e;
+    --surface: #2c2c2e;
+    --surface-2: #3a3a3c;
+    --surface-3: #48484a;
+    --border: #38383a;
+    --border-strong: #545458;
+    --text: #f5f5f7;
+    --text-2: #98989d;
+    --text-3: #636366;
+    --accent: #409cff;
+    --accent-light: #70b5ff;
+    --accent-bg: rgba(64,156,255,0.15);
+    --accent-glow: rgba(64,156,255,0.25);
+    --green: #30d158;
+    --green-bg: rgba(48,209,88,0.15);
+    --red: #ff453a;
+    --orange: #ff9f0a;
+
+    --header-bg: rgba(28,28,30,0.85);
+    --btn-primary-text: #ffffff;
+    --modal-bg: #2c2c2e;
+    --input-bg: #1c1c1e;
+    --dot-bg: rgba(255,255,255,0.2);
+    --toast-bg: rgba(44,44,46,0.95);
+    --screen-bg: #2c2c2e;
+    --screen-chrome-bg: #3a3a3c;
+    --screen-url-bg: rgba(255,255,255,0.08);
+    --mod-coming-opacity: 0.35;
   }
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -163,6 +195,18 @@
   .header-btn.primary:hover { opacity: 0.85; }
   .header-btn.ghost { background: transparent; color: var(--text); }
   .header-btn.ghost:hover { background: var(--surface-2); }
+
+  .theme-toggle {
+    background: none; border: none; cursor: pointer;
+    font-size: 15px; padding: 4px 8px; border-radius: 6px;
+    color: var(--text-2); line-height: 1; margin-right: 4px;
+    transition: background .15s;
+  }
+  .theme-toggle:hover { background: var(--surface-2); }
+  .theme-toggle .icon-sun { display: none; }
+  .theme-toggle .icon-moon { display: inline; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
 
   main { margin: 0 auto; padding: 0 24px 80px; animation: fadeIn .4s ease; }
@@ -502,6 +546,7 @@
   /* ===== Features Grid ===== */
   .features {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;
+    max-width: clamp(960px, calc(100% - 200px), 2200px);
   }
   .feature {
     background: var(--surface); border: 0.5px solid var(--border);
@@ -547,6 +592,7 @@
   /* ===== Modules Grid ===== */
   .modules-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;
+    max-width: clamp(960px, calc(100% - 200px), 2200px);
   }
   .module-card {
     background: var(--surface); border: 0.5px solid var(--border);
@@ -738,6 +784,12 @@
     .scene { padding: 72px 20px 64px; }
     .about-dark { padding: 40px 24px; }    .screen-body { padding: 16px; }
   }
+
+  [data-theme="dark"] .screen-mock { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  [data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
+  [data-theme="dark"] .fake-cursor .cursor-arrow { border-left-color: #ddd; }
+  [data-theme="dark"] .ai-panel.before { background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px); }
+  [data-theme="dark"] .pending-box { background: linear-gradient(180deg, var(--accent-bg) 0%, transparent 100%); }
 </style>
 <style id="boot-cloak">
   html:not(.ready) body { visibility: hidden !important; }
@@ -775,9 +827,15 @@
 
 <header>
   <div class="logo" onclick="goHome()" style="cursor:pointer;">Seeklume · Lesson Snippets</div>
-  <div class="header-right" id="headerRight">
+  <div style="display:flex;align-items:center;gap:4px;">
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
+      <span class="icon-sun">&#9788;</span>
+      <span class="icon-moon">&#9790;</span>
+    </button>
+    <div class="header-right" id="headerRight">
     <button class="header-btn ghost" onclick="openModal('signin')">登录</button>
     <button class="header-btn primary" onclick="openModal('signup')">注册</button>
+  </div>
   </div>
 </header>
 
@@ -1582,6 +1640,18 @@
     else showView('welcome');
   }
 
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }
+
   window.showView = showView;
   window.openModal = openModal;
   window.closeModal = closeModal;
@@ -1590,6 +1660,7 @@
   window.afterSignupGoSignin = afterSignupGoSignin;
   window.doLogout = doLogout;
   window.goHome = goHome;
+  window.toggleTheme = toggleTheme;
 
   (function syncInitView() {
     var has = window.__hasSessionSync;
