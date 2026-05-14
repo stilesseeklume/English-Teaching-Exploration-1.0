@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seeklume · Lesson Snippets</title>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
   :root {
     --bg: #f5f5f7;
@@ -37,6 +38,40 @@
     --modal-backdrop: rgba(0,0,0,0.35);
     --input-bg: #ffffff;
     --input-border: #e5e5ea;
+    --grip-line: rgba(0,0,0,0.18);
+  }
+
+  [data-theme="dark"] {
+    --bg: #1c1c1e;
+    --surface: #2c2c2e;
+    --surface-2: #3a3a3c;
+    --surface-3: #48484a;
+    --border: #38383a;
+    --text: #f5f5f7;
+    --text-2: #98989d;
+    --text-3: #636366;
+    --accent: #409cff;
+    --accent-light: #70b5ff;
+    --accent-bg: rgba(64,156,255,0.15);
+    --green: #30d158;
+    --green-bg: rgba(48,209,88,0.15);
+    --blue: #409cff;
+    --blue-bg: rgba(64,156,255,0.15);
+    --red: #ff453a;
+    --red-bg: rgba(255,69,58,0.15);
+    --orange: #ff9f0a;
+    --orange-bg: rgba(255,159,10,0.15);
+    --purple: #bf5af2;
+    --purple-bg: rgba(191,90,242,0.15);
+    --teal: #64d2ff;
+    --teal-bg: rgba(100,210,255,0.15);
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.06);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.06);
+    --modal-bg: #2c2c2e;
+    --modal-backdrop: rgba(0,0,0,0.6);
+    --input-bg: #1c1c1e;
+    --input-border: #38383a;
+    --grip-line: rgba(255,255,255,0.2);
   }
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -78,6 +113,18 @@
   }
   .nav-btn:hover { background: var(--surface-3); }
   .nav-btn.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    background: none; border: none; cursor: pointer;
+    font-size: 15px; padding: 4px 8px; border-radius: 6px;
+    color: var(--text-2); line-height: 1;
+    transition: background .15s;
+  }
+  .theme-toggle:hover { background: var(--surface-3); }
+  .theme-toggle .icon-sun { display: none; }
+  .theme-toggle .icon-moon { display: inline; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
   .page { display: none; padding: 24px; margin: 0 auto; max-width: clamp(960px, calc(100% - 320px), 2200px); }
   .page.active { display: block; }
@@ -835,6 +882,7 @@
 
   #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
   #page-practice { max-width: none; padding: 0; }
+  #page-knowledge { max-width: none; padding: 0; }
 
   /* ── 欢迎页 Hero ── */
   .welcome-hero {
@@ -1129,7 +1177,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
-    margin-bottom: 48px;
+    max-width: clamp(960px, calc(100% - 200px), 2200px);
+    margin: 0 auto 48px;
   }
   .module-card {
     background: var(--surface);
@@ -1589,6 +1638,15 @@
 @media (max-width: 480px) {
   .assistant-panel { width: 100vw; }
 }
+
+[data-theme="dark"] .home-entry-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .context-sidebar:hover { box-shadow: 8px 0 40px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.08); }
+[data-theme="dark"] .home-entry-card-icon.exams { background: rgba(64,156,255,0.18); }
+[data-theme="dark"] .home-entry-card-icon.categories { background: rgba(255,159,10,0.18); }
+[data-theme="dark"] .home-entry-card-icon.knowledge { background: rgba(191,90,242,0.18); }
+[data-theme="dark"] .home-entry-card-icon.errors { background: rgba(255,69,58,0.18); }
+[data-theme="dark"] .home-entry-card-icon.prep { background: rgba(48,209,88,0.18); }
+[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
 </style>
 <script src="../data/grammar_bank.js"></script>
 <script src="../../data/grammar_knowledge.js"></script>
@@ -1623,6 +1681,18 @@
   })();
   // 安全网：1.2 秒后强制 ready，避免 JS 卡住时白屏
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 1200);
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }
 </script>
 <style>
   /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
@@ -1640,6 +1710,10 @@
   <header>
     <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">Seeklume · Lesson Snippets</div>
     <div style="display:flex;align-items:center;gap:16px;">
+      <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
+        <span class="icon-sun">&#9788;</span>
+        <span class="icon-moon">&#9790;</span>
+      </button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
         <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>

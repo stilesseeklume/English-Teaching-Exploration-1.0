@@ -882,6 +882,7 @@
 
   #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); padding: 24px 24px 80px; animation: fadeIn .4s ease; }
   #page-practice { max-width: none; padding: 0; }
+  #page-knowledge { max-width: none; padding: 0; }
 
   /* ── 欢迎页 Hero ── */
   .welcome-hero {
@@ -1176,7 +1177,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
-    margin-bottom: 48px;
+    max-width: clamp(960px, calc(100% - 200px), 2200px);
+    margin: 0 auto 48px;
   }
   .module-card {
     background: var(--surface);
@@ -3154,6 +3156,18 @@ async function parseWithDeepSeek(text) {
       throw new Error('AI 没有识别出任何题目');
     }
 
+    // 验证每篇的标记数量与 blanks 数量是否一致
+    var validationWarnings = [];
+    passagesArr.forEach(function(p, i) {
+      var markerCount = (p.passage.match(/_{2,}\s*\d+\s*_{2,}/g) || []).length;
+      var blankCount = p.blanks.length;
+      if (markerCount !== blankCount) {
+        validationWarnings.push(
+          '「' + p.title + '」：原文有 ' + markerCount + ' 个空格标记，但解析出 ' + blankCount + ' 道题（不匹配）'
+        );
+      }
+    });
+
     setAiProgress(100);
     renderAiStages([
       { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
@@ -3164,7 +3178,12 @@ async function parseWithDeepSeek(text) {
     setTimeout(hideAiOverlay, 400);
 
     // 不再直接入库，弹出统一选择面板：整篇默认进备课资料，勾选的题再额外进错题本
-    setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, 200);
+    setTimeout(function(){
+      if (validationWarnings.length > 0) {
+        alert('AI 解析结果可能有偏差：\n\n' + validationWarnings.join('\n') + '\n\n请手动核对后再确认导入。');
+      }
+      openUnifiedImportPanel(passagesArr);
+    }, 200);
 
   } catch (err) {
     stopAiDrift();
