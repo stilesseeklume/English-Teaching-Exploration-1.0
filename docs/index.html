@@ -259,7 +259,30 @@
   .btn:active { transform: translateY(0); }
   .btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-text); border-color: var(--btn-primary-bg); font-weight: 600; }
   .btn.primary:hover { opacity: 0.85; }
+  .btn.disabled,
+  .btn.disabled:hover {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    background: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text-3);
+  }
   .cta-fineprint { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 16px; }
+  .status-note {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 auto 18px;
+    padding: 7px 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 12px;
+    line-height: 1.4;
+  }
 
   /* ===== 通用段落 ===== */
   .section { margin-bottom: 0; }
@@ -608,6 +631,16 @@
     border-color: var(--border-strong);
     transform: translateY(-2px);
   }
+  .module-card.locked {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: grayscale(0.25);
+  }
+  .module-card.locked:hover {
+    background: var(--surface);
+    border-color: var(--border);
+    transform: none;
+  }
   .module-card.coming { opacity: var(--mod-coming-opacity); cursor: default; }
   .module-card.spotlit {
     border-color: var(--accent) !important;
@@ -838,8 +871,8 @@
       <span class="icon-moon">&#9790;</span>
     </button>
     <div class="header-right" id="headerRight">
-    <button class="header-btn ghost" onclick="location.href='./score-analysis/'">成绩分析</button>
-    <button class="header-btn primary" onclick="showView('modules')">模块地图</button>
+    <button class="header-btn ghost" onclick="openModal('signin')">登录 / 注册</button>
+    <button class="header-btn primary" onclick="location.href='./grammar-fill/'">进入语法填空</button>
   </div>
   </div>
 </header>
@@ -853,16 +886,16 @@
     <!-- Scene 0 · Hero -->
     <section class="scene scene-hero" data-scene="0">
       <div class="hero" style="padding:0;">
-        <div class="eyebrow fade-up">Prototype · Day 3</div>
+        <div class="eyebrow fade-up">Pilot · Grammar First</div>
         <h1 class="fade-up delay-1">Seeklume</h1>
         <p class="hero-cn fade-up delay-2">英语教学系统</p>
-        <p class="humble fade-up delay-3">这是项目第三天的原型。先把大系统的骨架搭出来：成绩分析、课堂讲评、语法训练、阅读写作，慢慢长成一个真的好用也真的好看的教学工作台。</p>
+        <p class="humble fade-up delay-3">这是一个正在内测的英语教学系统。现在正式给老师和学生使用的模块只有「语法填空讲评」：登录后可以按套卷讲题、看考点、做迁移训练、积累错题和备课资料。</p>
         <div class="cta fade-up delay-4">
-          <button class="btn primary" onclick="location.href='./score-analysis/'">进入成绩分析原型</button>
-          <button class="btn" onclick="showView('modules')">查看模块地图</button>
-          <button class="btn" onclick="location.href='./grammar-fill/'">语法讲评</button>
+          <button class="btn primary" onclick="location.href='./grammar-fill/'">进入语法填空讲评</button>
+          <button class="btn" onclick="openModal('signup')">注册系统账号</button>
+          <button class="btn disabled" onclick="showPrivacyNotice()">成绩分析不公开部署</button>
         </div>
-        <div class="cta-fineprint fade-up delay-5">账号系统先放后面。先把真实教学问题想清楚，把分析口径做准。</div>
+        <div class="cta-fineprint fade-up delay-5">账号是整个 Seeklume 系统账号，不只服务语法填空；后续模块会继续沿用同一套登录体系。</div>
       </div>
       <div class="scroll-hint"><span>SCROLL</span><div class="arrow"></div></div>
     </section>
@@ -871,7 +904,7 @@
     <section class="scene scene-ai" data-scene="1">
       <div class="section-eyebrow fade-up" style="text-align:center;">System Vision</div>
       <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">不是一个语法网页<br>而是一套英语教学工作台</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">成绩分析、课堂讲评、题库资源、阅读写作、学生诊断，可以各自独立使用，也会逐渐连成一条教学闭环。</p>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">整体方向包括课堂讲评、题库资源、阅读写作、学生诊断和成绩分析；当前先把语法填空这一块打磨到课堂上真的顺手。</p>
 
       <div class="ai-split fade-up delay-3">
         <div class="ai-panel before">
@@ -886,11 +919,11 @@
         <div class="ai-panel after" id="aiAfterPanel">
           <div class="scan-line"></div>
           <div class="panel-label">系统逐步沉淀的能力</div>
-          <div class="result-line"><span class="check">&#10003;</span> 成绩分析：班级分布、题型短板、学生画像</div>
-          <div class="result-line"><span class="check">&#10003;</span> 语法讲评：空格解析、考点统计、迁移训练</div>
-          <div class="result-line"><span class="check">&#10003;</span> 课堂讲课：从数据诊断到讲评路径</div>
-          <div class="result-line"><span class="check">&#10003;</span> 阅读系统：文本解读、任务设计、兴趣阅读</div>
-          <div class="result-line"><span class="check">&#10003;</span> 写作系统：内容支架、语言支架、提纲训练</div>
+          <div class="result-line"><span class="check">&#10003;</span> 语法填空：空格解析、考点统计、迁移训练</div>
+          <div class="result-line"><span class="check">&#10003;</span> 错题与备课：老师导入材料，学生按同点复习</div>
+          <div class="result-line"><span class="check">&#10003;</span> 课堂讲课：从一道题讲到一类题</div>
+          <div class="result-line"><span class="check">&#10003;</span> 阅读写作：后续逐步接入</div>
+          <div class="result-line"><span class="check">&#10003;</span> 成绩分析：涉及学生隐私，只做本地工具，不公开部署</div>
           <div class="result-line"><span class="check">&#10003;</span> 资源库：真题、方法论、课堂材料持续积累</div>
           <div class="result-line ap-highlight"><span class="check">&#10003;</span> 目标：让老师少做重复活，多做真正有价值的判断</div>
         </div>
@@ -947,37 +980,37 @@
     <section class="scene scene-features" data-scene="3">
       <div class="section-eyebrow fade-up" style="text-align:center;">Features</div>
       <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">先把能落地的做好</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">成绩分析和语法讲评先上线，其余模块按课堂真实需要慢慢长出来。</p>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">当前开放语法填空讲评。学生不需要研究整套系统，只要登录后进入语法填空页面，按老师指定的题目使用即可。</p>
       <div class="features">
         <div class="feature fade-up delay-1">
           <div class="feature-icon">01</div>
-          <h3>成绩分析</h3>
-          <p>贴入班级成绩，马上看到分数段、题型短板、临界学生和讲评建议。</p>
+          <h3>语法填空讲评</h3>
+          <p>按套卷打开文章，点空格或题号，就能看到解析、考点和迁移训练。</p>
         </div>
         <div class="feature fade-up delay-2">
           <div class="feature-icon">02</div>
-          <h3>语法讲评</h3>
-          <p>20 套真题与模拟卷，支持按套卷讲题、按考点训练和跨卷迁移。</p>
+          <h3>系统账号</h3>
+          <p>注册一次就是整个 Seeklume 账号；以后错题、备课资料和新模块都会接在同一套账号下。</p>
         </div>
         <div class="feature fade-up delay-3">
           <div class="feature-icon">03</div>
-          <h3>课堂讲课</h3>
-          <p>把试卷、错题、数据和讲解流程连接起来，服务真实课堂节奏。</p>
+          <h3>错题与迁移</h3>
+          <p>老师导入错题后，系统会尽量按更细的小考点和陷阱联动同类题。</p>
         </div>
         <div class="feature fade-up delay-4">
           <div class="feature-icon">04</div>
-          <h3>阅读系统</h3>
-          <p>从有趣文本进入深度解读，兼顾阅读兴趣、任务设计和题型能力。</p>
+          <h3>备课资料</h3>
+          <p>导入一篇语法填空材料后，可以像真题库一样讲题，不必临时做 PPT。</p>
         </div>
         <div class="feature fade-up delay-5">
           <div class="feature-icon">05</div>
-          <h3>写作训练</h3>
-          <p>应用文与读后续写都可以从内容构思、语言支架和自检清单切入。</p>
+          <h3>成绩分析</h3>
+          <p>涉及学生成绩隐私，目前只作为本地工具测试，用来校准班级画像和增值性分析口径。</p>
         </div>
         <div class="feature fade-up delay-6">
           <div class="feature-icon">06</div>
-          <h3>资源沉淀</h3>
-          <p>题库、方法论、课堂材料不会散落在各处，而是逐渐成为可复用资产。</p>
+          <h3>后续模块</h3>
+          <p>七选五、阅读、写作等不会急着开放，会等知识框架和课堂流程更稳定后再上线。</p>
         </div>
       </div>
     </section>
@@ -986,21 +1019,22 @@
     <section class="scene scene-modules" data-scene="4">
       <div class="section-eyebrow fade-up" style="text-align:center;">Modules</div>
       <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">模块化生长</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">成绩分析与语法讲评先开放。其他板块不急着堆满，等想清楚再做漂亮。</p>
+      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 12px;">当前只开放「语法填空」。成绩分析只作为本地隐私工具保留；其他板块先显示方向，暂不开放。</p>
+      <div class="status-note fade-up delay-2">现在给学生使用：语法填空讲评 · 账号登录后进入同一系统</div>
       <div class="modules-grid">
-        <div class="module-card available fade-up delay-1" onclick="location.href='./score-analysis/'">
-          <span class="module-badge proto">Day 3</span>
+        <div class="module-card locked fade-up delay-1" onclick="showPrivacyNotice()">
+          <span class="module-badge soon">本地</span>
           <div class="module-num">01</div>
           <h3>成绩分析</h3>
           <p>班级概况 · 分数段 · 题型短板 · 学生画像</p>
-          <div class="module-meta">原型中 · 正在按真实数据重做</div>
+          <div class="module-meta">不公开部署 · 只在本地隐私环境测试</div>
         </div>
         <div class="module-card available fade-up delay-2" onclick="location.href='./grammar-fill/'">
-          <span class="module-badge proto">Prototype</span>
+          <span class="module-badge live">开放</span>
           <div class="module-num">02</div>
           <h3>语法填空</h3>
           <p>按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
-          <div class="module-meta">原型中 · 讲评流程已初步跑通</div>
+          <div class="module-meta">当前主模块 · 老师和学生都从这里进入</div>
         </div>
         <div class="module-card coming fade-up delay-3">
           <span class="module-badge soon">Soon</span>
@@ -1044,16 +1078,16 @@
     <section class="scene scene-cta" data-scene="5">
       <div class="footer-cta" style="padding:0;">
         <div class="section-eyebrow fade-up" style="text-align:center;">Get started</div>
-        <h2 class="fade-up delay-1">先把问题拆准。</h2>
-        <p class="fade-up delay-2" style="font-size:16px;color:var(--text-2);max-width:clamp(480px,26vw,640px);margin:8px auto 28px;line-height:1.55;">成绩分析先按真实考试数据校准，再决定系统下一步怎么长。</p>
+        <h2 class="fade-up delay-1">先从语法填空开始。</h2>
+        <p class="fade-up delay-2" style="font-size:16px;color:var(--text-2);max-width:clamp(480px,26vw,640px);margin:8px auto 28px;line-height:1.55;">学生和普通老师现在只需要进入语法填空讲评。成绩分析涉及学生隐私，不放在公开网站。</p>
         <div class="fade-up delay-3" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-          <button class="btn primary" onclick="location.href='./score-analysis/'">成绩分析原型</button>
-          <button class="btn" onclick="location.href='./grammar-fill/'">语法讲评</button>
+          <button class="btn primary" onclick="location.href='./grammar-fill/'">进入语法填空</button>
+          <button class="btn" onclick="openModal('signin')">登录 / 注册</button>
         </div>
       </div>
       <div class="disclaimer fade-up delay-4" style="margin-top:64px;">
         <h3>关于这个早期版本</h3>
-        <p>目前成绩分析与语法讲评先开放，后续会逐步拓展课堂讲课、阅读、写作等板块。使用中如遇问题或有建议，欢迎联系。</p>
+        <p>目前公开可用的是语法填空讲评。成绩分析涉及学生成绩隐私，只在本地隐私环境测试，不作为公开网页发布；后续会逐步拓展课堂讲课、阅读、写作等板块。</p>
         <ul>
           <li>📧 <code>liuzhenlzstiles@icloud.com</code></li>
           <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
@@ -1068,22 +1102,22 @@
     <div class="hero" style="padding: 72px 24px 48px;">
       <div class="eyebrow" id="modulesGreeting">欢迎回来</div>
       <h1>选一个模块开始</h1>
-      <p class="sub">这是第三天的模块地图。成绩分析与语法讲评都还是原型，其余板块先保留方向。</p>
+      <p class="sub">当前主模块是语法填空讲评。成绩分析只保留为本地隐私工具，其余板块先保留方向。</p>
     </div>
     <div class="modules-grid">
-      <a class="module-card available" href="./score-analysis/">
-        <span class="module-badge proto">Day 3</span>
+      <div class="module-card locked" onclick="showPrivacyNotice()">
+        <span class="module-badge soon">本地</span>
         <div class="module-num">01</div>
         <h3>成绩分析</h3>
         <p>导入班级成绩，查看平均分、分数段、题型短板、临界学生和讲评建议。</p>
-        <div class="module-meta">原型中 · 真实成绩单校准</div>
-      </a>
+        <div class="module-meta">不公开部署 · 只在本地隐私环境测试</div>
+      </div>
       <a class="module-card available" href="./grammar-fill/">
-        <span class="module-badge proto">Prototype</span>
+        <span class="module-badge live">开放</span>
         <div class="module-num">02</div>
         <h3>语法填空</h3>
         <p>20 套真题 + 按考点训练 + 跨卷迁移 + 错题本与备课资料</p>
-        <div class="module-meta">原型中 · 讲评流程初步跑通</div>
+        <div class="module-meta">当前主入口 · 登录后使用</div>
       </a>
       <div class="module-card coming">
         <span class="module-badge soon">Soon</span>
@@ -1221,17 +1255,22 @@
       var tag = state.isAdmin ? '<button onclick="location.href=\'./grammar-fill/?admin\'" title="管理员面板" style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;border:none;cursor:pointer;margin-right:6px;font-family:inherit;">管理员</button>' : '';
       el.innerHTML = tag +
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
+        '<button class="header-btn primary" onclick="location.href=\'./grammar-fill/\'">语法填空</button>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
-      el.innerHTML = '<button class="header-btn ghost" onclick="location.href=\'./score-analysis/\'">成绩分析</button>' +
-        '<button class="header-btn primary" onclick="showView(\'modules\')">模块地图</button>';
+      el.innerHTML = '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录 / 注册</button>' +
+        '<button class="header-btn primary" onclick="location.href=\'./grammar-fill/\'">进入语法填空</button>';
     }
+  }
+
+  function showPrivacyNotice() {
+    alert('成绩分析涉及学生个人成绩与班级数据，不放在公开网站。当前公开入口只保留「语法填空讲评」。');
   }
 
   function renderGreeting() {
     var el = document.getElementById('modulesGreeting');
     if (!el) return;
-    if (!state.user) { el.textContent = '第三天原型 · 先校准真实问题'; return; }
+    if (!state.user) { el.textContent = '当前开放 · 语法填空讲评'; return; }
     var h = new Date().getHours();
     var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
           : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
@@ -1673,6 +1712,7 @@
   window.toggleMode = toggleMode;
   window.submitAuth = submitAuth;
   window.afterSignupGoSignin = afterSignupGoSignin;
+  window.showPrivacyNotice = showPrivacyNotice;
   window.doLogout = doLogout;
   window.goHome = goHome;
   window.toggleTheme = toggleTheme;
