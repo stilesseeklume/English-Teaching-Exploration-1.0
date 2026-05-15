@@ -568,6 +568,18 @@
   }
   .knowledge-sidebar-divider { height: 1px; background: var(--border); margin: 8px 12px; }
 
+  .knowledge-view-switch {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    margin: 0 12px 12px; padding: 4px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .knowledge-view-btn {
+    border: none; background: transparent; color: var(--text-2);
+    border-radius: 6px; padding: 7px 8px; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 650;
+  }
+  .knowledge-view-btn.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+
   /* 搜索框 */
   .knowledge-search-wrap { padding: 0 12px 10px; }
   .knowledge-search-wrap input {
@@ -652,6 +664,70 @@
   .knowledge-subsection-body ul { padding-left: 18px; margin: 4px 0; }
   .knowledge-subsection-body li { margin-bottom: 3px; }
   .knowledge-subsection-body p { margin: 6px 0; }
+  .knowledge-map-hero {
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+    gap: 18px; margin-bottom: 22px; align-items: stretch;
+  }
+  .knowledge-map-intro,
+  .knowledge-path-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; box-shadow: var(--shadow-sm);
+  }
+  .knowledge-map-intro h2 { font-size: var(--k-font-lg, 24px); margin-bottom: 8px; color: var(--text); }
+  .knowledge-map-intro p { color: var(--text-2); line-height: 1.8; font-size: var(--k-font-sm, 14px); margin: 0 0 12px; }
+  .knowledge-principles { display: grid; gap: 8px; margin-top: 12px; }
+  .knowledge-principle {
+    display: flex; gap: 8px; align-items: flex-start;
+    color: var(--text-2); font-size: var(--k-font-sm, 13px); line-height: 1.6;
+  }
+  .knowledge-principle span { color: var(--accent); font-weight: 800; }
+  .knowledge-path-panel h3 { font-size: var(--k-font-base, 16px); color: var(--text); margin-bottom: 10px; }
+  .knowledge-path-card {
+    border: 1px solid var(--border); background: var(--surface-2);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .knowledge-path-card b { display: block; font-size: var(--k-font-sm, 13px); color: var(--text); margin-bottom: 3px; }
+  .knowledge-path-card span { display: block; font-size: 12px; color: var(--text-2); line-height: 1.5; }
+  .knowledge-map-grid { display: grid; gap: 18px; }
+  .knowledge-root-band {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm);
+  }
+  .knowledge-root-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .knowledge-root-title { display: flex; align-items: center; gap: 10px; }
+  .knowledge-root-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-bg); }
+  .knowledge-root-title h3 { font-size: var(--k-font-base, 18px); color: var(--text); margin: 0; }
+  .knowledge-root-title p { font-size: var(--k-font-sm, 13px); color: var(--text-2); margin: 2px 0 0; }
+  .knowledge-node-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .knowledge-node-card {
+    border: 1px solid var(--border); background: var(--surface-2);
+    border-radius: 10px; padding: 12px; cursor: pointer; transition: transform .12s, border-color .12s, background .12s;
+  }
+  .knowledge-node-card:hover { transform: translateY(-1px); border-color: var(--accent); background: var(--accent-bg); }
+  .knowledge-node-card h4 { font-size: var(--k-font-base, 14px); color: var(--text); margin: 0 0 5px; }
+  .knowledge-node-card p { font-size: var(--k-font-sm, 12px); color: var(--text-2); line-height: 1.55; margin: 0 0 8px; }
+  .knowledge-node-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .knowledge-node-tag {
+    font-size: 10px; color: var(--accent); background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 7px;
+  }
+  .knowledge-node-detail {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm);
+  }
+  .knowledge-node-detail h2 { font-size: var(--k-font-lg, 24px); color: var(--text); margin-bottom: 4px; }
+  .knowledge-node-detail .node-layer { color: var(--accent); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+  .knowledge-node-detail p { color: var(--text-2); line-height: 1.8; margin: 8px 0; }
+  .node-link-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .node-link-chip {
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+    border-radius: 999px; padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .node-link-chip:hover { border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 860px) {
+    .knowledge-map-hero { grid-template-columns: 1fr; }
+    .knowledge-node-grid { grid-template-columns: 1fr; }
+  }
   .tip-box {
     background: #fff9e6; border-left: 3px solid var(--accent); padding: 10px 14px;
     border-radius: 4px; margin: 12px 0; font-weight: 500; font-size: var(--k-font-sm, 13px); line-height: 1.7;
@@ -1840,6 +1916,7 @@
 [data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
 </style>
 <script src="../../data/grammar_bank.js"></script>
+<script src="../../data/grammar_knowledge_core.js"></script>
 <script src="../../data/grammar_knowledge.js"></script>
 <script src="../../data/grammar_knowledge_traps.js"></script>
 
@@ -2356,6 +2433,10 @@
     <div class="page" id="page-knowledge">
       <div class="knowledge-layout" id="knowledgeLayout">
         <aside class="knowledge-sidebar" id="knowledgeSidebar">
+          <div class="knowledge-view-switch">
+            <button class="knowledge-view-btn active" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">知识地图</button>
+            <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">书本速查</button>
+          </div>
           <div class="knowledge-search-wrap">
             <input type="text" id="knowledgeSearch" placeholder="搜索语法点…" oninput="onKnowledgeSearch(this.value)" onfocus="onKnowledgeSearch(this.value)">
             <div id="searchResults"></div>
@@ -3491,6 +3572,7 @@ const ALL_QUESTIONS = BANK.questions.map(q => ({
 }));
 const KNOWLEDGE_DATA = window.KNOWLEDGE_DATA || {};
 const PATTERN_DATA = window.PATTERN_DATA || {};
+const KNOWLEDGE_CORE = window.GRAMMAR_KNOWLEDGE_CORE || { roots: [], nodes: {}, learning_paths: [], category_to_nodes: {}, trap_to_nodes: {} };
 let currentExam = null;
 let currentQuestions = [];
 let selectedQuestion = null;
@@ -3501,6 +3583,9 @@ let showChinese = false;
 let previousView = null;
 var _currentHomeView = 'cards';
 var _loggingOut = false;
+var currentKnowledgeView = 'map';
+var currentKnowledgeKey = '';
+var currentIsPattern = false;
 
 const ERROR_BOOK_KEY = 'grammar-error-book';
 let errorBookQuestions = [];
@@ -6312,9 +6397,7 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ─── 考点速查：侧边栏 + 全部展开的内容区 ───
-let currentKnowledgeKey = null;
-let currentIsPattern = false;
+// ─── 考点速查：侧边栏 + 知识地图/书本速查 ───
 let knowledgeSearchIndex = [];
 
 function buildSearchIndex() {
@@ -6453,6 +6536,22 @@ function toggleSubsection(subKey) {
   el.classList.toggle('collapsed');
 }
 
+function setKnowledgeView(view) {
+  currentKnowledgeView = view === 'book' ? 'book' : 'map';
+  var mapBtn = document.getElementById('knowledgeMapBtn');
+  var bookBtn = document.getElementById('knowledgeBookBtn');
+  if (mapBtn) mapBtn.classList.toggle('active', currentKnowledgeView === 'map');
+  if (bookBtn) bookBtn.classList.toggle('active', currentKnowledgeView === 'book');
+  if (currentKnowledgeView === 'map') {
+    renderKnowledgeMap();
+  } else if (currentKnowledgeKey) {
+    selectKnowledgeCategory(currentKnowledgeKey, currentIsPattern);
+  } else {
+    var firstKey = Object.keys(KNOWLEDGE_DATA)[0];
+    selectKnowledgeCategory(firstKey, false);
+  }
+}
+
 function renderKnowledgePage() {
   buildSearchIndex();
 
@@ -6482,13 +6581,139 @@ function renderKnowledgePage() {
     patNav.parentElement.querySelectorAll('.knowledge-sidebar-title')[1].style.display = '';
   }
 
-  var firstKey = Object.keys(KNOWLEDGE_DATA)[0];
-  selectKnowledgeCategory(firstKey, false);
+  setKnowledgeView(currentKnowledgeView || 'map');
+}
+
+function getNodeCategoryLabels(node) {
+  return (node.category_refs || []).map(function(cat) {
+    return CATEGORY_MAP[cat] || (KNOWLEDGE_DATA[cat] && KNOWLEDGE_DATA[cat].title) || cat;
+  });
+}
+
+function getRootColorStyle(root) {
+  var map = {
+    blue: '#0071e3',
+    green: '#34c759',
+    purple: '#af52de',
+    orange: '#ff9500',
+    red: '#ff3b30'
+  };
+  return map[root.color] || 'var(--accent)';
+}
+
+function renderKnowledgeMap() {
+  currentKnowledgeView = 'map';
+  var content = document.getElementById('knowledgeContent');
+  if (!content) return;
+  if (!KNOWLEDGE_CORE || !KNOWLEDGE_CORE.roots || KNOWLEDGE_CORE.roots.length === 0) {
+    content.innerHTML = '<div class="empty-hint">知识地图整理中。当前可以切换到“书本速查”。</div>';
+    return;
+  }
+
+  var html = '';
+  html += '<div class="knowledge-section">';
+  html += '<div class="knowledge-map-hero">';
+  html += '<div class="knowledge-map-intro">';
+  html += '<h2>' + escapeHtml(KNOWLEDGE_CORE.title || '高中英语语法知识地图') + '</h2>';
+  html += '<p>' + escapeHtml(KNOWLEDGE_CORE.desc || '') + '</p>';
+  html += '<div class="knowledge-principles">';
+  (KNOWLEDGE_CORE.design_principles || []).slice(0, 4).forEach(function(item, idx) {
+    html += '<div class="knowledge-principle"><span>' + (idx + 1) + '</span><div>' + escapeHtml(item) + '</div></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="knowledge-path-panel"><h3>推荐学习路径</h3>';
+  (KNOWLEDGE_CORE.learning_paths || []).forEach(function(path) {
+    html += '<div class="knowledge-path-card">';
+    html += '<b>' + escapeHtml(path.title) + '</b>';
+    html += '<span>' + escapeHtml(path.desc || '') + '</span>';
+    html += '<div class="node-link-row">';
+    (path.nodes || []).slice(0, 5).forEach(function(nodeId) {
+      var node = KNOWLEDGE_CORE.nodes[nodeId];
+      if (node) html += '<button class="node-link-chip" onclick="showKnowledgeNode(\'' + nodeId + '\')">' + escapeHtml(node.title) + '</button>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="knowledge-map-grid">';
+  KNOWLEDGE_CORE.roots.forEach(function(root) {
+    var color = getRootColorStyle(root);
+    html += '<section class="knowledge-root-band">';
+    html += '<div class="knowledge-root-head">';
+    html += '<div class="knowledge-root-title">';
+    html += '<span class="knowledge-root-dot" style="background:' + color + ';box-shadow:0 0 0 4px color-mix(in srgb, ' + color + ' 16%, transparent);"></span>';
+    html += '<div><h3>' + escapeHtml(root.title) + '</h3><p>' + escapeHtml(root.subtitle || '') + '</p></div>';
+    html += '</div></div>';
+    html += '<div class="knowledge-node-grid">';
+    (root.children || []).forEach(function(nodeId) {
+      var node = KNOWLEDGE_CORE.nodes[nodeId];
+      if (!node) return;
+      var labels = getNodeCategoryLabels(node);
+      html += '<article class="knowledge-node-card" onclick="showKnowledgeNode(\'' + nodeId + '\')">';
+      html += '<h4>' + escapeHtml(node.title) + '</h4>';
+      html += '<p>' + escapeHtml(node.desc || '') + '</p>';
+      html += '<div class="knowledge-node-tags">';
+      labels.slice(0, 3).forEach(function(label) {
+        html += '<span class="knowledge-node-tag">' + escapeHtml(label) + '</span>';
+      });
+      if ((node.trap_refs || []).length) html += '<span class="knowledge-node-tag">' + (node.trap_refs || []).length + ' 个易错点</span>';
+      html += '</div></article>';
+    });
+    html += '</div></section>';
+  });
+  html += '</div></div>';
+  content.innerHTML = html;
+}
+
+function showKnowledgeNode(nodeId) {
+  currentKnowledgeView = 'map';
+  var node = KNOWLEDGE_CORE.nodes && KNOWLEDGE_CORE.nodes[nodeId];
+  var content = document.getElementById('knowledgeContent');
+  if (!node || !content) return;
+  if (document.getElementById('knowledgeMapBtn')) {
+    document.getElementById('knowledgeMapBtn').classList.add('active');
+    document.getElementById('knowledgeBookBtn').classList.remove('active');
+  }
+  var html = '<div class="knowledge-node-detail">';
+  html += '<button class="node-link-chip" onclick="renderKnowledgeMap()" style="margin-bottom:12px;">返回知识地图</button>';
+  html += '<h2>' + escapeHtml(node.title) + '</h2>';
+  html += '<div class="node-layer">' + escapeHtml(node.layer || '知识节点') + '</div>';
+  html += '<p>' + escapeHtml(node.desc || '') + '</p>';
+  if (node.student_goal) html += '<p><b>学生目标：</b>' + escapeHtml(node.student_goal) + '</p>';
+  if (node.teacher_use) html += '<p><b>教师用法：</b>' + escapeHtml(node.teacher_use) + '</p>';
+  html += '<div class="node-link-row">';
+  (node.category_refs || []).forEach(function(cat) {
+    var label = (KNOWLEDGE_DATA[cat] && KNOWLEDGE_DATA[cat].title) || CATEGORY_MAP[cat] || cat;
+    html += '<button class="node-link-chip" onclick="selectKnowledgeCategory(\'' + cat + '\', false)">' + escapeHtml('打开书本：' + label) + '</button>';
+  });
+  html += '</div>';
+  if ((node.trap_refs || []).length) {
+    html += '<div class="knowledge-subsection" style="margin-top:18px;">';
+    html += '<h3>关联易错点</h3>';
+    html += '<div class="knowledge-node-grid">';
+    node.trap_refs.forEach(function(trapId) {
+      var trap = getTrapById(trapId);
+      if (!trap) return;
+      html += '<div class="knowledge-node-card">';
+      html += '<h4>' + escapeHtml(trap.name) + '</h4>';
+      html += '<p>' + escapeHtml(trap.one_liner || trap.micro_rule || '') + '</p>';
+      html += '<div class="knowledge-node-tags"><span class="knowledge-node-tag">' + escapeHtml(trap.frequency || '易错') + '</span></div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+  html += '</div>';
+  content.innerHTML = html;
 }
 
 function selectKnowledgeCategory(key, isPattern) {
+  currentKnowledgeView = 'book';
   currentKnowledgeKey = key;
   currentIsPattern = isPattern;
+  var mapBtn = document.getElementById('knowledgeMapBtn');
+  var bookBtn = document.getElementById('knowledgeBookBtn');
+  if (mapBtn) mapBtn.classList.remove('active');
+  if (bookBtn) bookBtn.classList.add('active');
 
   document.querySelectorAll('.knowledge-nav-item').forEach(function(el) {
     el.classList.remove('active');
