@@ -2388,7 +2388,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-
 <script>
 /* eslint-disable */
 (function(){
@@ -3593,7 +3592,7 @@ function getErrorFingerprint(q) {
 
 function getPrepFingerprint(p) {
   // 基于稳定内容（去空白标记的 passage 前 200 字 + 答案序列）
-  var passage = (p.passage || '').replace(/___\d+___/g, '').replace(/\s+/g, ' ').trim();
+  var passage = (p.passage || '').replace(/_{2,}\s*\d+\s*_{2,}/g, '').replace(/\s+/g, ' ').trim();
   var passageKey = passage.substring(0, 200);
   var blanksKey = (p.blanks || []).map(function(b) {
     return (b.answer || '').trim();
@@ -4132,7 +4131,7 @@ async function parseWithDeepSeek(text) {
 
     // 验证每篇的空格标记数与 blanks 数量一致
     for (var pi = 0; pi < passagesArr.length; pi++) {
-      var markerMatch = passagesArr[pi].passage.match(/___\d+___/g);
+      var markerMatch = passagesArr[pi].passage.match(/_{2,}\s*\d+\s*_{2,}/g);
       var markerCount = markerMatch ? markerMatch.length : 0;
       if (markerCount !== passagesArr[pi].blanks.length) {
         throw new Error(
@@ -4156,7 +4155,7 @@ async function parseWithDeepSeek(text) {
     ]);
     setTimeout(hideAiOverlay, 400);
 
-    // 弹出统一选择面板：整篇默认进备课资料，勾选的题再额外进错题本
+    // 不再直接入库，弹出统一选择面板：整篇默认进备课资料，勾选的题再额外进错题本
     setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, 200);
 
   } catch (err) {
@@ -4307,7 +4306,6 @@ function importDeepSeekResult(result, silent) {
     blanks: blanks
   };
   var fp = getPrepFingerprint(temp);
-  // 简单哈希：用指纹字符串做 base36 编码
   var hash = 0;
   for (var i = 0; i < fp.length; i++) { hash = ((hash << 5) - hash) + fp.charCodeAt(i); hash |= 0; }
   var fpId = 'prep_' + Math.abs(hash).toString(36);
@@ -4357,11 +4355,11 @@ function importDeepSeekResultToErrorBook(result, silent) {
     var q = {
       id: 'err_' + Math.abs(errHash).toString(36),
       passage: sent,
-      answer: b.answer || '?',
-      category: b.category || 'word',
+      answer: answer,
+      category: cat,
       category_name: CATEGORY_MAP[b.category] || b.category,
       grammar_point: '',
-      analysis: b.analysis || ('答案：' + (b.answer || '?') + '。'),
+      analysis: b.analysis || ('答案：' + answer + '。'),
       technique: '考点：' + (CATEGORY_MAP[b.category] || b.category) +
                  '。' + (CATEGORY_TIPS[b.category] || '先判空格成分，再确定词形。'),
       exam: '错题本',
@@ -5520,8 +5518,8 @@ function renderExam() {
     // 定位替换：找到 passage 中与 q.no 匹配的空格（优先），否则替换第一个空格
     var exactRe = new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}', 'g');
     var replacement = showAnswers
-      ? '<span class="answer-filled">' + q.answer + '</span>'
-      : '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>';
+      ? '<span class="answer-filled" data-blank-idx="0">' + q.answer + '</span>'
+      : '<span class="blank-inline" data-blank-idx="0" onclick="showAnalysisByIdx(0)">' + q.no + '</span>';
     if (exactRe.test(passage)) {
       exactRe.lastIndex = 0;
       passage = passage.replace(exactRe, replacement);
@@ -5549,13 +5547,22 @@ function renderExam() {
         // 优先精确匹配 q.no，否则替换句中第一个空格
         var exactRe2 = new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}', 'g');
         var repl = showAnswers
-          ? '<span class="answer-filled">' + q.answer + '</span>'
-          : '<span class="blank-inline" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>';
-        if (exactRe2.test(sent)) {
-          exactRe2.lastIndex = 0;
-          sent = sent.replace(exactRe2, repl);
+          ? '<span class="answer-filled" data-blank-idx="' + item.idx + '">' + q.answer + '</span>'
+          : '<span class="blank-inline" data-blank-idx="' + item.idx + '" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>';
+        if (showAnswers) {
+          if (exactRe2.test(sent)) {
+            exactRe2.lastIndex = 0;
+            sent = sent.replace(exactRe2, repl);
+          } else {
+            sent = sent.replace(/_{2,}\s*\d+\s*_{2,}/, repl);
+          }
         } else {
-          sent = sent.replace(/_{2,}\s*\d+\s*_{2,}/, repl);
+          if (exactRe2.test(sent)) {
+            exactRe2.lastIndex = 0;
+            sent = sent.replace(exactRe2, repl);
+          } else {
+            sent = sent.replace(/_{2,}\s*\d+\s*_{2,}/, repl);
+          }
         }
         html += '<div class="cat-sentence">' + sent + '</div>';
       });
@@ -5713,8 +5720,9 @@ function switchDrawerTab(tab) {
 }
 
 function extractSentence(passage, no) {
-  var pattern = '___' + no + '___';
-  var idx = passage.indexOf(pattern);
+  var match = new RegExp('_{2,}\\s*' + no + '\\s*_{2,}').exec(passage || '');
+  var pattern = match ? match[0] : ('___' + no + '___');
+  var idx = match ? match.index : passage.indexOf(pattern);
   if (idx === -1) return '';
 
   var start = 0;
@@ -5734,8 +5742,9 @@ function extractSentence(passage, no) {
 }
 
 function extractContextWindow(passage, no) {
-  var pattern = '___' + no + '___';
-  var idx = passage.indexOf(pattern);
+  var match = new RegExp('_{2,}\\s*' + no + '\\s*_{2,}').exec(passage || '');
+  var pattern = match ? match[0] : ('___' + no + '___');
+  var idx = match ? match.index : passage.indexOf(pattern);
   if (idx === -1) return '';
   var start = Math.max(0, idx - 120);
   while (start > 0 && passage[start] !== '.' && passage[start] !== '\n') start--;
@@ -5749,8 +5758,8 @@ function extractContextWindow(passage, no) {
 function buildAnalysisContent(q) {
   var sent = extractSentence(q.passage, q.no);
   if (!sent) sent = q.sentence;
-  sent = sent.replace('___' + q.no + '___', '<span class="hl">' + q.answer + '</span>');
-  sent = sent.replace(new RegExp('___\\\\d+___', 'g'), function(m) { return m; });
+  sent = sent.replace(new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}'), '<span class="hl">' + q.answer + '</span>');
+  sent = sent.replace(new RegExp('_{2,}\\s*\\d+\\s*_{2,}', 'g'), function(m) { return m; });
   var focus = getQuestionFocus(q);
   var trap = getQuestionTrap(q);
   var guide = getQuestionTeachingGuide(q);
@@ -5958,7 +5967,7 @@ function buildTheoryContent(q) {
 }
 
 function showAnalysis(no) {
-  var q = currentQuestions.find(function(item) { return item.no === no; });
+  var q = currentQuestions.find(function(item) { return String(item.no) === String(no); });
   if (!q) return;
   selectedQuestion = q;
   clearBlankHighlight();
@@ -6026,12 +6035,7 @@ function navigateBlank(delta) {
   if (newIdx < 0) newIdx = currentQuestions.length - 1;
   if (newIdx >= currentQuestions.length) newIdx = 0;
 
-  if (currentExam.mode === 'category') {
-    showAnalysisByIdx(newIdx);
-  } else {
-    var q = currentQuestions[newIdx];
-    showAnalysis(q.no);
-  }
+  showAnalysisByIdx(newIdx);
 }
 
 function toggleAnswers() {

@@ -3584,19 +3584,20 @@ function setupBatchDrop() {
 }
 
 function getErrorFingerprint(q) {
-  var passage = (q.passage || '').replace(/\s+/g, ' ').trim();
   var answer = (q.answer || '').trim();
   var category = (q.category || '').trim();
-  return passage + '|||' + answer + '|||' + category;
+  var no = q.no || '';
+  return answer + '|||' + category + '|||' + no;
 }
 
 function getPrepFingerprint(p) {
-  var title = (p.title || '').replace(/\s+/g, ' ').trim();
-  var passage = (p.passage || '').replace(/\s+/g, ' ').trim();
+  // 基于稳定内容（去空白标记的 passage 前 200 字 + 答案序列）
+  var passage = (p.passage || '').replace(/_{2,}\s*\d+\s*_{2,}/g, '').replace(/\s+/g, ' ').trim();
+  var passageKey = passage.substring(0, 200);
   var blanksKey = (p.blanks || []).map(function(b) {
-    return (b.no || '') + '::' + (b.answer || '').trim() + '::' + (b.category || '').trim();
-  }).sort().join('||');
-  return title + '|||' + passage + '|||' + blanksKey;
+    return (b.answer || '').trim();
+  }).join('|');
+  return passageKey + '|||' + (p.blanks || []).length + '|||' + blanksKey;
 }
 
 function batchImportJson() {
@@ -3652,12 +3653,19 @@ function batchImportJson() {
   alert(msg);
 }
 
-function deleteErrorQuestion(id) {
+async function deleteErrorQuestion(id) {
   if (!confirm('确定要删除这道错题吗？')) return;
   errorBookQuestions = errorBookQuestions.filter(function(q) { return q.id !== id; });
   saveErrorBook();
   renderErrorBook();
   renderBankStat();
+  if (window.cloud && window.cloud.deleteErrorItem) {
+    try {
+      await window.cloud.deleteErrorItem(id);
+    } catch (e) {
+      alert('云端删除失败：' + (e.message || e) + '\n刷新后该错题可能重新出现。');
+    }
+  }
 }
 
 function viewErrorQuestion(id) {
@@ -3793,12 +3801,19 @@ function batchImportPrepJson() {
   alert(msg);
 }
 
-function deletePrepPassage(id) {
+async function deletePrepPassage(id) {
   if (!confirm('确定要删除这份备课资料吗？')) return;
   prepPassages = prepPassages.filter(function(p) { return p.id !== id; });
   savePrepPassages();
   renderPrepList();
   renderBankStat();
+  if (window.cloud && window.cloud.deletePrepItem) {
+    try {
+      await window.cloud.deletePrepItem(id);
+    } catch (e) {
+      alert('云端删除失败：' + (e.message || e) + '\n刷新后该资料可能重新出现。');
+    }
+  }
 }
 
 function viewPrepPassage(id) {
@@ -3929,6 +3944,10 @@ var _abortAiParse = false;
 function cancelAiParse() {
   _abortAiParse = true;
   hideAiOverlay();
+  stopAiDrift();
+  // 清掉 file input，否则下次点上传可能不触发 change 事件
+  var input = document.getElementById('docxFileInput');
+  if (input) input.value = '';
 }
 
 // ────────── AI 解析进度条 ──────────
@@ -4092,6 +4111,37 @@ async function parseWithDeepSeek(text) {
       };
     });
 
+    // 去重：AI 可能把同一篇文章拆成多篇（如加了 B 后缀），用答案指纹合并
+    var seenSigs = {};
+    passagesArr = passagesArr.filter(function(p) {
+      var sig = (p.blanks || []).map(function(b) {
+        return (b.no || '') + '=' + (b.answer || '').trim();
+      }).sort(function(a, b) { return a < b ? -1 : a > b ? 1 : 0; }).join('|');
+      if (!sig) return true; // 没有 blanks 的保留（可能是解析失败）
+      if (seenSigs[sig]) {
+        // 保留 blanks 更多的那个
+        if (p.blanks.length > seenSigs[sig].blanks.length) {
+          seenSigs[sig] = p;
+        }
+        return false;
+      }
+      seenSigs[sig] = p;
+      return true;
+    });
+
+    // 验证每篇的空格标记数与 blanks 数量一致
+    for (var pi = 0; pi < passagesArr.length; pi++) {
+      var markerMatch = passagesArr[pi].passage.match(/_{2,}\s*\d+\s*_{2,}/g);
+      var markerCount = markerMatch ? markerMatch.length : 0;
+      if (markerCount !== passagesArr[pi].blanks.length) {
+        throw new Error(
+          '解析结果不一致：原文有 ' + markerCount + ' 个空格标记，' +
+          '但解析出 ' + passagesArr[pi].blanks.length + ' 道题。\n' +
+          '请手动核对 Word 文档中的空格格式是否清晰。'
+        );
+      }
+    }
+
     if (passagesArr.length === 0) {
       throw new Error('AI 没有识别出任何题目');
     }
@@ -4240,27 +4290,39 @@ function confirmUnifiedImport() {
 }
 
 function importDeepSeekResult(result, silent) {
-  var p = {
-    id: 'prep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-    title: result.title || '无标题',
-    passage: result.passage,
-    blanks: (result.blanks || []).map(function(b) {
-      return {
-        no: b.no,
-        answer: b.answer || '?',
-        category: b.category || 'word',
-        analysis: b.analysis || ''
-      };
-    }),
-    created_at: new Date().toISOString()
-  };
+  var blanks = (result.blanks || []).map(function(b) {
+    return {
+      no: b.no,
+      answer: b.answer || '?',
+      category: b.category || 'word',
+      analysis: b.analysis || ''
+    };
+  });
 
-  var fp = getPrepFingerprint(p);
+  // 用内容指纹做 ID，云端 upsert 也能去重
+  var temp = {
+    title: result.title || '无标题',
+    passage: result.passage || '',
+    blanks: blanks
+  };
+  var fp = getPrepFingerprint(temp);
+  var hash = 0;
+  for (var i = 0; i < fp.length; i++) { hash = ((hash << 5) - hash) + fp.charCodeAt(i); hash |= 0; }
+  var fpId = 'prep_' + Math.abs(hash).toString(36);
+
   var isDup = prepPassages.some(function(existing) { return getPrepFingerprint(existing) === fp; });
   if (isDup) {
     if (!silent) alert('这篇备课资料已存在，跳过：' + (result.title || '无标题'));
     return false;
   }
+
+  var p = {
+    id: fpId,
+    title: result.title || '无标题',
+    passage: result.passage,
+    blanks: blanks,
+    created_at: new Date().toISOString()
+  };
 
   prepPassages.unshift(p);
 
@@ -4285,14 +4347,19 @@ function importDeepSeekResultToErrorBook(result, silent) {
   (result.blanks || []).forEach(function(b) {
     var no = b.no || (count + 1);
     var sent = extractSentence(result.passage, no) || extractContextWindow(result.passage, no) || result.passage;
+    var answer = b.answer || '?';
+    var cat = b.category || 'word';
+    var errFp = answer.trim() + '|||' + cat.trim() + '|||' + no;
+    var errHash = 0;
+    for (var hi = 0; hi < errFp.length; hi++) { errHash = ((errHash << 5) - errHash) + errFp.charCodeAt(hi); errHash |= 0; }
     var q = {
-      id: 'err_' + Date.now() + '_' + count + '_' + Math.random().toString(36).slice(2, 6),
+      id: 'err_' + Math.abs(errHash).toString(36),
       passage: sent,
-      answer: b.answer || '?',
-      category: b.category || 'word',
+      answer: answer,
+      category: cat,
       category_name: CATEGORY_MAP[b.category] || b.category,
       grammar_point: '',
-      analysis: b.analysis || ('答案：' + (b.answer || '?') + '。'),
+      analysis: b.analysis || ('答案：' + answer + '。'),
       technique: '考点：' + (CATEGORY_MAP[b.category] || b.category) +
                  '。' + (CATEGORY_TIPS[b.category] || '先判空格成分，再确定词形。'),
       exam: '错题本',
@@ -5448,13 +5515,16 @@ function renderExam() {
   if (currentExam.mode === 'error') {
     var q = currentQuestions[0];
     var passage = q.passage;
-    var blankMarker = '___' + q.no + '___';
-    if (showAnswers) {
-      passage = passage.replace(blankMarker,
-        '<span class="answer-filled">' + q.answer + '</span>');
+    // 定位替换：找到 passage 中与 q.no 匹配的空格（优先），否则替换第一个空格
+    var exactRe = new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}', 'g');
+    var replacement = showAnswers
+      ? '<span class="answer-filled" data-blank-idx="0">' + q.answer + '</span>'
+      : '<span class="blank-inline" data-blank-idx="0" onclick="showAnalysisByIdx(0)">' + q.no + '</span>';
+    if (exactRe.test(passage)) {
+      exactRe.lastIndex = 0;
+      passage = passage.replace(exactRe, replacement);
     } else {
-      passage = passage.replace(blankMarker,
-        '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>');
+      passage = passage.replace(/_{2,}\s*\d+\s*_{2,}/, replacement);
     }
     document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
     return;
@@ -5474,12 +5544,25 @@ function renderExam() {
       byExam[examId].forEach(function(item) {
         var q = item.q;
         var sent = extractSentence(q.passage, q.no) || ('___' + q.no + '___');
+        // 优先精确匹配 q.no，否则替换句中第一个空格
+        var exactRe2 = new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}', 'g');
+        var repl = showAnswers
+          ? '<span class="answer-filled" data-blank-idx="' + item.idx + '">' + q.answer + '</span>'
+          : '<span class="blank-inline" data-blank-idx="' + item.idx + '" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>';
         if (showAnswers) {
-          sent = sent.replace('___' + q.no + '___',
-            '<span class="answer-filled">' + q.answer + '</span>');
+          if (exactRe2.test(sent)) {
+            exactRe2.lastIndex = 0;
+            sent = sent.replace(exactRe2, repl);
+          } else {
+            sent = sent.replace(/_{2,}\s*\d+\s*_{2,}/, repl);
+          }
         } else {
-          sent = sent.replace('___' + q.no + '___',
-            '<span class="blank-inline" onclick="showAnalysisByIdx(' + item.idx + ')">' + q.no + '</span>');
+          if (exactRe2.test(sent)) {
+            exactRe2.lastIndex = 0;
+            sent = sent.replace(exactRe2, repl);
+          } else {
+            sent = sent.replace(/_{2,}\s*\d+\s*_{2,}/, repl);
+          }
         }
         html += '<div class="cat-sentence">' + sent + '</div>';
       });
@@ -5488,16 +5571,29 @@ function renderExam() {
     document.getElementById('passageBox').innerHTML = html;
   } else if (currentExam.mode === 'prep' || currentExam.mode === 'exam') {
     var passage = currentExam.passage || currentQuestions[0].passage;
-    currentQuestions.forEach(function(q) {
+    // 按位置顺序替换：passage 中的第 N 个空格 → 第 N 道题
+    // 显示原文标记中的编号，data-blank-idx 用于高亮定位
+    var qi = 0;
+    passage = passage.replace(/_{2,}\s*(\d+)\s*_{2,}/g, function(fullMatch, numStr) {
+      if (qi >= currentQuestions.length) return fullMatch;
+      var q = currentQuestions[qi];
+      var idx = qi;
+      qi++;
       if (showAnswers) {
-        passage = passage.replace('___' + q.no + '___',
-          '<span class="answer-filled">' + q.answer + '</span>');
+        return '<span class="answer-filled" data-blank-idx="' + idx + '">' + q.answer + '</span>';
       } else {
-        passage = passage.replace('___' + q.no + '___',
-          '<span class="blank-inline" onclick="showAnalysis(' + q.no + ')">' + q.no + '</span>');
+        return '<span class="blank-inline" data-blank-idx="' + idx + '" onclick="showAnalysisByIdx(' + idx + ')">' + numStr + '</span>';
       }
     });
     passage = passage.split('\n\n').map(function(p) { return '<p>' + p + '</p>'; }).join('');
+    if (qi < currentQuestions.length) {
+      passage += '<div style="margin-top:16px;padding:12px;border:1px dashed var(--orange);border-radius:8px;background:var(--orange-bg);"><div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:6px;">以下空格在原文中未找到位置标记，请手动核对：</div>' +
+        currentQuestions.slice(qi).map(function(q, i) {
+          var gIdx = qi + i;
+          return '<span style="display:inline-block;margin:3px 8px 3px 0;font-size:14px;"><span class="blank-inline" data-blank-idx="' + gIdx + '" onclick="showAnalysisByIdx(' + gIdx + ')">' + q.no + '</span></span>';
+        }).join('') +
+        '</div>';
+    }
     document.getElementById('passageBox').innerHTML = passage;
   }
 }
@@ -5586,7 +5682,7 @@ function showAnalysisByIdx(idx) {
   if (!q) return;
   selectedQuestion = q;
   clearBlankHighlight();
-  highlightBlankInPassage(q.no);
+  highlightBlankByIdx(idx);
 
   document.getElementById('drawerQInfo').textContent =
     '第' + q.no + '题 · ' + (CATEGORY_MAP[q.category] || q.category) +
@@ -5624,8 +5720,9 @@ function switchDrawerTab(tab) {
 }
 
 function extractSentence(passage, no) {
-  var pattern = '___' + no + '___';
-  var idx = passage.indexOf(pattern);
+  var match = new RegExp('_{2,}\\s*' + no + '\\s*_{2,}').exec(passage || '');
+  var pattern = match ? match[0] : ('___' + no + '___');
+  var idx = match ? match.index : passage.indexOf(pattern);
   if (idx === -1) return '';
 
   var start = 0;
@@ -5645,8 +5742,9 @@ function extractSentence(passage, no) {
 }
 
 function extractContextWindow(passage, no) {
-  var pattern = '___' + no + '___';
-  var idx = passage.indexOf(pattern);
+  var match = new RegExp('_{2,}\\s*' + no + '\\s*_{2,}').exec(passage || '');
+  var pattern = match ? match[0] : ('___' + no + '___');
+  var idx = match ? match.index : passage.indexOf(pattern);
   if (idx === -1) return '';
   var start = Math.max(0, idx - 120);
   while (start > 0 && passage[start] !== '.' && passage[start] !== '\n') start--;
@@ -5660,8 +5758,8 @@ function extractContextWindow(passage, no) {
 function buildAnalysisContent(q) {
   var sent = extractSentence(q.passage, q.no);
   if (!sent) sent = q.sentence;
-  sent = sent.replace('___' + q.no + '___', '<span class="hl">' + q.answer + '</span>');
-  sent = sent.replace(new RegExp('___\\\\d+___', 'g'), function(m) { return m; });
+  sent = sent.replace(new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}'), '<span class="hl">' + q.answer + '</span>');
+  sent = sent.replace(new RegExp('_{2,}\\s*\\d+\\s*_{2,}', 'g'), function(m) { return m; });
   var focus = getQuestionFocus(q);
   var trap = getQuestionTrap(q);
   var guide = getQuestionTeachingGuide(q);
@@ -5869,7 +5967,7 @@ function buildTheoryContent(q) {
 }
 
 function showAnalysis(no) {
-  var q = currentQuestions.find(function(item) { return item.no === no; });
+  var q = currentQuestions.find(function(item) { return String(item.no) === String(no); });
   if (!q) return;
   selectedQuestion = q;
   clearBlankHighlight();
@@ -5891,6 +5989,17 @@ function showAnalysis(no) {
 function findBlankIndex() {
   if (!selectedQuestion) return -1;
   return currentQuestions.findIndex(function(q) { return q.no === selectedQuestion.no; });
+}
+
+function highlightBlankByIdx(idx) {
+  var box = document.getElementById('passageBox');
+  if (!box) return;
+  var target = box.querySelector('.blank-inline[data-blank-idx="' + idx + '"]');
+  if (target) {
+    target.classList.add('highlight');
+    var p = target.closest('p');
+    if (p) p.classList.add('paragraph-active');
+  }
 }
 
 function highlightBlankInPassage(no) {
@@ -5926,12 +6035,7 @@ function navigateBlank(delta) {
   if (newIdx < 0) newIdx = currentQuestions.length - 1;
   if (newIdx >= currentQuestions.length) newIdx = 0;
 
-  if (currentExam.mode === 'category') {
-    showAnalysisByIdx(newIdx);
-  } else {
-    var q = currentQuestions[newIdx];
-    showAnalysis(q.no);
-  }
+  showAnalysisByIdx(newIdx);
 }
 
 function toggleAnswers() {
