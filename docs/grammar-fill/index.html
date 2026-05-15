@@ -1840,8 +1840,8 @@
 [data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
 </style>
 <script src="../data/grammar_bank.js"></script>
-<script src="../../data/grammar_knowledge.js"></script>
-<script src="../../data/grammar_knowledge_traps.js"></script>
+<script src="../data/grammar_knowledge.js"></script>
+<script src="../data/grammar_knowledge_traps.js"></script>
 
 <!-- ============== Supabase 云同步 · 配置 + 客户端 ============== -->
 <!-- 部署前请把下面两行换成你 Supabase 项目的真实值（Settings → API） -->
@@ -2811,6 +2811,7 @@ function getQuestionFocus(q) {
   var answer = String(q.answer || '').trim().toLowerCase();
   var blob = getQuestionTextBlob(q);
   var category = q.category || '';
+  var inferredTrapId = inferQuestionTrapId(q);
 
   if (category === 'nonpredicate') {
     if (/^to\s+be\b/.test(answer)) {
@@ -5788,8 +5789,11 @@ function showAnalysisByIdx(idx) {
     console.error('解析面板渲染失败：', e);
     document.getElementById('drawerContent').innerHTML =
       '<h3>解析</h3>' +
-      '<p class="sentence-display">第 ' + q.no + ' 题答案：<span class="hl">' + (q.answer || '') + '</span></p>' +
-      '<div class="analysis-steps-lg"><p>解析内容加载时遇到问题，但抽屉已打开。请检查该题数据或刷新后再试。</p></div>';
+      '<p class="sentence-display">第 ' + escapeHtml(q.no || '') + ' 题答案：<span class="hl">' + escapeHtml(q.answer || '') + '</span></p>' +
+      '<div class="analysis-steps-lg">' +
+      '<p><strong>解题：</strong>' + escapeHtml(q.analysis || q.explanation || '这道题的数据不完整，先按答案和原句讲解。') + '</p>' +
+      '<p><strong>技巧：</strong>' + escapeHtml(CATEGORY_TIPS[q.category] || '先判空格成分，再确定答案方向。') + '</p>' +
+      '</div>';
   }
 }
 
@@ -5802,7 +5806,8 @@ function closeDrawer() {
 
 function switchDrawerTab(tab) {
   document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.drawer-tab[data-tab="${tab}"]`).classList.add('active');
+  var activeTab = document.querySelector(`.drawer-tab[data-tab="${tab}"]`);
+  if (activeTab) activeTab.classList.add('active');
   if (selectedQuestion) {
     try {
       if (tab === 'analysis') {
@@ -5856,39 +5861,128 @@ function extractContextWindow(passage, no) {
   return passage.substring(start, end).trim();
 }
 
+function asText(value, fallback) {
+  if (value === null || value === undefined) return fallback || '';
+  return String(value);
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value.filter(function(item) {
+    return item !== null && item !== undefined && String(item).trim() !== '';
+  }) : [];
+}
+
+function escapeRegExpText(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function safeQuestionNo(q) {
+  return asText(q && q.no, '');
+}
+
+function renderSentenceWithBlank(q, revealAnswer) {
+  q = q || {};
+  var no = safeQuestionNo(q);
+  var raw = extractSentence(asText(q.passage), no) || asText(q.sentence) || extractContextWindow(asText(q.passage), no);
+  if (!raw) raw = no ? ('___' + no + '___') : '空格上下文不可用';
+
+  var replacement = revealAnswer
+    ? '<span class="hl">' + escapeHtml(q.answer || '') + '</span>'
+    : '<span class="blank-hl">___' + escapeHtml(no) + '___</span>';
+  var escaped = escapeHtml(raw);
+
+  if (no) {
+    escaped = escaped.replace(new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}'), replacement);
+    escaped = escaped.replace('___' + escapeHtml(no) + '___', replacement);
+  }
+  return escaped;
+}
+
+function safeQuestionFocus(q) {
+  try {
+    return getQuestionFocus(q);
+  } catch (e) {
+    console.warn('小考点识别失败：', e, q);
+    var category = q && q.category;
+    return {
+      key: category || 'other',
+      label: CATEGORY_MAP[category] || category || '语法填空',
+      note: CATEGORY_TIPS[category] || '先判空格成分，再确定答案方向。'
+    };
+  }
+}
+
+function safeQuestionTrap(q) {
+  try {
+    return getQuestionTrap(q);
+  } catch (e) {
+    console.warn('陷阱识别失败：', e, q);
+    return null;
+  }
+}
+
+function safeQuestionTrapId(q) {
+  var trap = safeQuestionTrap(q);
+  return trap ? trap.id : '';
+}
+
+function safeQuestionFocusKey(q) {
+  return safeQuestionFocus(q).key;
+}
+
+function safeTeachingGuide(q, focus, trap) {
+  var guide;
+  try {
+    guide = getQuestionTeachingGuide(q);
+  } catch (e) {
+    console.warn('讲题引导生成失败：', e, q);
+  }
+  guide = guide || {};
+  return {
+    headline: guide.headline || (trap && trap.one_liner) || '这题先问：空格在句子里承担什么功能？',
+    questions: asArray(guide.questions).length ? asArray(guide.questions) : [
+      '先找句子主干：主语、谓语、宾语在哪里？',
+      '再看空格成分：作谓语、非谓语，还是词性转换？',
+      '最后结合固定搭配和上下文语义确定答案。'
+    ],
+    wrong: guide.wrong || '常错：先背规则，后看句子；正确顺序应该是先看结构。',
+    theory: asArray(guide.theory).length ? asArray(guide.theory) : [focus && focus.note ? focus.note : '先判空格成分，再确定答案方向。'],
+    trap: guide.trap || trap,
+    focus: guide.focus || focus
+  };
+}
+
 function buildAnalysisContent(q) {
-  var sent = extractSentence(q.passage, q.no);
-  if (!sent) sent = q.sentence;
-  sent = sent.replace(new RegExp('_{2,}\\s*' + q.no + '\\s*_{2,}'), '<span class="hl">' + q.answer + '</span>');
-  sent = sent.replace(new RegExp('_{2,}\\s*\\d+\\s*_{2,}', 'g'), function(m) { return m; });
-  var focus = getQuestionFocus(q);
-  var trap = getQuestionTrap(q);
-  var guide = getQuestionTeachingGuide(q);
+  q = q || {};
+  var sent = renderSentenceWithBlank(q, true);
+  var focus = safeQuestionFocus(q);
+  var trap = safeQuestionTrap(q);
+  var guide = safeTeachingGuide(q, focus, trap);
   var label = trap ? ('当前陷阱 · ' + trap.name) : focus.label;
   var subLabel = trap ? focus.label : '';
   var path = getQuestionLessonPath(q, focus, trap);
   var focusHtml = '<div class="lesson-card">'
     + '<div class="lesson-card-kicker">课堂讲法</div>'
-    + '<div class="lesson-card-title">' + guide.headline + '</div>'
-    + '<div class="lesson-card-focus">' + label + '</div>'
-    + (subLabel ? '<div class="lesson-card-sub">' + subLabel + '</div>' : '')
+    + '<div class="lesson-card-title">' + escapeHtml(guide.headline) + '</div>'
+    + '<div class="lesson-card-focus">' + escapeHtml(label) + '</div>'
+    + (subLabel ? '<div class="lesson-card-sub">' + escapeHtml(subLabel) + '</div>' : '')
     + '<div class="lesson-path">'
-    + path.map(function(item, idx) { return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">' + item + '</span>'; }).join('')
+    + path.map(function(item, idx) { return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">' + escapeHtml(item) + '</span>'; }).join('')
     + '</div>'
     + '<div class="lesson-guide-steps">'
     + guide.questions.map(function(item, idx) {
-        return '<div class="lesson-guide-step"><span class="lesson-guide-step-no">' + (idx + 1) + '</span><span>' + item + '</span></div>';
+        return '<div class="lesson-guide-step"><span class="lesson-guide-step-no">' + (idx + 1) + '</span><span>' + escapeHtml(item) + '</span></div>';
       }).join('')
     + '</div>'
-    + '<div class="lesson-wrong-box">' + guide.wrong + '</div>'
+    + '<div class="lesson-wrong-box">' + escapeHtml(guide.wrong) + '</div>'
     + '</div>';
 
-  return '<div class="analysis-answer-lg">' + q.answer + '</div>'
+  return '<div class="analysis-answer-lg">' + escapeHtml(q.answer || '') + '</div>'
     + '<div class="analysis-sentence-lg">' + sent + '</div>'
     + focusHtml
     + '<div class="analysis-steps-lg">'
-    + '<p><strong>解题：</strong>' + q.analysis + '</p>'
-    + '<p><strong>技巧：</strong>' + q.technique + '</p>'
+    + '<p><strong>解题：</strong>' + escapeHtml(q.analysis || ('答案：' + (q.answer || '') + '。')) + '</p>'
+    + '<p><strong>技巧：</strong>' + escapeHtml(q.technique || (CATEGORY_TIPS[q.category] || '先判空格成分，再确定答案方向。')) + '</p>'
     + '</div>';
 }
 
@@ -5903,26 +5997,33 @@ function setMigrationSource(src) {
   _migrationSource = src;
   try { localStorage.setItem(MIGRATION_SOURCE_KEY, src); } catch(e) {}
   if (selectedQuestion) {
-    document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedQuestion);
+    try {
+      document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedQuestion);
+    } catch (e) {
+      console.error('迁移训练切换失败：', e);
+      document.getElementById('drawerContent').innerHTML =
+        '<div class="empty-hint">迁移训练暂时加载失败，但当前题解析不受影响。请回到“解析”页签继续讲题。</div>';
+    }
   }
 }
 
 function buildMigrationContent(q) {
-  var focus = getQuestionFocus(q);
-  var trap = getQuestionTrap(q);
+  q = q || {};
+  var focus = safeQuestionFocus(q);
+  var trap = safeQuestionTrap(q);
   var trapId = trap ? trap.id : '';
   // 三种来源的题池
   var trapBankPool = trapId ? ALL_QUESTIONS.filter(function(item) {
-    return getQuestionTrapId(item) === trapId && !(item.exam === q.exam && item.no === q.no);
+    return safeQuestionTrapId(item) === trapId && !(item.exam === q.exam && item.no === q.no);
   }) : [];
   var trapErrorPool = trapId ? errorBookQuestions.filter(function(item) {
-    return getQuestionTrapId(item) === trapId && item.id !== q.id;
+    return safeQuestionTrapId(item) === trapId && item.id !== q.id;
   }) : [];
   var bankPool = ALL_QUESTIONS.filter(function(item) {
-    return item.category === q.category && getQuestionFocusKey(item) === focus.key && !(item.exam === q.exam && item.no === q.no);
+    return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !(item.exam === q.exam && item.no === q.no);
   });
   var errorPool = errorBookQuestions.filter(function(item) {
-    return item.category === q.category && getQuestionFocusKey(item) === focus.key && item.id !== q.id;
+    return item.category === q.category && safeQuestionFocusKey(item) === focus.key && item.id !== q.id;
   });
   var fallbackBankPool = ALL_QUESTIONS.filter(function(item) {
     return item.category === q.category && !(item.exam === q.exam && item.no === q.no);
@@ -5930,8 +6031,8 @@ function buildMigrationContent(q) {
   var fallbackErrorPool = errorBookQuestions.filter(function(item) {
     return item.category === q.category && item.id !== q.id;
   });
-  var bankDisplayPool = trapBankPool.concat(bankPool.filter(function(item) { return getQuestionTrapId(item) !== trapId; }));
-  var errorDisplayPool = trapErrorPool.concat(errorPool.filter(function(item) { return getQuestionTrapId(item) !== trapId; }));
+  var bankDisplayPool = trapBankPool.concat(bankPool.filter(function(item) { return safeQuestionTrapId(item) !== trapId; }));
+  var errorDisplayPool = trapErrorPool.concat(errorPool.filter(function(item) { return safeQuestionTrapId(item) !== trapId; }));
   var allDisplayPool = bankDisplayPool.concat(errorDisplayPool);
 
   // 当前选定来源
@@ -5962,15 +6063,15 @@ function buildMigrationContent(q) {
   if (pool.length === 0) {
     var hint;
     if (_migrationSource === 'errors') {
-      hint = '错题本里还没有' + (trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选"高频错题"，多积累几道再来。</span>';
+      hint = '错题本里还没有' + escapeHtml(trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选&quot;高频错题&quot;，多积累几道再来。</span>';
     } else if (_migrationSource === 'all') {
-      hint = '题库和错题本里都没有' + (trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的题。';
+      hint = '题库和错题本里都没有' + escapeHtml(trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的题。';
     } else {
-      hint = '真题库里暂无' + (trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的其他题目。';
+      hint = '真题库里暂无' + escapeHtml(trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的其他题目。';
     }
     var fallbackCount = (_migrationSource === 'errors') ? fallbackErrorPool.length : (_migrationSource === 'all' ? fallbackBankPool.length + fallbackErrorPool.length : fallbackBankPool.length);
     if (fallbackCount > 0) {
-      hint += '<br><span style="color:var(--text-3);">可切回粗分类「' + (CATEGORY_MAP[q.category] || q.category) + '」，但课堂复习会更泛。</span>';
+      hint += '<br><span style="color:var(--text-3);">可切回粗分类「' + escapeHtml(CATEGORY_MAP[q.category] || q.category || '语法填空') + '」，但课堂复习会更泛。</span>';
     }
     return tabsHtml + '<div class="empty-hint">' + hint + '</div>';
   }
@@ -5995,32 +6096,32 @@ function buildMigrationContent(q) {
     + '<div class="lesson-card" style="margin-top:0;padding:14px 16px;">'
     + '<div class="lesson-card-kicker" style="margin-bottom:8px;">迁移训练筛选</div>'
     + '<div style="font-size:var(--drawer-font-size,24px);font-weight:800;color:var(--text);line-height:1.55;">'
-    + (trap ? '先找同陷阱：' + trap.name : '先找同小考点：' + focus.label)
+    + escapeHtml(trap ? '先找同陷阱：' + trap.name : '先找同小考点：' + focus.label)
     + '</div>'
     + '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.6;margin-top:4px;">'
     + '不足时补同小考点；共 <strong>' + pool.length + '</strong> 题，已展示 <strong>' + migration.length + '</strong> 题。'
-    + (focus.note ? ' 复习抓手：' + focus.note : '')
+    + (focus.note ? ' 复习抓手：' + escapeHtml(focus.note) : '')
     + '</div>'
     + '</div>'
     + '<div class="migration-list">';
   migration.forEach(function(item) {
-    var sent = extractSentence(item.passage, item.no);
-    if (!sent) sent = item.sentence || '(空格上下文不可用)';
-    sent = sent.replace('___' + item.no + '___', '<span class="blank-hl">___' + item.no + '___</span>');
+    var sent = renderSentenceWithBlank(item, false);
 
     var isError = (item.exam === '错题本' || (item.id && item.id.indexOf('err_') === 0));
     var srcLabel = isError ? '📝 我的错题' : item.exam;
+    var itemTrap = safeQuestionTrap(item);
+    var itemFocus = safeQuestionFocus(item);
 
     html += '<div class="migration-card" onclick="this.classList.toggle(\'open\')">'
       + '<div class="migration-card-head">'
       + '<span class="migration-card-source"' + (isError ? ' style="color:var(--accent);"' : '') + '>'
-      +    srcLabel + ' · 第' + item.no + '题</span>'
-      + '<span class="migration-card-tag">' + (getQuestionTrap(item) ? getQuestionTrap(item).name : getQuestionFocus(item).label) + '</span>'
+      +    escapeHtml(srcLabel || '题库') + ' · 第' + escapeHtml(item.no || '') + '题</span>'
+      + '<span class="migration-card-tag">' + escapeHtml(itemTrap ? itemTrap.name : itemFocus.label) + '</span>'
       + '</div>'
       + '<div class="migration-card-sentence">' + sent + '</div>'
       + '<div class="migration-card-body">'
-      + '<p><span class="ans">答案：' + item.answer + '</span></p>'
-      + '<p>' + (item.analysis || '') + '</p>'
+      + '<p><span class="ans">答案：' + escapeHtml(item.answer || '') + '</span></p>'
+      + '<p>' + escapeHtml(item.analysis || '') + '</p>'
       + '</div>'
       + '</div>';
   });
@@ -6029,23 +6130,24 @@ function buildMigrationContent(q) {
 }
 
 function buildTheoryContent(q) {
+  q = q || {};
   var theory = KNOWLEDGE_DATA[q.category];
   if (!theory) {
-    return '<div class="empty-hint">「' + (CATEGORY_MAP[q.category] || q.category) + '」考点理论资料整理中，敬请期待。</div>';
+    return '<div class="empty-hint">「' + escapeHtml(CATEGORY_MAP[q.category] || q.category || '语法填空') + '」考点理论资料整理中，敬请期待。</div>';
   }
-  var focus = getQuestionFocus(q);
-  var trap = getQuestionTrap(q);
-  var guide = getQuestionTeachingGuide(q);
+  var focus = safeQuestionFocus(q);
+  var trap = safeQuestionTrap(q);
+  var guide = safeTeachingGuide(q, focus, trap);
   var path = getQuestionLessonPath(q, focus, trap);
   var html = '<div class="theory-now-card">'
     + '<div class="lesson-card-kicker">' + (trap ? '当前陷阱' : '当前小考点') + '</div>'
-    + '<div class="theory-now-title">' + (trap ? trap.name : focus.label) + '</div>'
-    + (trap ? '<div class="lesson-card-sub">' + focus.label + '</div>' : '')
+    + '<div class="theory-now-title">' + escapeHtml(trap ? trap.name : focus.label) + '</div>'
+    + (trap ? '<div class="lesson-card-sub">' + escapeHtml(focus.label) + '</div>' : '')
     + '<div class="lesson-path">'
-    + path.map(function(item, idx) { return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">' + item + '</span>'; }).join('')
+    + path.map(function(item, idx) { return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">' + escapeHtml(item) + '</span>'; }).join('')
     + '</div>'
     + '<ul class="theory-now-list">'
-    + guide.theory.map(function(item) { return '<li>' + item + '</li>'; }).join('')
+    + guide.theory.map(function(item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('')
     + '</ul>'
     + '</div>';
   // Overview
@@ -6058,7 +6160,7 @@ function buildTheoryContent(q) {
     Object.keys(theory.sub).forEach(function(subKey) {
       var sub = theory.sub[subKey];
       html += '<details class="drawer-fold">';
-      html += '<summary class="drawer-fold-summary">' + sub.title + ' · ' + sub.desc + '</summary>';
+      html += '<summary class="drawer-fold-summary">' + escapeHtml(sub.title || subKey) + ' · ' + escapeHtml(sub.desc || '') + '</summary>';
       html += '<div class="drawer-fold-body">' + sub.content + '</div>';
       html += '</details>';
     });
