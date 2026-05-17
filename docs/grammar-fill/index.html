@@ -2504,11 +2504,11 @@
     </div>
 
     <div class="page" id="page-knowledge">
-      <!-- 视图切换 tab bar：放在主面板顶部，全屏 sticky -->
+      <!-- 视图切换 tab bar：教材视图作为默认首页（最美观、最直观） -->
       <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
-        <button class="knowledge-view-btn active" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
+        <button class="knowledge-view-btn active" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
         <button class="knowledge-view-btn" id="knowledgeFineCatBtn" onclick="setKnowledgeView('fine-cat')">🏷️ 考点视图</button>
-        <button class="knowledge-view-btn" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
+        <button class="knowledge-view-btn" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
         <button class="knowledge-view-btn" id="knowledgeSystemBtn" onclick="setKnowledgeView('system')">🌳 体系视图</button>
         <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
       </div>
@@ -5998,7 +5998,7 @@ function renderKnowledgePage() {
     patNav.parentElement.querySelectorAll('.knowledge-sidebar-title')[1].style.display = '';
   }
 
-  setKnowledgeView(currentKnowledgeView || 'map');
+  setKnowledgeView(currentKnowledgeView || 'textbook');
 }
 
 function getNodeCategoryLabels(node) {
