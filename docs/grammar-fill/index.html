@@ -2521,6 +2521,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="../shared/cloud.js"></script>
+<script src="../shared/error-book.js"></script>
 
 <script>
 
@@ -3390,49 +3391,17 @@ var currentKnowledgeView = 'map';
 var currentKnowledgeKey = '';
 var currentIsPattern = false;
 
-const ERROR_BOOK_KEY = 'grammar-error-book';
-let errorBookQuestions = [];
+// errorBookQuestions / loadErrorBook / saveErrorBook / runErrorBookCleanup / getErrorFingerprint
+// 已抽到 shared/error-book.js（含 _owner 跨账号隔离机制）
 
 const PREP_KEY = 'grammar-lesson-prep';
 let prepPassages = [];
 
-function loadErrorBook() {
-  try { errorBookQuestions = JSON.parse(localStorage.getItem(ERROR_BOOK_KEY) || '[]'); } catch (e) { errorBookQuestions = []; }
-}
-function saveErrorBook() {
-  localStorage.setItem(ERROR_BOOK_KEY, JSON.stringify(errorBookQuestions));
-}
 function loadPrepPassages() {
   try { prepPassages = JSON.parse(localStorage.getItem(PREP_KEY) || '[]'); } catch (e) { prepPassages = []; }
 }
 function savePrepPassages() {
   localStorage.setItem(PREP_KEY, JSON.stringify(prepPassages));
-}
-
-// One-time cleanup: clear the 60 wrongly imported error book entries
-function runErrorBookCleanup() {
-  var cleaned = localStorage.getItem('grammar-error-book-cleaned');
-  if (!cleaned && errorBookQuestions.length > 0) {
-    errorBookQuestions = [];
-    saveErrorBook();
-    localStorage.setItem('grammar-error-book-cleaned', '1');
-  }
-  // Phase 2: fix entries that still store the full passage instead of just the sentence
-  var cleanedV2 = localStorage.getItem('grammar-error-book-cleaned-v2');
-  if (!cleanedV2 && errorBookQuestions.length > 0) {
-    var fixed = 0;
-    errorBookQuestions.forEach(function(q) {
-      if (q.passage && q.passage.length > 300) {
-        var sent = extractSentence(q.passage, q.no) || extractContextWindow(q.passage, q.no);
-        if (sent && sent.length < q.passage.length) {
-          q.passage = sent;
-          fixed++;
-        }
-      }
-    });
-    if (fixed > 0) saveErrorBook();
-    localStorage.setItem('grammar-error-book-cleaned-v2', '1');
-  }
 }
 
 const DRAWER_STORAGE_KEY = 'grammar-fill-drawer-height';
@@ -3532,12 +3501,7 @@ function setupBatchDrop() {
   });
 }
 
-function getErrorFingerprint(q) {
-  var answer = (q.answer || '').trim();
-  var category = (q.category || '').trim();
-  var no = q.no || '';
-  return answer + '|||' + category + '|||' + no;
-}
+// getErrorFingerprint 已抽到 shared/error-book.js
 
 function getPrepFingerprint(p) {
   // 基于稳定内容（去空白标记的 passage 前 200 字 + 答案序列）
