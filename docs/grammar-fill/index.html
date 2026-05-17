@@ -5154,10 +5154,20 @@ function buildMigrationContent(q) {
     var itemFocus = safeQuestionFocus(item);
     var itemTagLabel = itemFineInfo ? itemFineInfo.name : (itemTrap ? itemTrap.name : itemFocus.label);
 
+    // Sprint 1.5 · type 标签：真题 / 模拟卷 / 错题本，醒目颜色编码
+    var typeTagHtml = '';
+    if (isError) {
+      typeTagHtml = ''; // 错题本不另加 type tag，srcLabel 已带 emoji
+    } else if (item.type === '真题') {
+      typeTagHtml = '<span style="background:var(--green-bg);color:var(--green);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">真题</span>';
+    } else if (item.type === '模拟卷' || item.type === '模拟题') {
+      typeTagHtml = '<span style="background:var(--orange-bg);color:var(--orange);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">模拟</span>';
+    }
+
     html += '<div class="migration-card" onclick="this.classList.toggle(\'open\')">'
       + '<div class="migration-card-head">'
       + '<span class="migration-card-source"' + (isError ? ' style="color:var(--accent);"' : '') + '>'
-      +    escapeHtml(srcLabel || '题库') + ' · 第' + escapeHtml(item.no || '') + '题</span>'
+      +    escapeHtml(srcLabel || '题库') + typeTagHtml + ' · 第' + escapeHtml(item.no || '') + '题</span>'
       + '<span class="migration-card-tag">' + escapeHtml(itemTagLabel) + '</span>'
       + '</div>'
       + '<div class="migration-card-sentence">' + sent + '</div>'
@@ -5621,7 +5631,7 @@ function renderFineCategoryView() {
   content.innerHTML = html;
 }
 
-// ─── 视图 B · 教材视图（7 册 × 5 单元 grid）────────────────────
+// ─── 视图 B · 教材视图（7 册 × 5 单元 grid + 封面画廊）────────────
 function renderTextbookView() {
   var content = document.getElementById('knowledgeContent');
   if (!content || !window.GRAMMAR_FINE_TAGS) {
@@ -5638,16 +5648,52 @@ function renderTextbookView() {
   });
   var bookOrder = ['必修一', '必修二', '必修三', '选必一', '选必二', '选必三', '选必四'];
 
+  // 封面映射（人教版高中英语 7 册）
+  var coverMap = {
+    '必修一': 'images/textbook-covers/bixiu-1.jpg',
+    '必修二': 'images/textbook-covers/bixiu-2.jpg',
+    '必修三': 'images/textbook-covers/bixiu-3.jpg',
+    '选必一': 'images/textbook-covers/xuanbi-1.jpg',
+    '选必二': 'images/textbook-covers/xuanbi-2.jpg',
+    '选必三': 'images/textbook-covers/xuanbi-3.jpg',
+    '选必四': 'images/textbook-covers/xuanbi-4.jpg'
+  };
+
   var html = '<div class="knowledge-section">';
   html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
   html += '<h2 style="margin:0 0 6px 0;">📚 教材视图（人教版 7 册 · 35 单元 grammar 进度）</h2>';
-  html += '<p style="margin:0;color:var(--text-2);">老师按单元备课的进度对照。每个单元的语法点显示题库覆盖数。</p>';
+  html += '<p style="margin:0;color:var(--text-2);">老师按单元备课的进度对照。点击封面跳到该册详情。</p>';
+  html += '</div>';
+
+  // 封面画廊（横排 + hover 浮起 + 点击跳转）
+  html += '<div style="display:flex;gap:14px;overflow-x:auto;padding:8px 4px 24px;margin-bottom:8px;scrollbar-width:thin;">';
+  bookOrder.forEach(function(book) {
+    var cover = coverMap[book];
+    var unitCount = (byBook[book] || []).length;
+    var totalQs = 0;
+    (byBook[book] || []).forEach(function(u) {
+      (u.maps_to || []).forEach(function(tagRef) {
+        var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
+        totalQs += _countByFineTag(tagId).total;
+      });
+    });
+    html += '<a href="#book-' + escapeHtml(book) + '" '
+         + 'style="flex:0 0 140px;text-decoration:none;color:inherit;display:block;transition:transform .2s,box-shadow .2s;border-radius:8px;overflow:hidden;background:var(--surface);" '
+         + 'onmouseover="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.15)\'" '
+         + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">';
+    html += '<div style="width:140px;height:190px;background:#eee url(\'' + cover + '\') no-repeat center/cover;border-radius:6px 6px 0 0;"></div>';
+    html += '<div style="padding:8px 10px;text-align:center;">';
+    html += '<div style="font-weight:600;font-size:13px;color:var(--text);">' + escapeHtml(book) + '</div>';
+    html += '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">' + unitCount + ' 单元 · ' + totalQs + ' 题</div>';
+    html += '</div>';
+    html += '</a>';
+  });
   html += '</div>';
 
   bookOrder.forEach(function(book) {
     var units = byBook[book] || [];
     if (units.length === 0) return;
-    html += '<section style="margin-bottom:20px;">';
+    html += '<section id="book-' + escapeHtml(book) + '" style="margin-bottom:20px;scroll-margin-top:80px;">';
     html += '<h3 style="margin:0 0 10px 0;padding-bottom:6px;border-bottom:2px solid var(--accent);display:inline-block;">' + escapeHtml(book) + '</h3>';
     html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">';
     units.forEach(function(u) {
