@@ -5517,6 +5517,23 @@ function setKnowledgeView(view) {
   var activeBtn = document.getElementById(btnMap[view]);
   if (activeBtn) activeBtn.classList.add('active');
 
+  // Sidebar 内容控制：只有"书本速查"模式才需要 category nav；其余视图收起，主面板全屏感
+  var needsSidebarNav = (view === 'book');
+  var sidebar = document.getElementById('knowledgeSidebar');
+  if (sidebar) {
+    // 隐藏/显示 sidebar 内的"考点分类 / 跨考点模式"部分（视图按钮和搜索框保留）
+    var searchWrap = sidebar.querySelector('.knowledge-search-wrap');
+    var titles = sidebar.querySelectorAll('.knowledge-sidebar-title');
+    var divider = sidebar.querySelector('.knowledge-sidebar-divider');
+    var navs = sidebar.querySelectorAll('.knowledge-nav');
+    [searchWrap, divider].forEach(function(el) { if (el) el.style.display = needsSidebarNav ? '' : 'none'; });
+    titles.forEach(function(el) { el.style.display = needsSidebarNav ? '' : 'none'; });
+    navs.forEach(function(el) { el.style.display = needsSidebarNav ? '' : 'none'; });
+    // 主面板宽度自适应（侧栏收起时给主面板更多空间）
+    sidebar.style.width = needsSidebarNav ? '' : 'auto';
+    sidebar.style.minWidth = needsSidebarNav ? '' : '0';
+  }
+
   if (view === 'map') {
     renderKnowledgeMap();
   } else if (view === 'fine-cat') {

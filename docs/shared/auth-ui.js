@@ -50,7 +50,8 @@
 
   function requireAuth(actionLabel) {
     if (window.cloud && window.cloud.state && window.cloud.state.user) return true;
-    openAuthModal('signup');
+    // 改默认为 signin：老用户先尝试登录，失败再注册
+    openAuthModal('signin');
     return false;
   }
 

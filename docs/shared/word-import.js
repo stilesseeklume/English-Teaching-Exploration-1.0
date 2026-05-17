@@ -302,17 +302,31 @@
   }
 
   // ─── 统一导入面板 ─────────────────────────────
+  // 行为根据 _docxImportTarget 分流：
+  //   'error' = 错题模式：只挑题进错题本，整篇绝不进备课资料；默认全选
+  //   'prep'  = 备课模式：整篇进备课资料，勾选的题额外进错题本（可选）
   function openUnifiedImportPanel(passagesArr) {
     _unifiedImportData = { passages: passagesArr };
+    var isErrorMode = (_docxImportTarget === 'error');
 
+    // 标题：明确告诉老师这次上传去哪
     var titleEl = document.getElementById('unifiedImportTitle');
-    if (passagesArr.length === 1) {
-      titleEl.textContent = passagesArr[0].title;
+    if (isErrorMode) {
+      titleEl.textContent = (passagesArr.length === 1 ? passagesArr[0].title : passagesArr.length + ' 篇') + ' · 挑题进错题本';
     } else {
-      titleEl.textContent = passagesArr.length + ' 篇语法填空';
+      titleEl.textContent = (passagesArr.length === 1 ? passagesArr[0].title : passagesArr.length + ' 篇') + ' · 进备课资料（可选挑题）';
     }
 
-    var html = '';
+    // 顶部提示条：当前模式说明
+    var modeBanner = isErrorMode
+      ? '<div style="background:var(--accent-bg);color:var(--accent);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.5;">'
+        + '✅ <b>错题模式</b>：只有<u>勾选</u>的题会进错题本。整篇文章<b>不会</b>进备课资料。默认已全选，可取消不想要的。'
+        + '</div>'
+      : '<div style="background:var(--surface-2);color:var(--text-2);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.5;">'
+        + '📋 <b>备课模式</b>：整篇文章会进备课资料。你也可以顺手勾几道题进错题本（可选）。'
+        + '</div>';
+
+    var html = modeBanner;
     passagesArr.forEach(function(p, pi) {
       html += '<div style="margin-bottom:18px;padding-bottom:18px;'
            + (pi < passagesArr.length - 1 ? 'border-bottom:1px dashed var(--border);' : '')
@@ -324,9 +338,11 @@
         var catName = (window.CATEGORY_MAP && window.CATEGORY_MAP[b.category]) || b.category || '未分类';
         var ans = b.answer || '?';
         var prev = (b.analysis || '').substring(0, 60);
+        // 错题模式默认全选；备课模式默认不选
+        var checkedAttr = isErrorMode ? ' checked' : '';
         html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .12s;" '
              +  'onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'\'">'
-             +    '<input type="checkbox" class="unified-blank-check" data-passage="' + pi + '" data-blank="' + bi + '" '
+             +    '<input type="checkbox" class="unified-blank-check" data-passage="' + pi + '" data-blank="' + bi + '"' + checkedAttr + ' '
              +      'onchange="updateUnifiedSelectedCount()" style="margin-top:3px;width:16px;height:16px;cursor:pointer;flex-shrink:0;">'
              +    '<div style="flex:1;font-size:13px;line-height:1.55;">'
              +      '<div><span style="color:var(--accent);font-weight:600;">第 ' + (b.no || (bi + 1)) + ' 题</span>'
@@ -342,9 +358,10 @@
     document.getElementById('unifiedImportBody').innerHTML = html;
 
     var totalBlanks = passagesArr.reduce(function(s, p){ return s + p.blanks.length; }, 0);
+    var selectedCount = isErrorMode ? totalBlanks : 0;
     document.getElementById('unifiedImportSummary').textContent =
       passagesArr.length + ' 篇 · 共 ' + totalBlanks + ' 题';
-    document.getElementById('unifiedSelectedCount').textContent = '已勾选 0 题进错题本';
+    document.getElementById('unifiedSelectedCount').textContent = '已勾选 ' + selectedCount + ' 题进错题本';
     document.getElementById('unifiedImportOverlay').style.display = 'flex';
   }
 
@@ -366,12 +383,17 @@
   function confirmUnifiedImport() {
     if (!_unifiedImportData) return;
     var passages = _unifiedImportData.passages;
+    var isErrorMode = (_docxImportTarget === 'error');
 
+    // 备课模式：整篇进备课资料；错题模式：跳过备课写入
     var prepCount = 0, prepSkip = 0;
-    passages.forEach(function(p){
-      if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
-    });
+    if (!isErrorMode) {
+      passages.forEach(function(p){
+        if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
+      });
+    }
 
+    // 错题本：勾选的题进（两种模式都执行，但错题模式默认全选了）
     var errorCount = 0, errorSkip = 0;
     var checks = document.querySelectorAll('.unified-blank-check:checked');
     checks.forEach(function(cb){
@@ -393,10 +415,18 @@
 
     closeUnifiedImport();
 
-    var msg = '已导入：\n📋 备课资料 ' + prepCount + ' 篇';
-    if (prepSkip > 0) msg += '（跳过 ' + prepSkip + ' 篇重复）';
-    if (errorCount > 0) msg += '\n📝 错题本 ' + errorCount + ' 道（按考点分类，迁移训练自动联动）';
-    if (errorSkip > 0) msg += '（跳过 ' + errorSkip + ' 道重复）';
+    // 反馈消息根据模式
+    var msg;
+    if (isErrorMode) {
+      msg = '已导入错题本 ' + errorCount + ' 道';
+      if (errorSkip > 0) msg += '（跳过 ' + errorSkip + ' 道重复）';
+      msg += '\n（整篇文章未进备课资料）';
+    } else {
+      msg = '已导入：\n📋 备课资料 ' + prepCount + ' 篇';
+      if (prepSkip > 0) msg += '（跳过 ' + prepSkip + ' 篇重复）';
+      if (errorCount > 0) msg += '\n📝 错题本 ' + errorCount + ' 道';
+      if (errorSkip > 0) msg += '（跳过 ' + errorSkip + ' 道重复）';
+    }
     alert(msg);
   }
 
