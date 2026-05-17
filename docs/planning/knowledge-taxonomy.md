@@ -55,7 +55,7 @@
 
 来源：人教版高中英语 7 册（必修 1-3 + 选择性必修 1-4），每册 5 个 unit + 必修一额外 Welcome Unit。共 36 个 unit，35 个 grammar 点（必修一 Welcome 也算一个）。
 
-### 必修一（高一上）
+### 必修一
 
 | Unit | Grammar 教学点（英文原文） | 中文 |
 |---|---|---|
@@ -66,7 +66,7 @@
 | U4 Natural Disasters | Restrictive relative clauses (1) — that/which/who/whom/whose | 限制性定语从句（1）|
 | U5 Languages Around the World | Restrictive relative clauses (2) — where/when/why/prep+which/whom | 限制性定语从句（2）|
 
-### 必修二（高一下）
+### 必修二
 
 | Unit | Grammar 教学点 | 中文 |
 |---|---|---|
@@ -76,7 +76,7 @@
 | U4 History and Traditions | Past participles (1) as the attribute and the object complement | 过去分词作定语和宾补 |
 | U5 Music | Past participles (2) as the predicative and the adverbial | 过去分词作表语和状语 |
 
-### 必修三（高二上）
+### 必修三
 
 | Unit | Grammar 教学点 | 中文 |
 |---|---|---|
@@ -86,7 +86,7 @@
 | U4 Space Exploration | Infinitives (1) as the attribute and the adverbial | 不定式作定语和状语 |
 | U5 The Value of Money | Review of modal verbs / The past future tense | 情态动词复习 / 过去将来时 |
 
-### 选择性必修一（高二上/下）
+### 选择性必修一
 
 | Unit | Grammar 教学点 | 中文 |
 |---|---|---|
@@ -96,7 +96,7 @@
 | U4 Body Language | The -ing form (4) as the object and the predicative | -ing 作宾语和表语 |
 | U5 Working the Land | Subject clauses | 主语从句 |
 
-### 选择性必修二（高二下）
+### 选择性必修二
 
 | Unit | Grammar 教学点 | 中文 |
 |---|---|---|
@@ -106,7 +106,7 @@
 | U4 Journey Across a Vast Land | Past participles vs the -ing form | 过去分词 vs -ing 形式 |
 | U5 First Aid | Review of the -ing form | -ing 复习 |
 
-### 选择性必修三（高三上）
+### 选择性必修三
 
 | Unit | Grammar 教学点 | 中文 |
 |---|---|---|
@@ -116,7 +116,7 @@
 | U4 Adversity and Courage | The present perfect continuous tense / Review of tenses | 现在完成进行时 / 时态复习 |
 | U5 Poems | Review of relative clauses | 定语从句复习 |
 
-### 选择性必修四（高三下）
+### 选择性必修四
 
 | Unit | Grammar 教学点 | 中文 |
 |---|---|---|
@@ -128,9 +128,11 @@
 
 ### 教材编排观察
 
-- **高一上半学期**（必修一）：句子结构 → 名词/形容词/副词短语 → 时态基础 → 反意疑问 → 定语从句入门
-- **高一下半到高二**：被动 + 非谓语 + 各类从句铺开
-- **高三**：复习为主（标题里大量 "Review of"），无新语法
+> 注：教材本身没有学期对应（不同学校进度有差异），下方按册次推进顺序观察。
+
+- **必修一**：句子结构 → 名词/形容词/副词短语 → 时态基础 → 反意疑问 → 定语从句入门
+- **必修二/三 + 选必一/二**：被动 + 非谓语 + 各类从句铺开
+- **选必三/四**：复习为主（标题里大量 "Review of"），无新语法
 - **教材没专章讲的**：冠词、代词、介词、数词、虚拟语气、强调、倒装 ——
   - 这些在词汇教学和阅读中渗透，不单独成 grammar 单元
   - 但 **Seeklume 的"冠词/代词/介词/数词" 4 类在教材里找不到"主单元"对应**
@@ -440,14 +442,56 @@
 
 ---
 
-## 8. 决策结论（待审稿后填）
+## 8. 决策结论
 
-> 待你和组长审稿后填写。
->
-> #1: [ ]
-> #2: [ ]
-> #3: [ ]
-> #4: [ ]
->
-> 审稿日期：
-> 关键反馈：
+**审稿日期**：2026-05-17（用户审稿）；组长审稿待补
+**结论**：
+
+### 决策 #1：要不要把 11 类扩展？→ **B（适度扩展）**
+
+具体扩展为 **11 → 13 类 + 1 个非考点辅助类**：
+
+| # | 新类别 | 来源 | 子节点数 | 作为考点 tag？ |
+|---|---|---|---|---|
+| 12 | **modal 情态动词** | 语法通霸 09 | 8 | ✅ 是 |
+| 13 | **special 其他特殊句式** | 语法通霸 10 虚拟 + 13 强调 + 14 倒装 + 16 特殊句式 合并 | 12（5+2+2+3）| ✅ 是 |
+| (aux) | **structure 句子结构基础** | 语法通霸 01 | 5 | ❌ 否（作为教学辅助，不打考点 tag）|
+
+**精细 tag 总数**：原 106 + 12 情态 + 13 特殊 = **126 个**（句子结构基础不计）
+
+**为什么不收"句子结构基础"为考点**：高考题不会问"这道题考句子成分"，但老师讲题时分析句子结构是必备工具。所以挂"教学辅助"标签而不是"考点 tag"。
+
+### 决策 #2：教材"非考点单元"怎么标？→ **B（标"教材覆盖"但 tag 留空）**
+
+教材视图展示完整 35 unit。老师能看到"反意疑问"在必修一 U3，但题库里没有对应题（暂时）。
+
+### 决策 #3：现有 83 trap 怎么处理？→ **A（双轨保留）**
+
+每道题同时挂：
+- **精细 tag**（语法通霸 126 个之一，机器友好，用于迁移训练检索）
+- **trap**（老师友好的教学口诀，用于抽屉里讲题提示）
+
+两套体系并存，不互斥。
+
+### 决策 #4：精细 tag 数量上限？→ **C（全保留 + UI 动态显示）**
+
+- 数据层：保留所有 126 个 tag 作为可选
+- UI 层：只展示"题库里至少有 1 道题对应"的 tag（动态过滤）
+- 冷门 tag 等老师上传更多题自然激活
+
+### 决策 #5（讨论中加入）：要不要做第 4 层 tag（考点 1/2/3）？→ **不做 tag，但做 RAG**
+
+- **Tag 体系停在第 3 层**（116 主 + 12 + 12 - 5 句子结构 = 126 精细 tag）—— UI 可承载上限
+- **第 4 层（每个 .md 里的考点 1/2/3）只用于 Sprint 2 RAG** —— 切片入向量库，AI 助手能引用到这一层，但前端 tag 不到这层
+
+等于"显式 tag 126 + 隐式索引 ~250"。两层各自服务不同目的（tag 服务老师筛选/迁移训练；RAG 服务 AI 引用）。
+
+---
+
+### 组长审稿待补
+
+记录组长审稿后的反馈：
+
+- 关键问题反馈：
+- 修正意见：
+- 最终拍板：
