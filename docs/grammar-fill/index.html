@@ -95,6 +95,10 @@
   }
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -5631,7 +5635,11 @@ function renderFineCategoryView() {
   content.innerHTML = html;
 }
 
-// ─── 视图 B · 教材视图（7 册 × 5 单元 grid + 封面画廊）────────────
+// ─── 视图 B · 教材视图（默认画廊 / 切换列表）────────────────
+// 状态保留：用户在该视图选过哪本书 + 当前模式
+var _textbookViewMode = 'gallery';  // 'gallery' | 'list'
+var _textbookSelectedBook = null;     // 画廊模式下点击的某本书
+
 function renderTextbookView() {
   var content = document.getElementById('knowledgeContent');
   if (!content || !window.GRAMMAR_FINE_TAGS) {
@@ -5640,15 +5648,12 @@ function renderTextbookView() {
   }
   var FT = window.GRAMMAR_FINE_TAGS;
 
-  // 按 book 分组 units
   var byBook = {};
   FT.textbook_units.forEach(function(u) {
     if (!byBook[u.book]) byBook[u.book] = [];
     byBook[u.book].push(u);
   });
   var bookOrder = ['必修一', '必修二', '必修三', '选必一', '选必二', '选必三', '选必四'];
-
-  // 封面映射（人教版高中英语 7 册）
   var coverMap = {
     '必修一': 'images/textbook-covers/bixiu-1.jpg',
     '必修二': 'images/textbook-covers/bixiu-2.jpg',
@@ -5659,15 +5664,66 @@ function renderTextbookView() {
     '选必四': 'images/textbook-covers/xuanbi-4.jpg'
   };
 
+  // 渲染单本书的详情 grid（公用于两种模式）
+  function renderBookDetail(book, idx) {
+    var units = byBook[book] || [];
+    if (units.length === 0) return '';
+    var h = '<section id="book-' + escapeHtml(book) + '" style="margin-bottom:20px;scroll-margin-top:80px;animation:fadeInUp 0.4s ease-out ' + (idx * 50) + 'ms both;">';
+    h += '<h3 style="margin:0 0 10px 0;padding-bottom:6px;border-bottom:2px solid var(--accent);display:inline-block;">' + escapeHtml(book) + '</h3>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">';
+    units.forEach(function(u) {
+      var maps = u.maps_to || [];
+      var totalQs = 0;
+      maps.forEach(function(tagRef) {
+        var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
+        totalQs += _countByFineTag(tagId).total;
+      });
+      var color = _freqColor(totalQs);
+      h += '<article style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+      h += '<b style="color:var(--accent);">' + escapeHtml(u.unit) + (u.topic ? ' · ' + escapeHtml(u.topic) : '') + '</b>';
+      h += '<span style="background:' + color.bg + ';color:' + color.color + ';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">' + totalQs + ' 题</span>';
+      h += '</div>';
+      h += '<div style="font-size:13px;color:var(--text);margin-bottom:6px;">' + escapeHtml(u.grammar_zh) + '</div>';
+      h += '<div style="font-size:11px;color:var(--text-3);">' + escapeHtml(u.grammar_en || '') + '</div>';
+      if (maps.length > 0) {
+        h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">';
+        maps.forEach(function(tagRef) {
+          var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
+          var tag = FT.tags_by_id[tagId];
+          if (!tag) return;
+          var cnt = _countByFineTag(tagId);
+          h += '<span style="background:var(--surface-3);color:var(--text-2);padding:2px 8px;border-radius:10px;font-size:11px;">'
+            + escapeHtml(tag.name) + ' <span style="opacity:0.6;">' + cnt.total + '</span></span>';
+        });
+        h += '</div>';
+      }
+      h += '</article>';
+    });
+    h += '</div></section>';
+    return h;
+  }
+
   var html = '<div class="knowledge-section">';
-  html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
+
+  // 顶部 header + 模式切换
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;flex-wrap:wrap;gap:10px;">';
+  html += '<div>';
   html += '<h2 style="margin:0 0 6px 0;">📚 教材视图（人教版 7 册 · 35 单元 grammar 进度）</h2>';
-  html += '<p style="margin:0;color:var(--text-2);">老师按单元备课的进度对照。点击封面跳到该册详情。</p>';
+  var subHint = (_textbookViewMode === 'gallery')
+    ? (_textbookSelectedBook ? '当前展开：' + _textbookSelectedBook + '（点其他封面切换 / 切到列表模式看全部）' : '点封面展开该册详情')
+    : '所有 7 册全部展开';
+  html += '<p style="margin:0;color:var(--text-2);">' + escapeHtml(subHint) + '</p>';
+  html += '</div>';
+  html += '<div style="display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2px;">';
+  html += '<button onclick="setTextbookViewMode(\'gallery\')" style="border:none;background:' + (_textbookViewMode === 'gallery' ? 'var(--accent)' : 'transparent') + ';color:' + (_textbookViewMode === 'gallery' ? '#fff' : 'var(--text-2)') + ';padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;">🎨 画廊</button>';
+  html += '<button onclick="setTextbookViewMode(\'list\')" style="border:none;background:' + (_textbookViewMode === 'list' ? 'var(--accent)' : 'transparent') + ';color:' + (_textbookViewMode === 'list' ? '#fff' : 'var(--text-2)') + ';padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;">📋 列表</button>';
+  html += '</div>';
   html += '</div>';
 
-  // 封面画廊（横排 + hover 浮起 + 点击跳转）
-  html += '<div style="display:flex;gap:14px;overflow-x:auto;padding:8px 4px 24px;margin-bottom:8px;scrollbar-width:thin;">';
-  bookOrder.forEach(function(book) {
+  // 画廊（两种模式都显示）
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:8px 4px 24px;">';
+  bookOrder.forEach(function(book, idx) {
     var cover = coverMap[book];
     var unitCount = (byBook[book] || []).length;
     var totalQs = 0;
@@ -5677,61 +5733,62 @@ function renderTextbookView() {
         totalQs += _countByFineTag(tagId).total;
       });
     });
-    html += '<a href="#book-' + escapeHtml(book) + '" '
-         + 'style="flex:0 0 140px;text-decoration:none;color:inherit;display:block;transition:transform .2s,box-shadow .2s;border-radius:8px;overflow:hidden;background:var(--surface);" '
-         + 'onmouseover="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.15)\'" '
-         + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">';
-    html += '<div style="width:140px;height:190px;background:#eee url(\'' + cover + '\') no-repeat center/cover;border-radius:6px 6px 0 0;"></div>';
+    var isSelected = (_textbookSelectedBook === book && _textbookViewMode === 'gallery');
+    var borderStyle = isSelected ? 'box-shadow:0 0 0 3px var(--accent),0 6px 20px rgba(0,113,227,0.25);' : '';
+    html += '<div onclick="onTextbookCoverClick(\'' + escapeHtml(book) + '\')" '
+         + 'style="cursor:pointer;display:block;transition:transform .25s ease,box-shadow .25s ease;border-radius:8px;overflow:hidden;background:var(--surface);' + borderStyle + 'animation:fadeInUp 0.4s ease-out ' + (idx * 60) + 'ms both;" '
+         + 'onmouseover="this.style.transform=\'translateY(-6px) scale(1.02)\';if(!this.dataset.selected)this.style.boxShadow=\'0 12px 28px rgba(0,0,0,0.18)\'" '
+         + 'onmouseout="this.style.transform=\'\';if(!this.dataset.selected)this.style.boxShadow=\'\'"'
+         + (isSelected ? ' data-selected="1"' : '') + '>';
+    html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + cover + '\') no-repeat center/cover;border-radius:6px 6px 0 0;"></div>';
     html += '<div style="padding:8px 10px;text-align:center;">';
     html += '<div style="font-weight:600;font-size:13px;color:var(--text);">' + escapeHtml(book) + '</div>';
     html += '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">' + unitCount + ' 单元 · ' + totalQs + ' 题</div>';
     html += '</div>';
-    html += '</a>';
+    html += '</div>';
   });
   html += '</div>';
 
-  bookOrder.forEach(function(book) {
-    var units = byBook[book] || [];
-    if (units.length === 0) return;
-    html += '<section id="book-' + escapeHtml(book) + '" style="margin-bottom:20px;scroll-margin-top:80px;">';
-    html += '<h3 style="margin:0 0 10px 0;padding-bottom:6px;border-bottom:2px solid var(--accent);display:inline-block;">' + escapeHtml(book) + '</h3>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">';
-    units.forEach(function(u) {
-      var maps = u.maps_to || [];
-      // 统计该 unit 对应 fine tags 的题数总和
-      var totalQs = 0;
-      maps.forEach(function(tagRef) {
-        var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
-        totalQs += _countByFineTag(tagId).total;
-      });
-      var color = _freqColor(totalQs);
-      html += '<article style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
-      html += '<b style="color:var(--accent);">' + escapeHtml(u.unit) + (u.topic ? ' · ' + escapeHtml(u.topic) : '') + '</b>';
-      html += '<span style="background:' + color.bg + ';color:' + color.color + ';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">' + totalQs + ' 题</span>';
-      html += '</div>';
-      html += '<div style="font-size:13px;color:var(--text);margin-bottom:6px;">' + escapeHtml(u.grammar_zh) + '</div>';
-      html += '<div style="font-size:11px;color:var(--text-3);">' + escapeHtml(u.grammar_en || '') + '</div>';
-      // 关联 tag chips
-      if (maps.length > 0) {
-        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">';
-        maps.forEach(function(tagRef) {
-          var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
-          var tag = FT.tags_by_id[tagId];
-          if (!tag) return;
-          var cnt = _countByFineTag(tagId);
-          html += '<span style="background:var(--surface-3);color:var(--text-2);padding:2px 8px;border-radius:10px;font-size:11px;">'
-            + escapeHtml(tag.name) + ' <span style="opacity:0.6;">' + cnt.total + '</span></span>';
-        });
-        html += '</div>';
-      }
-      html += '</article>';
+  // 详情区
+  if (_textbookViewMode === 'list') {
+    // 列表模式：全部展开
+    bookOrder.forEach(function(book, idx) {
+      html += renderBookDetail(book, idx);
     });
-    html += '</div></section>';
-  });
+  } else if (_textbookViewMode === 'gallery' && _textbookSelectedBook) {
+    // 画廊模式 + 已选某本：只展开该册
+    html += '<div style="margin-top:20px;">';
+    html += renderBookDetail(_textbookSelectedBook, 0);
+    html += '</div>';
+  } else {
+    // 画廊模式 + 没选：提示
+    html += '<div style="text-align:center;color:var(--text-3);padding:40px 20px;font-size:14px;">点击上方任一册封面展开 grammar 单元详情</div>';
+  }
 
   html += '</div>';
   content.innerHTML = html;
+}
+
+function setTextbookViewMode(mode) {
+  _textbookViewMode = mode;
+  renderTextbookView();
+}
+
+function onTextbookCoverClick(book) {
+  if (_textbookViewMode === 'list') {
+    // 列表模式：滚到对应册
+    var el = document.getElementById('book-' + book);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    // 画廊模式：切换选中册
+    _textbookSelectedBook = (_textbookSelectedBook === book) ? null : book;
+    renderTextbookView();
+    // 平滑滚动到详情区
+    setTimeout(function() {
+      var el = document.getElementById('book-' + book);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
 }
 
 // ─── 视图 C · 体系视图（语法通霸 22 大类参考）──────────────────
