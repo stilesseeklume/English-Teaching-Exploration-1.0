@@ -78,7 +78,7 @@ d29c166 注册登录改为用户名+密码
 
 - **多终端并行开发**：多个终端同时跑项目，推进语法填空工具迭代
 - **`src/grammar-fill/index.html` 持续迭代**（当前版本：含解析/迁移训练/考点理论三 tab 抽屉）
-- **`src/grammar-fill/standalone.html`** (537KB)：数据内联的自包含版本（待确认是否完整可用）
+- ~~**`src/grammar-fill/standalone.html`** (537KB)：数据内联的自包含版本~~ → 2026-05-17 已删除（不再需要线下版）
 - **`docs/grammar-fill/index.html`**：部署版本同步更新
 - **今日新增临时文件**：
   - `辅助ai的临时性文件/20250513语法填空_import.json` — 错题导入数据
@@ -104,9 +104,8 @@ d29c166 注册登录改为用户名+密码
 
 ### 发现的 Bug / 待解决问题
 
-- **HTML 独立部署问题**：`index.html` 通过 `<script src="../../data/grammar_bank.js">` 引用外部数据文件，单独复制到 U 盘或其他位置后路径断裂，所有题目消失。已有 `standalone.html`（537KB，内联数据），但需确认完整性
-- **班级使用场景**：需要在教室电脑上直接打开 HTML 文件就能用，不能依赖网络或相对路径
-- **docs/ 部署版落后**：LeanCloud 替换只改了 src/，docs/grammar-fill/index.html 没同步
+- ~~**HTML 独立部署问题**：standalone.html 用于离线/U 盘版~~ → 2026-05-17 已确认不再需要线下版，全部走 seeklume.work 线上
+- ~~**docs/ 部署版落后**：LeanCloud 替换只改了 src/~~ → LeanCloud 迁移已回滚，现仍是 Supabase
 
 ### 关键决策
 
@@ -127,8 +126,7 @@ d29c166 注册登录改为用户名+密码
 
 ## 下一步（按优先级）
 
-- [ ] 确认 `standalone.html` 是否完整可用，作为班级讲课的自包含版本
-- [ ] 如果 `standalone.html` 有问题，修复并确保所有数据内联
+- [x] ~~确认 `standalone.html` 是否完整可用~~ → 2026-05-17 已删除，不再需要线下版
 - [ ] 清理 `辅助ai的临时性文件/` 目录中已使用的中间文件
 - [ ] 准备论文写作框架（研究问题 + 文献综述 + 方法论 + 预期贡献）
 - [ ] 准备教研组分享 outline（痛点 → Demo → 反馈收集）

@@ -15,6 +15,7 @@ sed \
   -e 's|../../data/grammar_knowledge_core.js|../data/grammar_knowledge_core.js|g' \
   -e 's|../../data/grammar_knowledge.js|../data/grammar_knowledge.js|g' \
   -e 's|../../data/grammar_knowledge_traps.js|../data/grammar_knowledge_traps.js|g' \
+  -e 's|../../docs/config.js|../config.js|g' \
   "$PROJECT_DIR/src/grammar-fill/index.html" > "$PROJECT_DIR/docs/grammar-fill/index.html"
 
 echo "部署文件已更新到 docs/ 目录"

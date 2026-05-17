@@ -154,7 +154,7 @@ drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles
   for select using (auth.uid() = user_id or public.is_admin());
 
--- 新用户注册时自动创建 profile（管理员用户名自动通过，其余待审批）
+-- 新用户注册时自动创建 profile（2026-05-17 起：所有用户默认 approved=true，开放注册）
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -176,12 +176,9 @@ begin
     suffix := suffix + 1;
     uname := base || suffix::text;
   end loop;
+  -- 注册即可用，不再走审批流程
   insert into public.profiles (user_id, username, approved)
-  values (new.id, uname, coalesce(
-    new.email in ('liuzhenlzstiles@icloud.com')
-    or uname in ('liuzhen'),
-    false
-  ));
+  values (new.id, uname, true);
   return new;
 end;
 $$;

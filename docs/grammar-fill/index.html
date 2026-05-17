@@ -1929,9 +1929,10 @@
   @keyframes bootFadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 <noscript><style>body { visibility: visible !important; }</style></noscript>
+<!-- 配置（SUPABASE_URL / SUPABASE_ANON_KEY）由 docs/config.js 提供 -->
+<!-- src 本地路径用 ../config.js，部署到 docs/grammar-fill/ 后 deploy.sh 替换成 ../config.js -->
+<script src="../config.js"></script>
 <script>
-  window.SUPABASE_URL      = 'https://zwbvcqkfbndgmyfxtkyl.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3YnZjcWtmYm5kZ215Znh0a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MTc4NDksImV4cCI6MjA5NDE5Mzg0OX0.LVb1pM3xYiNRTrujD6YYi__M163ppguMiMy5Xjt8dL4';
   // 同步检测 session，避免跨页跳转时闪欢迎页
   window.__hasSessionSync = (function(){
     try {
