@@ -2422,15 +2422,16 @@
     </div>
 
     <div class="page" id="page-knowledge">
+      <!-- 视图切换 tab bar：放在主面板顶部，全屏 sticky -->
+      <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
+        <button class="knowledge-view-btn active" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
+        <button class="knowledge-view-btn" id="knowledgeFineCatBtn" onclick="setKnowledgeView('fine-cat')">🏷️ 考点视图</button>
+        <button class="knowledge-view-btn" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
+        <button class="knowledge-view-btn" id="knowledgeSystemBtn" onclick="setKnowledgeView('system')">🌳 体系视图</button>
+        <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
+      </div>
       <div class="knowledge-layout" id="knowledgeLayout">
         <aside class="knowledge-sidebar" id="knowledgeSidebar">
-          <div class="knowledge-view-switch" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-            <button class="knowledge-view-btn active" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
-            <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
-            <button class="knowledge-view-btn" id="knowledgeFineCatBtn" onclick="setKnowledgeView('fine-cat')">🏷️ 考点视图</button>
-            <button class="knowledge-view-btn" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
-            <button class="knowledge-view-btn" id="knowledgeSystemBtn" onclick="setKnowledgeView('system')" style="grid-column:span 2;">🌳 体系视图（语法通霸）</button>
-          </div>
           <div class="knowledge-search-wrap">
             <input type="text" id="knowledgeSearch" placeholder="搜索语法点…" oninput="onKnowledgeSearch(this.value)" onfocus="onKnowledgeSearch(this.value)">
             <div id="searchResults"></div>
@@ -2442,22 +2443,18 @@
           <nav class="knowledge-nav" id="patternNav"></nav>
         </aside>
         <main class="knowledge-content" id="knowledgeContent">
-          <div class="empty-hint">请从左侧选择一个考点</div>
+          <div class="empty-hint">选择上方任一视图开始</div>
         </main>
       </div>
     </div>
 
     <div class="page" id="page-error-book">
       <h1 class="page-title">错题本</h1>
-      <div class="release-marker">导入页版本 v2026-05-15-2 · Word 导入后统一选择入库</div>
-      <p class="page-desc"><span id="errorBookStat">加载中…</span> 上传 Word 或粘贴 JSON，自动分类入库；下次自动联动同考点题做迁移训练。</p>
-      <div class="import-upgrade-card">
-        <div class="import-upgrade-step"><b>1. 上传 Word</b><span>AI 先识别完整篇章和每个空格。</span></div>
-        <div class="import-upgrade-step"><b>2. 统一确认</b><span>整篇进备课资料，可勾选重点题进错题本。</span></div>
-        <div class="import-upgrade-step"><b>3. 讲题联动</b><span>点空格打开抽屉，同考点迁移自动关联。</span></div>
+      <p class="page-desc"><span id="errorBookStat">加载中…</span></p>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word</button>
+        <button class="error-import-toggle" style="background:var(--blue);" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
       </div>
-      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()" onmouseenter="showImportDemo(event)" onmouseleave="hideImportDemoDelayed()">📄 上传 Word（自动归档 · 勾选错题）</button>
-      <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
       <div class="error-import-form" id="batchImportForm">
         <label>粘贴 JSON 或直接上传文件</label>
         <textarea id="batchJson" placeholder='[{"passage":"...","answer":"...","category":"...","analysis":"..."}, ...]' style="min-height:120px;"></textarea>
@@ -2478,17 +2475,12 @@
 
     <div class="page" id="page-lesson-prep">
       <h1 class="page-title">备课资料</h1>
-      <div class="release-marker">导入页版本 v2026-05-15-2 · 备课资料 + 错题本双入库</div>
-      <p class="page-desc"><span id="prepStat">加载中…</span> 导入完整语法填空篇章，像套卷一样讲题，迁移训练自动关联主题库。</p>
-      <div class="import-upgrade-card">
-        <div class="import-upgrade-step"><b>1. 上传 Word</b><span>完整语法填空篇章自动切成可讲题材料。</span></div>
-        <div class="import-upgrade-step"><b>2. 勾选错题</b><span>只把需要复习的题额外放进错题本。</span></div>
-        <div class="import-upgrade-step"><b>3. 课堂讲评</b><span>打开备课资料后，点击空格弹出解析抽屉。</span></div>
-      </div>
-      <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()" onmouseenter="showImportDemo(event)" onmouseleave="hideImportDemoDelayed()">📄 上传 Word（自动归档 · 勾选错题）</button>
+      <p class="page-desc"><span id="prepStat">加载中…</span></p>
       <input type="file" id="docxFileInput" accept=".docx" onchange="processDocxFile(this)" style="display:none;">
-
-      <button class="error-import-toggle" style="background:var(--blue);margin-left:8px;" onclick="togglePrepBatchImport()">📥 批量导入 JSON</button>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()">📄 上传 Word</button>
+        <button class="error-import-toggle" style="background:var(--blue);" onclick="togglePrepBatchImport()">📥 批量导入 JSON</button>
+      </div>
       <div class="error-import-form" id="prepBatchForm">
         <label>粘贴 JSON 或直接上传文件（自动导入）</label>
         <textarea id="prepBatchJson" placeholder='[{"title":"...","passage":"...","blanks":[{"no":36,"answer":"...","category":"...","analysis":"..."}]}]' style="min-height:120px;"></textarea>
@@ -3619,7 +3611,7 @@ function renderErrorBook() {
   if (!el) return;
 
   document.getElementById('errorBookStat').textContent =
-    '共 ' + errorBookQuestions.length + ' 道错题，迁移训练自动关联主题库同考点题目。';
+    '共 ' + errorBookQuestions.length + ' 道';
 
   if (errorBookQuestions.length === 0) {
     el.innerHTML = '<div class="error-empty">还没有错题，点击上方按钮导入第一道题目。</div>';
@@ -3789,7 +3781,7 @@ function renderPrepList() {
   if (!el) return;
 
   document.getElementById('prepStat').textContent =
-    '共 ' + prepPassages.length + ' 份备课资料，点击进入讲题模式，迁移训练自动关联主题库。';
+    '共 ' + prepPassages.length + ' 份';
 
   if (prepPassages.length === 0) {
     el.innerHTML = '<div class="error-empty">还没有备课资料，点击上方按钮导入第一篇语法填空篇章。</div>';
@@ -5517,21 +5509,11 @@ function setKnowledgeView(view) {
   var activeBtn = document.getElementById(btnMap[view]);
   if (activeBtn) activeBtn.classList.add('active');
 
-  // Sidebar 内容控制：只有"书本速查"模式才需要 category nav；其余视图收起，主面板全屏感
-  var needsSidebarNav = (view === 'book');
+  // Sidebar 整体收起：只有"书本速查"模式才显示 sidebar，其他视图主面板全屏
+  var needsSidebar = (view === 'book');
   var sidebar = document.getElementById('knowledgeSidebar');
   if (sidebar) {
-    // 隐藏/显示 sidebar 内的"考点分类 / 跨考点模式"部分（视图按钮和搜索框保留）
-    var searchWrap = sidebar.querySelector('.knowledge-search-wrap');
-    var titles = sidebar.querySelectorAll('.knowledge-sidebar-title');
-    var divider = sidebar.querySelector('.knowledge-sidebar-divider');
-    var navs = sidebar.querySelectorAll('.knowledge-nav');
-    [searchWrap, divider].forEach(function(el) { if (el) el.style.display = needsSidebarNav ? '' : 'none'; });
-    titles.forEach(function(el) { el.style.display = needsSidebarNav ? '' : 'none'; });
-    navs.forEach(function(el) { el.style.display = needsSidebarNav ? '' : 'none'; });
-    // 主面板宽度自适应（侧栏收起时给主面板更多空间）
-    sidebar.style.width = needsSidebarNav ? '' : 'auto';
-    sidebar.style.minWidth = needsSidebarNav ? '' : '0';
+    sidebar.style.display = needsSidebar ? '' : 'none';
   }
 
   if (view === 'map') {
