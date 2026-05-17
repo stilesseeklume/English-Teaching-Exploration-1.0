@@ -118,14 +118,14 @@ function classify(q) {
     if (has(exp, '-ed', '-ing') && has(exp, '形容词')) return 'word-ed-ing';
     // 短语动词
     if (has(exp, '短语动词') || has(exp, 'phrasal verb')) return 'word-phrasal-1';
-    // 名词的数 / 所有格（这里不动到 number 类，标记为 other）
-    if (has(exp, '所有格')) return 'word-adj-adv-other';
-    if (has(exp, '名词复数') || has(exp, '名词的数') || (has(exp, '复数') && has(exp, '名词'))) return 'word-adj-adv-other';
+    // 名词复数 / 所有格 → 跨主类映射到 num-*（fine_category 不必跟 category 同主类）
+    if (has(exp, '所有格')) return 'num-possessive';
+    if (has(exp, '名词复数') || has(exp, '名词的数') || (has(exp, '复数') && has(exp, '名词'))) return 'num-plural';
     // 显式提到形容词 / 副词
     if (has(exp, '形容词') || has(q.grammar_point, '形容词')) return 'word-adj-adv-choice';
     if (has(exp, '副词') || has(q.grammar_point, '副词')) return 'word-adj-adv-choice';
-    // 名词派生（动词→名词等）
-    if (has(exp, '名词') || has(q.grammar_point, '名词')) return 'word-adj-adv-other';
+    // 名词派生（动词→名词、形容词→名词 等）— 新增专用 tag
+    if (has(exp, '名词') || has(q.grammar_point, '名词')) return 'word-noun-derivation';
     // === 兜底：用 answer 词形启发式 ===
     // 优先识别比较级 / 最高级（er/est 结尾）
     if (/[a-z]er$/.test(ans) && !/^(her|other|ever|inner|outer|over|under|further|never|either|either|neither)$/.test(ans)) return 'word-cmp-comparative';

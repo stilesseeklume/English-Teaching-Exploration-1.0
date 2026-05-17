@@ -131,7 +131,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 57,
@@ -176,7 +176,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 62,
@@ -387,7 +387,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 63,
@@ -414,7 +414,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         }
       ],
       "chinese_translation": "赫斯维克工作室最近在英国国民信托的伍尔贝丁花园边缘建造了一座温室。这座名为\"玻璃屋\"的优美建筑坐落于一座新花园的中心，展现了丝绸之路即使在现代依然影响着英式园林。\n\n最新工程技术被应用于打造这座兼具防护功能与美感的建筑。其设计特色是十个由玻璃和铝制成的钢制\"萼片\"。在温暖的日子里，这些萼片会张开，让内部植物沐浴阳光和新鲜空气；寒冷天气时，结构则保持闭合以保护植物。\n\n此外，温室周围的\"丝绸之路花园\"带领游客踏上一段受古代丝绸之路启发的旅程——正是通过这条路线，丝绸以及众多植物物种首次传入英国。这些植物包括迷迭香、薰衣草和茴香等现代西方人喜爱的品种。花园中还设有一条蜿蜒小径，引导游客穿越丝绸之路的十二个区域，沿途可观赏300多种植物。\n\n这座玻璃屋堪称当代设计的杰出成就，它位于一条追溯丝绸之路足迹的小径尽头，专门培育中国西南部的植物——正是沿着这条路线，这些植物从亚洲原生地来到英国，最终定义了英式园艺的丰富内涵。"
@@ -443,7 +443,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 38,
@@ -616,7 +616,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         }
       ],
       "chinese_translation": "天井是中国南方和东方传统民居的典型特征。常见于明清时期的住宅中，这些房屋的设计旨在容纳不同代际的亲属。尽管尺寸和设计各异，天井通常呈方形，位于房屋的核心位置。它们的作用是引入光线、增强通风并收集雨水。\n\n数十年来，政府一直倡导绿色建筑，推广环保实践。对中国传统建筑日益增长的兴趣，促使带有天井的历史建筑被修复并用于现代用途。建筑师在设计新建筑时，也在借鉴天井背后的原理来节约能源。例如，广东东莞的TBA大厦通过内部\"风管\"将自然气流引入每一层，其运作方式与天井相似。目标是在仅利用自然气流的情况下，使建筑全年保持舒适的温度。\n\n天井至今依然存在，这充分展现了古代工匠在利用自然元素创造能源自足、可持续居住空间方面的智慧。这些跨越时空的建筑杰作，持续启发着建筑师们寻找冷却房屋和建筑的绿色解决方案。"
@@ -699,7 +699,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 44,
@@ -883,7 +883,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 42,
@@ -910,7 +910,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 45,
@@ -1011,7 +1011,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 45,
@@ -1067,7 +1067,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 60,
@@ -1204,7 +1204,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 44,
@@ -1213,7 +1213,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 45,
@@ -1269,7 +1269,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词的复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 40,
@@ -1287,7 +1287,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 42,
@@ -1352,7 +1352,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 58,
@@ -1718,7 +1718,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 45,
@@ -1756,7 +1756,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 38,
@@ -1866,7 +1866,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 39,
@@ -1902,7 +1902,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 43,
@@ -2088,7 +2088,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Whenever I tell people that I teach English at the Berlin Zoo, I almost always get a questioning look. Behind it, the person is trying to figure out who exactly I teach...the animals?\n\nSince June 2017, right before the ___56___ (arrive) of the two new pandas, Meng Meng and Jiao Qing, I have been helping the panda keepers at the zoo to feel more comfortable and ___57___ (confidence) speaking English. And who do they speak English ___58___?\n\nNot the pandas, even though ___59___ language used for the medical training instructions is actually English. They talk to the flood of international tourists and to ___60___ (visit) Chinese zookeepers who often come to check on the pandas, which are on loan from China. They also need to be ready to give ___61___ (interview) in English with international journalists. This is ___62___ they need an English trainer.\n\nSo, what are they learning? ___63___ (basic), how to describe a panda's life. It's been an honor to watch the panda programme develop ___64___ to see the pandas settle into their new home. As a little girl, I ___65___ (wish) to be a zookeeper when I grew up. Now, I'm living out that dream indirectly by helping the panda keepers do their job in English.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2023全国二卷-57",
@@ -2158,7 +2158,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Whenever I tell people that I teach English at the Berlin Zoo, I almost always get a questioning look. Behind it, the person is trying to figure out who exactly I teach...the animals?\n\nSince June 2017, right before the ___56___ (arrive) of the two new pandas, Meng Meng and Jiao Qing, I have been helping the panda keepers at the zoo to feel more comfortable and ___57___ (confidence) speaking English. And who do they speak English ___58___?\n\nNot the pandas, even though ___59___ language used for the medical training instructions is actually English. They talk to the flood of international tourists and to ___60___ (visit) Chinese zookeepers who often come to check on the pandas, which are on loan from China. They also need to be ready to give ___61___ (interview) in English with international journalists. This is ___62___ they need an English trainer.\n\nSo, what are they learning? ___63___ (basic), how to describe a panda's life. It's been an honor to watch the panda programme develop ___64___ to see the pandas settle into their new home. As a little girl, I ___65___ (wish) to be a zookeeper when I grew up. Now, I'm living out that dream indirectly by helping the panda keepers do their job in English.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2023全国二卷-62",
@@ -2452,7 +2452,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Heatherwick Studio recently built a greenhouse at the edge of the National Trust's Woolbeding Gardens. This beautiful structure, named Glasshouse, is at the centre of a new garden that shows how the Silk Road influences English gardens even in modern times.\n\nThe latest ___56___ (engineer) techniques are applied to create this protective ___57___ (function) structure that is also beautiful. The design features ten steel “sepals (萼片)” made of glass and aluminium (铝). These sepals open on warm days ___58___ (give) the inside plants sunshine and fresh air. In cold weather, the structure stays ___59___ (close) to protect the plants.\n\nFurther, the Silk Route Garden around the greenhouse ___60___ (walk) visitors through a journey influenced by the ancient Silk Road, by which silk as well as many plant species came to Britain for ___61___ first time. These plants included modern Western ___62___ (favourite) such as rosemary, lavender and fennel. The garden also contains a winding path that guides visitors through the twelve regions of the Silk Road. The path offers over 300 plant species for visitors to see, too.\n\nThe Glasshouse stands ___63___ a great achievement in contemporary design, to house the plants of the southwestern part of China at the end of a path retracing (追溯) the steps along the Silk Route ___64___ brought the plants from their native habitat in Asia to come to define much of the ___65___ (rich) of gardening in England.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2024全国一卷-63",
@@ -2494,7 +2494,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Heatherwick Studio recently built a greenhouse at the edge of the National Trust's Woolbeding Gardens. This beautiful structure, named Glasshouse, is at the centre of a new garden that shows how the Silk Road influences English gardens even in modern times.\n\nThe latest ___56___ (engineer) techniques are applied to create this protective ___57___ (function) structure that is also beautiful. The design features ten steel “sepals (萼片)” made of glass and aluminium (铝). These sepals open on warm days ___58___ (give) the inside plants sunshine and fresh air. In cold weather, the structure stays ___59___ (close) to protect the plants.\n\nFurther, the Silk Route Garden around the greenhouse ___60___ (walk) visitors through a journey influenced by the ancient Silk Road, by which silk as well as many plant species came to Britain for ___61___ first time. These plants included modern Western ___62___ (favourite) such as rosemary, lavender and fennel. The garden also contains a winding path that guides visitors through the twelve regions of the Silk Road. The path offers over 300 plant species for visitors to see, too.\n\nThe Glasshouse stands ___63___ a great achievement in contemporary design, to house the plants of the southwestern part of China at the end of a path retracing (追溯) the steps along the Silk Route ___64___ brought the plants from their native habitat in Asia to come to define much of the ___65___ (rich) of gardening in England.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2024全国二卷-36",
@@ -2522,7 +2522,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Chinese cultural elements commemorating (纪念) Tang Xianzu, ___36___ is known as \"the Shakespeare of Asia,\" add an international character to Stratford-upon-Avon, William Shakespeare's hometown.\n\nTang and Shakespeare were contemporaries and both died in 1616. Although they could never have met, there are common ___37___ (theme)in their works, said Paul Edmondson, head of research for the Shakespeare Birthplace Trust. \"Some of the things that Tang was writing about ___38___ (be)also Shakespeare's concerns. I happen to know that Tang's play The Peony Pavilion (《牡丹亭》) is similar in some ways ___39___ Romeo and Juliet.\"\n\nA statue commemorating Shakespeare and Tang was put up at Shakespeare's Birthplace Garden in 2017. Two years later, a six-meter-tall pavilion, ___40___ (inspire)by The Peony Pavilion, ___41___ (build)at the Firs Garden, just ten minutes' walk from Shakespeare's birthplace.\n\nThose cultural elements have increased Stratford's international ___42___ (visible), said Edmondson, adding that visitors walking through the Birthplace Garden were often amazed ___43___ (find)the connection between the two great writers.\n\n___44___ (recall)watching a Chinese opera version of Shakespeare's play Richard III in Shanghai and meeting Chinese actors who came to Stratford a few years ago to perform parts of The Peony Pavilion, Edmondson said, \"It was very exciting to hear the Chinese language ___45___ see how Tang's play was being performed.\"\n\n为纪念素有\"东方莎士比亚\"之称的汤显祖,一座凉亭在莎士比亚的故乡建立,此举提高了莎士比亚故乡的国际知名度。来此地的游客惊奇地发现东西方的这两位伟大作家的作品有一些共性。\n\n36.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2024全国二卷-38",
@@ -2774,7 +2774,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "A skywell, or “tian jing” in Chinese, is a typical feature of a traditional home in Southern and Eastern China. They are commonly seen in homes ___36___ (date) to the Ming and Qing dynasties, which ___37___ (design) to house different generations of relatives. Despite their varied sizes and designs, these skywells are typically square and located in ___38___ heart of the house. They serve to allow in light, enhance airflow, and harvest rainwater.\n\nSince decades ago, the government ___39___ (advocate) green buildings, promoting environmentally-friendly practice. The increased interest towards traditional Chinese architecture is leading to the restoration of historic buildings with skywells ___40___ modern use. Architects are also looking towards the principles behind skywells while designing new buildings ___41___ (save) energy. The Dongguan TBA Tower in Guangdong Province, for example, brings natural airflows into every floor with internal “windpipes”___42___ function in a similar way to skywells. The aim is to keep the building's temperature ___43___ (comfort) in all seasons, using only natural airflow.\n\nThe fact that skywells still exist today shows ___44___ clever ancient builders were in using nature's elements to create energy-sufficient and sustainable living spaces. These timeless architectural ___45___ (wonder) continue to inspire architects in their efforts to find green solutions for cooling homes and buildings.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2024广州二模-36",
@@ -2886,7 +2886,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Over a decade ago, Wu Kai, an enthusiast of ancient pagodas (塔), was looking for a book ___36___ comprehensively detailed the total number and locations of pagodas with quality introductions and images.\n\n“I read extensively but found the books available had limited information and few good pictures,” he explains. Dissatisfied with the ___37___ (exist) options, Wu decided to create his own. Despite an estimated 10,000 ancient pagodas nationwide, many remain unaccounted for due to___38___ (they) remote locations and poor conditions.\n\nVisiting hilltop or cliff-top pagodas, or those hidden in deep forests, ___39___ (require) great determination, physical strength and even luck, ___40___ few people get to see them in person. For those who do, there’s the added challenge of taking good pictures, especially those suitable___41___ print.\n\n___42___ (fortunate), Wu’s plan was applauded by like-minded enthusiasts, who generously contributed great ___43___ (photo). In 2019, Wu published a 500-page book introducing over 300 ancient pagodas in Beijing. He then continued to work with Wang Xuebin, one of the enthusiasts. In 2023, their weighty 960-page book ___44___ (release), entitled The l,001 Chinese Ancient Pagodas You Must See Before You Die.\n\n“In each pagoda, I see the beauty of our heritage and the ___45___ (lose) values of simplicity, perfection, and respect for nature in modern life,” Wu writes in the introduction. “Across the vast land of China, no two pagodas are completely identical.”",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2024广州二模-44",
@@ -3138,7 +3138,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2024深圳一模-42",
@@ -3180,7 +3180,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2024深圳一模-45",
@@ -3320,7 +3320,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "In the center of Reykjavik, Iceland, stands a museum ___36___ (create) by Lillian Hopps, which symbolizes the friendship between Icelandic and Chinese people. A passionate admirer of Chinese heritage, Lillian began her journey to learn about China in the 1990s, a time ___37___ she deeply engaged herself in exploring China’s rich culture. Her passion transformed her home into a place filled with Chinese artifacts, which ___38___ (eventual) led to the establishment of a museum in Reykjavik.\n\nThe museum ___39___ (house) an extensive collection of cultural relics, from ancient clothing ___40___ contemporary art, displaying thousands of years of Chinese civilization. Lillian’s work goes beyond just ___41___ (exhibit) these items; she brings the culture alive through highly ___42___ (interact) activities like tea performances, calligraphy classes, and traditional medicine talks, promoting the Icelandic understanding of China’s rich traditions.\n\nLilian’s museum, attracting thousands of visitors annually from around the world, ___43___ (recognize) by the Icelandic government in 2021 for its impact. As Marta Jonsdottir, a director at Iceland’s Ministry of Foreign Affairs, put it in an interview, “Lillian, with her enthusiasm and expertise, has developed diverse cultural ___44___ (link) between Iceland and China. Her museum has not just enabled both peoples to better understand each other ___45___ strengthened our relations.”",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2024深圳二模-45",
@@ -3390,7 +3390,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "An exhibition at the Jiushi Art Museum in Shanghai is featuring artwork inspired by Go, or weiqi in Chinese, ___56___ originated in China more than 4,000 years ago.\n\nGo is one of ___57___ earliest binary-based (基于二元的) games. The movements of the black and white pieces reflect the basic ideas of Eastern philosophy, according to Tu Ningning, who is in charge of the exhibition.\n\n\"The exhibition brings together Go culture, cutting-edge technology and contemporary art,\" says Tu. \"We hope ___58___ (present) the rather abstract Go game and AI in a visual context, and initiate dialogues with minimalist art, conceptual art and expressionism.\"\n\n\"In a Go game, each move should serve a long-term goal. You try to lead the opponent into your trap and force them to follow your '___59___ (guide)' till they lose,\" explains Wang Wei, a Go player among the visitors to the exhibition.\n\n\"The players' personalities ___60___ (reveal) during the game, and one's weaknesses are exposed to the opponent,\" she adds. \"A decent winner always ___61___ (try) to beat the opponent ___62___ no more than one or two points as a gesture (姿态) of respect for the other side.\"\n\nTu says that the balance between the black and white pieces, the beauty in the ___63___ (strategy) placement of the pieces, ___64___ the energy flow following each move inspired artists to create oil paintings, sculptures, ___65___ (digital) generated pictures and silk-screen prints for the exhibition.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2025全国一卷-60",
@@ -3586,7 +3586,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "I was born and raised in Cleveland, Ohio in the United States. Yet now, I live in the countryside of Zhejiang, China with my Chinese husband and his family, ___36___ bamboo and tea bushes (灌木) grow wild in the mountains, chickens are always free-range, and ___37___ (center) heating doesn't exist.\n\nNothing in my life before prepared me ___38___ this one-and to be sure, the first time I came here I never imagined I would ever feel comfortable in this area. But it's amazing how you can adapt ___39___ learn in a new environment. Over time, I've found ___40___ (I) feeling extremely at home here. And in the process, I've experienced things that really surprise me at times. The \"sunshine scent (香味)\" of freshly sunned clothes ___41___ (be) one of them.\n\nGrowing up, my family and our neighbors never used clotheslines to dry clothing, denying me the chance ___42___ (discover) one of the great wonders of sunshine --- the sweet \"sunshine scent\" after sunning clothes for an entire day. The sun-dried clothes smell especially pleasant where I live, thanks to the ___43___ (absent) of smog and plenty of blue sky ___44___ (afternoon) with lots of fresh air.\n\nIf you've never experienced the \"sunshine scent\" from a sheet or shirt ___45___ (leave) to sun for a day, well, you're missing out on one of life's wonders.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2025全国二卷-44",
@@ -3600,7 +3600,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "I was born and raised in Cleveland, Ohio in the United States. Yet now, I live in the countryside of Zhejiang, China with my Chinese husband and his family, ___36___ bamboo and tea bushes (灌木) grow wild in the mountains, chickens are always free-range, and ___37___ (center) heating doesn't exist.\n\nNothing in my life before prepared me ___38___ this one-and to be sure, the first time I came here I never imagined I would ever feel comfortable in this area. But it's amazing how you can adapt ___39___ learn in a new environment. Over time, I've found ___40___ (I) feeling extremely at home here. And in the process, I've experienced things that really surprise me at times. The \"sunshine scent (香味)\" of freshly sunned clothes ___41___ (be) one of them.\n\nGrowing up, my family and our neighbors never used clotheslines to dry clothing, denying me the chance ___42___ (discover) one of the great wonders of sunshine --- the sweet \"sunshine scent\" after sunning clothes for an entire day. The sun-dried clothes smell especially pleasant where I live, thanks to the ___43___ (absent) of smog and plenty of blue sky ___44___ (afternoon) with lots of fresh air.\n\nIf you've never experienced the \"sunshine scent\" from a sheet or shirt ___45___ (leave) to sun for a day, well, you're missing out on one of life's wonders.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2025全国二卷-45",
@@ -3670,7 +3670,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2025广州一模-40",
@@ -3698,7 +3698,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2025广州一模-42",
@@ -3782,7 +3782,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Once a little-known dish from China's northwest,Lanzhou beef noodle soup is now winning hearts globally.A recent article describes ___56___ this surprisingly simple meal has become popular in ___57___ (city)like New York,London,and Sydney.\n\nAppealing online photos and videos of the dish stimulate local people's appetite and arouse their curiosity,driving them to give ___58___ a try.Diners appreciate both its taste and the experience it offers.In a Manhattan eatery,cooks stretch dough(面团)into noodles right ___59___ customers' eyes.\"It's like magic,\"said one diner.Diners are also amazed by the unique and ___60___ (impressive) chewy texture of Lanzhou noodles,which offers a distinct mouthfeel unlike any other.\n\nThe soup, ___61___ (cook)for hours with beef bones and spices,has a rich flavor.In Queens, a restaurant prepares a version ___62___ respects the dishes' cultural roots and combines 20 spices to produce a hearty soup.The owner even video-calls her grandparents in China for recipes.In Flushing,the owner of a noodle shop adapts the soup based on customer feedback,making it thicker and spicier ___63___ (suit)local preferences.As food expert C.Doyle notes,\"There's no single 'correct' version—it keeps evolving.\"\n\nFrom street food to global star,Lanzhou beef noodle soup shows that sharing food. ___64___(bridge) cultural differences,with each bowl ___65___ (tell)a story of tradition,creativity,and the delight of flavor discovery.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2025广州二模-58",
@@ -4300,7 +4300,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "For many, cycling to Lhasa is a romantic dream. But for Li Shuangsheng and his son, Li Xuyao, it was ___36___ 36-day, 2298-kilometer journey of growth --- crossing 14 mountains over 4,000 meters and ___37___ (battle) altitude (海拔) sickness. This was the father's special gift to his son's 16th birthday.\n\nSetting off ___38___ Chongqing, they rode in a “father in front, son behind” formation, determined to bike up one mountain each day. One day, they so ___39___ (catch) in a heavy rainstorm on Kazila Mountain's slopes (山坡). Li Shuangsheng led the way downhill and stopped by the roadside to wait for his son. Ten minutes later, Li Xuyao appeared, ___40___ (cover) in mud. His bike, ___41___ chain had slipped off, caused him to lose balance and fall to the ground.\n\nDuring the day, the mountain roads, burning sun, and rainstorms exhausted the father and the son. At night, they either sheltered with Tibetan families ___42___ camped alone. Several times, the father jokingly suggested giving up, but Li Xuyao always replied ___43___ (firm), “No way. I'll do whatever it takes to get there.”\n\nAfter wearing down six sets of brake pads (刹车片), they finally arrived in Lhasa. For Li Xuyao's mother, it was a moment of ___44___ (relieve) and pride. “I prayed for their safe return every night,” she said. “My son has grown into a ___45___ (tough) and more mature young man.”",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2025深圳二模-45",
@@ -4342,7 +4342,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "Distant pleasant music floated above the Sydney Opera House stage. Soft light gradually revealed motionless figures at work, as if lifted ___36___ the pages of a Ming-dynasty book. Slowly they began to move. Accompanied by the soft sound of page turning and the gentle flow of water, their graceful ___37___ (gesture) formed a living picture of labour.\n\nThis breathtaking opening of the dance drama _Tiangong Kaiwu_ pulled me ___38___ (instant) into that world of ancient creation. Through ___39___ (express) movement, the performance conveyed the book’s core message — ___40___ (value) the skills passed down by countless unknown labourers and the power of practical tools. The beautiful scenes of golden fields and shiny silk made me feel the deep bond between humanity and nature.\n\nThe most moving moment came ___41___ Song Yingxing took off his official robe (官袍) and stepped into a “field” formed by the other dancers. All motion ceased; only his figure remained, arms stretched upward, silent yet full of strength. At that instant, history ___42___ (it) seemed to hold its breath.\n\nAs I left the theatre I overheard a visitor say “This is beauty that ___43___ (go) beyond borders.” His words deepened my belief: art ___44___ (root) in a culture’s finest traditions possesses a timeless power to move anyone. This was more than ___45___ ancient book brought to life — it was a celebration of Chinese wisdom and its spirit of sharing with the world.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2026广州一模-38",
@@ -4496,7 +4496,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "When I first opened _Where the Deer Hide in the Woods_, I felt as if I were stepping into a world ___36___ the author’s words flow like gentle music. The Tang poems, ___37___ (translate) with the master touch of Xu Yuanchong, speak softly in two voices — one Chinese, one English — each echoing (回响) with calm, beauty, and quiet ___38___ (deep).\n\nThe book ___39___ (divide) into six chapters, each unfolding a distinct landscape of emotion— sorrow, peace, love, longing, solitude, and reflection. I was ___40___ (genuine) moved when I read “The monkeys on both banks are still calling; my light boat has sailed past a thousand hills.” I fully ___41___ (sense) Li Bai’s liberated soul — his joy at being pardoned by the emperor — flowing through the lines.\n\nEach page of the book is enriched with thoughtful notes vivid background stories, and traditional Chinese brush-style ___42___ (illustration). Xu’s artful work transforms the rhythm (节奏) of Chinese poems ___43___ English music, a recreation that honors both the original and its new form.\n\n___44___ (read) this book feels like a journey through hearts and landscapes. For anyone who treasures poetry, painting, or the meeting of two cultures in perfect harmony, _Where the Deer Hide in the Woods_ is ___45___ must-read that beautifully serves as the bridge.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2026深圳一模-39",
@@ -4552,7 +4552,7 @@ window.GRAMMAR_BANK = {
       "category": "word",
       "category_name": "词性转换",
       "passage": "When I first opened _Where the Deer Hide in the Woods_, I felt as if I were stepping into a world ___36___ the author’s words flow like gentle music. The Tang poems, ___37___ (translate) with the master touch of Xu Yuanchong, speak softly in two voices — one Chinese, one English — each echoing (回响) with calm, beauty, and quiet ___38___ (deep).\n\nThe book ___39___ (divide) into six chapters, each unfolding a distinct landscape of emotion— sorrow, peace, love, longing, solitude, and reflection. I was ___40___ (genuine) moved when I read “The monkeys on both banks are still calling; my light boat has sailed past a thousand hills.” I fully ___41___ (sense) Li Bai’s liberated soul — his joy at being pardoned by the emperor — flowing through the lines.\n\nEach page of the book is enriched with thoughtful notes vivid background stories, and traditional Chinese brush-style ___42___ (illustration). Xu’s artful work transforms the rhythm (节奏) of Chinese poems ___43___ English music, a recreation that honors both the original and its new form.\n\n___44___ (read) this book feels like a journey through hearts and landscapes. For anyone who treasures poetry, painting, or the meeting of two cultures in perfect harmony, _Where the Deer Hide in the Woods_ is ___45___ must-read that beautifully serves as the bridge.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2026深圳一模-43",

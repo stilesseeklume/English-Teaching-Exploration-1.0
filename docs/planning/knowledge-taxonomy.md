@@ -463,7 +463,7 @@
 |---|---|
 | predicate（语法通霸 11+12+15）| 12 |
 | nonpredicate（04）| 14 |
-| word（02+03+22）| 14 |
+| word（02+03+22 + 名词派生补丁）| 15 |
 | number（18）| 4 |
 | article（19）| 5 |
 | pronoun（20）| 4 |
@@ -474,9 +474,9 @@
 | advclause（07）| 5 |
 | modal（09，扩展）| 8 |
 | special（10+13+14+16，扩展）| 12 |
-| **主考点小计** | **101** |
+| **主考点小计** | **102**（2026-05-18 加 word-noun-derivation）|
 | structure aux（01）| 5 |
-| **含 aux 合计** | **106** |
+| **含 aux 合计** | **107** |
 
 实际生成的 tag 列表在 [`docs/data/grammar_fine_tags.js`](../data/grammar_fine_tags.js)。
 （原 §6 估算 126 是粗算，实际 101 + 5 aux = 106，已在该文件中按真实子节点逐一列出）

@@ -113,6 +113,7 @@ word-phrasal-1：常用短语动词（一）
 word-phrasal-2：常用短语动词（二）
 word-phrasal-other：其他常考短语动词和惯用表达
 word-verb-usage：常考动词的用法
+word-noun-derivation：名词派生（动→名如 arrive→arrival、形→名如 happy→happiness）
 
 【number 名词/数词】
 num-countable：可数 vs 不可数
@@ -247,11 +248,12 @@ const VALID_FINE_CATEGORIES = new Set([
   "nonp-adverbial-1", "nonp-adverbial-2", "nonp-conj-elision", "nonp-complement",
   "nonp-perfect-passive-neg", "nonp-said-to-do", "nonp-compound-structure",
   "nonp-absolute-with", "nonp-therebe", "nonp-other",
-  // word (14)
+  // word (15) — 含名词派生
   "word-adj-adv-choice", "word-ed-ing", "word-adj-adv-other",
   "word-common-adj-adv", "word-adj-adv-distinguish", "word-adj-adv-phrase",
   "word-cmp-rules", "word-cmp-comparative", "word-cmp-superlative", "word-cmp-multiple",
   "word-phrasal-1", "word-phrasal-2", "word-phrasal-other", "word-verb-usage",
+  "word-noun-derivation",
   // number (4)
   "num-countable", "num-plural", "num-quantity", "num-possessive",
   // article (5)

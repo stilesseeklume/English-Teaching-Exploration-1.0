@@ -94,6 +94,8 @@
       { id: 'word-phrasal-2',              category: 'word', source: '语法通霸 22.02', name: '常用短语动词（二）' },
       { id: 'word-phrasal-other',          category: 'word', source: '语法通霸 22.03', name: '其他常考短语动词和惯用表达' },
       { id: 'word-verb-usage',             category: 'word', source: '语法通霸 22.04', name: '常考动词的用法' },
+      // 补丁（2026-05-18）：动→名 / 形→名 派生题专用，原归 word-adj-adv-other 不准
+      { id: 'word-noun-derivation',        category: 'word', source: '语法通霸 18.补充', name: '名词派生（动→名 / 形→名 等）' },
 
       // ───── number 名词/数词（4 个）─────
       // 注：sup 语法通霸 18 在我们 Seeklume "number" 类里扩展含义为"名词 + 数词形态变化"
