@@ -2522,6 +2522,7 @@
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="../shared/cloud.js"></script>
 <script src="../shared/error-book.js"></script>
+<script src="../shared/lesson-prep.js"></script>
 
 <script>
 
@@ -3393,16 +3394,9 @@ var currentIsPattern = false;
 
 // errorBookQuestions / loadErrorBook / saveErrorBook / runErrorBookCleanup / getErrorFingerprint
 // 已抽到 shared/error-book.js（含 _owner 跨账号隔离机制）
-
-const PREP_KEY = 'grammar-lesson-prep';
-let prepPassages = [];
-
-function loadPrepPassages() {
-  try { prepPassages = JSON.parse(localStorage.getItem(PREP_KEY) || '[]'); } catch (e) { prepPassages = []; }
-}
-function savePrepPassages() {
-  localStorage.setItem(PREP_KEY, JSON.stringify(prepPassages));
-}
+//
+// prepPassages / loadPrepPassages / savePrepPassages / getPrepFingerprint
+// 已抽到 shared/lesson-prep.js（同样的 _owner 机制）
 
 const DRAWER_STORAGE_KEY = 'grammar-fill-drawer-height';
 let drawerHeight = null;
@@ -3503,15 +3497,8 @@ function setupBatchDrop() {
 
 // getErrorFingerprint 已抽到 shared/error-book.js
 
-function getPrepFingerprint(p) {
-  // 基于稳定内容（去空白标记的 passage 前 200 字 + 答案序列）
-  var passage = (p.passage || '').replace(/_{2,}\s*\d+\s*_{2,}/g, '').replace(/\s+/g, ' ').trim();
-  var passageKey = passage.substring(0, 200);
-  var blanksKey = (p.blanks || []).map(function(b) {
-    return (b.answer || '').trim();
-  }).join('|');
-  return passageKey + '|||' + (p.blanks || []).length + '|||' + blanksKey;
-}
+// getPrepFingerprint 已抽到 shared/lesson-prep.js
+
 
 function batchImportJson() {
   var raw = document.getElementById('batchJson').value.trim();

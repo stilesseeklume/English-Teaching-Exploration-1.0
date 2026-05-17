@@ -29,6 +29,8 @@
 
   // 同步取当前 owner：优先用 cloud.state.user.id（如果 cloud.js 已 init），
   // 否则 peek localStorage 中的 supabase session token。再不行就 'guest'。
+  // 暴露到 window 给 lesson-prep.js 等其它带 _owner 标记的模块复用。
+  window.__getCurrentOwnerSync = getCurrentOwnerSync;
   function getCurrentOwnerSync() {
     try {
       if (window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.state.user.id) {
