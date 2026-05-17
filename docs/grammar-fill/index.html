@@ -2424,9 +2424,12 @@
     <div class="page" id="page-knowledge">
       <div class="knowledge-layout" id="knowledgeLayout">
         <aside class="knowledge-sidebar" id="knowledgeSidebar">
-          <div class="knowledge-view-switch">
-            <button class="knowledge-view-btn active" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">知识地图</button>
-            <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">书本速查</button>
+          <div class="knowledge-view-switch" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+            <button class="knowledge-view-btn active" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
+            <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
+            <button class="knowledge-view-btn" id="knowledgeFineCatBtn" onclick="setKnowledgeView('fine-cat')">🏷️ 考点视图</button>
+            <button class="knowledge-view-btn" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
+            <button class="knowledge-view-btn" id="knowledgeSystemBtn" onclick="setKnowledgeView('system')" style="grid-column:span 2;">🌳 体系视图（语法通霸）</button>
           </div>
           <div class="knowledge-search-wrap">
             <input type="text" id="knowledgeSearch" placeholder="搜索语法点…" oninput="onKnowledgeSearch(this.value)" onfocus="onKnowledgeSearch(this.value)">
@@ -5499,19 +5502,253 @@ function toggleSubsection(subKey) {
 }
 
 function setKnowledgeView(view) {
-  currentKnowledgeView = view === 'book' ? 'book' : 'map';
-  var mapBtn = document.getElementById('knowledgeMapBtn');
-  var bookBtn = document.getElementById('knowledgeBookBtn');
-  if (mapBtn) mapBtn.classList.toggle('active', currentKnowledgeView === 'map');
-  if (bookBtn) bookBtn.classList.toggle('active', currentKnowledgeView === 'book');
-  if (currentKnowledgeView === 'map') {
+  currentKnowledgeView = view;
+  ['knowledgeMapBtn','knowledgeBookBtn','knowledgeFineCatBtn','knowledgeTextbookBtn','knowledgeSystemBtn'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  var btnMap = {
+    'map': 'knowledgeMapBtn',
+    'book': 'knowledgeBookBtn',
+    'fine-cat': 'knowledgeFineCatBtn',
+    'textbook': 'knowledgeTextbookBtn',
+    'system': 'knowledgeSystemBtn'
+  };
+  var activeBtn = document.getElementById(btnMap[view]);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  if (view === 'map') {
     renderKnowledgeMap();
-  } else if (currentKnowledgeKey) {
-    selectKnowledgeCategory(currentKnowledgeKey, currentIsPattern);
+  } else if (view === 'fine-cat') {
+    renderFineCategoryView();
+  } else if (view === 'textbook') {
+    renderTextbookView();
+  } else if (view === 'system') {
+    renderSystemView();
   } else {
-    var firstKey = Object.keys(KNOWLEDGE_DATA)[0];
-    selectKnowledgeCategory(firstKey, false);
+    // book view
+    if (currentKnowledgeKey) {
+      selectKnowledgeCategory(currentKnowledgeKey, currentIsPattern);
+    } else {
+      var firstKey = Object.keys(KNOWLEDGE_DATA)[0];
+      selectKnowledgeCategory(firstKey, false);
+    }
   }
+}
+
+// ─── Sprint 1 · Task 9：三视图可视化（Tier 1.5）─────────────────────
+
+// 工具：统计某 fine tag 下的题数（真题库 + 我的错题）
+function _countByFineTag(fineCategory) {
+  var bankCount = ALL_QUESTIONS.filter(function(q) { return q.fine_category === fineCategory; }).length;
+  var errorCount = errorBookQuestions.filter(function(q) { return q.fine_category === fineCategory; }).length;
+  return { bank: bankCount, error: errorCount, total: bankCount + errorCount };
+}
+
+// 频次着色：根据题数返回颜色（高频红 / 中频黄 / 低频灰）
+function _freqColor(total) {
+  if (total >= 10) return { bg: 'var(--red-bg)', color: 'var(--red)', label: '高频' };
+  if (total >= 3) return { bg: 'var(--orange-bg)', color: 'var(--orange)', label: '中频' };
+  if (total >= 1) return { bg: 'var(--accent-bg)', color: 'var(--accent)', label: '低频' };
+  return { bg: 'var(--surface-3)', color: 'var(--text-3)', label: '储备' };
+}
+
+// ─── 视图 A · 考点视图（13 主类 + fine tag 子节点 + 题数 badge）────
+function renderFineCategoryView() {
+  var content = document.getElementById('knowledgeContent');
+  if (!content || !window.GRAMMAR_FINE_TAGS) {
+    content.innerHTML = '<div class="empty-hint">精细 tag 数据未加载。</div>';
+    return;
+  }
+  var FT = window.GRAMMAR_FINE_TAGS;
+
+  // 统计每个 main category 下题总数
+  var catStats = {};
+  Object.keys(FT.categories).forEach(function(catId) {
+    var tagsInCat = (FT.tags_by_category[catId] || []);
+    var total = 0;
+    tagsInCat.forEach(function(t) { total += _countByFineTag(t.id).total; });
+    catStats[catId] = { total: total, tagCount: tagsInCat.length };
+  });
+
+  var html = '<div class="knowledge-section">';
+  html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
+  html += '<h2 style="margin:0 0 6px 0;">🏷️ 考点视图（13 类 × 102 精细 tag）</h2>';
+  html += '<p style="margin:0;color:var(--text-2);">考点路径：粗类 → 精细 tag → 实际真题。颜色 = 当前题库出现频次。</p>';
+  html += '</div>';
+
+  // 用 grid 摆 13 个 category 卡
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">';
+  Object.keys(FT.categories).forEach(function(catId) {
+    var cat = FT.categories[catId];
+    var stat = catStats[catId];
+    var tagsInCat = (FT.tags_by_category[catId] || []);
+    var catColor = _freqColor(stat.total);
+    html += '<section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">';
+    html += '<div>';
+    html += '<h3 style="margin:0;color:var(--text);">' + escapeHtml(cat.name) + (cat.extended ? ' <span style="font-size:11px;color:var(--text-3);font-weight:400;">扩展</span>' : '') + '</h3>';
+    html += '<div style="color:var(--text-3);font-size:12px;margin-top:2px;">' + escapeHtml(cat.source) + ' · ' + stat.tagCount + ' 个精细 tag</div>';
+    html += '</div>';
+    html += '<span style="background:' + catColor.bg + ';color:' + catColor.color + ';padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;flex-shrink:0;">' + stat.total + ' 题</span>';
+    html += '</div>';
+    // tag 列表
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    tagsInCat.forEach(function(tag) {
+      var cnt = _countByFineTag(tag.id);
+      var c = _freqColor(cnt.total);
+      html += '<button onclick="alert(\'\\u8003\\u70b9\\uff1a' + escapeHtml(tag.name) + '\\n\\u9898\\u5e93\\uff1a' + cnt.bank + ' \\u9053 \\u00b7 \\u9519\\u9898\\u672c\\uff1a' + cnt.error + ' \\u9053\\n\\n' + escapeHtml(tag.source) + '\')" '
+        + 'style="background:' + c.bg + ';color:' + c.color + ';border:1px solid color-mix(in srgb, ' + c.color + ' 30%, transparent);padding:4px 10px;border-radius:14px;font-size:12px;cursor:pointer;font-family:inherit;">'
+        + escapeHtml(tag.name)
+        + ' <span style="opacity:0.7;margin-left:2px;">' + cnt.total + '</span>'
+        + '</button>';
+    });
+    html += '</div>';
+    html += '</section>';
+  });
+  html += '</div>';
+
+  // 图例
+  html += '<div style="margin-top:24px;padding:14px 18px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-2);">';
+  html += '<b>颜色说明：</b> ';
+  html += '<span style="background:var(--red-bg);color:var(--red);padding:2px 8px;border-radius:10px;margin:0 4px;">高频 ≥10 题</span>';
+  html += '<span style="background:var(--orange-bg);color:var(--orange);padding:2px 8px;border-radius:10px;margin:0 4px;">中频 3-9 题</span>';
+  html += '<span style="background:var(--accent-bg);color:var(--accent);padding:2px 8px;border-radius:10px;margin:0 4px;">低频 1-2 题</span>';
+  html += '<span style="background:var(--surface-3);color:var(--text-3);padding:2px 8px;border-radius:10px;margin:0 4px;">储备 0 题</span>';
+  html += '<br><span style="color:var(--text-3);">「储备」tag 暂无真题，等老师上传更多卷子自然激活。</span>';
+  html += '</div>';
+
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// ─── 视图 B · 教材视图（7 册 × 5 单元 grid）────────────────────
+function renderTextbookView() {
+  var content = document.getElementById('knowledgeContent');
+  if (!content || !window.GRAMMAR_FINE_TAGS) {
+    content.innerHTML = '<div class="empty-hint">教材数据未加载。</div>';
+    return;
+  }
+  var FT = window.GRAMMAR_FINE_TAGS;
+
+  // 按 book 分组 units
+  var byBook = {};
+  FT.textbook_units.forEach(function(u) {
+    if (!byBook[u.book]) byBook[u.book] = [];
+    byBook[u.book].push(u);
+  });
+  var bookOrder = ['必修一', '必修二', '必修三', '选必一', '选必二', '选必三', '选必四'];
+
+  var html = '<div class="knowledge-section">';
+  html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
+  html += '<h2 style="margin:0 0 6px 0;">📚 教材视图（人教版 7 册 · 35 单元 grammar 进度）</h2>';
+  html += '<p style="margin:0;color:var(--text-2);">老师按单元备课的进度对照。每个单元的语法点显示题库覆盖数。</p>';
+  html += '</div>';
+
+  bookOrder.forEach(function(book) {
+    var units = byBook[book] || [];
+    if (units.length === 0) return;
+    html += '<section style="margin-bottom:20px;">';
+    html += '<h3 style="margin:0 0 10px 0;padding-bottom:6px;border-bottom:2px solid var(--accent);display:inline-block;">' + escapeHtml(book) + '</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">';
+    units.forEach(function(u) {
+      var maps = u.maps_to || [];
+      // 统计该 unit 对应 fine tags 的题数总和
+      var totalQs = 0;
+      maps.forEach(function(tagRef) {
+        var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
+        totalQs += _countByFineTag(tagId).total;
+      });
+      var color = _freqColor(totalQs);
+      html += '<article style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+      html += '<b style="color:var(--accent);">' + escapeHtml(u.unit) + (u.topic ? ' · ' + escapeHtml(u.topic) : '') + '</b>';
+      html += '<span style="background:' + color.bg + ';color:' + color.color + ';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">' + totalQs + ' 题</span>';
+      html += '</div>';
+      html += '<div style="font-size:13px;color:var(--text);margin-bottom:6px;">' + escapeHtml(u.grammar_zh) + '</div>';
+      html += '<div style="font-size:11px;color:var(--text-3);">' + escapeHtml(u.grammar_en || '') + '</div>';
+      // 关联 tag chips
+      if (maps.length > 0) {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">';
+        maps.forEach(function(tagRef) {
+          var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
+          var tag = FT.tags_by_id[tagId];
+          if (!tag) return;
+          var cnt = _countByFineTag(tagId);
+          html += '<span style="background:var(--surface-3);color:var(--text-2);padding:2px 8px;border-radius:10px;font-size:11px;">'
+            + escapeHtml(tag.name) + ' <span style="opacity:0.6;">' + cnt.total + '</span></span>';
+        });
+        html += '</div>';
+      }
+      html += '</article>';
+    });
+    html += '</div></section>';
+  });
+
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// ─── 视图 C · 体系视图（语法通霸 22 大类参考）──────────────────
+function renderSystemView() {
+  var content = document.getElementById('knowledgeContent');
+  if (!content) return;
+
+  // 语法通霸 22 大类原始结构（参考用）
+  var SYSTEM = [
+    { no: '01', name: '句子结构和成分', subs: ['相关概念', '简单句的五种基本结构', '句子成分（一）', '句子成分（二）', '简单句 / 并列句 / 复合句'], maps_seek: 'aux:structure (教学辅助，不打 tag)' },
+    { no: '02', name: '形容词和副词', subs: ['选用', '-ed vs -ing', '其他相关', '常用形/副用法', '常考形/副区别', '形/副词组区别'], maps_seek: 'word 词性转换' },
+    { no: '03', name: '形容词和副词的比较等级', subs: ['构成规则及 than/as 词性', '比较级', '最高级', '倍数表达 / 类比'], maps_seek: 'word 词性转换' },
+    { no: '04', name: '动词的非谓语形式', subs: ['基础知识', '作主语/表语', '作宾语', '作定语', '作状语（一）', '作状语（二）', '连词+非谓语/省略', '作补语', '完成式/进行式/被动式/否定式', 'somebody is said to do', '复合结构', '独立主格/with', 'there be + 非谓语', '其他考点'], maps_seek: 'nonpredicate 非谓语动词' },
+    { no: '05', name: '定语从句', subs: ['关系词选择技巧', '关系副词', '介词 + 关系代词', '只能用 that 不能用 which', '其他关系代词规则', 'as/but/than 作关系代词', '限制性 vs 非限制性', '同位语从句 vs 定语从句', '定语从句与易混句型', '其他常见考点'], maps_seek: 'attrib 定语从句' },
+    { no: '06', name: '名词性从句', subs: ['引导词', '与同位语区别', 'what/when/where/how/why 引导', 'whatever/whoever 等', '间直引语（宾语从句）'], maps_seek: 'nounclause 名词性从句' },
+    { no: '07', name: '状语从句', subs: ['时间', '原因/地点', '条件/方式', '目的/结果', '让步/比较'], maps_seek: 'advclause 状语从句' },
+    { no: '08', name: '并列连词和并列', subs: ['连接词或短语', '并列句'], maps_seek: 'logic 逻辑连词' },
+    { no: '09', name: '情态动词', subs: ['语法特征', '推测性用法概述', '+ 原形推测现在/将来', '+ have done 推测过去', '用于虚拟语气', 'can 其他', 'may/must 其他', 'will/shall/would/should/used to'], maps_seek: 'modal 情态动词（Sprint 1 扩展类）' },
+    { no: '10', name: '虚拟语气', subs: ['过去时态表愿望', '虚拟条件句', '含蓄条件句', 'should + 原形', 'should 表意外'], maps_seek: 'special 其他特殊句式（合并）' },
+    { no: '11', name: '动词的时态', subs: ['一般现在', '一般过去/将来/过去将来', '现在/过去/将来进行', '现在完成/进行', '过去完成/将来完成', '其他考点'], maps_seek: 'predicate 谓语动词' },
+    { no: '12', name: '被动语态', subs: ['被动语态的构成', '主动形式表被动意义'], maps_seek: 'predicate 谓语动词' },
+    { no: '13', name: '强调句型', subs: ['基础知识', '常见考点'], maps_seek: 'special 其他特殊句式（合并）' },
+    { no: '14', name: '倒装', subs: ['完全倒装', '部分倒装'], maps_seek: 'special 其他特殊句式（合并）' },
+    { no: '15', name: '主谓一致', subs: ['语法形式', '意义/就近一致', '集合/复数/-s 结尾', '表数量的短语'], maps_seek: 'predicate 谓语动词' },
+    { no: '16', name: '特殊句式', subs: ['反意疑问句', '否定转移/感叹句', '替代/省略'], maps_seek: 'special 其他特殊句式（合并）' },
+    { no: '17', name: '阅读理解中长难句分析技巧', subs: ['跳/连/回/并/还/放/联（7 个）'], maps_seek: '⚠️ 阅读题，不属语法填空' },
+    { no: '18', name: '名词和数词', subs: ['可数/不可数', '名词复数', '名词的量/数词', '名词所有格'], maps_seek: 'number 名词/数词' },
+    { no: '19', name: '冠词', subs: ['特指/独指/类指', 'a/an 基本用法', 'the 基本用法', '不用冠词', '其他'], maps_seek: 'article 冠词' },
+    { no: '20', name: '代词', subs: ['人称/物主/反身/指示', '不定代词（一）', '不定代词（二）', 'it 常考点'], maps_seek: 'pronoun 代词' },
+    { no: '21', name: '介词', subs: ['概述', '常见介词常见用法', '时间', '地点位置', '动介搭配', '其他'], maps_seek: 'preposition 介词' },
+    { no: '22', name: '动词和短语动词', subs: ['常用短语动词（一）', '常用短语动词（二）', '其他常考短语', '常考动词用法'], maps_seek: 'word 词性转换' }
+  ];
+
+  var html = '<div class="knowledge-section">';
+  html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
+  html += '<h2 style="margin:0 0 6px 0;">🌳 体系视图（语法通霸 22 大类 / 116 子节点）</h2>';
+  html += '<p style="margin:0;color:var(--text-2);">完整高中语法体系参考（教辅版本）。每个大类对应 Seeklume 哪个考点类标在右侧。</p>';
+  html += '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;">';
+  SYSTEM.forEach(function(sec) {
+    html += '<section style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">';
+    html += '<b style="color:var(--text);font-size:14px;">' + sec.no + '. ' + escapeHtml(sec.name) + '</b>';
+    html += '<span style="color:var(--text-3);font-size:11px;">' + sec.subs.length + ' 节</span>';
+    html += '</div>';
+    html += '<div style="font-size:12px;color:var(--accent);margin-bottom:6px;">Seeklume → ' + escapeHtml(sec.maps_seek) + '</div>';
+    html += '<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text-2);line-height:1.7;">';
+    sec.subs.forEach(function(sub) {
+      html += '<li>' + escapeHtml(sub) + '</li>';
+    });
+    html += '</ul>';
+    html += '</section>';
+  });
+  html += '</div>';
+
+  html += '<div style="margin-top:24px;padding:14px 18px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-2);">';
+  html += '<b>说明：</b> 这一视图是参考用 —— 完整展示语法通霸（教辅）的知识体系。当前 Seeklume 的迁移训练精细化基于此体系映射到 102 个 fine tag。';
+  html += '</div>';
+
+  html += '</div>';
+  content.innerHTML = html;
 }
 
 function renderKnowledgePage() {
