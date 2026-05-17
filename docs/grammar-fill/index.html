@@ -100,59 +100,82 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* 教材"翻开"全屏 modal */
+  /* 教材"翻开"全屏 modal — 顶部 hero banner 风格 */
   .textbook-modal-backdrop {
     position: fixed; inset: 0; z-index: 2000;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     display: flex; align-items: center; justify-content: center;
-    padding: 5vh 4vw;
+    padding: 4vh 4vw;
     opacity: 0; transition: opacity .25s ease;
   }
   .textbook-modal-backdrop.show { opacity: 1; }
   .textbook-modal-panel {
     position: relative;
     background: var(--surface);
-    border-radius: 16px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06);
-    width: 100%; max-width: 1100px; max-height: 90vh;
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06);
+    width: 100%; max-width: 1100px; height: 92vh; max-height: 92vh;
     overflow: hidden;
-    transform: scale(0.92) translateY(20px) rotateX(8deg);
-    transform-origin: center 30%;
+    transform: scale(0.94) translateY(16px);
     opacity: 0;
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease;
-    perspective: 1200px;
+    transition: transform .4s cubic-bezier(.2,.85,.25,1), opacity .25s ease;
+    display: flex; flex-direction: column;
   }
   .textbook-modal-panel.show {
-    transform: scale(1) translateY(0) rotateX(0);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
   .textbook-modal-close {
-    position: absolute; top: 14px; right: 14px;
-    width: 32px; height: 32px; border-radius: 50%;
-    border: none; background: var(--surface-3); color: var(--text-2);
-    cursor: pointer; font-size: 18px; line-height: 1;
+    position: absolute; top: 16px; right: 16px;
+    width: 36px; height: 36px; border-radius: 50%;
+    border: none; background: rgba(0,0,0,0.45); color: #fff;
+    cursor: pointer; font-size: 20px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
-    transition: all .15s; z-index: 10;
+    transition: all .2s; z-index: 20;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  .textbook-modal-close:hover { background: var(--red); color: #fff; transform: rotate(90deg); }
-  .textbook-modal-grid {
-    display: grid; grid-template-columns: 320px 1fr;
-    height: 90vh; max-height: 90vh;
+  .textbook-modal-close:hover { background: rgba(255,59,48,0.9); transform: rotate(90deg) scale(1.1); }
+
+  /* 顶部 hero：封面作背景，暗色渐变叠加，大标题在底部 */
+  .textbook-modal-hero {
+    position: relative;
+    height: 38%;
+    min-height: 200px;
+    background-color: #1a1a1a;
+    background-size: cover;
+    background-position: center 30%;
+    overflow: hidden;
+    flex-shrink: 0;
   }
-  @media (max-width: 768px) {
-    .textbook-modal-grid { grid-template-columns: 1fr; }
+  .textbook-modal-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.85) 100%);
   }
-  .textbook-modal-cover {
-    background-color: #eaeaea;
-    background-size: cover; background-position: center;
-    border-right: 1px solid var(--border);
+  .textbook-modal-hero-text {
+    position: absolute; left: 32px; right: 32px; bottom: 24px;
+    z-index: 2; color: #fff;
   }
-  @media (max-width: 768px) {
-    .textbook-modal-cover { min-height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
+  .textbook-modal-hero-text h2 {
+    margin: 0; font-size: 32px; font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    letter-spacing: 0.5px;
+  }
+  .textbook-modal-hero-text p {
+    margin: 6px 0 0; font-size: 14px; opacity: 0.85;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
   }
   .textbook-modal-content {
-    padding: 28px 32px; overflow-y: auto;
+    padding: 24px 32px; overflow-y: auto; flex: 1;
+  }
+  /* modal 内不再显示 detail 自己的 h3（hero 标题已显示） */
+  .textbook-modal-content section > h3 { display: none; }
+  .textbook-modal-content section { margin-bottom: 0 !important; }
+  @media (max-width: 768px) {
+    .textbook-modal-hero { height: 30%; }
+    .textbook-modal-hero-text h2 { font-size: 24px; }
+    .textbook-modal-content { padding: 18px 20px; }
   }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -5826,16 +5849,30 @@ function openTextbookModal(book) {
   var cover = (window._textbookCoverMap || {})[book] || '';
   var detail = (typeof window._renderBookDetailHTML === 'function') ? window._renderBookDetailHTML(book) : '';
 
+  // 计算该册的 unit 数和总题数（用于 hero 副标题）
+  var FT = window.GRAMMAR_FINE_TAGS || {};
+  var unitsInBook = (FT.textbook_units || []).filter(function(u) { return u.book === book; });
+  var totalQs = 0;
+  unitsInBook.forEach(function(u) {
+    (u.maps_to || []).forEach(function(tagRef) {
+      var tagId = tagRef.startsWith('aux:') ? tagRef.slice(4) : tagRef;
+      totalQs += _countByFineTag(tagId).total;
+    });
+  });
+  var heroSubtitle = unitsInBook.length + ' 个 Grammar 单元 · ' + totalQs + ' 道关联真题';
+
   var html = ''
     + '<div class="textbook-modal-backdrop" onclick="closeTextbookModal()">'
     +   '<div class="textbook-modal-panel" onclick="event.stopPropagation()">'
     +     '<button class="textbook-modal-close" onclick="closeTextbookModal()" title="关闭 (Esc)">×</button>'
-    +     '<div class="textbook-modal-grid">'
-    +       '<div class="textbook-modal-cover" style="background-image:url(\'' + cover + '\');"></div>'
-    +       '<div class="textbook-modal-content">'
-    +         '<h2 style="margin:0 0 14px 0;font-size:22px;">' + escapeHtml(book) + '</h2>'
-    +         detail
+    +     '<div class="textbook-modal-hero" style="background-image:url(\'' + cover + '\');">'
+    +       '<div class="textbook-modal-hero-text">'
+    +         '<h2>人教版 · 英语 · ' + escapeHtml(book) + '</h2>'
+    +         '<p>' + escapeHtml(heroSubtitle) + '</p>'
     +       '</div>'
+    +     '</div>'
+    +     '<div class="textbook-modal-content">'
+    +       detail
     +     '</div>'
     +   '</div>'
     + '</div>';
