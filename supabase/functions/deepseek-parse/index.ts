@@ -30,7 +30,8 @@ const SYSTEM_PROMPT = `你是一名专业的英语语法填空出题助手。你
         {
           "no": 数字题号,
           "answer": "正确英文单词或短语",
-          "category": "考点分类代码",
+          "category": "粗考点分类代码（11 类之一）",
+          "fine_category": "精细考点 tag id（从下方 ~100 个里选最匹配的 1 个）",
           "analysis": "中文解析，30-60字"
         }
       ]
@@ -49,12 +50,12 @@ const SYSTEM_PROMPT = `你是一名专业的英语语法填空出题助手。你
 
 若识别为多篇，请把每篇拆成 passages 数组的一个元素。每篇内部空格编号独立。
 
-## 考点分类代码（11 类，必须从中选择）
+## 粗考点分类代码（category 字段，11 类必选 1 个）
 
 predicate     = 谓语动词（时态、语态、主谓一致）
 nonpredicate  = 非谓语动词（to do / doing / done / 独立主格）
-word          = 词性转换（名/形/副/动转换）
-number        = 数词（基数/序数/分数）
+word          = 词性转换（名/形/副/动转换、比较级、短语动词）
+number        = 名词/数词（可数/复数/所有格/数词）
 article       = 冠词（a / an / the）
 pronoun       = 代词（人称/物主/反身/不定/指示）
 preposition   = 介词（固定搭配 / 时间地点方式）
@@ -62,6 +63,137 @@ logic         = 逻辑连词（并列/转折/因果/递进）
 attrib        = 定语从句连词（关系代词/关系副词）
 nounclause    = 名词性从句连词（主/宾/表/同位语从句）
 advclause     = 状语从句连词（时间/原因/条件/让步/目的/结果）
+modal         = 情态动词（推测/能力/义务/虚拟）
+special       = 其他特殊句式（虚拟语气/强调/倒装/反意疑问/省略）
+
+## 精细考点 tag（fine_category 字段，必选 1 个）
+
+【predicate 谓语动词】
+pred-tense-present：一般现在时（客观事实/规律）
+pred-tense-past-future：一般过去时 / 将来时 / 过去将来时
+pred-tense-continuous：现在/过去/将来进行时
+pred-tense-perfect：现在完成时 / 现在完成进行时（since / so far / over the past）
+pred-tense-past-perfect：过去完成 / 过去完成进行 / 将来完成时
+pred-tense-other：时态其他
+pred-passive-form：被动语态构成（be + done）
+pred-passive-implicit：主动形式表被动意义
+pred-sva-form：主谓一致 · 语法形式
+pred-sva-meaning：主谓一致 · 意义 / 就近一致
+pred-sva-collective：主谓一致 · 集合 / 复数 / -s 结尾名词作主语
+pred-sva-quantity：主谓一致 · 表数量的短语
+
+【nonpredicate 非谓语动词】
+nonp-basic：非谓语 · 基础知识
+nonp-subject-predicative：作主语 / 表语
+nonp-object：作宾语
+nonp-attribute：作定语
+nonp-adverbial-1：作状语（时间/原因/目的/结果）
+nonp-adverbial-2：作状语（方式/伴随/条件）
+nonp-conj-elision：连词 + 非谓语 / 省略
+nonp-complement：作宾补 / 主补
+nonp-perfect-passive-neg：完成式 / 进行式 / 被动式 / 否定式
+nonp-said-to-do：somebody is said to do 句式
+nonp-compound-structure：动词不定式 / 动名词的复合结构
+nonp-absolute-with：独立主格 / with 复合结构
+nonp-therebe：there be 句型 + 非谓语
+nonp-other：非谓语其他
+
+【word 词性转换】
+word-adj-adv-choice：形容词 / 副词的选用（含 -ly 副词派生）
+word-ed-ing：-ed 形容词 vs -ing 形容词（含 done / doing 作形容词）
+word-adj-adv-other：形 / 副其他相关 + 名词派生（动→名 等）
+word-common-adj-adv：几个常用形 / 副的用法
+word-adj-adv-distinguish：常考形 / 副的区别
+word-adj-adv-phrase：常考形 / 副词组的区别
+word-cmp-rules：比较级 / 最高级构成规则及 than/as 词性
+word-cmp-comparative：比较级
+word-cmp-superlative：最高级
+word-cmp-multiple：倍数表达 / 类比
+word-phrasal-1：常用短语动词（一）
+word-phrasal-2：常用短语动词（二）
+word-phrasal-other：其他常考短语动词和惯用表达
+word-verb-usage：常考动词的用法
+
+【number 名词/数词】
+num-countable：可数 vs 不可数
+num-plural：名词复数形式
+num-quantity：名词的量 / 数词
+num-possessive：名词所有格
+
+【article 冠词】
+art-specific-indefinite：特指 / 独指 / 类指
+art-a-an：不定冠词 a / an
+art-the：定冠词 the
+art-zero：不用冠词
+art-other：冠词其他
+
+【pronoun 代词】
+pron-personal-possessive：人称 / 物主 / 反身 / 指示代词
+pron-indefinite-1：不定代词（一）
+pron-indefinite-2：不定代词（二）
+pron-it：代词 it 的常考点
+
+【preposition 介词】
+prep-overview：介词概述
+prep-common：常见介词常见用法
+prep-time：介词辨析 · 时间
+prep-location：介词辨析 · 地点位置
+prep-verb：介词辨析 · 动介搭配
+prep-other：介词辨析 · 其他
+
+【logic 逻辑连词】
+logic-conj-phrase：连接词或短语的并列连词
+logic-compound：并列句
+
+【attrib 定语从句】
+attrib-choice：关系词选择技巧
+attrib-adverb：关系副词（where / when / why）
+attrib-prep-relative：介词 + 关系代词
+attrib-only-that：只能用 that 不能用 which
+attrib-other-rules：其他关系代词规则
+attrib-as-but-than：as / but / than 作关系代词
+attrib-restrictive-non：限制性 vs 非限制性
+attrib-vs-appositive：同位语从句 vs 定语从句
+attrib-confusing：定语从句与易混句型
+attrib-other：定语从句其他
+
+【nounclause 名词性从句】
+nounc-connectors：引导词
+nounc-vs-appositive：与同位语区别
+nounc-wh-words：what / when / where / how / why
+nounc-ever-words：whatever / whoever 等
+nounc-reported：间直引语
+
+【advclause 状语从句】
+advc-time：时间状语
+advc-reason-place：原因 / 地点
+advc-condition-manner：条件 / 方式
+advc-purpose-result：目的 / 结果
+advc-concession-comparison：让步 / 比较
+
+【modal 情态动词】
+modal-features：情态动词的语法特征
+modal-speculation-overview：推测性用法概述
+modal-bare-infinitive：情态 + 原形（推测现在/将来）
+modal-have-done：情态 + have done（推测过去）
+modal-subjunctive：情态用于虚拟
+modal-can-other：can 其他用法
+modal-may-must：may / must 其他用法
+modal-will-shall-would-should：will / shall / would / should / used to
+
+【special 其他特殊句式】
+special-subj-wish：虚拟 · 过去时态表愿望
+special-subj-if：虚拟 · 条件句
+special-subj-implicit：虚拟 · 含蓄条件
+special-subj-should-bare：虚拟 · should + 原形
+special-subj-should-surprise：虚拟 · should 表意外
+special-emph-basic：强调句基础
+special-emph-common：强调句常见考点
+special-inv-full：完全倒装
+special-inv-partial：部分倒装
+special-tag-question：反意疑问句
+special-negation-exclam：否定转移 / 感叹句
+special-substitution-ellipsis：替代 / 省略
 
 ## 处理规则
 
@@ -69,13 +201,16 @@ advclause     = 状语从句连词（时间/原因/条件/让步/目的/结果�
 2. 【空格识别】空白处可能表现为：下划线___、方框□、括号中提示词如 (give)、题号标注如 56.______、或直接空白。识别所有空格，按在文中出现的先后顺序从 1 开始连续编号（每篇独立）。如果原题已有序号，优先使用原序号。
 3. 【答案推断】如果原文本在题号后附有答案（如"56. dating"），直接使用。如果给出了括号中的提示词原形（如 (date)），根据语法语境变形后作为答案。如果无任何提示，根据语法知识推断最合理的答案。
 4. 【passage 字段】将原文中所有识别出的空格替换为 ___{题号}___ 格式（如 ___36___）。保持原文其余部分不变（包括大小写、标点、换行）。
-5. 【分类判断】每个空格必须仔细分析其考查的语法点，选择最匹配的分类代码。如果无法确定，根据以下优先级判断：
-   - 考查动词形态变化 → predicate 或 nonpredicate
-   - 考查给词根变形（加前缀/后缀）→ word
-   - 考查填写冠词/介词/代词/连词 → 对应 article/preposition/pronoun/logic
-   - 考查从句引导词 → attrib/nounclause/advclause
-6. 【answer 字段】必须是确切的英文单词或短语，不含序号、中文、多余空格或标点。
-7. 【analysis 字段】用中文写 30-60 字的解析，说明：①空格在句中的成分 ②语法判断依据 ③为什么是这个答案。
+5. 【category 字段】从 13 个粗类里必选 1 个。
+6. 【fine_category 字段】必填。从 ~100 个精细 tag 中选与本题最匹配的 1 个。例如：
+   - "since 1990 ... has done" → pred-tense-perfect
+   - "to do 作宾语" → nonp-object
+   - "by hand" 固定搭配 → prep-common
+   - "in 1990" 时间介词 → prep-time
+   - 答案是副词派生（-ly）→ word-adj-adv-choice
+   - 关系副词 where/when → attrib-adverb
+7. 【answer 字段】必须是确切的英文单词或短语，不含序号、中文、多余空格或标点。
+8. 【analysis 字段】用中文写 30-60 字的解析，说明：①空格在句中的成分 ②语法判断依据 ③为什么是这个答案。
 
 ## 重要：只输出 JSON，不输出任何其他内容`;
 
@@ -97,12 +232,61 @@ function extractJSON(text: string): string {
 const VALID_CATEGORIES = new Set([
   "predicate", "nonpredicate", "word", "number", "article",
   "pronoun", "preposition", "logic", "attrib", "nounclause", "advclause",
+  "modal", "special",  // Sprint 1 新增扩展类
+]);
+
+// 精细 tag 白名单（101 个，来自 docs/data/grammar_fine_tags.js）
+const VALID_FINE_CATEGORIES = new Set([
+  // predicate (12)
+  "pred-tense-present", "pred-tense-past-future", "pred-tense-continuous",
+  "pred-tense-perfect", "pred-tense-past-perfect", "pred-tense-other",
+  "pred-passive-form", "pred-passive-implicit",
+  "pred-sva-form", "pred-sva-meaning", "pred-sva-collective", "pred-sva-quantity",
+  // nonpredicate (14)
+  "nonp-basic", "nonp-subject-predicative", "nonp-object", "nonp-attribute",
+  "nonp-adverbial-1", "nonp-adverbial-2", "nonp-conj-elision", "nonp-complement",
+  "nonp-perfect-passive-neg", "nonp-said-to-do", "nonp-compound-structure",
+  "nonp-absolute-with", "nonp-therebe", "nonp-other",
+  // word (14)
+  "word-adj-adv-choice", "word-ed-ing", "word-adj-adv-other",
+  "word-common-adj-adv", "word-adj-adv-distinguish", "word-adj-adv-phrase",
+  "word-cmp-rules", "word-cmp-comparative", "word-cmp-superlative", "word-cmp-multiple",
+  "word-phrasal-1", "word-phrasal-2", "word-phrasal-other", "word-verb-usage",
+  // number (4)
+  "num-countable", "num-plural", "num-quantity", "num-possessive",
+  // article (5)
+  "art-specific-indefinite", "art-a-an", "art-the", "art-zero", "art-other",
+  // pronoun (4)
+  "pron-personal-possessive", "pron-indefinite-1", "pron-indefinite-2", "pron-it",
+  // preposition (6)
+  "prep-overview", "prep-common", "prep-time", "prep-location", "prep-verb", "prep-other",
+  // logic (2)
+  "logic-conj-phrase", "logic-compound",
+  // attrib (10)
+  "attrib-choice", "attrib-adverb", "attrib-prep-relative", "attrib-only-that",
+  "attrib-other-rules", "attrib-as-but-than", "attrib-restrictive-non",
+  "attrib-vs-appositive", "attrib-confusing", "attrib-other",
+  // nounclause (5)
+  "nounc-connectors", "nounc-vs-appositive", "nounc-wh-words", "nounc-ever-words", "nounc-reported",
+  // advclause (5)
+  "advc-time", "advc-reason-place", "advc-condition-manner",
+  "advc-purpose-result", "advc-concession-comparison",
+  // modal (8)
+  "modal-features", "modal-speculation-overview", "modal-bare-infinitive",
+  "modal-have-done", "modal-subjunctive", "modal-can-other", "modal-may-must",
+  "modal-will-shall-would-should",
+  // special (12)
+  "special-subj-wish", "special-subj-if", "special-subj-implicit",
+  "special-subj-should-bare", "special-subj-should-surprise",
+  "special-emph-basic", "special-emph-common",
+  "special-inv-full", "special-inv-partial",
+  "special-tag-question", "special-negation-exclam", "special-substitution-ellipsis",
 ]);
 
 interface RawPassage {
   title?: string;
   passage?: string;
-  blanks?: Array<{ no?: number; answer?: string; category?: string; analysis?: string }>;
+  blanks?: Array<{ no?: number; answer?: string; category?: string; fine_category?: string; analysis?: string }>;
 }
 
 function normalizePassage(p: RawPassage, idx: number) {
@@ -112,6 +296,8 @@ function normalizePassage(p: RawPassage, idx: number) {
     no: typeof b.no === "number" ? b.no : i + 1,
     answer: (b.answer || "?").toString().trim(),
     category: VALID_CATEGORIES.has(b.category as string) ? (b.category as string) : (b.category || "word"),
+    // fine_category：AI 选错或没选时静默丢弃（前端 Task #8 已 fallback 到 trap/focus）
+    fine_category: VALID_FINE_CATEGORIES.has(b.fine_category as string) ? (b.fine_category as string) : undefined,
     analysis: (b.analysis || "").toString().trim(),
   }));
 
