@@ -217,6 +217,7 @@ const tagCounts = {};
 const uncertain = [];
 let total = 0;
 
+// (a) 先 tag BANK.exams[*].questions[*]（嵌套形式，按套卷组织）
 BANK.exams.forEach(exam => {
   (exam.questions || []).forEach(q => {
     total++;
@@ -236,6 +237,29 @@ BANK.exams.forEach(exam => {
     }
   });
 });
+
+// (b) 同步 tag BANK.questions 扁平列表（ALL_QUESTIONS 从这里构造，必须打）
+// 通过 exam_id + no 匹配，从 BANK.exams 反查 fine_category
+const flatIndex = {};
+BANK.exams.forEach(exam => {
+  (exam.questions || []).forEach(q => {
+    flatIndex[exam.exam_id + '#' + q.no] = q.fine_category;
+  });
+});
+let flatHits = 0, flatMiss = 0;
+(BANK.questions || []).forEach(q => {
+  const key = (q.exam_id || '') + '#' + q.no;
+  if (flatIndex[key]) {
+    q.fine_category = flatIndex[key];
+    flatHits++;
+  } else {
+    // 兜底：扁平列表里有但嵌套结构里没有的题，直接 classify
+    const tag = classify(q);
+    q.fine_category = tag;
+    flatMiss++;
+  }
+});
+console.log(`扁平列表同步: ${flatHits} 个直接复用 + ${flatMiss} 个独立打 tag`);
 
 // ─── 打印统计 ──────────────────────
 console.log(`\n总题数: ${total}`);

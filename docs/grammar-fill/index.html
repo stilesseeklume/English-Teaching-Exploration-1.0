@@ -3379,6 +3379,7 @@ const ALL_QUESTIONS = BANK.questions.map(q => ({
   category: q.category,
   category_name: q.category_name,
   grammar_point: q.grammar_point,
+  fine_category: q.fine_category,  // Sprint 1 · 精细化考点 tag（来自 grammar_fine_tags.js）
   passage: q.passage,
   sentence: '',
   analysis: q.explanation || ('答案：' + q.answer + '。'),
@@ -3388,6 +3389,23 @@ const ALL_QUESTIONS = BANK.questions.map(q => ({
 const KNOWLEDGE_DATA = window.KNOWLEDGE_DATA || {};
 const PATTERN_DATA = window.PATTERN_DATA || {};
 const KNOWLEDGE_CORE = window.GRAMMAR_KNOWLEDGE_CORE || { roots: [], nodes: {}, learning_paths: [], category_to_nodes: {}, trap_to_nodes: {} };
+// Sprint 1 · 精细 tag 体系（来自 docs/data/grammar_fine_tags.js）
+const FINE_TAGS = window.GRAMMAR_FINE_TAGS || { tags_by_id: {}, tags_by_category: {}, categories: {}, textbook_units: [], tag_to_units: {} };
+
+// 从 fine_category id 取展示用对象（带 fine name + 教材引用）
+function getFineTagInfo(fineCategory) {
+  if (!fineCategory) return null;
+  var tag = FINE_TAGS.tags_by_id[fineCategory];
+  if (!tag) return null;
+  var category = FINE_TAGS.categories[tag.category];
+  return {
+    id: fineCategory,
+    name: tag.name,
+    category_id: tag.category,
+    category_name: category ? category.name : tag.category,
+    textbook_units: FINE_TAGS.tag_to_units[fineCategory] || []
+  };
+}
 let currentExam = null;
 let currentQuestions = [];
 let selectedQuestion = null;
@@ -3738,6 +3756,7 @@ function viewPrepPassage(id) {
       category: b.category,
       category_name: CATEGORY_MAP[b.category] || b.category,
       grammar_point: '',
+      fine_category: b.fine_category,  // Sprint 1 · 精细化考点 tag（AI 解析时填入，旧备课资料可能无此字段）
       exam: p.title,
       exam_id: p.title,
       year: '',
@@ -4501,6 +4520,7 @@ function startByExam(examId) {
     category: q.category,
     category_name: q.category_name,
     grammar_point: q.grammar_point,
+    fine_category: q.fine_category,  // Sprint 1 · 精细化考点 tag
     exam: ex.exam_id,
     exam_id: ex.exam_id,
     year: ex.year,
@@ -4991,28 +5011,53 @@ function buildMigrationContent(q) {
   var focus = safeQuestionFocus(q);
   var trap = safeQuestionTrap(q);
   var trapId = trap ? trap.id : '';
-  // 三种来源的题池
+  var fineCat = q.fine_category;                          // Sprint 1 新增：精细考点 tag
+  var fineInfo = getFineTagInfo(fineCat);                  // tag 完整对象（含 name + 教材引用）
+
+  // Sprint 1 新增：精细 tag 池（最高优先级匹配）
+  var fineBankPool = fineCat ? ALL_QUESTIONS.filter(function(item) {
+    return item.fine_category === fineCat && !(item.exam === q.exam && item.no === q.no);
+  }) : [];
+  var fineErrorPool = fineCat ? errorBookQuestions.filter(function(item) {
+    return item.fine_category === fineCat && item.id !== q.id;
+  }) : [];
+
+  // 旧 trap 池（保留作为讲题口诀辅助，不再用于主匹配）
   var trapBankPool = trapId ? ALL_QUESTIONS.filter(function(item) {
     return safeQuestionTrapId(item) === trapId && !(item.exam === q.exam && item.no === q.no);
   }) : [];
   var trapErrorPool = trapId ? errorBookQuestions.filter(function(item) {
     return safeQuestionTrapId(item) === trapId && item.id !== q.id;
   }) : [];
+  // 旧 focus 池（次级匹配，向后兼容没 fine_category 的题）
   var bankPool = ALL_QUESTIONS.filter(function(item) {
     return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !(item.exam === q.exam && item.no === q.no);
   });
   var errorPool = errorBookQuestions.filter(function(item) {
     return item.category === q.category && safeQuestionFocusKey(item) === focus.key && item.id !== q.id;
   });
+  // 兜底：仅同 category
   var fallbackBankPool = ALL_QUESTIONS.filter(function(item) {
     return item.category === q.category && !(item.exam === q.exam && item.no === q.no);
   });
   var fallbackErrorPool = errorBookQuestions.filter(function(item) {
     return item.category === q.category && item.id !== q.id;
   });
-  var bankDisplayPool = trapBankPool.concat(bankPool.filter(function(item) { return safeQuestionTrapId(item) !== trapId; }));
-  var errorDisplayPool = trapErrorPool.concat(errorPool.filter(function(item) { return safeQuestionTrapId(item) !== trapId; }));
-  var allDisplayPool = bankDisplayPool.concat(errorDisplayPool);
+
+  // 显示池：fine_category 优先，找不到再退回 trap / focus / category
+  // 用 Map 去重（同一题不重复出现）
+  function dedupe(items) {
+    var seen = {};
+    return items.filter(function(it) {
+      var key = (it.exam || '') + '|' + (it.no || '') + '|' + (it.id || '');
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+  var bankDisplayPool = dedupe(fineBankPool.concat(trapBankPool).concat(bankPool));
+  var errorDisplayPool = dedupe(fineErrorPool.concat(trapErrorPool).concat(errorPool));
+  var allDisplayPool = dedupe(bankDisplayPool.concat(errorDisplayPool));
 
   // 当前选定来源
   var pool;
@@ -5040,13 +5085,14 @@ function buildMigrationContent(q) {
     + '</div>';
 
   if (pool.length === 0) {
+    var focusLabel = fineInfo ? fineInfo.name : (trap ? trap.name : focus.label);
     var hint;
     if (_migrationSource === 'errors') {
-      hint = '错题本里还没有' + escapeHtml(trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选&quot;高频错题&quot;，多积累几道再来。</span>';
+      hint = '错题本里还没有同考点「' + escapeHtml(focusLabel) + '」的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选&quot;高频错题&quot;，多积累几道再来。</span>';
     } else if (_migrationSource === 'all') {
-      hint = '题库和错题本里都没有' + escapeHtml(trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的题。';
+      hint = '题库和错题本里都没有同考点「' + escapeHtml(focusLabel) + '」的题。';
     } else {
-      hint = '真题库里暂无' + escapeHtml(trap ? '同陷阱（' + trap.name + '）' : '同小考点（' + focus.label + '）') + '的其他题目。';
+      hint = '真题库里暂无同考点「' + escapeHtml(focusLabel) + '」的其他题目。';
     }
     var fallbackCount = (_migrationSource === 'errors') ? fallbackErrorPool.length : (_migrationSource === 'all' ? fallbackBankPool.length + fallbackErrorPool.length : fallbackBankPool.length);
     if (fallbackCount > 0) {
@@ -5071,14 +5117,34 @@ function buildMigrationContent(q) {
     migration = Object.values(byExam2).slice(0, 6);
   }
 
+  // 头部"考点路径"显示：精细 tag 优先，再退回 trap / focus
+  var headerLabel;
+  var headerSubLabel = '';
+  if (fineInfo) {
+    headerLabel = '考点：' + fineInfo.name;
+    headerSubLabel = '属：' + fineInfo.category_name;
+    if (fineInfo.textbook_units && fineInfo.textbook_units.length > 0) {
+      var u = fineInfo.textbook_units[0];
+      headerSubLabel += '　·　对应' + u.book + ' ' + u.unit;
+      if (fineInfo.textbook_units.length > 1) {
+        headerSubLabel += ' 等 ' + fineInfo.textbook_units.length + ' 个单元';
+      }
+    }
+  } else if (trap) {
+    headerLabel = '先找同陷阱：' + trap.name;
+  } else {
+    headerLabel = '先找同小考点：' + focus.label;
+  }
+
   var html = tabsHtml
     + '<div class="lesson-card" style="margin-top:0;padding:14px 16px;">'
     + '<div class="lesson-card-kicker" style="margin-bottom:8px;">迁移训练筛选</div>'
     + '<div style="font-size:var(--drawer-font-size,24px);font-weight:800;color:var(--text);line-height:1.55;">'
-    + escapeHtml(trap ? '先找同陷阱：' + trap.name : '先找同小考点：' + focus.label)
+    + escapeHtml(headerLabel)
     + '</div>'
+    + (headerSubLabel ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-3);line-height:1.55;margin-top:2px;">' + escapeHtml(headerSubLabel) + '</div>' : '')
     + '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.6;margin-top:4px;">'
-    + '不足时补同小考点；共 <strong>' + pool.length + '</strong> 题，已展示 <strong>' + migration.length + '</strong> 题。'
+    + '共 <strong>' + pool.length + '</strong> 题，已展示 <strong>' + migration.length + '</strong> 题。'
     + (focus.note ? ' 复习抓手：' + escapeHtml(focus.note) : '')
     + '</div>'
     + '</div>'
@@ -5088,14 +5154,16 @@ function buildMigrationContent(q) {
 
     var isError = (item.exam === '错题本' || (item.id && item.id.indexOf('err_') === 0));
     var srcLabel = isError ? '📝 我的错题' : item.exam;
+    var itemFineInfo = getFineTagInfo(item.fine_category);
     var itemTrap = safeQuestionTrap(item);
     var itemFocus = safeQuestionFocus(item);
+    var itemTagLabel = itemFineInfo ? itemFineInfo.name : (itemTrap ? itemTrap.name : itemFocus.label);
 
     html += '<div class="migration-card" onclick="this.classList.toggle(\'open\')">'
       + '<div class="migration-card-head">'
       + '<span class="migration-card-source"' + (isError ? ' style="color:var(--accent);"' : '') + '>'
       +    escapeHtml(srcLabel || '题库') + ' · 第' + escapeHtml(item.no || '') + '题</span>'
-      + '<span class="migration-card-tag">' + escapeHtml(itemTrap ? itemTrap.name : itemFocus.label) + '</span>'
+      + '<span class="migration-card-tag">' + escapeHtml(itemTagLabel) + '</span>'
       + '</div>'
       + '<div class="migration-card-sentence">' + sent + '</div>'
       + '<div class="migration-card-body">'
