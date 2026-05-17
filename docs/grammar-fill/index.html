@@ -1951,19 +1951,8 @@
   })();
   // 安全网：1.2 秒后强制 ready，避免 JS 卡住时白屏
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 1200);
-
-  function toggleTheme() {
-    var current = document.documentElement.getAttribute('data-theme');
-    var next = current === 'dark' ? 'light' : 'dark';
-    if (next === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  }
 </script>
+<script type="module" src="../shared/ui/theme.js"></script>
 <style>
   /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
   html.has-session body.guest #page-welcome { display: none !important; }
