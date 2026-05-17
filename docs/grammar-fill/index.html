@@ -99,6 +99,61 @@
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* 教材"翻开"全屏 modal */
+  .textbook-modal-backdrop {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 5vh 4vw;
+    opacity: 0; transition: opacity .25s ease;
+  }
+  .textbook-modal-backdrop.show { opacity: 1; }
+  .textbook-modal-panel {
+    position: relative;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06);
+    width: 100%; max-width: 1100px; max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.92) translateY(20px) rotateX(8deg);
+    transform-origin: center 30%;
+    opacity: 0;
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease;
+    perspective: 1200px;
+  }
+  .textbook-modal-panel.show {
+    transform: scale(1) translateY(0) rotateX(0);
+    opacity: 1;
+  }
+  .textbook-modal-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none; background: var(--surface-3); color: var(--text-2);
+    cursor: pointer; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s; z-index: 10;
+  }
+  .textbook-modal-close:hover { background: var(--red); color: #fff; transform: rotate(90deg); }
+  .textbook-modal-grid {
+    display: grid; grid-template-columns: 320px 1fr;
+    height: 90vh; max-height: 90vh;
+  }
+  @media (max-width: 768px) {
+    .textbook-modal-grid { grid-template-columns: 1fr; }
+  }
+  .textbook-modal-cover {
+    background-color: #eaeaea;
+    background-size: cover; background-position: center;
+    border-right: 1px solid var(--border);
+  }
+  @media (max-width: 768px) {
+    .textbook-modal-cover { min-height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+  .textbook-modal-content {
+    padding: 28px 32px; overflow-y: auto;
+  }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -5635,10 +5690,8 @@ function renderFineCategoryView() {
   content.innerHTML = html;
 }
 
-// ─── 视图 B · 教材视图（默认画廊 / 切换列表）────────────────
-// 状态保留：用户在该视图选过哪本书 + 当前模式
-var _textbookViewMode = 'gallery';  // 'gallery' | 'list'
-var _textbookSelectedBook = null;     // 画廊模式下点击的某本书
+// ─── 视图 B · 教材视图（默认画廊 / 切换列表 + 翻开 modal）──────
+var _textbookViewMode = 'gallery';
 
 function renderTextbookView() {
   var content = document.getElementById('knowledgeContent');
@@ -5664,7 +5717,6 @@ function renderTextbookView() {
     '选必四': 'images/textbook-covers/xuanbi-4.jpg'
   };
 
-  // 渲染单本书的详情 grid（公用于两种模式）
   function renderBookDetail(book, idx) {
     var units = byBook[book] || [];
     if (units.length === 0) return '';
@@ -5706,23 +5758,16 @@ function renderTextbookView() {
 
   var html = '<div class="knowledge-section">';
 
-  // 顶部 header + 模式切换
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;flex-wrap:wrap;gap:10px;">';
-  html += '<div>';
-  html += '<h2 style="margin:0 0 6px 0;">📚 教材视图（人教版 7 册 · 35 单元 grammar 进度）</h2>';
-  var subHint = (_textbookViewMode === 'gallery')
-    ? (_textbookSelectedBook ? '当前展开：' + _textbookSelectedBook + '（点其他封面切换 / 切到列表模式看全部）' : '点封面展开该册详情')
-    : '所有 7 册全部展开';
-  html += '<p style="margin:0;color:var(--text-2);">' + escapeHtml(subHint) + '</p>';
-  html += '</div>';
-  html += '<div style="display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2px;">';
-  html += '<button onclick="setTextbookViewMode(\'gallery\')" style="border:none;background:' + (_textbookViewMode === 'gallery' ? 'var(--accent)' : 'transparent') + ';color:' + (_textbookViewMode === 'gallery' ? '#fff' : 'var(--text-2)') + ';padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;">🎨 画廊</button>';
-  html += '<button onclick="setTextbookViewMode(\'list\')" style="border:none;background:' + (_textbookViewMode === 'list' ? 'var(--accent)' : 'transparent') + ';color:' + (_textbookViewMode === 'list' ? '#fff' : 'var(--text-2)') + ';padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;">📋 列表</button>';
+  // 顶部精简：只留一行模式切换 chips（无 banner）
+  html += '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">';
+  html += '<div style="display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;font-size:12px;">';
+  html += '<button onclick="setTextbookViewMode(\'gallery\')" style="border:none;background:' + (_textbookViewMode === 'gallery' ? 'var(--accent)' : 'transparent') + ';color:' + (_textbookViewMode === 'gallery' ? '#fff' : 'var(--text-2)') + ';padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">🎨 画廊</button>';
+  html += '<button onclick="setTextbookViewMode(\'list\')" style="border:none;background:' + (_textbookViewMode === 'list' ? 'var(--accent)' : 'transparent') + ';color:' + (_textbookViewMode === 'list' ? '#fff' : 'var(--text-2)') + ';padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">📋 列表</button>';
   html += '</div>';
   html += '</div>';
 
-  // 画廊（两种模式都显示）
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:8px 4px 24px;">';
+  // 画廊（更大的封面 + 错峰渐入）
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;padding:8px 4px 24px;">';
   bookOrder.forEach(function(book, idx) {
     var cover = coverMap[book];
     var unitCount = (byBook[book] || []).length;
@@ -5733,40 +5778,36 @@ function renderTextbookView() {
         totalQs += _countByFineTag(tagId).total;
       });
     });
-    var isSelected = (_textbookSelectedBook === book && _textbookViewMode === 'gallery');
-    var borderStyle = isSelected ? 'box-shadow:0 0 0 3px var(--accent),0 6px 20px rgba(0,113,227,0.25);' : '';
-    html += '<div onclick="onTextbookCoverClick(\'' + escapeHtml(book) + '\')" '
-         + 'style="cursor:pointer;display:block;transition:transform .25s ease,box-shadow .25s ease;border-radius:8px;overflow:hidden;background:var(--surface);' + borderStyle + 'animation:fadeInUp 0.4s ease-out ' + (idx * 60) + 'ms both;" '
-         + 'onmouseover="this.style.transform=\'translateY(-6px) scale(1.02)\';if(!this.dataset.selected)this.style.boxShadow=\'0 12px 28px rgba(0,0,0,0.18)\'" '
-         + 'onmouseout="this.style.transform=\'\';if(!this.dataset.selected)this.style.boxShadow=\'\'"'
-         + (isSelected ? ' data-selected="1"' : '') + '>';
-    html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + cover + '\') no-repeat center/cover;border-radius:6px 6px 0 0;"></div>';
-    html += '<div style="padding:8px 10px;text-align:center;">';
-    html += '<div style="font-weight:600;font-size:13px;color:var(--text);">' + escapeHtml(book) + '</div>';
-    html += '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">' + unitCount + ' 单元 · ' + totalQs + ' 题</div>';
+    html += '<div onclick="openTextbookModal(\'' + escapeHtml(book) + '\')" '
+         + 'style="cursor:pointer;display:block;transition:transform .25s ease,box-shadow .25s ease;border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,0.08);animation:fadeInUp 0.4s ease-out ' + (idx * 60) + 'ms both;" '
+         + 'onmouseover="this.style.transform=\'translateY(-8px) scale(1.03)\';this.style.boxShadow=\'0 16px 36px rgba(0,0,0,0.22)\'" '
+         + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.08)\'">';
+    html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + cover + '\') no-repeat center/cover;"></div>';
+    html += '<div style="padding:10px 12px;text-align:center;">';
+    html += '<div style="font-weight:600;font-size:14px;color:var(--text);">' + escapeHtml(book) + '</div>';
+    html += '<div style="font-size:11px;color:var(--text-3);margin-top:3px;">' + unitCount + ' 单元 · ' + totalQs + ' 题</div>';
     html += '</div>';
     html += '</div>';
   });
   html += '</div>';
 
-  // 详情区
+  // 列表模式：在画廊下方一次性展开所有册
   if (_textbookViewMode === 'list') {
-    // 列表模式：全部展开
+    html += '<div style="margin-top:20px;">';
     bookOrder.forEach(function(book, idx) {
       html += renderBookDetail(book, idx);
     });
-  } else if (_textbookViewMode === 'gallery' && _textbookSelectedBook) {
-    // 画廊模式 + 已选某本：只展开该册
-    html += '<div style="margin-top:20px;">';
-    html += renderBookDetail(_textbookSelectedBook, 0);
     html += '</div>';
-  } else {
-    // 画廊模式 + 没选：提示
-    html += '<div style="text-align:center;color:var(--text-3);padding:40px 20px;font-size:14px;">点击上方任一册封面展开 grammar 单元详情</div>';
   }
 
   html += '</div>';
   content.innerHTML = html;
+
+  // 把渲染单本详情的能力暴露给 modal
+  window._renderBookDetailHTML = function(book) {
+    return renderBookDetail(book, 0);
+  };
+  window._textbookCoverMap = coverMap;
 }
 
 function setTextbookViewMode(mode) {
@@ -5774,21 +5815,59 @@ function setTextbookViewMode(mode) {
   renderTextbookView();
 }
 
-function onTextbookCoverClick(book) {
+// 打开"翻开成全屏"的 modal（仅画廊模式用）
+function openTextbookModal(book) {
   if (_textbookViewMode === 'list') {
-    // 列表模式：滚到对应册
+    // 列表模式下：滚到对应册
     var el = document.getElementById('book-' + book);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else {
-    // 画廊模式：切换选中册
-    _textbookSelectedBook = (_textbookSelectedBook === book) ? null : book;
-    renderTextbookView();
-    // 平滑滚动到详情区
-    setTimeout(function() {
-      var el = document.getElementById('book-' + book);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    return;
   }
+  var cover = (window._textbookCoverMap || {})[book] || '';
+  var detail = (typeof window._renderBookDetailHTML === 'function') ? window._renderBookDetailHTML(book) : '';
+
+  var html = ''
+    + '<div class="textbook-modal-backdrop" onclick="closeTextbookModal()">'
+    +   '<div class="textbook-modal-panel" onclick="event.stopPropagation()">'
+    +     '<button class="textbook-modal-close" onclick="closeTextbookModal()" title="关闭 (Esc)">×</button>'
+    +     '<div class="textbook-modal-grid">'
+    +       '<div class="textbook-modal-cover" style="background-image:url(\'' + cover + '\');"></div>'
+    +       '<div class="textbook-modal-content">'
+    +         '<h2 style="margin:0 0 14px 0;font-size:22px;">' + escapeHtml(book) + '</h2>'
+    +         detail
+    +       '</div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+
+  var wrap = document.createElement('div');
+  wrap.id = 'textbookModalWrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+  // 触发动画
+  requestAnimationFrame(function() {
+    var bd = wrap.querySelector('.textbook-modal-backdrop');
+    var pn = wrap.querySelector('.textbook-modal-panel');
+    if (bd) bd.classList.add('show');
+    if (pn) pn.classList.add('show');
+  });
+  // ESC 关闭
+  document.addEventListener('keydown', _onTextbookModalKey);
+}
+
+function closeTextbookModal() {
+  var wrap = document.getElementById('textbookModalWrap');
+  if (!wrap) return;
+  var bd = wrap.querySelector('.textbook-modal-backdrop');
+  var pn = wrap.querySelector('.textbook-modal-panel');
+  if (bd) bd.classList.remove('show');
+  if (pn) pn.classList.remove('show');
+  setTimeout(function() { wrap.remove(); }, 250);
+  document.removeEventListener('keydown', _onTextbookModalKey);
+}
+
+function _onTextbookModalKey(e) {
+  if (e.key === 'Escape') closeTextbookModal();
 }
 
 // ─── 视图 C · 体系视图（语法通霸 22 大类参考）──────────────────
