@@ -31,3 +31,7 @@ src/grammar-fill/index.html.bak
 
 # 本地隐私工具：不进入 GitHub / GitHub Pages
 private/
+
+# Supabase CLI 本地缓存
+supabase/.temp/
+supabase/supabase/

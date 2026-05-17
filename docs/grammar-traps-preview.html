@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>语法填空二级陷阱标签预览</title>
+  <style>
+    :root {
+      --bg: #f7f4ed;
+      --panel: #fffdf8;
+      --text: #22201c;
+      --muted: #6d675d;
+      --line: #ded5c5;
+      --accent: #2f6f73;
+      --accent-soft: #dfeeed;
+      --warn: #9a5b2d;
+      --warn-soft: #f4e5d3;
+      --shadow: 0 14px 34px rgba(55, 45, 30, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,0) 220px),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 44px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 18px;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 28px;
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stat {
+      min-width: 96px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .78);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .search {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47,111,115,.14);
+    }
+
+    .select {
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .list,
+    .detail {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .list {
+      max-height: calc(100vh - 170px);
+      overflow: auto;
+    }
+
+    .item {
+      display: block;
+      width: 100%;
+      padding: 12px 14px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .item:last-child { border-bottom: 0; }
+
+    .item:hover,
+    .item.active {
+      background: var(--accent-soft);
+    }
+
+    .item-title {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .item-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badge {
+      flex: none;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .detail {
+      min-height: 520px;
+      padding: 22px;
+    }
+
+    .detail h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: 0;
+      line-height: 1.25;
+    }
+
+    .idline {
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .section {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      color: var(--accent);
+      letter-spacing: 0;
+    }
+
+    .quote {
+      margin: 0;
+      padding: 12px 14px;
+      border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: var(--accent-soft);
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .examples {
+      display: grid;
+      gap: 8px;
+    }
+
+    .example {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.68);
+      font-size: 14px;
+    }
+
+    .empty {
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 820px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .stats {
+        justify-content: flex-start;
+      }
+
+      .toolbar,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .list {
+        max-height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div>
+        <h1>语法填空二级陷阱标签预览</h1>
+        <p class="subtitle">先体验知识层：按 category 进入，真正讲题时看 trap。</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong id="totalCount">-</strong><span>trap 条目</span></div>
+        <div class="stat"><strong id="categoryCount">-</strong><span>考点大类</span></div>
+        <div class="stat"><strong id="exampleCount">-</strong><span>真题反链</span></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input class="search" id="searchInput" placeholder="搜索：逻辑主语、whose、冠词、主谓一致..." autocomplete="off">
+      <select class="select" id="categorySelect"></select>
+    </div>
+
+    <section class="layout">
+      <div class="list" id="trapList"></div>
+      <article class="detail" id="trapDetail"></article>
+    </section>
+  </main>
+
+  <script src="../data/grammar_knowledge_traps.js"></script>
+  <script>
+    const data = window.GRAMMAR_KNOWLEDGE_TRAPS;
+    const listEl = document.getElementById('trapList');
+    const detailEl = document.getElementById('trapDetail');
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    let activeId = data.traps[0]?.id;
+
+    document.getElementById('totalCount').textContent = data.traps.length;
+    document.getElementById('categoryCount').textContent = Object.keys(data.categories).length;
+    document.getElementById('exampleCount').textContent = data.traps.reduce((sum, trap) => sum + (trap.examples || []).length, 0);
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function setupCategories() {
+      const options = ['<option value="all">全部 category</option>'];
+      for (const [key, label] of Object.entries(data.categories)) {
+        const count = data.traps_by_category[key]?.length || 0;
+        options.push(`<option value="${key}">${label} · ${count}</option>`);
+      }
+      categorySelect.innerHTML = options.join('');
+    }
+
+    function getFilteredTraps() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const category = categorySelect.value;
+      return data.traps.filter((trap) => {
+        const categoryMatch = category === 'all' || trap.category === category;
+        const haystack = [
+          trap.id,
+          trap.name,
+          data.categories[trap.category],
+          trap.frequency,
+          trap.one_liner,
+          trap.micro_rule,
+          (trap.common_wrong_answers || []).join(' '),
+          (trap.examples || []).map((ex) => `${ex.exam} ${ex.no} ${ex.answer}`).join(' ')
+        ].join(' ').toLowerCase();
+        return categoryMatch && (!keyword || haystack.includes(keyword));
+      });
+    }
+
+    function renderList() {
+      const traps = getFilteredTraps();
+      if (!traps.some((trap) => trap.id === activeId)) activeId = traps[0]?.id;
+      if (!traps.length) {
+        listEl.innerHTML = '<div class="empty">没有匹配的 trap。</div>';
+        detailEl.innerHTML = '<div class="empty">换个关键词试试。</div>';
+        return;
+      }
+
+      listEl.innerHTML = traps.map((trap) => `
+        <button class="item ${trap.id === activeId ? 'active' : ''}" data-id="${escapeHtml(trap.id)}">
+          <div class="item-title">
+            <span>${escapeHtml(trap.name)}</span>
+            <span class="badge">${escapeHtml(trap.frequency)}</span>
+          </div>
+          <div class="item-meta">${escapeHtml(data.categories[trap.category])} · ${escapeHtml(trap.id)}</div>
+        </button>
+      `).join('');
+      renderDetail(data.trap_index[activeId]);
+    }
+
+    function renderDetail(trap) {
+      if (!trap) return;
+      const examples = (trap.examples || []).length
+        ? `<div class="examples">${trap.examples.map((ex) => `
+            <div class="example">${escapeHtml(ex.exam)} · 第 ${escapeHtml(ex.no)} 题 · 答案：<strong>${escapeHtml(ex.answer)}</strong></div>
+          `).join('')}</div>`
+        : '<p class="subtitle">当前题库暂时没有反链，作为储备知识保留。</p>';
+
+      detailEl.innerHTML = `
+        <h2>${escapeHtml(trap.name)}</h2>
+        <div class="idline">${escapeHtml(trap.id)} · ${escapeHtml(data.categories[trap.category])} · ${escapeHtml(trap.frequency)}</div>
+        <p class="quote">${escapeHtml(trap.one_liner)}</p>
+
+        <div class="section">
+          <h3>微规则</h3>
+          <p>${escapeHtml(trap.micro_rule)}</p>
+        </div>
+
+        <div class="section">
+          <h3>常见错因</h3>
+          <div class="chips">${(trap.common_wrong_answers || []).map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div>
+        </div>
+
+        <div class="section">
+          <h3>课堂点拨</h3>
+          <p>${escapeHtml(trap.teaching_move)}</p>
+        </div>
+
+        <div class="section">
+          <h3>同陷阱真题</h3>
+          ${examples}
+        </div>
+
+        <div class="section">
+          <h3>易混对比</h3>
+          <div class="chips">${(trap.compare_with || []).map((id) => {
+            const target = data.trap_index[id];
+            return `<span class="chip">${escapeHtml(target ? target.name : id)}</span>`;
+          }).join('') || '<span class="chip">暂无</span>'}</div>
+        </div>
+
+        <div class="section">
+          <h3>承重墙来源</h3>
+          <div class="chips">${(trap.sources || []).map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div>
+        </div>
+      `;
+    }
+
+    listEl.addEventListener('click', (event) => {
+      const item = event.target.closest('.item');
+      if (!item) return;
+      activeId = item.dataset.id;
+      renderList();
+    });
+
+    searchInput.addEventListener('input', renderList);
+    categorySelect.addEventListener('change', renderList);
+
+    setupCategories();
+    renderList();
+  </script>
+</body>
+</html>
