@@ -4507,10 +4507,14 @@ function renderPageSidebar(page) {
 
   if (page === 'home') {
     // 智能 Dashboard 模式不显示 sidebar（roadmap §6 line 139「sidebar 在新视图收起」）
-    var _dash = document.getElementById('homeDashboard');
-    if (_dash && _dash.style.display !== 'none') {
-      el.style.display = 'none';
-      return;
+    // 注意：只在 cards 视图才检测 dashboard 可见性；exams/categories 子视图时父容器
+    // homeCards 已被隐藏，但 homeDashboard.style.display 仍是 ''，不能用它判断。
+    if (_currentHomeView === 'cards') {
+      var _dash = document.getElementById('homeDashboard');
+      if (_dash && _dash.style.display !== 'none') {
+        el.style.display = 'none';
+        return;
+      }
     }
     if (_currentHomeView === 'categories') {
       title = '全部考点';

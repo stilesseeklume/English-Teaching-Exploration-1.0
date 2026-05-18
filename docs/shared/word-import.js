@@ -144,6 +144,12 @@
     if (/^[一二三四五六七八九十]+[、.]/.test(s) && /语法填空|英语试题|英语试卷/.test(s)) return true;
     if (/^\d{1,3}[.、．]\s*\S/.test(s) && /语法填空|英语试题|英语试卷|质量|检测|联考|模拟|期末|月考|一模|二模|高考|届|省|市|区|中学/.test(s)) return true;
     if (/^(Passage|Text|Article)\s*\d+/i.test(s)) return true;
+    // 合集序号：（1）（2）... 单独成行（精练系列/专题合集格式）
+    if (/^[（(]\d{1,2}[）)]\s*$/.test(s)) return true;
+    // 两位数序号 + 省市（39套卷格式：01  浙江省... / 02  广东省...）
+    if (/^\d{1,2}\s+.{0,30}[省市区县]/.test(s)) return true;
+    // 第N套/篇/段（其他合集格式）
+    if (/^第\s*\d+\s*[套篇段卷]/.test(s)) return true;
     return false;
   }
 
@@ -254,7 +260,9 @@
     var out = [];
     rawChunks.forEach(function(c) {
       var block = c.lines.join('\n');
-      if (countBlankMarkers(block) === 0) return;
+      // 跳过目录行、纯中文标题行（太短 或 没有连续英文字母）
+      // 注意：不再用 countBlankMarkers，因为很多文档的空格是"  56  (appear)"格式，不是___N___
+      if (block.length < 200 || !/[a-zA-Z]{3,}/.test(block)) return;
       var cut = block;
       var ansPos = cut.indexOf('【答案】');
       if (ansPos !== -1) cut = cut.slice(0, ansPos);
@@ -359,18 +367,46 @@
       seenSigs[sig] = p;
       return true;
     });
-    return passagesArr.filter(function(p) { return p.blanks && p.blanks.length > 0; });
+    passagesArr = passagesArr.filter(function(p) { return p.blanks && p.blanks.length > 0; });
+
+    // 同名标题去重：加"第N篇"后缀，让同一批导入的多篇可区分
+    var titleCount = {};
+    passagesArr.forEach(function(p) { titleCount[p.title] = (titleCount[p.title] || 0) + 1; });
+    var titleIdx = {};
+    passagesArr = passagesArr.map(function(p) {
+      if (titleCount[p.title] > 1) {
+        titleIdx[p.title] = (titleIdx[p.title] || 0) + 1;
+        p.title = p.title + ' · 第' + titleIdx[p.title] + '篇';
+      }
+      return p;
+    });
+
+    return passagesArr;
   }
 
   async function fetchDeepSeekParse(text, token) {
-    var res = await fetch(window.SUPABASE_URL + '/functions/v1/deepseek-parse', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text: text })
-    });
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 90000); // 90s 超时
+
+    var res;
+    try {
+      res = await fetch(window.SUPABASE_URL + '/functions/v1/deepseek-parse', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text }),
+        signal: controller.signal
+      });
+    } catch (fetchErr) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === 'AbortError') {
+        throw new Error('AI 解析超时（超过 90 秒）。\nDeepSeek 服务可能繁忙，请稍后重试，或将文档拆小后重传。');
+      }
+      throw new Error('网络请求失败：' + (fetchErr.message || String(fetchErr)));
+    }
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       var errData;
