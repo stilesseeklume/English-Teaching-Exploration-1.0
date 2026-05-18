@@ -6127,32 +6127,47 @@ function executeDrawerReturn() {
   var info = _drawerReturnTo;
   _drawerReturnTo = null;
   document.getElementById('drawerReturnBtn').style.display = 'none';
-  // 关闭当前抽屉
-  if (typeof closeDrawer === 'function') closeDrawer();
-  // 根据 type 执行返回动作
+
+  // 加全屏遮罩，过渡期间遮住所有跳闪
+  var mask = document.createElement('div');
+  mask.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:5000;opacity:0;transition:opacity .15s ease;pointer-events:all;';
+  document.body.appendChild(mask);
+  requestAnimationFrame(function() { mask.style.opacity = '1'; });
+
+  // 等遮罩淡入完成后，再做所有跳转动作
   setTimeout(function() {
+    if (typeof closeDrawer === 'function') closeDrawer();
+
     if (info.type === 'unit-question-list' && info.context) {
-      // 返回到教材视图 + 重新打开该 unit 的题列表
       switchPage('knowledge');
       setKnowledgeView('textbook');
-      setTimeout(function() {
-        // 找该 unit 对应的 book，打开 textbook modal
-        var unitLabel = info.context.unitLabel;
-        var FT = window.GRAMMAR_FINE_TAGS;
-        var matchUnit = (FT && FT.textbook_units || []).find(function(u) {
-          return (u.unit + (u.topic ? ' · ' + u.topic : '')) === unitLabel;
-        });
-        if (matchUnit) {
-          openTextbookModal(matchUnit.book);
+      var unitLabel = info.context.unitLabel;
+      var FT = window.GRAMMAR_FINE_TAGS;
+      var matchUnit = (FT && FT.textbook_units || []).find(function(u) {
+        return (u.unit + (u.topic ? ' · ' + u.topic : '')) === unitLabel;
+      });
+      if (matchUnit) {
+        openTextbookModal(matchUnit.book);
+        // 等 textbook modal 动画过半后开 mini modal
+        setTimeout(function() {
+          _unitMiniContext = info.context;
+          _showUnitQuestionsMiniModal();
+          // 全部就位，开始淡出遮罩
           setTimeout(function() {
-            // 重开 mini modal 并恢复 filter
-            _unitMiniContext = info.context;
-            _showUnitQuestionsMiniModal();
-          }, 450); // 等 textbook modal 动画完成
-        }
-      }, 100);
+            mask.style.opacity = '0';
+            setTimeout(function() { mask.remove(); }, 200);
+          }, 100);
+        }, 350);
+      } else {
+        // 没匹配到 unit，直接淡出遮罩
+        mask.style.opacity = '0';
+        setTimeout(function() { mask.remove(); }, 200);
+      }
+    } else {
+      mask.style.opacity = '0';
+      setTimeout(function() { mask.remove(); }, 200);
     }
-  }, 100);
+  }, 180);
 }
 
 // ─── 视图 C · 体系视图（语法通霸 22 大类参考）──────────────────
