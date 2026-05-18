@@ -32,20 +32,21 @@
 
 ## 4. 填进前端（30 秒）
 
-打开 `src/grammar-fill/index.html`，找到顶部这两行（搜 `YOUR_SUPABASE_URL`）：
+打开 `docs/config.js`，找到 `SEEKLUME_CONFIG`：
 
-```html
-window.SUPABASE_URL      = 'YOUR_SUPABASE_URL';
-window.SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+```js
+window.SEEKLUME_CONFIG = {
+  SUPABASE_URL: '...',
+  SUPABASE_ANON_KEY: '...',
+};
 ```
 
-把引号里的值替换成第 3 步复制的两个值。
+把两个值替换成第 3 步复制的内容。这一个文件覆盖所有页面，无需再改各模块。
 
 ## 5. 部署（30 秒）
 
 ```bash
-bash scripts/deploy.sh
-git add docs/ src/ supabase/
+git add docs/ supabase/
 git commit -m "接入 Supabase 后端"
 git push
 ```
@@ -214,7 +215,7 @@ select coalesce(
 ## 🆘 常见问题
 
 **Q: 网站显示「本地模式」/ 登录按钮没出现**
-A: 没正确填 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`。检查 index.html 顶部，两个值都不能再是 `YOUR_...` 开头。
+A: 没正确填 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`。检查 `docs/config.js` 里的两个值，都不能再是 `YOUR_...` 开头。
 
 **Q: 注册时报 `Email rate limit exceeded`**
 A: Supabase 免费版每小时邮件发送有上限（默认 3 封）。先关掉「Confirm email」用着，正式上线再考虑接 SendGrid/Resend。

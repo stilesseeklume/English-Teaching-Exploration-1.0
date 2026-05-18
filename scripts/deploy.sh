@@ -10,11 +10,9 @@ cp "$PROJECT_DIR/data/grammar_knowledge.js" "$PROJECT_DIR/docs/data/grammar_know
 cp "$PROJECT_DIR/data/grammar_knowledge_traps.js" "$PROJECT_DIR/docs/data/grammar_knowledge_traps.js"
 mkdir -p "$PROJECT_DIR/docs/grammar-fill"
 
-# docs/grammar-fill/index.html is now the canonical app shell. It loads shared
-# modules from docs/shared/*, while src/grammar-fill/index.html still contains an
-# older single-file prototype. Do not overwrite the shared-module page here, or
-# Word import will silently fall back to the legacy one-shot parser.
-# docs/data/grammar_bank.js is also canonical here because it carries the
-# fine_category tags used by migration training and import drill-down.
+# 本脚本只同步 data/grammar_knowledge*.js → docs/data/。
+# docs/grammar-fill/ 和 docs/data/grammar_bank.js 是 canonical（直接编辑），
+# 不要在此脚本里覆盖它们 —— grammar_bank.js 携带 fine_category tags，
+# 被迁移训练和导入下钻使用。
 
 echo "部署文件已更新到 docs/ 目录"

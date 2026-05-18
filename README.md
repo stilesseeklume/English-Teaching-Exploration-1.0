@@ -69,9 +69,9 @@ docs/
 
 ## 部署
 
+直接编辑 `docs/grammar-fill/index.html` 与 `docs/shared/*.js`，提交后 GitHub Pages 自动发布。
+
 ```bash
-# 修改 src/grammar-fill/index.html 后
-bash scripts/deploy.sh   # 同步到 docs/
 git add docs/ && git commit -m "更新部署"
 git push
 ```
@@ -81,17 +81,19 @@ GitHub Pages 设置：Settings → Pages → Source: Deploy from a branch → `m
 ## 项目结构
 
 ```
-├── src/grammar-fill/     # 开发源文件
-│   └── index.html        #   所有 HTML/CSS/JS 集中在此
-├── docs/                 # 部署产物（GitHub Pages）
-├── data/                 # 题库数据
-│   ├── grammar_bank.js   #   编译后的题库（页面直接引用）
-│   ├── grammar_bank.json #   题库 JSON
+├── docs/                 # GitHub Pages 发布目录（也是开发源）
+│   ├── index.html        #   系统总入口
+│   ├── config.js         #   Supabase 公开配置
+│   ├── grammar-fill/     #   语法填空讲评模块（主应用）
+│   ├── shared/           #   抽出来的共享模块（auth/admin/word-import/…）
+│   └── data/             #   题库 + 知识图谱（grammar_bank 含 fine_category）
+├── data/                 # 原始题库素材
+│   ├── grammar_bank.json #   题库 JSON 源
 │   ├── exams/            #   真题 markdown（20 套）
 │   └── 语法填空库/        #   语法填空原始数据
 ├── scripts/              # 构建脚本
 │   ├── build_grammar_bank.py  # 从 markdown 生成 grammar_bank.js
-│   └── deploy.sh              # 同步到 docs/
+│   └── deploy.sh              # 同步 data/grammar_knowledge*.js → docs/data/
 ├── methodology/          # 方法论与研究资料
 ├── classroom-materials/  # 课堂模板（提纲、自检清单）
 └── CLAUDE.md             # AI 协作指南
