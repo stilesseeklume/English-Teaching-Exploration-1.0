@@ -2725,7 +2725,7 @@
 
     <!-- 全局侧边栏（固定定位，多页面共用） -->
     <div class="sidebar-edge-trigger"></div>
-    <div class="context-sidebar" id="contextSidebar" style="display:none;">
+    <div class="context-sidebar" id="contextSidebar">
       <div class="context-sidebar-content" id="contextSidebarContent"></div>
     </div>
   </main>
@@ -4598,8 +4598,6 @@ function renderExamGrid() {
 function renderPageSidebar(page) {
   var el = document.getElementById('contextSidebar');
   if (!el) return;
-  el.style.display = 'none';
-  return;
 
   var html = '';
   var title = '';
@@ -4683,8 +4681,6 @@ function renderPageSidebar(page) {
 function renderContextSidebar() {
   var el = document.getElementById('contextSidebar');
   if (!el) return;
-  el.style.display = 'none';
-  return;
   if (!currentExam || !currentExam.mode) { el.style.display = 'none'; return; }
 
   var mode = currentExam.mode;
