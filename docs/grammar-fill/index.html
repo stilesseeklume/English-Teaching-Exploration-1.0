@@ -5511,7 +5511,7 @@ function exitProjectionMode() {
   var drawer = document.getElementById('drawer');
   if (drawer) {
     drawer.classList.remove('drawer-state-mini', 'drawer-state-half', 'drawer-state-full');
-    drawer.style.height = ''; // 还回默认
+    drawer.style.height = '';
   }
   var bar = document.getElementById('projectionControls');
   if (bar) bar.remove();
@@ -5522,6 +5522,10 @@ function exitProjectionMode() {
       document.exitFullscreen().catch(function() {});
     }
   } catch(e) {}
+  // 如果是从教材视图进的投影 → 退出投影后自动返回教材视图原位
+  if (_drawerReturnTo && _drawerReturnTo.fromProjection) {
+    setTimeout(executeDrawerReturn, 100);
+  }
 }
 
 function _onProjectionKey(e) {
@@ -6186,16 +6190,25 @@ function _showUnitQuestionsMiniModal() {
       else if (q.type === '模拟卷' || q.type === '模拟题') typeTag = '<span style="background:var(--orange-bg);color:var(--orange);padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;">模拟</span>';
       var examIdAttr = escapeHtml(q.exam_id || q.exam || '');
       var noAttr = escapeHtml(String(q.no || ''));
-      html += '<div onclick="_gotoUnitQuestion(\'' + examIdAttr + '\', \'' + noAttr + '\', \'' + source + '\')" '
-        + 'style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .12s;" '
+      html += '<div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;transition:all .12s;" '
         + 'onmouseover="this.style.background=\'var(--surface-2)\';this.style.borderColor=\'var(--accent)\'" '
         + 'onmouseout="this.style.background=\'\';this.style.borderColor=\'var(--border)\'">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);margin-bottom:4px;">'
         + '<span>' + escapeHtml(src) + typeTag + ' · 第 ' + escapeHtml(q.no || '') + ' 题</span>'
-        + '<span style="color:var(--accent);">▶ 去讲</span>'
         + '</div>'
         + '<div style="font-size:14px;color:var(--text);font-weight:600;">' + escapeHtml(q.answer || '') + '</div>'
         + (q.analysis ? '<div style="font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.5;">' + escapeHtml((q.analysis || '').slice(0, 100)) + (q.analysis.length > 100 ? '…' : '') + '</div>' : '')
+        // 双按钮：普通讲题 vs 投影讲题
+        + '<div style="display:flex;gap:6px;margin-top:8px;">'
+        + '<button onclick="_gotoUnitQuestion(\'' + examIdAttr + '\', \'' + noAttr + '\', \'' + source + '\', false)" '
+        + 'style="flex:1;padding:6px 10px;background:var(--surface-3);color:var(--text-2);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;" '
+        + 'onmouseover="this.style.background=\'var(--accent-bg)\';this.style.color=\'var(--accent)\'" '
+        + 'onmouseout="this.style.background=\'var(--surface-3)\';this.style.color=\'var(--text-2)\'">▶ 讲题</button>'
+        + '<button onclick="_gotoUnitQuestion(\'' + examIdAttr + '\', \'' + noAttr + '\', \'' + source + '\', true)" '
+        + 'style="flex:1;padding:6px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;" '
+        + 'onmouseover="this.style.background=\'var(--accent-light, var(--accent))\'" '
+        + 'onmouseout="this.style.background=\'var(--accent)\'">📺 投影讲</button>'
+        + '</div>'
         + '</div>';
     });
     if (items.length > 50) {
@@ -6225,7 +6238,7 @@ function _closeUnitMiniModal() {
 }
 function _onUnitMiniKey(e) { if (e.key === 'Escape') _closeUnitMiniModal(); }
 
-function _gotoUnitQuestion(examId, no, source) {
+function _gotoUnitQuestion(examId, no, source, autoProjection) {
   // 记录返回上下文，进讲题后抽屉显示"← 返回"按钮
   var ctx = _unitMiniContext ? {
     unitLabel: _unitMiniContext.unitLabel,
@@ -6236,7 +6249,8 @@ function _gotoUnitQuestion(examId, no, source) {
   setDrawerReturnTo(ctx ? {
     type: 'unit-question-list',
     label: '返回「' + ctx.unitLabel + '」',
-    context: ctx
+    context: ctx,
+    fromProjection: !!autoProjection  // 标记是否从投影模式进来
   } : null);
 
   _closeUnitMiniModal();
@@ -6246,9 +6260,9 @@ function _gotoUnitQuestion(examId, no, source) {
       var errQ = errorBookQuestions.find(function(q) { return String(q.no) === String(no); });
       if (errQ && typeof viewErrorQuestion === 'function') {
         viewErrorQuestion(errQ.id);
-        return;
+      } else {
+        switchPage('error-book');
       }
-      switchPage('error-book');
     } else {
       if (typeof startByExam === 'function') {
         startByExam(examId);
@@ -6256,6 +6270,14 @@ function _gotoUnitQuestion(examId, no, source) {
           if (typeof showAnalysis === 'function') showAnalysis(no);
         }, 100);
       }
+    }
+    // 自动进投影模式（如果要求）
+    if (autoProjection) {
+      setTimeout(function() {
+        if (typeof enterProjectionMode === 'function' && !document.body.classList.contains('projection-mode')) {
+          enterProjectionMode();
+        }
+      }, 400);
     }
   }, 250);
 }
