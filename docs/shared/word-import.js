@@ -146,6 +146,21 @@
         throw new Error('Word 文档内容太短或无法识别（仅支持 .docx 格式）。\n请确保文档包含完整的英文段落。');
       }
 
+      // 文档过长预检：AI 输出有 8k token 上限，过长容易被截断
+      // 经验阈值：25,000 字符是 DeepSeek 能稳定解析的上限
+      if (text.length > 25000) {
+        hideAiOverlay();
+        var msg = '⚠️ Word 文档过长（' + text.length.toLocaleString() + ' 字符，AI 稳定上限约 25,000 字符）。\n\n'
+          + 'AI 输出大概率会被截断导致解析失败。\n\n建议：\n'
+          + '1. 用 Word 打开文档，只保留"语法填空"部分再上传（最推荐）\n'
+          + '2. 或者拆成 2-3 份分别上传\n\n'
+          + '点确定仍然尝试上传（可能失败）；点取消重新整理文档。';
+        if (!confirm(msg)) {
+          return;
+        }
+        showAiOverlay('正在提取 Word 文本…', '');
+      }
+
       setAiProgress(15);
       renderAiStages([
         { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
@@ -203,8 +218,23 @@
       if (!res.ok) {
         var errData;
         try { errData = await res.json(); } catch (e) { errData = {}; }
-        var msg = errData.error || ('服务端错误 HTTP ' + res.status);
-        if (errData.rawContent) msg += '\n\nAI 原始返回：\n' + errData.rawContent.substring(0, 300);
+        var msg;
+        // 把 AI JSON 截断的开发者语言翻译成老师能懂的话
+        if (errData.error && /无法解析为 JSON|JSON\s*parse|JSON\.parse/i.test(errData.error)) {
+          msg = '⚠️ AI 解析失败（输出可能被截断）\n\n'
+              + '常见原因：文档过长，AI 一次解析不完。\n\n'
+              + '建议：\n'
+              + '1. 用 Word 打开文档，<b>只保留"语法填空"部分</b>再上传\n'
+              + '2. 或者拆成 2-3 份分别上传\n'
+              + '3. 删掉文档里的图片/表格（占 tokens）\n\n'
+              + '当前文档字符数：' + text.length.toLocaleString();
+        } else if (errData.error && /AI 返回的数据格式不正确|格式不正确/i.test(errData.error)) {
+          msg = '⚠️ AI 没识别出题目\n\n建议确认文档是真正的"语法填空"题，且每个空格有 ___ 或 (give) 这样的标记。';
+        } else {
+          msg = errData.error || ('服务端错误 HTTP ' + res.status);
+        }
+        // 调试用的 raw content 只在 console，不再给老师看
+        if (errData.rawContent) console.warn('AI 原始返回：', errData.rawContent.substring(0, 500));
         throw new Error(msg);
       }
 

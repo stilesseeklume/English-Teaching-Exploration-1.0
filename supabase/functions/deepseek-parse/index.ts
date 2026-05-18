@@ -374,7 +374,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         model: "deepseek-chat",
         temperature: 0.1,
-        max_tokens: 8000,
+        max_tokens: 8192,  // DeepSeek-chat 输出上限
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
