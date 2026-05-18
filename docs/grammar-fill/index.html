@@ -4448,6 +4448,8 @@ function switchHomeMode(mode) {
   }
   try { localStorage.setItem(HOME_MODE_KEY, mode); } catch(e) {}
   if (isDash) renderHomeDashboard();
+  // 切换 mode 后同步刷新 sidebar（dashboard 收起 / classic 显示套卷或考点列表）
+  if (typeof renderPageSidebar === 'function') renderPageSidebar('home');
 }
 
 // 启动时恢复用户偏好
@@ -4504,6 +4506,12 @@ function renderPageSidebar(page) {
   var title = '';
 
   if (page === 'home') {
+    // 智能 Dashboard 模式不显示 sidebar（roadmap §6 line 139「sidebar 在新视图收起」）
+    var _dash = document.getElementById('homeDashboard');
+    if (_dash && _dash.style.display !== 'none') {
+      el.style.display = 'none';
+      return;
+    }
     if (_currentHomeView === 'categories') {
       title = '全部考点';
       Object.keys(CATEGORY_MAP).forEach(function(cat) {
