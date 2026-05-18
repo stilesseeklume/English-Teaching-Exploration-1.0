@@ -405,26 +405,11 @@
   }
   /* 侧栏触发带：左边缘不可见热区 */
   .sidebar-edge-trigger {
-    position: fixed;
-    left: 0; top: 52px; bottom: 0;
-    width: 10px;
-    z-index: 149;
+    display: none !important;
   }
   /* 侧栏本体：固定定位，隐藏于左边缘外，hover 滑出 */
   .context-sidebar {
-    position: fixed;
-    left: 0; top: 52px; bottom: 0;
-    width: 220px;
-    z-index: 150;
-    background: var(--surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-right: 0.5px solid var(--border);
-    box-shadow: var(--shadow-lg);
-    transform: translateX(calc(-100% + 8px));
-    transition: transform .32s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow .32s ease;
-    overflow-y: auto; overflow-x: hidden;
-    border-radius: 0 var(--radius) var(--radius) 0;
+    display: none !important;
   }
   /* 隐藏时可见的手柄条 + grip 指示器 */
   .context-sidebar::before {
@@ -1198,6 +1183,46 @@
     padding: 2px 8px; border-radius: 4px;
   }
   .prep-list-delete:hover { background: var(--red-bg); }
+  .bulk-select-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 0 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .bulk-select-bar.show { display: flex; }
+  .bulk-select-info {
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .bulk-select-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .bulk-select-actions button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .bulk-select-actions button.primary {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+  .bulk-item-check {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
 
   .drawer-nav-btn {
     width: 26px; height: 26px; border: 1px solid var(--border);
@@ -2625,6 +2650,16 @@
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word</button>
         <button class="error-import-toggle" style="background:var(--blue);" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
+        <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="toggleErrorBulkMode()">批量删除</button>
+      </div>
+      <div class="bulk-select-bar" id="errorBulkBar">
+        <span class="bulk-select-info" id="errorBulkInfo">已选择 0 道错题</span>
+        <div class="bulk-select-actions">
+          <button onclick="selectAllErrorBulk(true)">全选</button>
+          <button onclick="selectAllErrorBulk(false)">清空</button>
+          <button class="primary" onclick="deleteSelectedErrors()">删除所选</button>
+          <button onclick="toggleErrorBulkMode(false)">取消</button>
+        </div>
       </div>
       <div class="error-import-form" id="batchImportForm">
         <label>粘贴 JSON 或直接上传文件</label>
@@ -2651,6 +2686,16 @@
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()">📄 上传 Word</button>
         <button class="error-import-toggle" style="background:var(--blue);" onclick="togglePrepBatchImport()">📥 批量导入 JSON</button>
+        <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="togglePrepBulkMode()">批量删除</button>
+      </div>
+      <div class="bulk-select-bar" id="prepBulkBar">
+        <span class="bulk-select-info" id="prepBulkInfo">已选择 0 份资料</span>
+        <div class="bulk-select-actions">
+          <button onclick="selectAllPrepBulk(true)">全选</button>
+          <button onclick="selectAllPrepBulk(false)">清空</button>
+          <button class="primary" onclick="deleteSelectedPreps()">删除所选</button>
+          <button onclick="togglePrepBulkMode(false)">取消</button>
+        </div>
       </div>
       <div class="error-import-form" id="prepBatchForm">
         <label>粘贴 JSON 或直接上传文件（自动导入）</label>
@@ -3721,6 +3766,7 @@ function batchImportJson() {
       passage: sent,
       answer: item.answer,
       category: item.category,
+      fine_category: item.fine_category || '',
       category_name: CATEGORY_MAP[item.category] || item.category,
       grammar_point: '',
       analysis: item.analysis || ('答案：' + item.answer + '。'),
@@ -3760,6 +3806,75 @@ async function deleteErrorQuestion(id) {
       alert('云端删除失败：' + (e.message || e) + '\n刷新后该错题可能重新出现。');
     }
   }
+}
+
+var _errorBulkMode = false;
+var _prepBulkMode = false;
+
+function toggleErrorBulkMode(force) {
+  _errorBulkMode = (typeof force === 'boolean') ? force : !_errorBulkMode;
+  var bar = document.getElementById('errorBulkBar');
+  if (bar) bar.classList.toggle('show', _errorBulkMode);
+  renderErrorBook();
+}
+
+function togglePrepBulkMode(force) {
+  _prepBulkMode = (typeof force === 'boolean') ? force : !_prepBulkMode;
+  var bar = document.getElementById('prepBulkBar');
+  if (bar) bar.classList.toggle('show', _prepBulkMode);
+  renderPrepList();
+}
+
+function syncErrorBulkInfo() {
+  var el = document.getElementById('errorBulkInfo');
+  if (el) el.textContent = '已选择 ' + document.querySelectorAll('.error-bulk-check:checked').length + ' 道错题';
+}
+
+function syncPrepBulkInfo() {
+  var el = document.getElementById('prepBulkInfo');
+  if (el) el.textContent = '已选择 ' + document.querySelectorAll('.prep-bulk-check:checked').length + ' 份资料';
+}
+
+function selectAllErrorBulk(checked) {
+  document.querySelectorAll('.error-bulk-check').forEach(function(cb) { cb.checked = checked; });
+  syncErrorBulkInfo();
+}
+
+function selectAllPrepBulk(checked) {
+  document.querySelectorAll('.prep-bulk-check').forEach(function(cb) { cb.checked = checked; });
+  syncPrepBulkInfo();
+}
+
+async function deleteSelectedErrors() {
+  var ids = Array.from(document.querySelectorAll('.error-bulk-check:checked')).map(function(cb) { return cb.dataset.id; });
+  if (ids.length === 0) { alert('先勾选要删除的错题。'); return; }
+  if (!confirm('确定删除所选 ' + ids.length + ' 道错题吗？')) return;
+  errorBookQuestions = errorBookQuestions.filter(function(q) { return ids.indexOf(q.id) === -1; });
+  saveErrorBook();
+  renderErrorBook();
+  renderBankStat();
+  if (window.cloud && window.cloud.deleteErrorItem) {
+    for (var i = 0; i < ids.length; i++) {
+      try { await window.cloud.deleteErrorItem(ids[i]); } catch (e) { console.warn('云端删除错题失败：', ids[i], e); }
+    }
+  }
+  syncErrorBulkInfo();
+}
+
+async function deleteSelectedPreps() {
+  var ids = Array.from(document.querySelectorAll('.prep-bulk-check:checked')).map(function(cb) { return cb.dataset.id; });
+  if (ids.length === 0) { alert('先勾选要删除的资料。'); return; }
+  if (!confirm('确定删除所选 ' + ids.length + ' 份备课资料吗？')) return;
+  prepPassages = prepPassages.filter(function(p) { return ids.indexOf(p.id) === -1; });
+  savePrepPassages();
+  renderPrepList();
+  renderBankStat();
+  if (window.cloud && window.cloud.deletePrepItem) {
+    for (var j = 0; j < ids.length; j++) {
+      try { await window.cloud.deletePrepItem(ids[j]); } catch (e) { console.warn('云端删除资料失败：', ids[j], e); }
+    }
+  }
+  syncPrepBulkInfo();
 }
 
 function viewErrorQuestion(id) {
@@ -3807,6 +3922,7 @@ function renderErrorBook() {
       var truncateCls = q.passage.length > 160 ? ' error-list-sentence-truncated' : '';
       html += '<div class="error-list-item" onclick="viewErrorQuestion(\'' + q.id + '\')">'
             + '<div class="error-list-left">'
+            + (_errorBulkMode ? '<label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;"><input type="checkbox" class="bulk-item-check error-bulk-check" data-id="' + q.id + '" onchange="syncErrorBulkInfo()" onclick="event.stopPropagation()"></label>' : '')
             + '<div class="error-list-sentence' + truncateCls + '">' + sent + '</div>'
             + '<div class="error-list-meta">答案：' + q.answer + ' · ' + (q.analysis || '').substring(0, 40) + '</div>'
             + '</div>'
@@ -3817,6 +3933,7 @@ function renderErrorBook() {
   });
   el.innerHTML = html;
   renderPageSidebar('error-book');
+  syncErrorBulkInfo();
 }
 
 // ────────── 备课资料 ──────────
@@ -3875,7 +3992,7 @@ function batchImportPrepJson() {
       title: item.title,
       passage: item.passage,
       blanks: item.blanks.map(function(b) {
-        return { no: b.no, answer: b.answer, category: b.category, analysis: b.analysis || '' };
+        return { no: b.no, answer: b.answer, category: b.category, fine_category: b.fine_category || '', analysis: b.analysis || '' };
       }),
       created_at: new Date().toISOString()
     };
@@ -3922,7 +4039,7 @@ function viewPrepPassage(id) {
       category: b.category,
       category_name: CATEGORY_MAP[b.category] || b.category,
       grammar_point: '',
-      fine_category: b.fine_category,  // Sprint 1 · 精细化考点 tag（AI 解析时填入，旧备课资料可能无此字段）
+      fine_category: b.fine_category || '',  // Sprint 1 · 精细化考点 tag（AI 解析时填入，旧备课资料可能无此字段）
       exam: p.title,
       exam_id: p.title,
       year: '',
@@ -3970,6 +4087,7 @@ function renderPrepList() {
 
     html += '<div class="prep-list-item" onclick="viewPrepPassage(\'' + p.id + '\')">'
           + '<div class="prep-list-title">' + p.title + '</div>'
+          + (_prepBulkMode ? '<label style="display:block;margin-bottom:8px;"><input type="checkbox" class="bulk-item-check prep-bulk-check" data-id="' + p.id + '" onchange="syncPrepBulkInfo()" onclick="event.stopPropagation()"></label>' : '')
           + '<div class="prep-list-preview">' + preview + '</div>'
           + '<div class="prep-list-meta">'
           + '<span>' + p.blanks.length + ' 空 · ' + catTags + '</span>'
@@ -3979,6 +4097,7 @@ function renderPrepList() {
   });
   el.innerHTML = html;
   renderPageSidebar('lesson-prep');
+  syncPrepBulkInfo();
 }
 
 
@@ -4478,6 +4597,8 @@ function renderExamGrid() {
 function renderPageSidebar(page) {
   var el = document.getElementById('contextSidebar');
   if (!el) return;
+  el.style.display = 'none';
+  return;
 
   var html = '';
   var title = '';
@@ -4561,6 +4682,8 @@ function renderPageSidebar(page) {
 function renderContextSidebar() {
   var el = document.getElementById('contextSidebar');
   if (!el) return;
+  el.style.display = 'none';
+  return;
   if (!currentExam || !currentExam.mode) { el.style.display = 'none'; return; }
 
   var mode = currentExam.mode;
@@ -4663,16 +4786,8 @@ function switchPage(page) {
 
   if (page === 'practice') updateBackButton();
 
-  // 侧边栏：home / 按套件 / 按考点 / 错题本 / 备课 始终展示
   var cs = document.getElementById('contextSidebar');
-  var sidebarPages = ['home', 'practice', 'error-book', 'lesson-prep'];
-  if (cs) {
-    if (sidebarPages.indexOf(page) !== -1) {
-      renderPageSidebar(page);
-    } else {
-      cs.style.display = 'none';
-    }
-  }
+  if (cs) cs.style.display = 'none';
   if (page === 'home') { _currentHomeView = 'cards'; navigateHome('cards'); }
   if (page === 'error-book') renderErrorBook();
   if (page === 'lesson-prep') renderPrepList();

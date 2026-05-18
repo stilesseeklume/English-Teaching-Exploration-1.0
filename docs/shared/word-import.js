@@ -37,6 +37,9 @@
   var _aiDriftTimer = null;
   var _aiDriftTarget = 0;
   var _unifiedImportData = null;
+  var BATCH_PARSE_CHAR_LIMIT = 25000;
+  var MAX_BATCH_CHUNKS = 80;
+  var PARSE_CONCURRENCY = 3;
 
   // ─── Hover 演示（可选）─────────────────────────
   function showImportDemo(e) {
@@ -61,10 +64,12 @@
 
   // ─── 上传入口 ─────────────────────────────────
   function handleDocxUpload() {
+    if (typeof window.requireAuth === 'function' && !window.requireAuth('上传 Word')) return;
     _docxImportTarget = 'prep';
     document.getElementById('docxFileInput').click();
   }
   function handleDocxUploadForError() {
+    if (typeof window.requireAuth === 'function' && !window.requireAuth('上传 Word')) return;
     _docxImportTarget = 'error';
     document.getElementById('docxFileInput').click();
   }
@@ -123,6 +128,268 @@
     if (_aiDriftTimer) { clearInterval(_aiDriftTimer); _aiDriftTimer = null; }
   }
 
+  // ─── Word 预处理：先把大合集拆成小篇章 ───────────────
+  function normalizeImportText(text) {
+    return String(text || '')
+      .replace(/\u200e|\u200f/g, '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\u00a0/g, ' ')
+      .trim();
+  }
+
+  function isPassageTitle(line) {
+    var s = String(line || '').trim();
+    if (!s) return false;
+    if (/^【/.test(s)) return false;
+    if (/^[一二三四五六七八九十]+[、.]/.test(s) && /语法填空|英语试题|英语试卷/.test(s)) return true;
+    if (/^\d{1,3}[.、．]\s*\S/.test(s) && /语法填空|英语试题|英语试卷|质量|检测|联考|模拟|期末|月考|一模|二模|高考|届|省|市|区|中学/.test(s)) return true;
+    if (/^(Passage|Text|Article)\s*\d+/i.test(s)) return true;
+    return false;
+  }
+
+  function titleKey(title) {
+    return String(title || '')
+      .replace(/^\s*\d{1,3}[.、．]\s*/, '')
+      .replace(/\s+/g, '')
+      .replace(/[（）()·\-—_]/g, '')
+      .trim();
+  }
+
+  function countBlankMarkers(text) {
+    var m = String(text || '').match(/_{2,}\s*\d{1,3}\s*_{2,}/g);
+    return m ? m.length : 0;
+  }
+
+  function normalizeBlankMarkers(text) {
+    return String(text || '').replace(/_{2,}\s*(\d{1,3})\s*_{2,}/g, function(_m, no) {
+      return '___' + String(parseInt(no, 10)) + '___';
+    });
+  }
+
+  function extractBlankNos(text) {
+    var out = [];
+    var seen = {};
+    String(text || '').replace(/_{2,}\s*(\d{1,3})\s*_{2,}/g, function(_m, no) {
+      var n = parseInt(no, 10);
+      if (!seen[n]) { seen[n] = true; out.push(n); }
+      return _m;
+    });
+    return out;
+  }
+
+  function splitByTitle(text) {
+    var lines = normalizeImportText(text).split('\n');
+    var chunks = [];
+    var cur = null;
+    lines.forEach(function(line) {
+      if (isPassageTitle(line)) {
+        if (cur) chunks.push(cur);
+        cur = { title: line.trim(), lines: [line] };
+      } else if (cur) {
+        cur.lines.push(line);
+      }
+    });
+    if (cur) chunks.push(cur);
+    return chunks;
+  }
+
+  function extractAnswersFromChunk(text) {
+    var s = normalizeImportText(text);
+    var ansPos = s.indexOf('【答案】');
+    if (ansPos === -1) return {};
+    var end = s.indexOf('【解析】', ansPos);
+    var block = (end === -1 ? s.slice(ansPos) : s.slice(ansPos, end))
+      .replace(/【答案】/g, ' ')
+      .replace(/\r?\n/g, ' ');
+    var answers = {};
+    var re = /(\d{1,3})[.．、]\s*([^\d]+?)(?=\s+\d{1,3}[.．、]|$)/g;
+    var m;
+    while ((m = re.exec(block))) {
+      var no = parseInt(m[1], 10);
+      var ans = String(m[2] || '')
+        .replace(/^[：:\s]+/, '')
+        .replace(/[；;，,。]+$/g, '')
+        .trim();
+      if (ans) answers[no] = ans;
+    }
+    return answers;
+  }
+
+  function buildFallbackBlanks(passage, answers) {
+    var nos = extractBlankNos(passage);
+    return nos.map(function(no) {
+      var answer = (answers && answers[no]) || '?';
+      return {
+        no: no,
+        answer: answer,
+        category: 'word',
+        analysis: answer === '?' ? '暂未识别到答案，可在导入后手动修正。' : ('答案：' + answer + '。')
+      };
+    });
+  }
+
+  function splitDocxText(text) {
+    var normalized = normalizeImportText(text);
+    var rawChunks = splitByTitle(normalized);
+    if (rawChunks.length === 0) {
+      return [{
+        title: '未命名 1',
+        text: normalized,
+        answers: {},
+        fallback: {
+          title: '未命名 1',
+          passage: normalizeBlankMarkers(normalized),
+          blanks: buildFallbackBlanks(normalized, {})
+        }
+      }];
+    }
+
+    var answerByKey = {};
+    rawChunks.forEach(function(c) {
+      var block = c.lines.join('\n');
+      var answers = extractAnswersFromChunk(block);
+      if (Object.keys(answers).length > 0) answerByKey[titleKey(c.title)] = answers;
+    });
+
+    var out = [];
+    rawChunks.forEach(function(c) {
+      var block = c.lines.join('\n');
+      if (countBlankMarkers(block) === 0) return;
+      var cut = block;
+      var ansPos = cut.indexOf('【答案】');
+      if (ansPos !== -1) cut = cut.slice(0, ansPos);
+      var parseText = normalizeBlankMarkers(cut);
+      var answers = answerByKey[titleKey(c.title)] || extractAnswersFromChunk(block) || {};
+      out.push({
+        title: c.title.trim(),
+        text: parseText,
+        answers: answers,
+        fallback: {
+          title: c.title.trim(),
+          passage: parseText,
+          blanks: buildFallbackBlanks(parseText, answers)
+        }
+      });
+    });
+
+    if (out.length === 0) {
+      out.push({
+        title: '未命名 1',
+        text: normalized,
+        answers: {},
+        fallback: {
+          title: '未命名 1',
+          passage: normalizeBlankMarkers(normalized),
+          blanks: buildFallbackBlanks(normalized, {})
+        }
+      });
+    }
+    return out.slice(0, MAX_BATCH_CHUNKS);
+  }
+
+  function mergeAnswersIntoPassage(passage, answers) {
+    if (!answers) return passage;
+    passage.blanks = (passage.blanks || []).map(function(b) {
+      var no = parseInt(b.no, 10);
+      if ((!b.answer || b.answer === '?') && answers[no]) b.answer = answers[no];
+      return b;
+    });
+    return passage;
+  }
+
+  function normalizeParsedPassages(parsed, fallbackTitle, fallbackAnswers) {
+    var passagesArr = [];
+    if (Array.isArray(parsed)) {
+      passagesArr = parsed;
+    } else if (parsed && Array.isArray(parsed.passages)) {
+      passagesArr = parsed.passages;
+    } else if (parsed && parsed.passage && Array.isArray(parsed.blanks)) {
+      passagesArr = [parsed];
+    } else {
+      throw new Error('AI 返回的数据格式不正确：\n' + JSON.stringify(parsed).substring(0, 300));
+    }
+
+    return passagesArr.filter(function(p) {
+      return p && (p.passage || (Array.isArray(p.blanks) && p.blanks.length));
+    }).map(function(p, i) {
+      var item = {
+        title: (p.title && String(p.title).trim()) || fallbackTitle || ('未命名 ' + (i + 1)),
+        passage: normalizeBlankMarkers(p.passage || ''),
+        blanks: Array.isArray(p.blanks) ? p.blanks : []
+      };
+      item.blanks = item.blanks.map(function(b, bi) {
+        var no = parseInt(b.no, 10);
+        return {
+          no: isNaN(no) ? (bi + 1) : no,
+          answer: (b.answer || '?').toString().trim(),
+          category: b.category || 'word',
+          fine_category: b.fine_category || '',
+          analysis: (b.analysis || '').toString().trim()
+        };
+      });
+      return mergeAnswersIntoPassage(item, fallbackAnswers);
+    });
+  }
+
+  function repairPassageMarkers(p) {
+    p.passage = normalizeBlankMarkers(p.passage || '');
+    var markerNos = extractBlankNos(p.passage);
+    var markerSet = {};
+    markerNos.forEach(function(no) { markerSet[no] = true; });
+    if (markerNos.length === 0 && p.blanks.length > 0) {
+      p.passage += '\n\n' + p.blanks.map(function(b) { return '___' + b.no + '___'; }).join(' ');
+      return p;
+    }
+    var missing = (p.blanks || []).filter(function(b) { return !markerSet[parseInt(b.no, 10)]; });
+    if (missing.length > 0) {
+      p.passage += '\n\n未定位空格：' + missing.map(function(b) { return '___' + b.no + '___'; }).join(' ');
+    }
+    return p;
+  }
+
+  function finalizePassages(passagesArr) {
+    passagesArr = passagesArr.map(repairPassageMarkers);
+    var seenSigs = {};
+    passagesArr = passagesArr.filter(function(p) {
+      var sig = (p.blanks || []).map(function(b) {
+        return (b.no || '') + '=' + (b.answer || '').trim();
+      }).sort(function(a, b) { return a < b ? -1 : a > b ? 1 : 0; }).join('|');
+      if (!sig) return true;
+      if (seenSigs[sig]) return false;
+      seenSigs[sig] = p;
+      return true;
+    });
+    return passagesArr.filter(function(p) { return p.blanks && p.blanks.length > 0; });
+  }
+
+  async function fetchDeepSeekParse(text, token) {
+    var res = await fetch(window.SUPABASE_URL + '/functions/v1/deepseek-parse', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text: text })
+    });
+
+    if (!res.ok) {
+      var errData;
+      try { errData = await res.json(); } catch (e) { errData = {}; }
+      var msg;
+      if (errData.error && /无法解析为 JSON|JSON\s*parse|JSON\.parse/i.test(errData.error)) {
+        msg = 'AI 输出被截断，已尝试降级处理。';
+      } else if (errData.error && /AI 返回的数据格式不正确|格式不正确/i.test(errData.error)) {
+        msg = 'AI 没识别出题目。';
+      } else {
+        msg = errData.error || ('服务端错误 HTTP ' + res.status);
+      }
+      var error = new Error(msg);
+      error.rawData = errData;
+      throw error;
+    }
+    return res.json();
+  }
+
   // ─── 核心流程 ─────────────────────────────────
   async function processDocxFile(input) {
     var file = input.files[0];
@@ -131,8 +398,8 @@
     showAiOverlay('正在提取 Word 文本…', '');
     renderAiStages([
       { label: '提取 Word 文本', status: 'doing' },
-      { label: '上传到云端 AI', status: 'todo' },
-      { label: 'AI 正在解析（10–30 秒）', status: 'todo' },
+      { label: '自动拆分篇章', status: 'todo' },
+      { label: 'AI 分批解析', status: 'todo' },
       { label: '整理结果并入库', status: 'todo' },
     ]);
     setAiProgress(5);
@@ -140,36 +407,34 @@
     try {
       var arrayBuffer = await file.arrayBuffer();
       var result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-      var text = (result.value || '').trim();
+      var text = normalizeImportText(result.value || '');
 
       if (!text || text.length < 20) {
         throw new Error('Word 文档内容太短或无法识别（仅支持 .docx 格式）。\n请确保文档包含完整的英文段落。');
       }
 
-      // 文档过长预检：AI 输出有 8k token 上限，过长容易被截断
-      // 经验阈值：25,000 字符是 DeepSeek 能稳定解析的上限
-      if (text.length > 25000) {
+      if (text.length > BATCH_PARSE_CHAR_LIMIT) {
         hideAiOverlay();
-        var msg = '⚠️ Word 文档过长（' + text.length.toLocaleString() + ' 字符，AI 稳定上限约 25,000 字符）。\n\n'
-          + 'AI 输出大概率会被截断导致解析失败。\n\n建议：\n'
-          + '1. 用 Word 打开文档，只保留"语法填空"部分再上传（最推荐）\n'
-          + '2. 或者拆成 2-3 份分别上传\n\n'
-          + '点确定仍然尝试上传（可能失败）；点取消重新整理文档。';
-        if (!confirm(msg)) {
-          return;
-        }
+        var msg = '这份 Word 比较大（' + text.length.toLocaleString() + ' 字符）。\n\n'
+          + '系统会自动拆篇分批解析，不需要先手动裁剪。\n'
+          + '如果文档里混有答案区、解析区或多套卷，解析会慢一些，但不会一篇失败就整份失败。\n\n'
+          + '点确定继续；点取消稍后再传。';
+        if (!confirm(msg)) return;
         showAiOverlay('正在提取 Word 文本…', '');
       }
+
+      var batchPlan = splitDocxText(text);
+      if (!batchPlan.length) throw new Error('没有识别到可解析的题目段落。');
 
       setAiProgress(15);
       renderAiStages([
         { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
-        { label: '上传到云端 AI', status: 'doing' },
-        { label: 'AI 正在解析（10–30 秒）', status: 'todo' },
+        { label: '自动拆分篇章（' + batchPlan.length + ' 篇）', status: 'done' },
+        { label: 'AI 分批解析', status: 'doing' },
         { label: '整理结果并入库', status: 'todo' },
       ]);
 
-      await parseWithDeepSeek(text);
+      await parseWithDeepSeek(batchPlan, text.length);
 
     } catch (err) {
       hideAiOverlay();
@@ -179,7 +444,7 @@
     }
   }
 
-  async function parseWithDeepSeek(text) {
+  async function parseWithDeepSeek(batchPlan, originalLength) {
     _abortAiParse = false;
 
     try {
@@ -190,129 +455,75 @@
         return;
       }
       var token = session.data.session.access_token;
+      var passagesArr = [];
+      var fallbackCount = 0;
+      var nextIndex = 0;
+      var completed = 0;
 
       setAiProgress(30);
-      renderAiStages([
-        { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
-        { label: '上传到云端 AI', status: 'done' },
-        { label: 'AI 正在解析（10–30 秒）', status: 'doing' },
-        { label: '整理结果并入库', status: 'todo' },
-      ]);
-      startAiDrift(30, 85, 25000);
+      startAiDrift(30, 85, Math.max(25000, batchPlan.length * 8000));
 
-      var res = await fetch(
-        window.SUPABASE_URL + '/functions/v1/deepseek-parse',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ text: text })
+      async function runOneChunk(i) {
+        if (_abortAiParse) return;
+        var chunk = batchPlan[i];
+        renderAiStages([
+          { label: '提取 Word 文本（' + originalLength + ' 字）', status: 'done' },
+          { label: '自动拆分篇章（' + batchPlan.length + ' 篇）', status: 'done' },
+          { label: 'AI 分批解析（' + completed + '/' + batchPlan.length + '）', status: 'doing' },
+          { label: '整理结果并入库', status: 'todo' },
+        ]);
+
+        try {
+          var parsed = await fetchDeepSeekParse(chunk.text, token);
+          var chunkPassages = normalizeParsedPassages(parsed, chunk.title, chunk.answers);
+          chunkPassages = finalizePassages(chunkPassages);
+          if (chunkPassages.length === 0 && chunk.fallback && chunk.fallback.blanks.length) {
+            chunkPassages = [chunk.fallback];
+            fallbackCount++;
+          }
+          passagesArr = passagesArr.concat(chunkPassages);
+        } catch (err) {
+          console.warn('单篇解析失败，使用降级导入：', chunk.title, err);
+          if (chunk.fallback && chunk.fallback.blanks.length) {
+            passagesArr.push(chunk.fallback);
+            fallbackCount++;
+          }
         }
-      );
+        completed++;
+        setAiProgress(30 + Math.round((completed / batchPlan.length) * 55));
+      }
+
+      async function worker() {
+        while (!_abortAiParse) {
+          var i = nextIndex++;
+          if (i >= batchPlan.length) return;
+          await runOneChunk(i);
+        }
+      }
+
+      var workerCount = Math.max(1, Math.min(PARSE_CONCURRENCY, batchPlan.length));
+      var runners = [];
+      for (var w = 0; w < workerCount; w++) runners.push(worker());
+      await Promise.all(runners);
 
       stopAiDrift();
       if (_abortAiParse) { hideAiOverlay(); return; }
 
-      if (!res.ok) {
-        var errData;
-        try { errData = await res.json(); } catch (e) { errData = {}; }
-        var msg;
-        // 把 AI JSON 截断的开发者语言翻译成老师能懂的话
-        if (errData.error && /无法解析为 JSON|JSON\s*parse|JSON\.parse/i.test(errData.error)) {
-          msg = '⚠️ AI 解析失败（输出可能被截断）\n\n'
-              + '常见原因：文档过长，AI 一次解析不完。\n\n'
-              + '建议：\n'
-              + '1. 用 Word 打开文档，<b>只保留"语法填空"部分</b>再上传\n'
-              + '2. 或者拆成 2-3 份分别上传\n'
-              + '3. 删掉文档里的图片/表格（占 tokens）\n\n'
-              + '当前文档字符数：' + text.length.toLocaleString();
-        } else if (errData.error && /AI 返回的数据格式不正确|格式不正确/i.test(errData.error)) {
-          msg = '⚠️ AI 没识别出题目\n\n建议确认文档是真正的"语法填空"题，且每个空格有 ___ 或 (give) 这样的标记。';
-        } else {
-          msg = errData.error || ('服务端错误 HTTP ' + res.status);
-        }
-        // 调试用的 raw content 只在 console，不再给老师看
-        if (errData.rawContent) console.warn('AI 原始返回：', errData.rawContent.substring(0, 500));
-        throw new Error(msg);
-      }
-
-      setAiProgress(90);
-      renderAiStages([
-        { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
-        { label: '上传到云端 AI', status: 'done' },
-        { label: 'AI 正在解析（10–30 秒）', status: 'done' },
-        { label: '整理结果并入库', status: 'doing' },
-      ]);
-
-      var parsed = await res.json();
-
-      // 兼容多种返回格式
-      var passagesArr = [];
-      if (Array.isArray(parsed)) {
-        passagesArr = parsed;
-      } else if (parsed && Array.isArray(parsed.passages)) {
-        passagesArr = parsed.passages;
-      } else if (parsed && parsed.passage && Array.isArray(parsed.blanks)) {
-        passagesArr = [parsed];
-      } else {
-        throw new Error('AI 返回的数据格式不正确：\n' + JSON.stringify(parsed).substring(0, 300));
-      }
-
-      passagesArr = passagesArr.filter(function(p) {
-        return p && (p.passage || (Array.isArray(p.blanks) && p.blanks.length));
-      }).map(function(p, i) {
-        return {
-          title: (p.title && String(p.title).trim()) || ('未命名 ' + (i + 1)),
-          passage: p.passage || '',
-          blanks: Array.isArray(p.blanks) ? p.blanks : []
-        };
-      });
-
-      // 去重：AI 可能把同一篇拆成多篇
-      var seenSigs = {};
-      passagesArr = passagesArr.filter(function(p) {
-        var sig = (p.blanks || []).map(function(b) {
-          return (b.no || '') + '=' + (b.answer || '').trim();
-        }).sort(function(a, b) { return a < b ? -1 : a > b ? 1 : 0; }).join('|');
-        if (!sig) return true;
-        if (seenSigs[sig]) {
-          if (p.blanks.length > seenSigs[sig].blanks.length) {
-            seenSigs[sig] = p;
-          }
-          return false;
-        }
-        seenSigs[sig] = p;
-        return true;
-      });
-
-      // 校验空格标记数与 blanks 数量一致
-      for (var pi = 0; pi < passagesArr.length; pi++) {
-        var markerMatch = passagesArr[pi].passage.match(/_{2,}\s*\d+\s*_{2,}/g);
-        var markerCount = markerMatch ? markerMatch.length : 0;
-        if (markerCount !== passagesArr[pi].blanks.length) {
-          throw new Error(
-            '解析结果不一致：原文有 ' + markerCount + ' 个空格标记，' +
-            '但解析出 ' + passagesArr[pi].blanks.length + ' 道题。\n' +
-            '请手动核对 Word 文档中的空格格式是否清晰。'
-          );
-        }
-      }
-
-      if (passagesArr.length === 0) {
-        throw new Error('AI 没有识别出任何题目');
-      }
+      passagesArr = finalizePassages(passagesArr);
+      if (passagesArr.length === 0) throw new Error('AI 没有识别出任何题目');
 
       setAiProgress(100);
       renderAiStages([
-        { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
-        { label: '上传到云端 AI', status: 'done' },
-        { label: 'AI 正在解析', status: 'done' },
+        { label: '提取 Word 文本（' + originalLength + ' 字）', status: 'done' },
+        { label: '自动拆分篇章（' + batchPlan.length + ' 篇）', status: 'done' },
+        { label: 'AI 分批解析完成', status: 'done' },
         { label: '整理结果（共 ' + passagesArr.length + ' 篇 · ' + passagesArr.reduce(function(s,p){return s + p.blanks.length;},0) + ' 题）', status: 'done' },
       ]);
       setTimeout(hideAiOverlay, 400);
 
+      if (fallbackCount > 0) {
+        console.warn('有 ' + fallbackCount + ' 篇使用了答案/空格降级导入，解析可稍后补全。');
+      }
       setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, 200);
 
     } catch (err) {
@@ -326,7 +537,8 @@
         'AI 解析失败：' + (err.message || String(err)) + '\n\n' +
         '是否将提取的原始文本放入批量导入框，方便手动整理？'
       )) {
-        showRawTextFallback(text);
+        var rawText = Array.isArray(batchPlan) ? batchPlan.map(function(item) { return item.text; }).join('\n\n') : '';
+        showRawTextFallback(rawText);
       }
     }
   }
@@ -460,6 +672,7 @@
         no: b.no,
         answer: b.answer || '?',
         category: b.category || 'word',
+        fine_category: b.fine_category || '',
         analysis: b.analysis || ''
       };
     });
@@ -517,6 +730,7 @@
               || result.passage;
       var answer = b.answer || '?';
       var cat = b.category || 'word';
+      var fineCategory = b.fine_category || '';
       var errFp = answer.trim() + '|||' + cat.trim() + '|||' + no;
       var errHash = 0;
       for (var hi = 0; hi < errFp.length; hi++) { errHash = ((errHash << 5) - errHash) + errFp.charCodeAt(hi); errHash |= 0; }
@@ -525,6 +739,7 @@
         passage: sent,
         answer: answer,
         category: cat,
+        fine_category: fineCategory,
         category_name: CATEGORY_MAP[b.category] || b.category,
         grammar_point: '',
         analysis: b.analysis || ('答案：' + answer + '。'),
