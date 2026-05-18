@@ -1306,20 +1306,13 @@
   /* ============== 套卷侧边栏 ============== */
 
 
-  /* ============== 欢迎页 + 登录墙 ============== */
-  body.guest .header-font-ctrl,
-  body.guest #syncStatus { display: none !important; }
-  body.guest #page-welcome { display: block !important; }
-  body.guest .page:not(#page-welcome) { display: none !important; }
-  body.guest header { background: rgba(255,255,255,0.7); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); }
-
   /* ============== 模块选择页（登录后默认）============== */
   body.in-modules .header-font-ctrl,
   body.in-modules #syncStatus { display: none !important; }
   body.in-modules #page-modules { display: block !important; }
   body.in-modules .page:not(#page-modules) { display: none !important; }
 
-  #page-welcome, #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); margin: 0 auto; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
+  #page-modules { max-width: clamp(960px, calc(100% - 320px), 2200px); margin: 0 auto; padding: 24px 24px 80px; animation: fadeIn .4s ease; }
   #page-practice { max-width: none; padding: 0; }
   #page-knowledge { max-width: none; padding: 0; }
 
@@ -2128,17 +2121,9 @@
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 1200);
 </script>
 <script type="module" src="../shared/ui/theme.js"></script>
-<style>
-  /* 有 session 时跳过 guest 状态：直接显示 home，隐藏 welcome */
-  html.has-session body.guest #page-welcome { display: none !important; }
-  html.has-session body.guest #page-home    { display: block !important; }
-  html.has-session body.guest .dock,
-  html.has-session body.guest .header-font-ctrl,
-  html.has-session body.guest #syncStatus { display: flex !important; }
-</style>
 
 </head>
-<body class="guest">
+<body>
 
 <div class="app-container">
   <header>
@@ -2245,98 +2230,7 @@
       <button onclick="exitViewAs()" style="float:right;border:none;background:var(--accent);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">退出查看</button>
     </div>
 
-    <!-- ============== 欢迎页（未登录默认） ============== -->
-    <div class="page" id="page-welcome">
-      <div class="welcome-hero">
-        <div class="welcome-eyebrow">EARLY ACCESS · v0.1</div>
-        <h1>Seeklume<br><span class="gradient-text">语法讲评</span></h1>
-        <p class="welcome-sub">
-          先从最常讲的「语法填空」开始，按考点分类、跨卷迁移、错题归档。<br>
-          后面会慢慢加上完形、七选五、阅读、读后续写、应用文。
-        </p>
-        <div class="welcome-cta">
-          <button class="welcome-btn primary" onclick="openAuthModal('signup')">注册 · 开始使用</button>
-          <button class="welcome-btn secondary" onclick="openAuthModal('signin')">我已注册 · 登录</button>
-        </div>
-      </div>
-
-      <div class="welcome-section">
-        <h2>它能做什么</h2>
-        <div class="welcome-section-sub">目前只覆盖<b style="color:var(--text);">语法填空</b>一个模块，其它模块还在路上。</div>
-        <div class="welcome-grid">
-          <div class="welcome-feature">
-            <div class="welcome-feature-icon">📋</div>
-            <div class="welcome-feature-title">20 套真题/模拟卷</div>
-            <div class="welcome-feature-desc">2023–2026 全国卷、浙江、广州、深圳，开箱即用</div>
-          </div>
-          <div class="welcome-feature">
-            <div class="welcome-feature-icon">📖</div>
-            <div class="welcome-feature-title">按考点专题训练</div>
-            <div class="welcome-feature-desc">11 类常考点：谓语、非谓语、词性、冠词、代词、介词、连词…</div>
-          </div>
-          <div class="welcome-feature">
-            <div class="welcome-feature-icon">🔗</div>
-            <div class="welcome-feature-title">同考点跨卷迁移</div>
-            <div class="welcome-feature-desc">讲一道，自动调出别的卷里同考点的题，方便举一反三</div>
-          </div>
-          <div class="welcome-feature">
-            <div class="welcome-feature-icon">📝</div>
-            <div class="welcome-feature-title">错题本 · 自动同步</div>
-            <div class="welcome-feature-desc">办公室攒的题，回家手机上也能看，不用导来导去</div>
-          </div>
-          <div class="welcome-feature">
-            <div class="welcome-feature-icon">📋</div>
-            <div class="welcome-feature-title">备课资料导入</div>
-            <div class="welcome-feature-desc">粘贴一篇语法填空，立刻进入和真题一样的讲题模式</div>
-          </div>
-          <div class="welcome-feature">
-            <div class="welcome-feature-icon">💡</div>
-            <div class="welcome-feature-title">考点速查</div>
-            <div class="welcome-feature-desc">每个考点的解题思路一页讲完，参考赢在微点二轮复习整理</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="welcome-section">
-        <h2>怎么开始用</h2>
-        <ol class="welcome-steps">
-          <li><b>注册账号</b>：邮箱 + 用户名 + 密码，注册成功即可直接使用。</li>
-          <li><b>选一套真题</b>，或者按考点直接练，点空格弹出解析。</li>
-          <li>讲过的题<b>加入错题本</b>，下次自动把别的卷子里同考点的题列出来，做迁移训练。</li>
-        </ol>
-      </div>
-
-      <div class="welcome-author">
-        <h3>关于这个小工具</h3>
-        <p>
-          我是一名一线的英语老师，编程是从零自学的。日常备课时总在反复整理同一种题，于是想做一个能帮自己、也希望能帮到同行老师的小工具。
-        </p>
-        <p>
-          这只是一个粗糙的起点，方法论和功能都会随着使用慢慢打磨。如果它能在你某天的备课里省下哪怕一点点时间，就值得了。
-        </p>
-        <p style="color:var(--text-3);font-size:13px;">
-          整理参考过课标、高考评价体系、《赢在微点·二轮复习》、教育部考试院专家文章等资料，但难免有错漏，欢迎指正。
-        </p>
-      </div>
-
-      <div class="welcome-disclaimer">
-        <h3>🌱 这是早期版本，请多担待</h3>
-        <p>
-          目前只上线了「语法填空」一个模块，其它题型还在做。也可能会遇到些小 bug，给你添麻烦了 —— 如果方便，麻烦把问题反馈给我，我会尽快修，咱们一起把它变好。
-        </p>
-        <ul>
-          <li>📧 <code>liuzhenlzstiles@icloud.com</code></li>
-          <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
-        </ul>
-      </div>
-
-      <div class="welcome-footer-cta">
-        <button class="welcome-btn primary" onclick="openAuthModal('signup')">注册一个账号 · 开始用</button>
-      </div>
-      <div class="welcome-footer-note">
-        英语教学系统 1.0 · 一份微薄的尝试，谢谢愿意花时间试用的你 🙏
-      </div>
-    </div>
+    <!-- 欢迎页已合并到 docs/index.html 公共落地页 -->
 
     <!-- ============== 模块选择页（登录后默认） ============== -->
     <div class="page" id="page-modules">
@@ -4197,10 +4091,6 @@ async function onCloudStateChange(state) {
     if (_loggingOut) return; // 正在退出登录，跳过页面切换（由 doLogout 处理跳转）
     document.documentElement.classList.remove('has-session');
     document.body.classList.remove('pending');
-    if (document.getElementById('page-welcome').classList.contains('active') ||
-        document.body.classList.contains('guest')) {
-      switchPage('home');
-    }
     return;
   }
   document.documentElement.classList.add('has-session');
@@ -4210,12 +4100,8 @@ async function onCloudStateChange(state) {
   var firstAuthForThisUser = (newUserKey !== _lastCloudUser);
   if (firstAuthForThisUser) _lastCloudUser = newUserKey;
 
-  // 2. 已登录：第一次到达本用户的状态 → 直接进入语法填空主页
+  // 2. 已登录：第一次到达本用户的状态
   if (firstAuthForThisUser && !state.viewingUserId) {
-    if (document.body.classList.contains('guest') ||
-        document.getElementById('page-welcome').classList.contains('active')) {
-      switchPage('home');
-    }
     // URL ?admin 参数：管理员直接从首页进入管理后台
     if (!_adminParamChecked && state.isAdmin && /[?&]admin/.test(location.search)) {
       _adminParamChecked = true;
