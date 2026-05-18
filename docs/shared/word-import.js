@@ -37,6 +37,7 @@
   var _aiDriftTimer = null;
   var _aiDriftTarget = 0;
   var _unifiedImportData = null;
+  var _splitUsedFallback = false; // 标记本次是否用了启发式兜底切割
   var BATCH_PARSE_CHAR_LIMIT = 25000;
   var MAX_BATCH_CHUNKS = 80;
   var PARSE_CONCURRENCY = 3;
@@ -199,6 +200,39 @@
     return chunks;
   }
 
+  // 启发式兜底：按"中文短行+英文内容块"切割，用于 isPassageTitle 完全无法识别格式的文档
+  function splitByParagraph(text) {
+    var paras = text.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean);
+    var chunks = [];
+    var curLines = [];
+    var pendingTitle = null;
+    var idx = 0;
+
+    function flushChunk() {
+      var content = curLines.join('\n');
+      if (content.length >= 300 && /[a-zA-Z]{3,}/.test(content)) {
+        idx++;
+        chunks.push({ title: pendingTitle || ('篇章 ' + idx), lines: curLines.slice() });
+      }
+      curLines = [];
+      pendingTitle = null;
+    }
+
+    paras.forEach(function(para) {
+      var hasEnglish = /[a-zA-Z]{3,}/.test(para);
+      var isShortChinese = !hasEnglish && para.length < 60 && /[一-鿿]/.test(para);
+      if (isShortChinese) {
+        // 短中文行可能是篇章分隔标题：先把前一段英文内容 flush 掉
+        if (curLines.join('\n').length > 500) flushChunk();
+        pendingTitle = para;
+      } else {
+        curLines.push(para);
+      }
+    });
+    flushChunk();
+    return chunks;
+  }
+
   function extractAnswersFromChunk(text) {
     var s = normalizeImportText(text);
     var ansPos = s.indexOf('【答案】');
@@ -235,8 +269,16 @@
   }
 
   function splitDocxText(text) {
+    _splitUsedFallback = false;
     var normalized = normalizeImportText(text);
     var rawChunks = splitByTitle(normalized);
+
+    // 大文档且完全识别不到标题时，启用启发式段落切割兜底
+    if (rawChunks.length === 0 && normalized.length > 15000) {
+      rawChunks = splitByParagraph(normalized);
+      if (rawChunks.length > 0) _splitUsedFallback = true;
+    }
+
     if (rawChunks.length === 0) {
       return [{
         title: '未命名 1',
@@ -463,9 +505,10 @@
       if (!batchPlan.length) throw new Error('没有识别到可解析的题目段落。');
 
       setAiProgress(15);
+      var splitLabel = '自动拆分篇章（' + batchPlan.length + ' 篇' + (_splitUsedFallback ? '，启发式' : '') + '）';
       renderAiStages([
         { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
-        { label: '自动拆分篇章（' + batchPlan.length + ' 篇）', status: 'done' },
+        { label: splitLabel, status: 'done' },
         { label: 'AI 分批解析', status: 'doing' },
         { label: '整理结果并入库', status: 'todo' },
       ]);
@@ -599,6 +642,13 @@
     var modeBanner = isErrorMode
       ? '<div style="color:var(--text-3);padding:4px 0 12px;font-size:13px;">勾选要加入错题本的题</div>'
       : '<div style="color:var(--text-3);padding:4px 0 12px;font-size:13px;">整篇进备课资料；可选勾几道题进错题本</div>';
+
+    // 合集文档提示：篇数多时提醒老师可能有漏识别
+    if (passagesArr.length > 8) {
+      modeBanner += '<div style="background:var(--accent-bg);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--accent);line-height:1.6;">'
+        + '识别到 <b>' + passagesArr.length + ' 篇</b>。合集文档因格式各异可能有少量漏识别，单套试卷上传识别最准确。'
+        + '</div>';
+    }
 
     var html = modeBanner;
     passagesArr.forEach(function(p, pi) {
