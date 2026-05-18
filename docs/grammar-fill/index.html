@@ -5754,7 +5754,16 @@ function renderTextbookView() {
         totalQs += _countByFineTag(tagId).total;
       });
       var color = _freqColor(totalQs);
-      h += '<article style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
+      // 收集该 unit 对应的所有 fine tag id（用于跳转）
+      var tagIds = maps.map(function(t) { return t.startsWith('aux:') ? t.slice(4) : t; }).filter(function(id) { return !!FT.tags_by_id[id]; });
+      var tagIdsAttr = escapeHtml(JSON.stringify(tagIds));
+      var unitLabel = u.unit + (u.topic ? ' · ' + u.topic : '');
+      // 统计错题数（仅 fine_category 在 tagIds 集合里的）
+      var errorCount = 0;
+      if (typeof errorBookQuestions !== 'undefined') {
+        errorCount = errorBookQuestions.filter(function(q) { return tagIds.indexOf(q.fine_category) !== -1; }).length;
+      }
+      h += '<article style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;">';
       h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
       h += '<b style="color:var(--accent);">' + escapeHtml(u.unit) + (u.topic ? ' · ' + escapeHtml(u.topic) : '') + '</b>';
       h += '<span style="background:' + color.bg + ';color:' + color.color + ';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">' + totalQs + ' 题</span>';
@@ -5771,6 +5780,21 @@ function renderTextbookView() {
           h += '<span style="background:var(--surface-3);color:var(--text-2);padding:2px 8px;border-radius:10px;font-size:11px;">'
             + escapeHtml(tag.name) + ' <span style="opacity:0.6;">' + cnt.total + '</span></span>';
         });
+        h += '</div>';
+      }
+      // 操作按钮：让 unit 卡片真正"能干事"
+      if (tagIds.length > 0) {
+        h += '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">';
+        h += '<button onclick="openUnitQuestionList(\'' + escapeHtml(unitLabel) + '\', ' + tagIdsAttr + ')" '
+          + 'style="flex:1;padding:6px 10px;background:var(--accent-bg);color:var(--accent);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;" '
+          + 'onmouseover="this.style.background=\'var(--accent)\';this.style.color=\'#fff\'" '
+          + 'onmouseout="this.style.background=\'var(--accent-bg)\';this.style.color=\'var(--accent)\'">📋 看 ' + totalQs + ' 道真题</button>';
+        if (errorCount > 0) {
+          h += '<button onclick="openUnitErrorList(\'' + escapeHtml(unitLabel) + '\', ' + tagIdsAttr + ')" '
+            + 'style="flex:1;padding:6px 10px;background:var(--red-bg);color:var(--red);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;" '
+            + 'onmouseover="this.style.background=\'var(--red)\';this.style.color=\'#fff\'" '
+            + 'onmouseout="this.style.background=\'var(--red-bg)\';this.style.color=\'var(--red)\'">📝 错题 ' + errorCount + ' 道</button>';
+        }
         h += '</div>';
       }
       h += '</article>';
@@ -5905,6 +5929,110 @@ function closeTextbookModal() {
 
 function _onTextbookModalKey(e) {
   if (e.key === 'Escape') closeTextbookModal();
+}
+
+// ─── 教材 unit 操作：看真题 / 看错题 ─────────
+function openUnitQuestionList(unitLabel, tagIds) {
+  var items = (typeof ALL_QUESTIONS !== 'undefined' ? ALL_QUESTIONS : [])
+    .filter(function(q) { return tagIds.indexOf(q.fine_category) !== -1; });
+  _showUnitQuestionsMiniModal('📋 ' + unitLabel + ' · 真题', items, 'bank');
+}
+function openUnitErrorList(unitLabel, tagIds) {
+  var items = (typeof errorBookQuestions !== 'undefined' ? errorBookQuestions : [])
+    .filter(function(q) { return tagIds.indexOf(q.fine_category) !== -1; });
+  _showUnitQuestionsMiniModal('📝 ' + unitLabel + ' · 我的错题', items, 'errors');
+}
+
+function _showUnitQuestionsMiniModal(title, items, source) {
+  // 用 alert-modal 风格，比 textbook-modal 简单
+  var wrap = document.createElement('div');
+  wrap.id = 'unitQuestionsModalWrap';
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:5vh 4vw;opacity:0;transition:opacity .2s;';
+  wrap.onclick = function(e) { if (e.target === wrap) _closeUnitMiniModal(); };
+
+  var panel = document.createElement('div');
+  panel.style.cssText = 'background:var(--surface);border-radius:14px;width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.35);transform:scale(0.95);opacity:0;transition:all .25s cubic-bezier(.2,.85,.25,1);';
+
+  var html = '<div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">'
+    + '<h3 style="margin:0;font-size:16px;color:var(--text);">' + escapeHtml(title) + '<span style="color:var(--text-3);font-size:13px;font-weight:400;margin-left:8px;">' + items.length + ' 道</span></h3>'
+    + '<button onclick="_closeUnitMiniModal()" style="border:none;background:var(--surface-3);color:var(--text-2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;">×</button>'
+    + '</div>'
+    + '<div style="overflow-y:auto;padding:12px 16px;">';
+
+  if (items.length === 0) {
+    html += '<div style="text-align:center;color:var(--text-3);padding:40px 20px;">'
+      + (source === 'errors' ? '该单元对应考点你还没有错题。<br><span style="color:var(--text-3);font-size:12px;">上传 Word 时勾选错题可加入。</span>' : '该单元对应考点暂无真题。')
+      + '</div>';
+  } else {
+    items.slice(0, 50).forEach(function(q) {
+      var src = (q.exam === '错题本' || (q.id && q.id.indexOf && q.id.indexOf('err_') === 0)) ? '📝 我的错题' : q.exam;
+      var typeTag = '';
+      if (q.type === '真题') typeTag = '<span style="background:var(--green-bg);color:var(--green);padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;">真题</span>';
+      else if (q.type === '模拟卷' || q.type === '模拟题') typeTag = '<span style="background:var(--orange-bg);color:var(--orange);padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;">模拟</span>';
+      var examIdAttr = escapeHtml(q.exam_id || q.exam || '');
+      var noAttr = escapeHtml(String(q.no || ''));
+      html += '<div onclick="_gotoUnitQuestion(\'' + examIdAttr + '\', \'' + noAttr + '\', \'' + source + '\')" '
+        + 'style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .12s;" '
+        + 'onmouseover="this.style.background=\'var(--surface-2)\';this.style.borderColor=\'var(--accent)\'" '
+        + 'onmouseout="this.style.background=\'\';this.style.borderColor=\'var(--border)\'">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);margin-bottom:4px;">'
+        + '<span>' + escapeHtml(src) + typeTag + ' · 第 ' + escapeHtml(q.no || '') + ' 题</span>'
+        + '<span style="color:var(--accent);">▶ 去讲</span>'
+        + '</div>'
+        + '<div style="font-size:14px;color:var(--text);font-weight:600;">' + escapeHtml(q.answer || '') + '</div>'
+        + (q.analysis ? '<div style="font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.5;">' + escapeHtml((q.analysis || '').slice(0, 100)) + (q.analysis.length > 100 ? '…' : '') + '</div>' : '')
+        + '</div>';
+    });
+    if (items.length > 50) {
+      html += '<div style="text-align:center;color:var(--text-3);padding:8px 0;font-size:12px;">仅显示前 50 道（共 ' + items.length + ' 道）</div>';
+    }
+  }
+  html += '</div>';
+
+  panel.innerHTML = html;
+  wrap.appendChild(panel);
+  document.body.appendChild(wrap);
+
+  requestAnimationFrame(function() {
+    wrap.style.opacity = '1';
+    panel.style.transform = 'scale(1)';
+    panel.style.opacity = '1';
+  });
+  document.addEventListener('keydown', _onUnitMiniKey);
+}
+
+function _closeUnitMiniModal() {
+  var wrap = document.getElementById('unitQuestionsModalWrap');
+  if (!wrap) return;
+  wrap.style.opacity = '0';
+  setTimeout(function() { wrap.remove(); }, 200);
+  document.removeEventListener('keydown', _onUnitMiniKey);
+}
+function _onUnitMiniKey(e) { if (e.key === 'Escape') _closeUnitMiniModal(); }
+
+function _gotoUnitQuestion(examId, no, source) {
+  _closeUnitMiniModal();
+  closeTextbookModal();
+  // 关闭教材 modal 后跳到对应题
+  setTimeout(function() {
+    if (source === 'errors') {
+      // 错题：进错题本 → 显示该错题的讲题模式
+      var errQ = errorBookQuestions.find(function(q) { return String(q.no) === String(no); });
+      if (errQ && typeof viewErrorQuestion === 'function') {
+        viewErrorQuestion(errQ.id);
+        return;
+      }
+      switchPage('error-book');
+    } else {
+      // 真题：进对应套卷 → 跳到该题
+      if (typeof startByExam === 'function') {
+        startByExam(examId);
+        setTimeout(function() {
+          if (typeof showAnalysis === 'function') showAnalysis(no);
+        }, 100);
+      }
+    }
+  }, 250);
 }
 
 // ─── 视图 C · 体系视图（语法通霸 22 大类参考）──────────────────
@@ -6242,7 +6370,7 @@ init();
 </script>
 <!-- macOS 风格 Dock -->
 <div class="dock" id="mainDock">
-  <div class="dock-item" data-label="首页" onclick="window.location.href='/'">
+  <div class="dock-item" data-label="语法填空主页" data-page="home" onclick="switchPage('home')">
     🏠
     <div class="dock-dot"></div>
   </div>
