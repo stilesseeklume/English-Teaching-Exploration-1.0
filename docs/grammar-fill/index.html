@@ -2050,7 +2050,7 @@
 
 <div class="app-container">
   <header>
-    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;">Seeklume · 语法讲评</div>
+    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;" title="点击返回 Seeklume 主站（公共落地页）">Seeklume · 语法讲评</div>
     <div style="display:flex;align-items:center;gap:16px;">
       <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
         <span class="icon-sun">&#9788;</span>
@@ -2480,6 +2480,7 @@
         </div>
         <div class="drawer-header">
           <div style="display:flex;align-items:center;gap:8px;">
+            <button id="drawerReturnBtn" onclick="executeDrawerReturn()" title="返回上一步" style="display:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);padding:4px 10px;border-radius:14px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s;" onmouseover="this.style.background='var(--accent-bg)';this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='var(--surface-2)';this.style.color='var(--text-2)';this.style.borderColor='var(--border)'">← 返回</button>
             <span class="drawer-q-info" id="drawerQInfo">第 -- 题</span>
             <button class="drawer-nav-btn" onclick="navigateBlank(-1)" title="上一题 ◀">◀</button>
             <button class="drawer-nav-btn" onclick="navigateBlank(1)" title="下一题 ▶">▶</button>
@@ -4395,6 +4396,13 @@ function renderContextSidebar() {
   el.style.display = '';
 }
 
+// 统一管理 dock 圆点显示：根据当前 dock key 高亮对应 item
+function setActiveDock(dockKey) {
+  document.querySelectorAll('.dock-item').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.dockKey === dockKey);
+  });
+}
+
 function switchPage(page) {
   // 访客守卫：错题本/备课资料/管理员需要登录
   if ((page === 'error-book' || page === 'lesson-prep' || page === 'admin') && !requireAuth()) return;
@@ -4413,10 +4421,8 @@ function switchPage(page) {
   }
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  // Update dock active state
-  document.querySelectorAll('.dock-item').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === page);
-  });
+  // Update dock active state — 用 data-dock-key 而不是 data-page，精确匹配
+  setActiveDock(page);
   var pageEl = document.getElementById('page-' + page);
   if (pageEl) pageEl.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -4521,6 +4527,8 @@ function navigateHome(view) {
   document.getElementById('homeCards').style.display = view === 'cards' ? '' : 'none';
   document.getElementById('homeExams').classList.toggle('active', view === 'exams');
   document.getElementById('homeCategories').classList.toggle('active', view === 'categories');
+  // 同步 dock 圆点：cards→home / exams→exams / categories→categories
+  setActiveDock(view === 'exams' ? 'exams' : view === 'categories' ? 'categories' : 'home');
   window.scrollTo({ top: 0, behavior: 'instant' });
   renderPageSidebar('home');
 }
@@ -4878,6 +4886,8 @@ function closeDrawer() {
   document.getElementById('drawerOverlay').classList.remove('show');
   selectedQuestion = null;
   clearBlankHighlight();
+  // 手动关闭抽屉清返回上下文（避免下次打开抽屉残留过期的"返回"按钮）
+  if (typeof setDrawerReturnTo === 'function') setDrawerReturnTo(null);
 }
 
 function switchDrawerTab(tab) {
@@ -5932,19 +5942,54 @@ function _onTextbookModalKey(e) {
 }
 
 // ─── 教材 unit 操作：看真题 / 看错题 ─────────
+// 状态：跟随用户选的筛选 + 上下文（用于返回）
+var _unitMiniContext = null;  // { unitLabel, tagIds, source, filter }
+
 function openUnitQuestionList(unitLabel, tagIds) {
-  var items = (typeof ALL_QUESTIONS !== 'undefined' ? ALL_QUESTIONS : [])
-    .filter(function(q) { return tagIds.indexOf(q.fine_category) !== -1; });
-  _showUnitQuestionsMiniModal('📋 ' + unitLabel + ' · 真题', items, 'bank');
+  _unitMiniContext = { unitLabel: unitLabel, tagIds: tagIds, source: 'bank', filter: '真题' };
+  _showUnitQuestionsMiniModal();
 }
 function openUnitErrorList(unitLabel, tagIds) {
-  var items = (typeof errorBookQuestions !== 'undefined' ? errorBookQuestions : [])
-    .filter(function(q) { return tagIds.indexOf(q.fine_category) !== -1; });
-  _showUnitQuestionsMiniModal('📝 ' + unitLabel + ' · 我的错题', items, 'errors');
+  _unitMiniContext = { unitLabel: unitLabel, tagIds: tagIds, source: 'errors', filter: 'all' };
+  _showUnitQuestionsMiniModal();
+}
+function setUnitMiniFilter(filter) {
+  if (!_unitMiniContext) return;
+  _unitMiniContext.filter = filter;
+  _closeUnitMiniModal();
+  setTimeout(_showUnitQuestionsMiniModal, 50);
 }
 
-function _showUnitQuestionsMiniModal(title, items, source) {
-  // 用 alert-modal 风格，比 textbook-modal 简单
+function _showUnitQuestionsMiniModal() {
+  if (!_unitMiniContext) return;
+  var ctx = _unitMiniContext;
+
+  // 根据 source 拿源集合
+  var rawItems;
+  if (ctx.source === 'errors') {
+    rawItems = (typeof errorBookQuestions !== 'undefined' ? errorBookQuestions : [])
+      .filter(function(q) { return ctx.tagIds.indexOf(q.fine_category) !== -1; });
+  } else {
+    rawItems = (typeof ALL_QUESTIONS !== 'undefined' ? ALL_QUESTIONS : [])
+      .filter(function(q) { return ctx.tagIds.indexOf(q.fine_category) !== -1; });
+  }
+
+  // 按 filter 二次过滤
+  var items;
+  if (ctx.filter === '真题') items = rawItems.filter(function(q) { return q.type === '真题'; });
+  else if (ctx.filter === '模拟') items = rawItems.filter(function(q) { return q.type === '模拟卷' || q.type === '模拟题'; });
+  else items = rawItems;
+
+  // 统计 chip 数字
+  var realCount = rawItems.filter(function(q) { return q.type === '真题'; }).length;
+  var mockCount = rawItems.filter(function(q) { return q.type === '模拟卷' || q.type === '模拟题'; }).length;
+  var allCount = rawItems.length;
+
+  var titlePrefix = ctx.source === 'errors' ? '📝 ' : '📋 ';
+  var titleSuffix = ctx.source === 'errors' ? ' · 我的错题' : ' · 关联真题';
+  var title = titlePrefix + ctx.unitLabel + titleSuffix;
+  var source = ctx.source;
+
   var wrap = document.createElement('div');
   wrap.id = 'unitQuestionsModalWrap';
   wrap.style.cssText = 'position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:5vh 4vw;opacity:0;transition:opacity .2s;';
@@ -5953,11 +5998,27 @@ function _showUnitQuestionsMiniModal(title, items, source) {
   var panel = document.createElement('div');
   panel.style.cssText = 'background:var(--surface);border-radius:14px;width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.35);transform:scale(0.95);opacity:0;transition:all .25s cubic-bezier(.2,.85,.25,1);';
 
-  var html = '<div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">'
+  // 顶部 header + filter chips（仅 bank source 显示，错题本不分真题/模拟）
+  var chipsHtml = '';
+  if (source === 'bank') {
+    function chip(key, label, count) {
+      var active = (ctx.filter === key);
+      return '<button onclick="setUnitMiniFilter(\'' + key + '\')" '
+        + 'style="border:none;background:' + (active ? 'var(--accent)' : 'var(--surface-3)') + ';color:' + (active ? '#fff' : 'var(--text-2)') + ';padding:4px 12px;border-radius:14px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:' + (active ? '600' : '400') + ';">' + label + ' ' + count + '</button>';
+    }
+    chipsHtml = '<div style="display:flex;gap:6px;padding:0 22px 12px;">'
+      + chip('真题', '真题', realCount)
+      + chip('模拟', '模拟', mockCount)
+      + chip('all', '全部', allCount)
+      + '</div>';
+  }
+
+  var html = '<div style="padding:18px 22px 12px;display:flex;justify-content:space-between;align-items:center;">'
     + '<h3 style="margin:0;font-size:16px;color:var(--text);">' + escapeHtml(title) + '<span style="color:var(--text-3);font-size:13px;font-weight:400;margin-left:8px;">' + items.length + ' 道</span></h3>'
     + '<button onclick="_closeUnitMiniModal()" style="border:none;background:var(--surface-3);color:var(--text-2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;">×</button>'
     + '</div>'
-    + '<div style="overflow-y:auto;padding:12px 16px;">';
+    + chipsHtml
+    + '<div style="border-top:1px solid var(--border);overflow-y:auto;padding:12px 16px;">';
 
   if (items.length === 0) {
     html += '<div style="text-align:center;color:var(--text-3);padding:40px 20px;">'
@@ -6011,12 +6072,23 @@ function _closeUnitMiniModal() {
 function _onUnitMiniKey(e) { if (e.key === 'Escape') _closeUnitMiniModal(); }
 
 function _gotoUnitQuestion(examId, no, source) {
+  // 记录返回上下文，进讲题后抽屉显示"← 返回"按钮
+  var ctx = _unitMiniContext ? {
+    unitLabel: _unitMiniContext.unitLabel,
+    tagIds: _unitMiniContext.tagIds.slice(),
+    source: _unitMiniContext.source,
+    filter: _unitMiniContext.filter
+  } : null;
+  setDrawerReturnTo(ctx ? {
+    type: 'unit-question-list',
+    label: '返回「' + ctx.unitLabel + '」',
+    context: ctx
+  } : null);
+
   _closeUnitMiniModal();
   closeTextbookModal();
-  // 关闭教材 modal 后跳到对应题
   setTimeout(function() {
     if (source === 'errors') {
-      // 错题：进错题本 → 显示该错题的讲题模式
       var errQ = errorBookQuestions.find(function(q) { return String(q.no) === String(no); });
       if (errQ && typeof viewErrorQuestion === 'function') {
         viewErrorQuestion(errQ.id);
@@ -6024,7 +6096,6 @@ function _gotoUnitQuestion(examId, no, source) {
       }
       switchPage('error-book');
     } else {
-      // 真题：进对应套卷 → 跳到该题
       if (typeof startByExam === 'function') {
         startByExam(examId);
         setTimeout(function() {
@@ -6033,6 +6104,55 @@ function _gotoUnitQuestion(examId, no, source) {
       }
     }
   }, 250);
+}
+
+// ─── 抽屉返回机制 ─────────────────────────
+var _drawerReturnTo = null;
+
+function setDrawerReturnTo(info) {
+  _drawerReturnTo = info;
+  var btn = document.getElementById('drawerReturnBtn');
+  if (!btn) return;
+  if (info) {
+    btn.textContent = '← ' + (info.label || '返回');
+    btn.title = info.label || '返回上一步';
+    btn.style.display = '';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function executeDrawerReturn() {
+  if (!_drawerReturnTo) return;
+  var info = _drawerReturnTo;
+  _drawerReturnTo = null;
+  document.getElementById('drawerReturnBtn').style.display = 'none';
+  // 关闭当前抽屉
+  if (typeof closeDrawer === 'function') closeDrawer();
+  // 根据 type 执行返回动作
+  setTimeout(function() {
+    if (info.type === 'unit-question-list' && info.context) {
+      // 返回到教材视图 + 重新打开该 unit 的题列表
+      switchPage('knowledge');
+      setKnowledgeView('textbook');
+      setTimeout(function() {
+        // 找该 unit 对应的 book，打开 textbook modal
+        var unitLabel = info.context.unitLabel;
+        var FT = window.GRAMMAR_FINE_TAGS;
+        var matchUnit = (FT && FT.textbook_units || []).find(function(u) {
+          return (u.unit + (u.topic ? ' · ' + u.topic : '')) === unitLabel;
+        });
+        if (matchUnit) {
+          openTextbookModal(matchUnit.book);
+          setTimeout(function() {
+            // 重开 mini modal 并恢复 filter
+            _unitMiniContext = info.context;
+            _showUnitQuestionsMiniModal();
+          }, 450); // 等 textbook modal 动画完成
+        }
+      }, 100);
+    }
+  }, 100);
 }
 
 // ─── 视图 C · 体系视图（语法通霸 22 大类参考）──────────────────
@@ -6370,33 +6490,33 @@ init();
 </script>
 <!-- macOS 风格 Dock -->
 <div class="dock" id="mainDock">
-  <div class="dock-item" data-label="语法填空主页" data-page="home" onclick="switchPage('home')">
+  <div class="dock-item" data-label="语法填空主页" data-dock-key="home" onclick="switchPage('home')">
     🏠
     <div class="dock-dot"></div>
   </div>
   <div class="dock-divider"></div>
-  <div class="dock-item" data-label="套卷" data-page="home" onclick="navigateHome('exams')">
+  <div class="dock-item" data-label="套卷" data-dock-key="exams" onclick="navigateHome('exams')">
     📋
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="考点分类训练" data-page="home" onclick="navigateHome('categories')">
+  <div class="dock-item" data-label="考点分类训练" data-dock-key="categories" onclick="navigateHome('categories')">
     🏷️
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="知识库" data-page="knowledge" onclick="switchPage('knowledge')">
+  <div class="dock-item" data-label="知识库" data-dock-key="knowledge" onclick="switchPage('knowledge')">
     📖
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="错题本" data-page="error-book" onclick="switchPage('error-book')">
+  <div class="dock-item" data-label="错题本" data-dock-key="error-book" onclick="switchPage('error-book')">
     📝
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="备课" data-page="lesson-prep" onclick="switchPage('lesson-prep')">
+  <div class="dock-item" data-label="备课" data-dock-key="lesson-prep" onclick="switchPage('lesson-prep')">
     📁
     <div class="dock-dot"></div>
   </div>
   <div class="dock-divider"></div>
-  <div class="dock-item ai-dock" data-label="AI 助手" data-page="ai" onclick="toggleAssistant()">
+  <div class="dock-item ai-dock" data-label="AI 助手" data-dock-key="ai" onclick="toggleAssistant()">
     ✨
     <div class="dock-dot"></div>
   </div>
