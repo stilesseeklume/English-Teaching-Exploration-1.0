@@ -100,42 +100,71 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* 投影模式：全屏 + 超大字 + 隐藏 chrome（讲题专用）*/
+  /* 投影模式：全屏 + 适度放大 + 隐藏 chrome（讲题专用）*/
   body.projection-mode header,
   body.projection-mode .dock,
   body.projection-mode .context-sidebar,
   body.projection-mode .sidebar-edge-trigger,
   body.projection-mode #syncStatus,
   body.projection-mode .release-marker { display: none !important; }
-  body.projection-mode .app-container { padding-top: 20px !important; }
-  body.projection-mode #page-practice { padding: 0 4vw !important; }
+  body.projection-mode .app-container { padding-top: 16px !important; }
+  body.projection-mode #page-practice { padding: 0 3vw !important; }
+  /* 字号适度放大（不夸张）*/
   body.projection-mode .passage,
   body.projection-mode .passage-content,
-  body.projection-mode .passage-text { font-size: 38px !important; line-height: 1.85 !important; }
-  body.projection-mode .blank-inline { font-size: 38px !important; padding: 4px 10px !important; }
-  body.projection-mode .answer-filled { font-size: 38px !important; }
-  body.projection-mode .drawer { font-size: 28px !important; }
-  body.projection-mode .drawer.open { height: 60vh !important; }
-  body.projection-mode .drawer-content { font-size: 28px !important; line-height: 1.8 !important; }
-  body.projection-mode .lesson-card { font-size: 26px !important; }
-  body.projection-mode .migration-card-sentence { font-size: 24px !important; }
-  /* 投影右上角浮动控制条 */
+  body.projection-mode .passage-text { font-size: 28px !important; line-height: 1.85 !important; }
+  body.projection-mode .blank-inline { font-size: 28px !important; padding: 2px 8px !important; }
+  body.projection-mode .answer-filled { font-size: 28px !important; }
+  body.projection-mode .drawer { font-size: 22px !important; }
+  body.projection-mode .drawer-content { font-size: 22px !important; line-height: 1.75 !important; }
+  body.projection-mode .lesson-card { font-size: 21px !important; }
+  body.projection-mode .migration-card-sentence { font-size: 20px !important; }
+
+  /* 投影模式顶部居中浮动控制条 */
   .projection-controls {
-    position: fixed; top: 20px; right: 20px; z-index: 9999;
-    display: flex; gap: 8px;
-    background: rgba(0,0,0,0.7); backdrop-filter: blur(12px);
-    padding: 10px 14px; border-radius: 12px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+    z-index: 9999;
+    display: flex; gap: 4px; align-items: center;
+    background: rgba(28,28,30,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    padding: 6px; border-radius: 999px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25), 0 0 0 0.5px rgba(255,255,255,0.1);
   }
   .projection-controls button {
     border: none; background: transparent; color: #fff;
-    padding: 6px 12px; border-radius: 8px;
+    padding: 8px 14px; border-radius: 999px;
     cursor: pointer; font-size: 14px; font-family: inherit;
-    transition: background .15s;
+    font-weight: 500; min-width: 44px;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all .15s;
   }
-  .projection-controls button:hover { background: rgba(255,255,255,0.15); }
-  .projection-controls .exit-btn { background: rgba(255,59,48,0.85); }
-  .projection-controls .exit-btn:hover { background: rgba(255,59,48,1); }
+  .projection-controls button:hover { background: rgba(255,255,255,0.12); }
+  .projection-controls button:active { transform: scale(0.95); }
+  .projection-controls .pc-divider { width: 1px; height: 18px; background: rgba(255,255,255,0.15); margin: 0 2px; }
+  .projection-controls .pc-exit {
+    background: rgba(255,59,48,0.85); color: #fff;
+  }
+  .projection-controls .pc-exit:hover { background: rgba(255,59,48,1); }
+
+  /* 投影模式下抽屉支持：铺满全屏 / 收缩底部 / 拖拽调整 */
+  body.projection-mode .drawer { transition: height .25s cubic-bezier(.2,.85,.25,1) !important; }
+  body.projection-mode .drawer.drawer-state-half { height: 60vh !important; }
+  body.projection-mode .drawer.drawer-state-full { height: 100vh !important; top: 0 !important; }
+  body.projection-mode .drawer.drawer-state-mini { height: 80px !important; }
+  body.projection-mode .drawer.drawer-state-mini .drawer-tabs,
+  body.projection-mode .drawer.drawer-state-mini .drawer-content { display: none !important; }
+  /* 抽屉头部加投影专属的尺寸切换按钮 */
+  .drawer-projection-size-btns {
+    display: none; gap: 4px; margin-left: 8px;
+  }
+  body.projection-mode .drawer-projection-size-btns { display: inline-flex; }
+  .drawer-projection-size-btns button {
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text-2); padding: 3px 9px; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-family: inherit;
+    transition: all .12s;
+  }
+  .drawer-projection-size-btns button:hover { background: var(--accent-bg); color: var(--accent); }
+  .drawer-projection-size-btns button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   /* 教材"翻开"全屏 modal — 顶部 hero banner 风格 */
   .textbook-modal-backdrop {
@@ -2094,8 +2123,7 @@
         <span class="icon-moon">&#9790;</span>
       </button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
-        <button class="source-switch-btn" id="btnProjection" onclick="enterProjectionMode()" title="投影模式：全屏 + 超大字（讲题专用）" style="font-size:14px;">🖥</button>
-        <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：稍稍放大" style="font-size:13px;">⊟</button>
+        <button class="source-switch-btn" id="btnProjection" onclick="enterProjectionMode()" title="投影模式：全屏 + 适度放大（讲题专用）" style="font-size:14px;">🖥</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
         <button class="font-ctrl-btn" onclick="adjustFont('passage',-1)">−</button>
         <span id="passageFontVal" style="font-size:11px;min-width:28px;text-align:center;">24px</span>
@@ -2522,6 +2550,12 @@
             <span class="drawer-q-info" id="drawerQInfo">第 -- 题</span>
             <button class="drawer-nav-btn" onclick="navigateBlank(-1)" title="上一题 ◀">◀</button>
             <button class="drawer-nav-btn" onclick="navigateBlank(1)" title="下一题 ▶">▶</button>
+            <!-- 投影模式下显示的尺寸切换 -->
+            <span class="drawer-projection-size-btns">
+              <button onclick="setDrawerProjectionSize('mini')" data-size="mini" title="最小化（只看题面）">▁</button>
+              <button onclick="setDrawerProjectionSize('half')" data-size="half" class="active" title="半屏">◫</button>
+              <button onclick="setDrawerProjectionSize('full')" data-size="full" title="全屏">▣</button>
+            </span>
           </div>
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="display:flex;align-items:center;gap:4px;">
@@ -5436,42 +5470,53 @@ function toggleCompact() {
 }
 
 // ─── 投影模式 ─────────────────────────
-// 全屏 + 超大字 + 隐藏 chrome，适合教室大屏讲题
+// 全屏 + 适度放大 + 隐藏 chrome，适合教室大屏讲题
 function enterProjectionMode() {
-  // 必须在讲题/答题页面才有意义
   var practicePage = document.getElementById('page-practice');
   if (!practicePage || !practicePage.classList.contains('active')) {
     alert('请先进入答题/讲题页面再开投影模式。');
     return;
   }
   document.body.classList.add('projection-mode');
+  // 抽屉默认半屏
+  setDrawerProjectionSize('half');
   // 尝试浏览器全屏
   try {
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch(function() {});
     }
   } catch(e) {}
-  // 加浮动控制条
+  // 加顶部居中浮动控制条（重设计：胶囊 pill 风格）
   if (!document.getElementById('projectionControls')) {
     var bar = document.createElement('div');
     bar.id = 'projectionControls';
     bar.className = 'projection-controls';
     bar.innerHTML = ''
-      + '<button onclick="navigateBlank(-1)" title="上一题">◀</button>'
-      + '<button onclick="navigateBlank(1)" title="下一题">▶</button>'
-      + '<button onclick="toggleAnswers()" title="显示/隐藏答案">👁</button>'
-      + '<button class="exit-btn" onclick="exitProjectionMode()" title="退出投影 (Esc)">退出</button>';
+      + '<button onclick="navigateBlank(-1)" title="上一题"><span style="font-size:16px;">◀</span></button>'
+      + '<button onclick="navigateBlank(1)" title="下一题"><span style="font-size:16px;">▶</span></button>'
+      + '<span class="pc-divider"></span>'
+      + '<button onclick="toggleAnswers()" title="显示/隐藏答案"><span style="font-size:14px;">👁</span> 答案</button>'
+      + '<span class="pc-divider"></span>'
+      + '<button class="pc-exit" onclick="exitProjectionMode()" title="退出投影">退出</button>';
     document.body.appendChild(bar);
   }
-  // ESC 退出
   document.addEventListener('keydown', _onProjectionKey);
+  // fullscreen 状态变化也要监听（用户按 F11 退全屏时同步退出投影）
+  document.addEventListener('fullscreenchange', _onProjectionFullscreenChange);
 }
 
 function exitProjectionMode() {
   document.body.classList.remove('projection-mode');
+  // 清抽屉的投影 size 状态
+  var drawer = document.getElementById('drawer');
+  if (drawer) {
+    drawer.classList.remove('drawer-state-mini', 'drawer-state-half', 'drawer-state-full');
+    drawer.style.height = ''; // 还回默认
+  }
   var bar = document.getElementById('projectionControls');
   if (bar) bar.remove();
   document.removeEventListener('keydown', _onProjectionKey);
+  document.removeEventListener('fullscreenchange', _onProjectionFullscreenChange);
   try {
     if (document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(function() {});
@@ -5480,9 +5525,30 @@ function exitProjectionMode() {
 }
 
 function _onProjectionKey(e) {
-  if (e.key === 'Escape') exitProjectionMode();
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); navigateBlank(-1); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); navigateBlank(1); }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    exitProjectionMode();
+  }
+  // 不再用 ← → 切题（user 反馈一体机不方便用键盘，专心用按钮）
+}
+
+function _onProjectionFullscreenChange() {
+  // 如果用户通过 F11 / Esc 退出了全屏（但还在 projection-mode），同步退出投影
+  if (!document.fullscreenElement && document.body.classList.contains('projection-mode')) {
+    exitProjectionMode();
+  }
+}
+
+// 投影模式下抽屉的三档尺寸：mini / half / full
+function setDrawerProjectionSize(size) {
+  var drawer = document.getElementById('drawer');
+  if (!drawer) return;
+  drawer.classList.remove('drawer-state-mini', 'drawer-state-half', 'drawer-state-full');
+  drawer.classList.add('drawer-state-' + size);
+  // 同步 active 状态到按钮
+  document.querySelectorAll('.drawer-projection-size-btns button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.size === size);
+  });
 }
 
 function renderCategoryStats() {
