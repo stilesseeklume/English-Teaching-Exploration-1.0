@@ -4692,12 +4692,13 @@ function switchPage(page) {
 
   if (page === 'practice') updateBackButton();
 
-  var cs = document.getElementById('contextSidebar');
-  if (cs) cs.style.display = 'none';
   if (page === 'home') { _currentHomeView = 'cards'; navigateHome('cards'); }
   if (page === 'error-book') renderErrorBook();
   if (page === 'lesson-prep') renderPrepList();
   if (page === 'admin') renderAdminPage();
+  // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
+  // 错题本/备课/讲题/经典 home 显示）
+  if (typeof renderPageSidebar === 'function') renderPageSidebar(page);
 }
 
 // 顶部 logo 点击：回到首页
