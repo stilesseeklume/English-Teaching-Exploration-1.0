@@ -2377,47 +2377,63 @@
       <h1 class="page-title">语法填空 · 考点分类训练</h1>
       <p class="page-desc"><span id="bankStat">题库加载中…</span></p>
 
+      <!-- 主页模式切换 chip（按 §5b 规则保留旧版） -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+        <div style="display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;font-size:12px;">
+          <button id="homeModeNewBtn" onclick="switchHomeMode('dashboard')" style="border:none;background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">✨ 智能 Dashboard</button>
+          <button id="homeModeClassicBtn" onclick="switchHomeMode('classic')" style="border:none;background:transparent;color:var(--text-2);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">📋 经典视图</button>
+        </div>
+      </div>
+
       <div id="homeCards">
-        <div class="home-entry-cards">
-          <div class="home-entry-card" onclick="navigateHome('exams')">
-            <div>
-              <div class="home-entry-card-icon exams">📋</div>
-              <div class="home-entry-card-title">按套卷练习</div>
-              <div class="home-entry-card-desc" id="homeExamCount">-- 套真题/模拟卷</div>
+        <!-- 新版 Dashboard（默认） -->
+        <div id="homeDashboard">
+          <div id="homeDashboardContent"></div>
+        </div>
+
+        <!-- 经典版 5 卡片（默认隐藏，可切换） -->
+        <div id="homeCardsClassic" style="display:none;">
+          <div class="home-entry-cards">
+            <div class="home-entry-card" onclick="navigateHome('exams')">
+              <div>
+                <div class="home-entry-card-icon exams">📋</div>
+                <div class="home-entry-card-title">按套卷练习</div>
+                <div class="home-entry-card-desc" id="homeExamCount">-- 套真题/模拟卷</div>
+              </div>
+              <div class="home-entry-card-arrow">→</div>
             </div>
-            <div class="home-entry-card-arrow">→</div>
-          </div>
-          <div class="home-entry-card" onclick="navigateHome('categories')">
-            <div>
-              <div class="home-entry-card-icon categories">🏷️</div>
-              <div class="home-entry-card-title">按考点练习</div>
-              <div class="home-entry-card-desc">11 个考点分类</div>
+            <div class="home-entry-card" onclick="navigateHome('categories')">
+              <div>
+                <div class="home-entry-card-icon categories">🏷️</div>
+                <div class="home-entry-card-title">按考点练习</div>
+                <div class="home-entry-card-desc">11 个考点分类</div>
+              </div>
+              <div class="home-entry-card-arrow">→</div>
             </div>
-            <div class="home-entry-card-arrow">→</div>
-          </div>
-          <div class="home-entry-card" onclick="switchPage('knowledge')">
-            <div>
-              <div class="home-entry-card-icon knowledge">📖</div>
-              <div class="home-entry-card-title">知识库</div>
-              <div class="home-entry-card-desc">11 类语法考点详解</div>
+            <div class="home-entry-card" onclick="switchPage('knowledge')">
+              <div>
+                <div class="home-entry-card-icon knowledge">📖</div>
+                <div class="home-entry-card-title">知识库</div>
+                <div class="home-entry-card-desc">11 类语法考点详解</div>
+              </div>
+              <div class="home-entry-card-arrow">→</div>
             </div>
-            <div class="home-entry-card-arrow">→</div>
-          </div>
-          <div class="home-entry-card" onclick="switchPage('error-book')">
-            <div>
-              <div class="home-entry-card-icon errors">📝</div>
-              <div class="home-entry-card-title">错题本</div>
-              <div class="home-entry-card-desc" id="homeErrorCount">-- 道错题</div>
+            <div class="home-entry-card" onclick="switchPage('error-book')">
+              <div>
+                <div class="home-entry-card-icon errors">📝</div>
+                <div class="home-entry-card-title">错题本</div>
+                <div class="home-entry-card-desc" id="homeErrorCountClassic">-- 道错题</div>
+              </div>
+              <div class="home-entry-card-arrow">→</div>
             </div>
-            <div class="home-entry-card-arrow">→</div>
-          </div>
-          <div class="home-entry-card" onclick="switchPage('lesson-prep')">
-            <div>
-              <div class="home-entry-card-icon prep">📁</div>
-              <div class="home-entry-card-title">备课资料</div>
-              <div class="home-entry-card-desc" id="homePrepCount">-- 份资料</div>
+            <div class="home-entry-card" onclick="switchPage('lesson-prep')">
+              <div>
+                <div class="home-entry-card-icon prep">📁</div>
+                <div class="home-entry-card-title">备课资料</div>
+                <div class="home-entry-card-desc" id="homePrepCountClassic">-- 份资料</div>
+              </div>
+              <div class="home-entry-card-arrow">→</div>
             </div>
-            <div class="home-entry-card-arrow">→</div>
           </div>
         </div>
       </div>
@@ -4009,6 +4025,7 @@ function init() {
   setupPrepDrop();
   setupDocxDrop();
   setupPassageClickDelegation();
+  _initHomeMode();
 
   // 紧凑模式（白板/投影）从 localStorage 恢复
   try {
@@ -4268,12 +4285,157 @@ function renderBankStat() {
   const sets = BANK.exams.length;
   const total = ALL_QUESTIONS.length;
   el.textContent = `题库：${sets} 套卷 · ${total} 题（数据源：data/语法填空库）。`;
+  // 经典版 5 卡片字段
   const examCountEl = document.getElementById('homeExamCount');
   if (examCountEl) examCountEl.textContent = `${sets} 套真题/模拟卷`;
-  const errCountEl = document.getElementById('homeErrorCount');
-  if (errCountEl) errCountEl.textContent = `${errorBookQuestions.length} 道错题`;
-  const prepCountEl = document.getElementById('homePrepCount');
-  if (prepCountEl) prepCountEl.textContent = `${prepPassages.length} 份资料`;
+  ['homeErrorCount','homeErrorCountClassic'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.textContent = `${errorBookQuestions.length} 道错题`;
+  });
+  ['homePrepCount','homePrepCountClassic'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.textContent = `${prepPassages.length} 份资料`;
+  });
+  // 同步刷新新版 dashboard
+  if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+}
+
+// ─── Sprint 1.6 · 智能 Dashboard 主页 ─────────────
+// 按用户数据状态自适应：新用户引导 / 活跃用户行动入口
+function renderHomeDashboard() {
+  var el = document.getElementById('homeDashboardContent');
+  if (!el) return;
+
+  var prepCount = (typeof prepPassages !== 'undefined') ? prepPassages.length : 0;
+  var errCount  = (typeof errorBookQuestions !== 'undefined') ? errorBookQuestions.length : 0;
+  var isNewUser = (prepCount === 0 && errCount === 0);
+
+  // 动态欢迎语（按时间）
+  var h = new Date().getHours();
+  var greet = h < 6 ? '深夜好' : h < 11 ? '早上好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
+
+  var html = '';
+  // ─ Hero 区
+  html += '<section style="background:linear-gradient(135deg, var(--accent-bg) 0%, var(--surface) 80%);border-radius:18px;padding:32px 30px;margin-bottom:22px;position:relative;overflow:hidden;">';
+  if (isNewUser) {
+    html += '<div style="font-size:14px;color:var(--accent);margin-bottom:6px;font-weight:600;">👋 欢迎来到 Seeklume</div>';
+    html += '<h2 style="margin:0 0 8px 0;font-size:26px;color:var(--text);line-height:1.4;">高中英语 · 语法填空讲评工作台</h2>';
+    html += '<p style="margin:0 0 18px;color:var(--text-2);line-height:1.7;font-size:15px;">第一步：上传一份你最近讲的卷子，AI 自动解析每道题并按考点分类，下次讲新题时跨卷迁移自动联动。</p>';
+  } else {
+    html += '<div style="font-size:14px;color:var(--accent);margin-bottom:6px;font-weight:600;">👋 ' + greet + '</div>';
+    html += '<h2 style="margin:0 0 8px 0;font-size:26px;color:var(--text);line-height:1.4;">今天讲哪份卷子？</h2>';
+    var statusBits = [];
+    if (prepCount > 0) statusBits.push(prepCount + ' 份备课');
+    if (errCount > 0)  statusBits.push(errCount + ' 道错题');
+    html += '<p style="margin:0 0 18px;color:var(--text-2);line-height:1.7;font-size:15px;">你已积累 <b style="color:var(--text);">' + statusBits.join(' · ') + '</b>。继续上次的备课，或者上传一份新卷子。</p>';
+  }
+
+  // 4 大行动按钮
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">';
+
+  html += '<button onclick="switchPage(\'lesson-prep\');setTimeout(function(){var btn=document.querySelector(\'#page-lesson-prep .docx-upload-btn\');if(btn)btn.click();},120)" '
+       + 'style="background:var(--accent);color:#fff;border:none;padding:14px 16px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:4px;transition:all .18s;box-shadow:0 4px 14px rgba(0,113,227,0.2);" '
+       + 'onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 22px rgba(0,113,227,0.3)\'" '
+       + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 4px 14px rgba(0,113,227,0.2)\'">'
+       + '<span style="font-size:20px;">📤</span>'
+       + '<span>上传新 Word</span>'
+       + '<span style="font-size:11px;opacity:0.85;font-weight:400;">AI 自动解析 + 入库</span>'
+       + '</button>';
+
+  html += '<button onclick="switchPage(\'lesson-prep\')" '
+       + 'style="background:var(--surface);color:var(--text);border:1px solid var(--border);padding:14px 16px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:4px;transition:all .18s;" '
+       + 'onmouseover="this.style.borderColor=\'var(--accent)\';this.style.background=\'var(--accent-bg)\'" '
+       + 'onmouseout="this.style.borderColor=\'var(--border)\';this.style.background=\'var(--surface)\'">'
+       + '<span style="font-size:20px;">📖</span>'
+       + '<span>继续备课讲题</span>'
+       + '<span style="font-size:11px;color:var(--text-3);font-weight:400;">' + prepCount + ' 份备课资料</span>'
+       + '</button>';
+
+  html += '<button onclick="switchPage(\'error-book\')" '
+       + 'style="background:var(--surface);color:var(--text);border:1px solid var(--border);padding:14px 16px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:4px;transition:all .18s;" '
+       + 'onmouseover="this.style.borderColor=\'var(--red)\';this.style.background=\'var(--red-bg)\'" '
+       + 'onmouseout="this.style.borderColor=\'var(--border)\';this.style.background=\'var(--surface)\'">'
+       + '<span style="font-size:20px;">🎯</span>'
+       + '<span>复习错题</span>'
+       + '<span style="font-size:11px;color:var(--text-3);font-weight:400;">' + errCount + ' 道待复习</span>'
+       + '</button>';
+
+  html += '<button onclick="switchPage(\'knowledge\')" '
+       + 'style="background:var(--surface);color:var(--text);border:1px solid var(--border);padding:14px 16px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:4px;transition:all .18s;" '
+       + 'onmouseover="this.style.borderColor=\'var(--purple, #af52de)\';this.style.background=\'var(--purple-bg, #f6edfb)\'" '
+       + 'onmouseout="this.style.borderColor=\'var(--border)\';this.style.background=\'var(--surface)\'">'
+       + '<span style="font-size:20px;">📚</span>'
+       + '<span>知识库</span>'
+       + '<span style="font-size:11px;color:var(--text-3);font-weight:400;">教材 + 102 精细考点</span>'
+       + '</button>';
+
+  html += '</div>';
+  html += '</section>';
+
+  // ─ 教材封面画廊（永远显示，作为内容兜底 + 引导）
+  var FT = window.GRAMMAR_FINE_TAGS;
+  if (FT && FT.textbook_units) {
+    var bookOrder = ['必修一', '必修二', '必修三', '选必一', '选必二', '选必三', '选必四'];
+    var coverMap = {
+      '必修一': 'images/textbook-covers/bixiu-1.jpg',
+      '必修二': 'images/textbook-covers/bixiu-2.jpg',
+      '必修三': 'images/textbook-covers/bixiu-3.jpg',
+      '选必一': 'images/textbook-covers/xuanbi-1.jpg',
+      '选必二': 'images/textbook-covers/xuanbi-2.jpg',
+      '选必三': 'images/textbook-covers/xuanbi-3.jpg',
+      '选必四': 'images/textbook-covers/xuanbi-4.jpg'
+    };
+    html += '<section>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">';
+    html += '<h3 style="margin:0;font-size:16px;color:var(--text);">📚 教材速览</h3>';
+    html += '<a onclick="switchPage(\'knowledge\')" style="font-size:13px;color:var(--accent);cursor:pointer;">展开全部 →</a>';
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;">';
+    bookOrder.forEach(function(book, idx) {
+      html += '<div onclick="switchPage(\'knowledge\');setTimeout(function(){setKnowledgeView(\'textbook\');setTimeout(function(){openTextbookModal(\'' + book + '\');},50);},80)" '
+           + 'style="cursor:pointer;border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:all .2s;animation:fadeInUp .4s ease-out ' + (idx * 40) + 'ms both;" '
+           + 'onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 20px rgba(0,0,0,0.15)\'" '
+           + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 1px 4px rgba(0,0,0,0.06)\'">';
+      html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + coverMap[book] + '\') no-repeat center/cover;"></div>';
+      html += '<div style="padding:5px;text-align:center;font-size:11px;font-weight:600;color:var(--text-2);">' + book + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '</section>';
+  }
+
+  el.innerHTML = html;
+}
+
+// 切换主页模式
+var HOME_MODE_KEY = 'grammar-home-mode';
+function switchHomeMode(mode) {
+  var dash = document.getElementById('homeDashboard');
+  var classic = document.getElementById('homeCardsClassic');
+  var newBtn = document.getElementById('homeModeNewBtn');
+  var classicBtn = document.getElementById('homeModeClassicBtn');
+  var isDash = (mode !== 'classic');
+  if (dash) dash.style.display = isDash ? '' : 'none';
+  if (classic) classic.style.display = isDash ? 'none' : '';
+  if (newBtn) {
+    newBtn.style.background = isDash ? 'var(--accent)' : 'transparent';
+    newBtn.style.color = isDash ? '#fff' : 'var(--text-2)';
+  }
+  if (classicBtn) {
+    classicBtn.style.background = isDash ? 'transparent' : 'var(--accent)';
+    classicBtn.style.color = isDash ? 'var(--text-2)' : '#fff';
+  }
+  try { localStorage.setItem(HOME_MODE_KEY, mode); } catch(e) {}
+  if (isDash) renderHomeDashboard();
+}
+
+// 启动时恢复用户偏好
+function _initHomeMode() {
+  try {
+    var saved = localStorage.getItem(HOME_MODE_KEY);
+    if (saved === 'classic') switchHomeMode('classic');
+    else switchHomeMode('dashboard');
+  } catch(e) { switchHomeMode('dashboard'); }
 }
 
 // ────────── 按套卷练习 · 全部 19 套真题/模拟卷 ──────────
