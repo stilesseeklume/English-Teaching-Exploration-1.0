@@ -100,6 +100,43 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* 投影模式：全屏 + 超大字 + 隐藏 chrome（讲题专用）*/
+  body.projection-mode header,
+  body.projection-mode .dock,
+  body.projection-mode .context-sidebar,
+  body.projection-mode .sidebar-edge-trigger,
+  body.projection-mode #syncStatus,
+  body.projection-mode .release-marker { display: none !important; }
+  body.projection-mode .app-container { padding-top: 20px !important; }
+  body.projection-mode #page-practice { padding: 0 4vw !important; }
+  body.projection-mode .passage,
+  body.projection-mode .passage-content,
+  body.projection-mode .passage-text { font-size: 38px !important; line-height: 1.85 !important; }
+  body.projection-mode .blank-inline { font-size: 38px !important; padding: 4px 10px !important; }
+  body.projection-mode .answer-filled { font-size: 38px !important; }
+  body.projection-mode .drawer { font-size: 28px !important; }
+  body.projection-mode .drawer.open { height: 60vh !important; }
+  body.projection-mode .drawer-content { font-size: 28px !important; line-height: 1.8 !important; }
+  body.projection-mode .lesson-card { font-size: 26px !important; }
+  body.projection-mode .migration-card-sentence { font-size: 24px !important; }
+  /* 投影右上角浮动控制条 */
+  .projection-controls {
+    position: fixed; top: 20px; right: 20px; z-index: 9999;
+    display: flex; gap: 8px;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(12px);
+    padding: 10px 14px; border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  }
+  .projection-controls button {
+    border: none; background: transparent; color: #fff;
+    padding: 6px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 14px; font-family: inherit;
+    transition: background .15s;
+  }
+  .projection-controls button:hover { background: rgba(255,255,255,0.15); }
+  .projection-controls .exit-btn { background: rgba(255,59,48,0.85); }
+  .projection-controls .exit-btn:hover { background: rgba(255,59,48,1); }
+
   /* 教材"翻开"全屏 modal — 顶部 hero banner 风格 */
   .textbook-modal-backdrop {
     position: fixed; inset: 0; z-index: 2000;
@@ -2057,7 +2094,8 @@
         <span class="icon-moon">&#9790;</span>
       </button>
       <div class="header-font-ctrl" style="display:flex;align-items:center;gap:4px;">
-        <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：适合白板/投影" style="font-size:13px;">⊟</button>
+        <button class="source-switch-btn" id="btnProjection" onclick="enterProjectionMode()" title="投影模式：全屏 + 超大字（讲题专用）" style="font-size:14px;">🖥</button>
+        <button class="source-switch-btn" id="btnCompact" onclick="toggleCompact()" title="紧凑模式：稍稍放大" style="font-size:13px;">⊟</button>
         <span style="font-size:11px;color:var(--text-3);">原文字号</span>
         <button class="font-ctrl-btn" onclick="adjustFont('passage',-1)">−</button>
         <span id="passageFontVal" style="font-size:11px;min-width:28px;text-align:center;">24px</span>
@@ -5393,8 +5431,58 @@ function toggleCompact() {
   var isCompact = document.body.classList.toggle('compact');
   var btn = document.getElementById('btnCompact');
   if (btn) btn.textContent = isCompact ? '⊞' : '⊟';
-  if (btn) btn.title = isCompact ? '标准模式' : '紧凑模式：适合白板/投影';
+  if (btn) btn.title = isCompact ? '标准模式' : '紧凑模式：稍稍放大';
   try { localStorage.setItem(COMPACT_KEY, isCompact ? '1' : '0'); } catch(e) {}
+}
+
+// ─── 投影模式 ─────────────────────────
+// 全屏 + 超大字 + 隐藏 chrome，适合教室大屏讲题
+function enterProjectionMode() {
+  // 必须在讲题/答题页面才有意义
+  var practicePage = document.getElementById('page-practice');
+  if (!practicePage || !practicePage.classList.contains('active')) {
+    alert('请先进入答题/讲题页面再开投影模式。');
+    return;
+  }
+  document.body.classList.add('projection-mode');
+  // 尝试浏览器全屏
+  try {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(function() {});
+    }
+  } catch(e) {}
+  // 加浮动控制条
+  if (!document.getElementById('projectionControls')) {
+    var bar = document.createElement('div');
+    bar.id = 'projectionControls';
+    bar.className = 'projection-controls';
+    bar.innerHTML = ''
+      + '<button onclick="navigateBlank(-1)" title="上一题">◀</button>'
+      + '<button onclick="navigateBlank(1)" title="下一题">▶</button>'
+      + '<button onclick="toggleAnswers()" title="显示/隐藏答案">👁</button>'
+      + '<button class="exit-btn" onclick="exitProjectionMode()" title="退出投影 (Esc)">退出</button>';
+    document.body.appendChild(bar);
+  }
+  // ESC 退出
+  document.addEventListener('keydown', _onProjectionKey);
+}
+
+function exitProjectionMode() {
+  document.body.classList.remove('projection-mode');
+  var bar = document.getElementById('projectionControls');
+  if (bar) bar.remove();
+  document.removeEventListener('keydown', _onProjectionKey);
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(function() {});
+    }
+  } catch(e) {}
+}
+
+function _onProjectionKey(e) {
+  if (e.key === 'Escape') exitProjectionMode();
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); navigateBlank(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); navigateBlank(1); }
 }
 
 function renderCategoryStats() {
