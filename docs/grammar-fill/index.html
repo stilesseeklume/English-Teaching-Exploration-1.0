@@ -406,11 +406,26 @@
   }
   /* 侧栏触发带：左边缘不可见热区 */
   .sidebar-edge-trigger {
-    display: none !important;
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 10px;
+    z-index: 149;
   }
   /* 侧栏本体：固定定位，隐藏于左边缘外，hover 滑出 */
   .context-sidebar {
-    display: none !important;
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 220px;
+    z-index: 150;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 0.5px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(calc(-100% + 8px));
+    transition: transform .32s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow .32s ease;
+    overflow-y: auto; overflow-x: hidden;
+    border-radius: 0 var(--radius) var(--radius) 0;
   }
   /* 隐藏时可见的手柄条 + grip 指示器 */
   .context-sidebar::before {
