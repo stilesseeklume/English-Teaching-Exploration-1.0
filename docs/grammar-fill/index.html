@@ -5129,6 +5129,10 @@ function showAnalysisByIdx(idx) {
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerOverlay').classList.add('show');
   document.getElementById('drawerContent').scrollTop = 0;
+  // 投影模式下点题直接铺满全屏，不用老师手动拖
+  if (document.body.classList.contains('projection-mode')) {
+    setDrawerProjectionSize('full');
+  }
   try {
     document.getElementById('drawerContent').innerHTML = buildAnalysisContent(q);
   } catch (e) {
@@ -5304,25 +5308,38 @@ function buildAnalysisContent(q) {
   q = q || {};
   var sent = renderSentenceWithBlank(q, true);
   var focus = safeQuestionFocus(q);
-  var trap = safeQuestionTrap(q);
-  var guide = safeTeachingGuide(q, focus, trap);
-  var label = trap ? ('当前陷阱 · ' + trap.name) : focus.label;
-  var subLabel = trap ? focus.label : '';
-  var path = getQuestionLessonPath(q, focus, trap);
+  // fine_category（Sprint 1）优先，没有就退回 focus.label
+  var fineInfo = getFineTagInfo(q.fine_category);
+  var tagLabel = (fineInfo && fineInfo.name) || focus.label;
+
+  var guide;
+  try { guide = getFocusGuide(focus); } catch(e) { guide = null; }
+  guide = guide || {
+    headline: '这题先问：空格在句子里承担什么功能？',
+    questions: [
+      '先找句子主干：主语、谓语、宾语在哪里？',
+      '再看空格成分：作谓语、非谓语，还是词性转换？',
+      '最后结合固定搭配和上下文语义确定答案。'
+    ]
+  };
+
+  var path = getQuestionLessonPath(q, focus, null);
   var focusHtml = '<div class="lesson-card">'
     + '<div class="lesson-card-kicker">课堂讲法</div>'
     + '<div class="lesson-card-title">' + escapeHtml(guide.headline) + '</div>'
-    + '<div class="lesson-card-focus">' + escapeHtml(label) + '</div>'
-    + (subLabel ? '<div class="lesson-card-sub">' + escapeHtml(subLabel) + '</div>' : '')
+    + '<div class="lesson-card-focus">' + escapeHtml(tagLabel) + '</div>'
     + '<div class="lesson-path">'
-    + path.map(function(item, idx) { return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">' + escapeHtml(item) + '</span>'; }).join('')
-    + '</div>'
-    + '<div class="lesson-guide-steps">'
-    + guide.questions.map(function(item, idx) {
-        return '<div class="lesson-guide-step"><span class="lesson-guide-step-no">' + (idx + 1) + '</span><span>' + escapeHtml(item) + '</span></div>';
+    + path.map(function(item, idx) {
+        return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">'
+          + escapeHtml(item) + '</span>';
       }).join('')
     + '</div>'
-    + '<div class="lesson-wrong-box">' + escapeHtml(guide.wrong) + '</div>'
+    + '<div class="lesson-guide-steps">'
+    + asArray(guide.questions).map(function(item, idx) {
+        return '<div class="lesson-guide-step"><span class="lesson-guide-step-no">' + (idx + 1)
+          + '</span><span>' + escapeHtml(item) + '</span></div>';
+      }).join('')
+    + '</div>'
     + '</div>';
 
   return '<div class="analysis-answer-lg">' + escapeHtml(q.answer || '') + '</div>'
