@@ -3559,7 +3559,8 @@ function loadDrawerHeight() {
 
 function applyDrawerHeight() {
   if (drawerHeight) {
-    document.getElementById('drawer').style.height = drawerHeight + 'px';
+    var maxH = window.innerHeight - 52;
+    document.getElementById('drawer').style.height = Math.min(drawerHeight, maxH) + 'px';
   }
 }
 
@@ -5127,6 +5128,7 @@ function showAnalysisByIdx(idx) {
 
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('drawerContent').scrollTop = 0;
   try {
     document.getElementById('drawerContent').innerHTML = buildAnalysisContent(q);
   } catch (e) {
