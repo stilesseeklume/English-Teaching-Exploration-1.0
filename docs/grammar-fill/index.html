@@ -5489,21 +5489,32 @@ function buildMigrationContent(q) {
     migration = Object.values(byExam2).slice(0, 6);
   }
 
-  // 头部"考点路径"显示：精细 tag 优先，再退回 trap / focus
+  // 头部"考点路径"显示
+  // 当前题有 fine_category → 直接用
+  // 当前题没有 fine_category → 从池子里的题统计最多的 fine tag 作为推断
   var headerLabel;
   var headerSubLabel = '';
-  if (fineInfo) {
-    headerLabel = '考点：' + fineInfo.name;
-    headerSubLabel = '属：' + fineInfo.category_name;
-    if (fineInfo.textbook_units && fineInfo.textbook_units.length > 0) {
-      var u = fineInfo.textbook_units[0];
+  var resolvedFineInfo = fineInfo;
+  if (!resolvedFineInfo && pool.length > 0) {
+    var _fineCounts = {};
+    pool.forEach(function(item) {
+      if (item.fine_category) _fineCounts[item.fine_category] = (_fineCounts[item.fine_category] || 0) + 1;
+    });
+    var _topId = Object.keys(_fineCounts).sort(function(a, b) { return _fineCounts[b] - _fineCounts[a]; })[0];
+    if (_topId && _fineCounts[_topId] >= 2) resolvedFineInfo = getFineTagInfo(_topId);
+  }
+  if (resolvedFineInfo) {
+    headerLabel = '同考点：' + resolvedFineInfo.name;
+    headerSubLabel = resolvedFineInfo.category_name;
+    if (resolvedFineInfo.textbook_units && resolvedFineInfo.textbook_units.length > 0) {
+      var u = resolvedFineInfo.textbook_units[0];
       headerSubLabel += '　·　对应' + u.book + ' ' + u.unit;
-      if (fineInfo.textbook_units.length > 1) {
-        headerSubLabel += ' 等 ' + fineInfo.textbook_units.length + ' 个单元';
+      if (resolvedFineInfo.textbook_units.length > 1) {
+        headerSubLabel += ' 等 ' + resolvedFineInfo.textbook_units.length + ' 个单元';
       }
     }
   } else {
-    headerLabel = '同考点：' + focus.label;
+    headerLabel = '同类型：' + focus.label;
   }
 
   var html = tabsHtml
