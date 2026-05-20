@@ -12,7 +12,9 @@ window.GRAMMAR_BANK = {
     "logic": "逻辑连词",
     "attrib": "定语从句",
     "nounclause": "名词性从句",
-    "advclause": "状语从句"
+    "advclause": "状语从句",
+    "modal": "情态动词",
+    "special": "其他特殊句式"
   },
   "exams": [
     {
@@ -75,7 +77,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-perfect-passive-neg"
+          "fine_category": "nonp-complement"
         },
         {
           "no": 62,
@@ -167,15 +169,15 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-ed-ing"
         },
         {
           "no": 61,
           "answer": "interviews",
           "explanation": "考查名词的数。句意：他们还需要准备好用英语接受国际记者的采访。分析句子结构可知，空前是动词，所以空处应填名词作宾语，interview意为\"采访\"为可数名词，不止一段采访，应用复数形式。故填interviews。",
           "grammar_point": "名词的数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -232,7 +234,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "logic",
           "category_name": "逻辑连词",
-          "fine_category": "logic-conj-phrase"
+          "fine_category": "logic-compound"
         },
         {
           "no": 57,
@@ -277,7 +279,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-adj-adv-other"
         },
         {
           "no": 62,
@@ -295,16 +297,16 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "preposition",
           "category_name": "介词",
-          "fine_category": "prep-common"
+          "fine_category": "prep-other"
         },
         {
           "no": 64,
           "answer": "events",
           "explanation": "",
           "grammar_point": "",
-          "category": "word",
-          "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "category": "number",
+          "category_name": "数词",
+          "fine_category": "num-plural"
         },
         {
           "no": 65,
@@ -360,7 +362,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-adj-adv-other"
         },
         {
           "no": 60,
@@ -369,7 +371,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "动词的时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-present"
         },
         {
           "no": 61,
@@ -385,8 +387,8 @@ window.GRAMMAR_BANK = {
           "answer": "favourites",
           "explanation": "名词复数。分析句子结构可知，空处作动词included的宾语，前面的modern Western为定语，所以此处应填名词；根据空后的举例“such as rosemary, lavender and fennel”可知，空处表示复数概念。故填favourites。favourite在此处为可数名词，表示“特别喜爱的事物”。",
           "grammar_point": "名词复数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -441,8 +443,8 @@ window.GRAMMAR_BANK = {
           "answer": "themes",
           "explanation": "名词复数。根据\"there are\"可知,此处应用名词复数themes。句意:虽然他们可能从未见过面,但是他们的作品中有共同的主题。",
           "grammar_point": "名词复数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -452,7 +454,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "动词的时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 39,
@@ -488,7 +490,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 43,
@@ -598,7 +600,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-adj-adv-other"
         },
         {
           "no": 44,
@@ -614,8 +616,8 @@ window.GRAMMAR_BANK = {
           "answer": "wonders",
           "explanation": "考查名词的数。句意：这些永恒的建筑奇迹继续激励着建筑师们努力寻找绿色解决方案来为房屋和建筑物降温。根据上文these可知wonder应用复数形式。故填wonders。",
           "grammar_point": "名词的数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         }
       ],
@@ -645,7 +647,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-ed-ing"
         },
         {
           "no": 38,
@@ -672,7 +674,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "连词",
           "category": "logic",
           "category_name": "逻辑连词",
-          "fine_category": "logic-conj-phrase"
+          "fine_category": "logic-compound"
         },
         {
           "no": 41,
@@ -697,8 +699,8 @@ window.GRAMMAR_BANK = {
           "answer": "photos",
           "explanation": "考查名词的数。句意参考上题。photo意为“照片”，为可数名词，其前没有表示数量的限定词，应用名词复数。故填photos。",
           "grammar_point": "名词的数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -708,7 +710,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态、语态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 45,
@@ -717,7 +719,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-ed-ing"
         }
       ],
       "chinese_translation": "十多年前，古塔爱好者吴凯想找一本全面介绍古塔数量、位置，并配有优质图文的书。\n\n\"我翻阅了大量资料，但发现市面上的书籍信息有限，好图片也不多，\"他解释道。对现有选择感到不满，吴凯决定自己动手。尽管全国估计有上万座古塔，但许多因地处偏远、保存状况不佳而未被记录在册。\n\n探访山顶或悬崖之巅的古塔，或是隐匿于密林深处的塔，需要极大的决心、体力甚至运气，因此很少有人能亲眼目睹。即便有人成功抵达，拍摄出好照片——尤其是适合印刷的作品——也是一项额外挑战。\n\n幸运的是，吴凯的计划得到了志同道合爱好者的支持，他们慷慨贡献了精美的照片。2019年，吴凯出版了一本500页的书，介绍了北京300多座古塔。随后，他与其中一位爱好者王学斌继续合作。2023年，他们厚达960页的巨著《一生必看的1001座中国古塔》问世。\n\n\"每座塔中，我都能看到文化遗产之美，以及现代生活中所缺失的质朴、完美与敬畏自然的价值观，\"吴凯在序言中写道，\"在广袤的中国大地上，没有两座古塔是完全相同的。\""
@@ -746,16 +748,16 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "logic",
           "category_name": "逻辑连词",
-          "fine_category": "logic-conj-phrase"
+          "fine_category": "logic-compound"
         },
         {
           "no": 58,
           "answer": "that",
           "explanation": "",
           "grammar_point": "",
-          "category": "attrib",
-          "category_name": "定语从句",
-          "fine_category": "attrib-choice"
+          "category": "nounclause",
+          "category_name": "名词性从句",
+          "fine_category": "nounc-connectors"
         },
         {
           "no": 59,
@@ -773,7 +775,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 61,
@@ -782,7 +784,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-tense-other"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 62,
@@ -791,7 +793,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-tense-other"
+          "fine_category": "pred-tense-perfect"
         },
         {
           "no": 63,
@@ -816,9 +818,9 @@ window.GRAMMAR_BANK = {
           "answer": "ones",
           "explanation": "",
           "grammar_point": "",
-          "category": "pronoun",
-          "category_name": "代词",
-          "fine_category": "pron-personal-possessive"
+          "category": "special",
+          "category_name": "其他特殊句式",
+          "fine_category": "special-substitution-ellipsis"
         }
       ],
       "chinese_translation": "大多数超市的货架上摆满了家庭装和多件优惠装。然而，如果你只为自己购物，为了享受折扣而多买并不划算。要么买的东西太重拎不回家，要么还没等吃完就不新鲜了。当然，超市并非慈善机构——他们定价的方式是为了实现利润最大化。如果大多数顾客乐意购买大包装，他们就会主推这类商品。但这让独自购物的顾客多花了钱，还感到失望。\n\n许多超市已不再推行\"买一送一\"促销活动，因为批评声音认为这会导致浪费。消费者更倾向于单品直接降价。不过，虽然香肠便宜几美分是好事，但如果能推出小包装就更好了。即便是最狂热的香肠爱好者，也不想天天吃香肠。\n\n如果超市出售散装农产品，那么少量购买就更容易了。过去两年里，一些超市开始销售分成两半的独立包装的鸡肉或沙拉。这样，当你吃完一半时，另一半仍能保持新鲜。\n\n谁知道呢，也许一些更具前瞻性的超市未来会推出一系列\"专为你设计\"的包装规格，并附赠特别优惠。"
@@ -847,7 +849,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
-          "fine_category": "art-the"
+          "fine_category": "art-a-an"
         },
         {
           "no": 38,
@@ -856,7 +858,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-2"
         },
         {
           "no": 39,
@@ -865,7 +867,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-present"
         },
         {
           "no": 40,
@@ -874,7 +876,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 41,
@@ -892,7 +894,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-basic"
+          "fine_category": "nonp-attribute"
         },
         {
           "no": 43,
@@ -908,8 +910,8 @@ window.GRAMMAR_BANK = {
           "answer": "benefits",
           "explanation": "考查名词的复数。句意：练了30多年的毽子，Chai很珍惜这项运动给身体和社会带来的好处。benefit是可数名词，不止一个，因此空格处用复数，故填benefits。",
           "grammar_point": "名词的复数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -966,7 +968,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-present"
         },
         {
           "no": 40,
@@ -984,7 +986,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-object"
         },
         {
           "no": 42,
@@ -1002,15 +1004,15 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态、语态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 44,
           "answer": "links",
           "explanation": "考查名词的数。句意：Lillian凭借她的热情和专业知识，在冰岛和中国之间建立了多样化的文化联系。link意为“联系”，为可数名词。前面有diverse修饰，这里应用名词复数。故填links。",
           "grammar_point": "名词的数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -1141,7 +1143,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "定语从句",
           "category": "attrib",
           "category_name": "定语从句",
-          "fine_category": "attrib-restrictive-non"
+          "fine_category": "attrib-adverb"
         },
         {
           "no": 37,
@@ -1186,7 +1188,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-tense-present"
         },
         {
           "no": 42,
@@ -1211,8 +1213,8 @@ window.GRAMMAR_BANK = {
           "answer": "afternoons",
           "explanation": "考查名词的数。句意：我住的地方，晒干的衣服闻起来特别香，这要归功于没有烟雾，而且下午有很多蓝天和新鲜空气。afternoon\"下午\"是可数名词，此处指不止一个下午，应用复数形式afternoons。故填afternoons。",
           "grammar_point": "名词的数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -1242,7 +1244,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
-          "fine_category": "art-the"
+          "fine_category": "art-a-an"
         },
         {
           "no": 37,
@@ -1251,7 +1253,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-collective"
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 38,
@@ -1267,8 +1269,8 @@ window.GRAMMAR_BANK = {
           "answer": "entries",
           "explanation": "考查名词的复数。句意：在获奖作品中，Jia Haining团队关于黄河三角洲东方鹳的作品引人注目。entry是可数名词，不止一个，因此空格处用复数，故填entries。",
           "grammar_point": "名词的复数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -1323,7 +1325,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "不定式",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-complement"
         }
       ],
       "chinese_translation": "由中国国家地理主办的\"中国野生生物影像年赛\"，长期以来一直是野生动物记录领域极具影响力的盛事。近日在北京举行的颁奖典礼上，从全球超过37600份投稿中精选出的17件震撼人心的影像作品，深深吸引了在场观众。\n\n本届赛事以\"山海有灵\"为主题，旨在提升公众对野生动物及生态保护的认知。在获奖作品中，贾海宁团队拍摄的黄河三角洲东方白鹳作品尤为引人注目。这部精致的影像作品完美展现了该区域的生态和谐与物种多样性。\n\n为了捕捉雏鸟离巢的动人瞬间，他们凌晨4点半便抵达拍摄地点，耐心等待了近两个月，只为记录幼鹳的首次振翅高飞！评委盛赞这部作品是一曲令人叹为观止的生命交响乐。\n\n此外，赛事新增设的手机摄影奖和社交媒体互动奖，旨在鼓励更广泛的公众参与。正如珍·古道尔博士所言，这项赛事能够激发人们——特别是那些鲜有机会亲身体验自然的人们——重新与自然世界建立联结。"
@@ -1350,8 +1352,8 @@ window.GRAMMAR_BANK = {
           "answer": "cities",
           "explanation": "cities 考查名词复数。介词like后列举多个城市名称，表示泛指“纽约、伦敦、悉尼等城市”，故用复数形式cities。",
           "grammar_point": "名词复数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -1424,7 +1426,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-compound-structure"
+          "fine_category": "nonp-absolute-with"
         }
       ],
       "chinese_translation": "曾经只是中国西北一道鲜为人知的小吃，兰州牛肉面如今正赢得全球食客的青睐。近日一篇报道讲述了这道看似简单的面食如何在纽约、伦敦、悉尼等城市走红。\n\n诱人的美食图片和视频在网络上传播，激发了当地人的食欲和好奇心，促使他们前来一探究竟。食客们不仅欣赏其味道，更享受整个用餐体验。在曼哈顿的一家餐馆里，厨师当着顾客的面将面团拉成面条。\"就像变魔术一样，\"一位食客感叹道。兰州面条独特而令人难忘的嚼劲也让食客们惊叹不已，这种与众不同的口感别具一格。\n\n用牛骨和香料熬制数小时的汤底味道浓郁。在皇后区，一家餐馆在尊重这道菜文化根源的基础上，融合了20种香料熬制出醇厚的汤底。店主甚至通过视频通话向远在中国的祖父母请教配方。在法拉盛，一家面馆的老板根据顾客反馈调整汤底，使其更浓更辣，以适应当地人的口味。正如美食专家C·多伊尔所言：\"没有所谓的'正宗'版本——它一直在演变。\"\n\n从街头小吃到全球明星，兰州牛肉面证明了美食能够跨越文化差异，每一碗面都在讲述着传统、创新和发现美味之乐的故事。"
@@ -1451,9 +1453,9 @@ window.GRAMMAR_BANK = {
           "answer": "times",
           "explanation": "",
           "grammar_point": "",
-          "category": "word",
-          "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "category": "number",
+          "category_name": "数词",
+          "fine_category": "num-plural"
         },
         {
           "no": 58,
@@ -1489,16 +1491,16 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 62,
           "answer": "is",
           "explanation": "",
           "grammar_point": "",
-          "category": "word",
-          "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "category": "predicate",
+          "category_name": "谓语动词",
+          "fine_category": "pred-sva-form"
         },
         {
           "no": 63,
@@ -1514,9 +1516,9 @@ window.GRAMMAR_BANK = {
           "answer": "people's",
           "explanation": "",
           "grammar_point": "",
-          "category": "pronoun",
-          "category_name": "代词",
-          "fine_category": "pron-personal-possessive"
+          "category": "number",
+          "category_name": "数词",
+          "fine_category": "num-possessive"
         },
         {
           "no": 65,
@@ -1525,7 +1527,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-object"
         }
       ],
       "chinese_translation": "时尚的经济与环境代价催生了一种新的穿衣方式，这种趋势在澳大利亚也开始兴起。如今人们选择减少单件衣物的穿着次数，服装租赁服务因此日益流行。\n\n\"我认为这是个绝妙的主意，\"服装租赁店店主坦尼娅·佩里利表示，\"现在的顾客不再介意衣物是二手的，反而更看重能穿到独特款式，既不会塞爆自家衣柜，也不会给垃圾填埋场增加负担。\"\n\n坦尼娅的店铺提供女装租赁而非直接购买，为一次性活动着装提供了更经济的解决方案。这种概念本身并不新鲜——男士租赁正装已有数十年历史——但对女性消费者而言才刚刚兴起。这种\"服装即服务\"模式顺应了共享经济的社会大趋势。\n\n坦尼娅还将目光投向非正式服装领域，计划将其打包成\"胶囊衣橱\"向旅客提供，例如前往海外参加婚礼的客人，租期可更长。\"我真心希望这种模式能适应当代人的生活节奏，\"她说，\"毕竟不是所有人都能在特殊周末后的周一就归还裙子。\""
@@ -1572,7 +1574,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 40,
@@ -1608,7 +1610,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-choice"
+          "fine_category": "word-ed-ing"
         },
         {
           "no": 44,
@@ -1617,7 +1619,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
-          "fine_category": "art-the"
+          "fine_category": "art-a-an"
         },
         {
           "no": 45,
@@ -1646,7 +1648,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
-          "fine_category": "art-the"
+          "fine_category": "art-a-an"
         },
         {
           "no": 37,
@@ -1691,7 +1693,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "定语从句",
           "category": "attrib",
           "category_name": "定语从句",
-          "fine_category": "attrib-restrictive-non"
+          "fine_category": "attrib-choice"
         },
         {
           "no": 42,
@@ -1754,8 +1756,8 @@ window.GRAMMAR_BANK = {
           "answer": "gestures",
           "explanation": "考查名词复数。句意：在轻柔的翻页声和流水声的陪伴下，他们优雅的姿态构成了一幅生动的劳动画卷。gesture为可数名词，结合句中their（他们的）可知，此处应用复数形式，指代多名舞者的姿态。故填gestures。",
           "grammar_point": "名词复数",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -1783,16 +1785,16 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-subject-predicative"
         },
         {
           "no": 41,
           "answer": "when",
           "explanation": "考查定语从句/连词。句意：最感人的时刻出现在宋应星脱下官袍，走进由其他舞者组成的“田野”时。此处引导时间状语从句，意为“当……时”，应用连词when。故填when。",
-          "grammar_point": "定语从句/连词",
-          "category": "attrib",
-          "category_name": "定语从句",
-          "fine_category": "attrib-adverb"
+          "grammar_point": "状语从句",
+          "category": "advclause",
+          "category_name": "状语从句",
+          "fine_category": "advc-time"
         },
         {
           "no": 42,
@@ -1828,7 +1830,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
-          "fine_category": "art-the"
+          "fine_category": "art-a-an"
         }
       ],
       "chinese_translation": "悉尼歌剧院的舞台上空飘荡着悠扬悦耳的音乐。柔和的灯光渐渐照亮了静止的劳动身影，仿佛从明代书卷中跃然而出。他们缓缓开始动作，伴随着轻柔的翻书声和潺潺流水声，优雅的姿态构成了一幅生动的劳动画卷。\n\n舞剧《天工开物》这令人屏息的开场，瞬间将我带入那个古老创造的世界。通过富有表现力的肢体语言，表演传达了这部著作的核心思想——珍视无数无名劳动者传承的技艺，以及实用工具的力量。金色田野与闪亮丝绸的美丽场景，让我感受到人与自然之间深厚的纽带。\n\n最动人的时刻是宋应星脱下官袍，踏入其他舞者构成的\"田野\"中。所有动作戛然而止，只留下他的身影，双臂向上伸展，沉默却充满力量。那一刻，连历史本身似乎都屏住了呼吸。\n\n离开剧院时，我听到一位观众说：\"这是超越国界的美。\"他的话加深了我的信念：植根于文化最优秀传统的艺术，拥有感动任何人的永恒力量。这不仅仅是一部古籍的活化呈现，更是对中国智慧及其与世界分享精神的礼赞。"
@@ -1900,8 +1902,8 @@ window.GRAMMAR_BANK = {
           "answer": "illustrations",
           "explanation": "考查名词。句意：书中每一页都配有精心的注释、生动的背景故事与中国传统国画风格的插图。空处为名词作宾语，illustration意为“插图”，是可数名词，此处表示泛指，且没有冠词限定，应用复数形式。故填illustrations。",
           "grammar_point": "名词",
-          "category": "word",
-          "category_name": "词性转换",
+          "category": "number",
+          "category_name": "数词",
           "fine_category": "num-plural"
         },
         {
@@ -1929,7 +1931,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
-          "fine_category": "art-the"
+          "fine_category": "art-a-an"
         }
       ],
       "chinese_translation": "初次翻开《林深见鹿》时，我仿佛踏入了一个作者文字如轻柔音乐般流淌的世界。许渊冲先生以大师手笔翻译的唐诗，用中英双语轻声低语，两种语言相互呼应，洋溢着宁静、优美与深邃。\n\n全书分为六个章节，每个章节展开独特的情感画卷——悲伤、平和、爱恋、渴望、孤独与沉思。读到\"两岸猿声啼不住，轻舟已过万重山\"时，我深受感动，真切感受到李白获得赦免后那解放的灵魂在字里行间流淌。\n\n书中每一页都配有精心撰写的注释、生动的背景故事以及传统水墨风格的插图。许先生的艺术创作将中文诗歌的韵律转化为英文的音乐，这种再创作既尊重了原作，也赋予了新形式以生命。\n\n阅读这本书就像一场穿越心灵与风景的旅程。对于珍视诗歌、绘画或两种文化完美交融的读者而言，《林深见鹿》是一本必读之作，它优美地架起了沟通的桥梁。"
