@@ -202,84 +202,84 @@ special-substitution-ellipsis：替代 / 省略
 
 ### A. 被动语态题（最高频错配）⚠️ 区分真被动 vs 情感形容词作表语
 - **必选 pred-passive-form 的真被动语态**：
-  - 形态：`is/are/was/were/be + 及物动词的过去分词`
+  - 形态：\`is/are/was/were/be + 及物动词的过去分词\`
   - 关键判断：**主语是动作的承受者**（与动词构成"主-被动"逻辑关系）
-  - 典型标志：后接 `by + 动作执行者`，或主语是无生命物体/抽象概念
-  - 例子：`is described`（被描述）、`was built`（被建）、`were caught`（被抓）、`is divided`（被分成）、`were selected`（被选）、`was released`（被发布）
-  - ✅ 必选：`pred-passive-form`
-  - ❌ 不要：因为解析提"考查时态和语态"就归到 `pred-tense-*`。**被动语态构成是核心考点，时态是从属判断。**
+  - 典型标志：后接 \`by + 动作执行者\`，或主语是无生命物体/抽象概念
+  - 例子：\`is described\`（被描述）、\`was built\`（被建）、\`were caught\`（被抓）、\`is divided\`（被分成）、\`were selected\`（被选）、\`was released\`（被发布）
+  - ✅ 必选：\`pred-passive-form\`
+  - ❌ 不要：因为解析提"考查时态和语态"就归到 \`pred-tense-*\`。**被动语态构成是核心考点，时态是从属判断。**
 
 - **❌ 反例：不是被动语态的"be + -ed"——这是系表结构的情感/状态形容词作表语**：
-  - 形态：`is/are/was/were + 情感或状态形容词`，常见词：`interested、excited、bored、surprised、amazed、tired、worried、puzzled、confused、frightened、disappointed、satisfied、pleased、embarrassed、shocked、annoyed、fascinated、moved、touched、impressed、delighted、thrilled、inspired`
+  - 形态：\`is/are/was/were + 情感或状态形容词\`，常见词：\`interested、excited、bored、surprised、amazed、tired、worried、puzzled、confused、frightened、disappointed、satisfied、pleased、embarrassed、shocked、annoyed、fascinated、moved、touched、impressed、delighted、thrilled、inspired\`
   - 关键判断：**主语是有感受能力的人，描述"主语处于某种心理/生理状态"**（主动状态，不是被做了某事）
-  - 典型标志：后接 `in/at/about/with` 等介词搭配，**不是 by**
-  - 例子：`is interested in music`、`was excited about the trip`、`are bored with the lecture`、`was moved to tears`
-  - ✅ 应选：`word-ed-ing`（如果题目同时对比 -ed/-ing 形容词的语义区分，如 interesting vs interested）或 `word-adj-adv-other`（单纯考 -ed 形容词作表语）
-  - ❌ 绝对不要：`pred-passive-form`。**这不是动词的被动语态，是形容词作表语。**
+  - 典型标志：后接 \`in/at/about/with\` 等介词搭配，**不是 by**
+  - 例子：\`is interested in music\`、\`was excited about the trip\`、\`are bored with the lecture\`、\`was moved to tears\`
+  - ✅ 应选：\`word-ed-ing\`（如果题目同时对比 -ed/-ing 形容词的语义区分，如 interesting vs interested）或 \`word-adj-adv-other\`（单纯考 -ed 形容词作表语）
+  - ❌ 绝对不要：\`pred-passive-form\`。**这不是动词的被动语态，是形容词作表语。**
 
-- **判定流程**：看到 `be + -ed` 答案 → 先问"主语是承受动作（被做）还是描述状态（感觉/处于）"
-  - 承受动作 → 被动语态 → `pred-passive-form`
-  - 描述状态 → 情感形容词 → `word-ed-ing` 或 `word-adj-adv-other`
+- **判定流程**：看到 \`be + -ed\` 答案 → 先问"主语是承受动作（被做）还是描述状态（感觉/处于）"
+  - 承受动作 → 被动语态 → \`pred-passive-form\`
+  - 描述状态 → 情感形容词 → \`word-ed-ing\` 或 \`word-adj-adv-other\`
 
 ### B. -ed / -ing 形容词
-- 触发：答案是单个 `-ed` 或 `-ing` 形态的词作定语/表语，且与某词形成被动/主动逻辑关系（如 `existing` 修饰名词、`visiting` 作定语、`lost` 表"丢失的"、`emotional` 修饰名词）
-- ✅ 必选：`word-ed-ing`
-- ❌ 不要：泛化到更宽的 `word-adj-adv-choice`。后者只用于"该填形容词还是副词"的辨析（如 `easy/easily`）。
+- 触发：答案是单个 \`-ed\` 或 \`-ing\` 形态的词作定语/表语，且与某词形成被动/主动逻辑关系（如 \`existing\` 修饰名词、\`visiting\` 作定语、\`lost\` 表"丢失的"、\`emotional\` 修饰名词）
+- ✅ 必选：\`word-ed-ing\`
+- ❌ 不要：泛化到更宽的 \`word-adj-adv-choice\`。后者只用于"该填形容词还是副词"的辨析（如 \`easy/easily\`）。
 
 ### C. 不定冠词 a / an
-- 触发：答案就是 `a` 或 `an`
-- ✅ 必选：`art-a-an`
-- ❌ 不要：默认归 `art-the`。**a/an 和 the 是两个独立细 tag，不要混用。**
+- 触发：答案就是 \`a\` 或 \`an\`
+- ✅ 必选：\`art-a-an\`
+- ❌ 不要：默认归 \`art-the\`。**a/an 和 the 是两个独立细 tag，不要混用。**
 
 ### D. 并列句 vs 并列连词短语
-- 触发：答案是 `and/but/or/so/yet`，且连接的是两个**完整子句**（前后都有自己的主谓）
-- ✅ 必选：`logic-compound`（并列句）
-- ❌ 不要：`logic-conj-phrase`（这个只用于连接**短语或词**，如 `apples and oranges`）
+- 触发：答案是 \`and/but/or/so/yet\`，且连接的是两个**完整子句**（前后都有自己的主谓）
+- ✅ 必选：\`logic-compound\`（并列句）
+- ❌ 不要：\`logic-conj-phrase\`（这个只用于连接**短语或词**，如 \`apples and oranges\`）
 
 ### E. 同位语 / 作主语表语的动名词
-- 触发：答案是动名词（-ing 形式），且在句中**解释、补充说明前面的名词短语**（如 `the core message — valuing the skills...`，valuing 是 message 的同位解释）
-- ✅ 必选：`nonp-subject-predicative`（包含同位语）
-- ❌ 不要：`nonp-adverbial-1` 或 `nonp-adverbial-2`。**同位语不是状语。**
+- 触发：答案是动名词（-ing 形式），且在句中**解释、补充说明前面的名词短语**（如 \`the core message — valuing the skills...\`，valuing 是 message 的同位解释）
+- ✅ 必选：\`nonp-subject-predicative\`（包含同位语）
+- ❌ 不要：\`nonp-adverbial-1\` 或 \`nonp-adverbial-2\`。**同位语不是状语。**
 
 ### F. 作介词宾语的动名词
-- 触发：答案是 -ing 形式，且紧跟在介词后（如 `beyond exhibiting`、`by returning`、`through using`）
-- ✅ 必选：`nonp-object`
-- ❌ 不要：`nonp-adverbial-*`。**介词宾语不是状语。**
+- 触发：答案是 -ing 形式，且紧跟在介词后（如 \`beyond exhibiting\`、\`by returning\`、\`through using\`）
+- ✅ 必选：\`nonp-object\`
+- ❌ 不要：\`nonp-adverbial-*\`。**介词宾语不是状语。**
 
 ### G. 作宾语补足语的不定式
-- 触发：句型 `allow/inspire/force/encourage/want/expect sb. to do sth.`，答案是 to do 形式
-- ✅ 必选：`nonp-complement`
-- ❌ 不要：`nonp-object`。**宾补不是宾语。**
+- 触发：句型 \`allow/inspire/force/encourage/want/expect sb. to do sth.\`，答案是 to do 形式
+- ✅ 必选：\`nonp-complement\`
+- ❌ 不要：\`nonp-object\`。**宾补不是宾语。**
 
 ### H. 名词派生
-- 触发：答案是名词，且由提示词（动词/形容词）派生而来。常见后缀：-tion/-sion/-ment/-ness/-ity/-ance/-ence/-ship/-ism/-ery/-or（如 `solution←solve`、`recovery←recover`、`visibility←visible`、`criticism←criticize`、`favourite→favourites` 但 favourite 是名词不算派生）
-- ✅ 必选：`word-noun-derivation`
-- ❌ 不要：`word-adj-adv-choice` 或 `word-adj-adv-other`。**派生是独立的考点。**
+- 触发：答案是名词，且由提示词（动词/形容词）派生而来。常见后缀：-tion/-sion/-ment/-ness/-ity/-ance/-ence/-ship/-ism/-ery/-or（如 \`solution←solve\`、\`recovery←recover\`、\`visibility←visible\`、\`criticism←criticize\`、\`favourite→favourites\` 但 favourite 是名词不算派生）
+- ✅ 必选：\`word-noun-derivation\`
+- ❌ 不要：\`word-adj-adv-choice\` 或 \`word-adj-adv-other\`。**派生是独立的考点。**
 
 ### I. 名词复数（重要：归 number 大类，不归 word）
-- 触发：答案是名词的复数形式（如 `interviews`、`gestures`、`cities`、`themes`、`benefits`、`afternoons`、`illustrations`）
-- ✅ 必选：category = `number`（不是 `word`），fine_category = `num-plural`
-- ❌ 不要：归到 `word`（词性转换）大类。**名词的"数"是名词大类的考点。**
+- 触发：答案是名词的复数形式（如 \`interviews\`、\`gestures\`、\`cities\`、\`themes\`、\`benefits\`、\`afternoons\`、\`illustrations\`）
+- ✅ 必选：category = \`number\`（不是 \`word\`），fine_category = \`num-plural\`
+- ❌ 不要：归到 \`word\`（词性转换）大类。**名词的"数"是名词大类的考点。**
 
 ### J. 关系副词 where / when / why
-- 触发：答案是 `where/when/why` 引导定语从句（修饰前面的地点/时间/原因名词）
-- ✅ 必选：`attrib-adverb`
-- ❌ 不要：`attrib-restrictive-non` 或 `attrib-choice`。**关系副词是独立的 fine tag。**
+- 触发：答案是 \`where/when/why\` 引导定语从句（修饰前面的地点/时间/原因名词）
+- ✅ 必选：\`attrib-adverb\`
+- ❌ 不要：\`attrib-restrictive-non\` 或 \`attrib-choice\`。**关系副词是独立的 fine tag。**
 
 ### K. 同位语从句 vs 定语从句
-- 触发：答案是 `that` 引导从句，但从句**解释抽象名词的内容**（the fact/idea/news/belief that...），不修饰先行词
-- ✅ 必选：category = `nounclause`，fine_category = `nounc-connectors`（或更精确的 `nounc-wh-words` 如果是 what/when/where 等）
-- ❌ 不要：`attrib-choice` 或 `attrib-restrictive-non`。**同位语从句属名词性从句，不是定语从句。**
+- 触发：答案是 \`that\` 引导从句，但从句**解释抽象名词的内容**（the fact/idea/news/belief that...），不修饰先行词
+- ✅ 必选：category = \`nounclause\`，fine_category = \`nounc-connectors\`（或更精确的 \`nounc-wh-words\` 如果是 what/when/where 等）
+- ❌ 不要：\`attrib-choice\` 或 \`attrib-restrictive-non\`。**同位语从句属名词性从句，不是定语从句。**
 
 ### L. 替代词 ones / one / that / those
-- 触发：答案用于替代前文出现过的可数名词（避免重复），常见 `ones`（替代复数）、`one`（替代单数）
-- ✅ 必选：category = `special`，fine_category = `special-substitution-ellipsis`
-- ❌ 不要：`pron-personal-possessive`。**替代不是普通代词指代。**
+- 触发：答案用于替代前文出现过的可数名词（避免重复），常见 \`ones\`（替代复数）、\`one\`（替代单数）
+- ✅ 必选：category = \`special\`，fine_category = \`special-substitution-ellipsis\`
+- ❌ 不要：\`pron-personal-possessive\`。**替代不是普通代词指代。**
 
 ### M. 名词所有格 's
-- 触发：答案是 `xxx's` 形式（如 `people's`、`John's`）
-- ✅ 必选：category = `number`，fine_category = `num-possessive`
-- ❌ 不要：`pron-personal-possessive`。**所有格属名词范畴，不是物主代词。**
+- 触发：答案是 \`xxx's\` 形式（如 \`people's\`、\`John's\`）
+- ✅ 必选：category = \`number\`，fine_category = \`num-possessive\`
+- ❌ 不要：\`pron-personal-possessive\`。**所有格属名词范畴，不是物主代词。**
 
 ---
 
@@ -298,7 +298,7 @@ special-substitution-ellipsis：替代 / 省略
    - **不要照搬试卷封面的口号或宣传语**（如 "决战高考2025" 这种），只保留考点信息。
 2. 【空格识别】空白处可能表现为：下划线___、方框□、括号中提示词如 (give)、题号标注如 56.______、或直接空白。识别所有空格，按在文中出现的先后顺序从 1 开始连续编号（每篇独立）。如果原题已有序号，优先使用原序号。
 3. 【答案推断】如果原文本在题号后附有答案（如"56. dating"），直接使用。如果给出了括号中的提示词原形（如 (date)），根据语法语境变形后作为答案。如果无任何提示，根据语法知识推断最合理的答案。
-4. 【passage 字段】将原文中的下划线/方框空格替换为 ___{题号}___ 格式。**如果该空格旁有括号提示词（如 (appear)），保留括号提示词，紧接在 ___{题号}___ 后面**，例如原文是 `___56___ (appear)` 则输出 `___56___(appear)`。如果没有提示词则直接写 `___56___`。保持原文其余部分不变（包括大小写、标点、换行）。
+4. 【passage 字段】将原文中的下划线/方框空格替换为 ___{题号}___ 格式。**如果该空格旁有括号提示词（如 (appear)），保留括号提示词，紧接在 ___{题号}___ 后面**，例如原文是 \`___56___ (appear)\` 则输出 \`___56___(appear)\`。如果没有提示词则直接写 \`___56___\`。保持原文其余部分不变（包括大小写、标点、换行）。
 5. 【category 字段】从 13 个粗类里必选 1 个。
 6. 【fine_category 字段】必填。从 ~100 个精细 tag 中选与本题最匹配的 1 个。例如：
    - "since 1990 ... has done" → pred-tense-perfect
