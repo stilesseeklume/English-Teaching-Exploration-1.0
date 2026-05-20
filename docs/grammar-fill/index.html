@@ -111,15 +111,17 @@
   body.projection-mode .app-container { padding-top: 16px !important; }
   body.projection-mode #page-practice { padding: 0 3vw !important; }
   /* 字号适度放大（不夸张）*/
+  /* 投影模式字号：用 CSS 变量驱动，让 +/- 按钮在投影模式下也能调（修复字号 bug）
+     默认值是 28/22，但用户用 adjustFont 调节后会覆盖 */
   body.projection-mode .passage,
   body.projection-mode .passage-content,
-  body.projection-mode .passage-text { font-size: 28px !important; line-height: 1.85 !important; }
-  body.projection-mode .blank-inline { font-size: 28px !important; padding: 2px 8px !important; }
-  body.projection-mode .answer-filled { font-size: 28px !important; }
-  body.projection-mode .drawer { font-size: 22px !important; }
-  body.projection-mode .drawer-content { font-size: 22px !important; line-height: 1.75 !important; }
-  body.projection-mode .lesson-card { font-size: 21px !important; }
-  body.projection-mode .migration-card-sentence { font-size: 20px !important; }
+  body.projection-mode .passage-text { font-size: var(--passage-font-size, 28px) !important; line-height: 1.85 !important; }
+  body.projection-mode .blank-inline { font-size: var(--passage-font-size, 28px) !important; padding: 2px 8px !important; }
+  body.projection-mode .answer-filled { font-size: var(--passage-font-size, 28px) !important; }
+  body.projection-mode .drawer { font-size: var(--drawer-font-size, 22px) !important; }
+  body.projection-mode .drawer-content { font-size: var(--drawer-font-size, 22px) !important; line-height: 1.75 !important; }
+  body.projection-mode .lesson-card { font-size: calc(var(--drawer-font-size, 22px) - 1px) !important; }
+  body.projection-mode .migration-card-sentence { font-size: calc(var(--drawer-font-size, 22px) - 2px) !important; }
 
   /* 投影模式顶部居中浮动控制条 */
   .projection-controls {
@@ -3481,7 +3483,12 @@ function getQuestionLessonPath(q, focus, trap) {
   else if (category === 'nonpredicate') path.push('非谓语动词');
   else if (category === 'word') path.push('词性转换');
 
-  if (focus && focus.label) {
+  // fine_category 是唯一真相源：精细考点 tag 反查名字，避免启发式 focus 误判
+  var fineInfo = q && q.fine_category ? getFineTagInfo(q.fine_category) : null;
+  if (fineInfo && fineInfo.name && path.indexOf(fineInfo.name) === -1) {
+    path.push(fineInfo.name);
+  } else if (focus && focus.label) {
+    // 兜底：fine_category 缺失时才走启发式
     var focusPart = focus.label.indexOf('·') >= 0 ? focus.label.split('·').pop().trim() : focus.label;
     if (path.indexOf(focusPart) === -1) path.push(focusPart);
   }
@@ -3527,6 +3534,34 @@ function getFineTagInfo(fineCategory) {
     textbook_units: FINE_TAGS.tag_to_units[fineCategory] || []
   };
 }
+
+// 启动时校验题库 fine_category 数据完整性：发现漏打或错配 tag 立即报错
+// 红线：知识层不可出错。任何不一致都要在控制台显式暴露，避免 UI 静默降级到启发式
+(function validateFineCategoryIntegrity() {
+  if (!ALL_QUESTIONS || !FINE_TAGS || !FINE_TAGS.tags_by_id) return;
+  var missing = [];
+  var invalid = [];
+  ALL_QUESTIONS.forEach(function(q) {
+    var label = (q.exam || '?') + ' 第' + (q.no || '?') + '题';
+    if (!q.fine_category) {
+      missing.push(label);
+    } else if (!FINE_TAGS.tags_by_id[q.fine_category]) {
+      invalid.push(label + '（fine_category=' + q.fine_category + '）');
+    }
+  });
+  if (missing.length) {
+    console.error('[考点完整性] 缺 fine_category 的题（' + missing.length + ' 道）：', missing);
+  }
+  if (invalid.length) {
+    console.error('[考点完整性] fine_category 不在 FINE_TAGS 定义中（' + invalid.length + ' 道）：', invalid);
+  }
+  if (!missing.length && !invalid.length) {
+    console.log('[考点完整性] ✓ 全部 ' + ALL_QUESTIONS.length + ' 道题 fine_category 校验通过');
+  } else {
+    console.warn('[考点完整性] 发现 ' + (missing.length + invalid.length) + ' 道问题题。UI 会静默降级到启发式 focus 推断，可能导致 tag 显示与实际考点不符——请尽快修复数据。');
+  }
+})();
+
 let currentExam = null;
 let currentQuestions = [];
 let selectedQuestion = null;
@@ -5199,6 +5234,68 @@ function extractSentence(passage, no) {
   return passage.substring(start, end).trim();
 }
 
+// 从中文翻译里提取与当前题对应的单句（按"段落 index + 段内句序"对齐）
+// 兜底：句序对不齐时返回整段中文；段落对不齐时返回最后一段
+function extractChineseSentence(englishPassage, chineseTranslation, no) {
+  if (!englishPassage || !chineseTranslation || !no) return '';
+
+  // 1. 找 ___N___ 在英文里的字符位置
+  var match = new RegExp('_{2,}\\s*' + no + '\\s*_{2,}').exec(englishPassage);
+  if (!match) return '';
+  var blankIdx = match.index;
+
+  // 2. 按 \n\n 或 \n 分段（中英文都做同样规则）
+  var enParas = englishPassage.split(/\n\s*\n+/);
+  var cnParas = chineseTranslation.split(/\n\s*\n+/);
+
+  // 3. 找出 blankIdx 落在第几段
+  var paraIdx = -1;
+  var cumChars = 0;
+  for (var i = 0; i < enParas.length; i++) {
+    var paraLen = enParas[i].length;
+    // +2 估算段落分隔符（\n\n）长度
+    if (blankIdx <= cumChars + paraLen) {
+      paraIdx = i;
+      break;
+    }
+    cumChars += paraLen + 2;
+  }
+  if (paraIdx < 0) paraIdx = enParas.length - 1;
+
+  // 4. 段落对不齐时兜底
+  if (paraIdx >= cnParas.length) {
+    return cnParas[cnParas.length - 1] || '';
+  }
+
+  // 5. 在英文段落里找 ___N___ 在第几句（按 . ! ? 切句）
+  var enPara = enParas[paraIdx] || '';
+  var localBlankIdx = blankIdx - cumChars;
+  if (localBlankIdx < 0 || localBlankIdx > enPara.length) localBlankIdx = enPara.length / 2;
+  // 数前面有多少个句末符（. ! ?，但要排除 Mr. Dr. 等缩写——简单粗暴：. 后跟空格或换行才算句末）
+  var sentenceIdx = 0;
+  for (var j = 0; j < localBlankIdx; j++) {
+    var ch = enPara[j];
+    if ((ch === '.' || ch === '!' || ch === '?') &&
+        (j + 1 >= enPara.length || /[\s\n]/.test(enPara[j+1]))) {
+      sentenceIdx++;
+    }
+  }
+
+  // 6. 在中文段落里按 。！？ 切句
+  var cnPara = cnParas[paraIdx] || '';
+  var cnSentences = cnPara.split(/(?<=[。！？])\s*/).filter(function(s) { return s.trim(); });
+
+  // 7. 句序对不齐时兜底（差距 > 1 句直接返回整段；否则取最接近的）
+  if (cnSentences.length === 0) return cnPara;
+  if (sentenceIdx >= cnSentences.length) {
+    // 中文句子比英文少（合并了），返回整段
+    if (Math.abs(cnSentences.length - sentenceIdx) > 1) return cnPara;
+    return cnSentences[cnSentences.length - 1].trim();
+  }
+
+  return cnSentences[sentenceIdx].trim();
+}
+
 function extractContextWindow(passage, no) {
   var match = new RegExp('_{2,}\\s*' + no + '\\s*_{2,}').exec(passage || '');
   var pattern = match ? match[0] : ('___' + no + '___');
@@ -5312,6 +5409,22 @@ function buildAnalysisContent(q) {
   var tagLabel = (fineInfo && fineInfo.name) || focus.label;
   var path = getQuestionLessonPath(q, focus, null);
 
+  // 中文单句翻译：从 currentExam.chinese_translation 按段落+句序对齐提取
+  var cnSent = '';
+  try {
+    var exam = (currentExam && currentExam.chinese_translation) ? currentExam :
+               (q.exam && EXAMS_BY_ID ? EXAMS_BY_ID[q.exam] : null);
+    if (exam && exam.chinese_translation && q.passage) {
+      cnSent = extractChineseSentence(q.passage, exam.chinese_translation, q.no);
+    }
+  } catch (e) {}
+  var cnSentHtml = cnSent
+    ? '<div class="analysis-cn-sentence" style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.7;margin:8px 0 14px;padding:10px 14px;background:var(--accent-bg);border-radius:8px;border-left:3px solid var(--accent);">'
+      + '<span style="font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px;">中文</span>'
+      + escapeHtml(cnSent)
+      + '</div>'
+    : '';
+
   // 一句话核心：技巧字段 > focus.note > 分类通用提示
   var core = q.technique || focus.note || CATEGORY_TIPS[q.category] || '';
 
@@ -5349,6 +5462,7 @@ function buildAnalysisContent(q) {
 
   return '<div class="analysis-answer-lg">' + escapeHtml(q.answer || '') + '</div>'
     + '<div class="analysis-sentence-lg">' + sent + '</div>'
+    + cnSentHtml
     + tagPath
     + coreHtml
     + '<div class="analysis-steps-lg" style="margin-bottom:0;">'
@@ -5427,8 +5541,16 @@ function buildMigrationContent(q) {
       return true;
     });
   }
-  var bankDisplayPool = dedupe(fineBankPool.concat(trapBankPool).concat(bankPool));
-  var errorDisplayPool = dedupe(fineErrorPool.concat(trapErrorPool).concat(errorPool));
+  // 严格优先级：fine_category 存在时只用 fineBankPool，确保迁移题与当前题考点完全一致；
+  // 旧 trap/focus 池仅作为 fine_category 缺失时的向后兼容兜底，绝不混合
+  var bankDisplayPool, errorDisplayPool;
+  if (fineCat) {
+    bankDisplayPool = dedupe(fineBankPool);
+    errorDisplayPool = dedupe(fineErrorPool);
+  } else {
+    bankDisplayPool = dedupe(trapBankPool.concat(bankPool));
+    errorDisplayPool = dedupe(trapErrorPool.concat(errorPool));
+  }
   var allDisplayPool = dedupe(bankDisplayPool.concat(errorDisplayPool));
 
   // 当前选定来源
@@ -5688,6 +5810,10 @@ function toggleCompact() {
 
 // ─── 投影模式 ─────────────────────────
 // 全屏 + 适度放大 + 隐藏 chrome，适合教室大屏讲题
+// 记忆进入投影前的字号，退出时恢复（避免老师退出后回非投影场景字号留巨大）
+var _prePassageFontSize = null;
+var _preDrawerFontSize = null;
+
 function enterProjectionMode() {
   var practicePage = document.getElementById('page-practice');
   if (!practicePage || !practicePage.classList.contains('active')) {
@@ -5697,6 +5823,20 @@ function enterProjectionMode() {
   document.body.classList.add('projection-mode');
   // 抽屉默认半屏
   setDrawerProjectionSize('half');
+
+  // 自动放大字号到投影默认（如果当前更小）；记住进入前的值便于退出时恢复
+  _prePassageFontSize = passageFontSize;
+  _preDrawerFontSize = drawerFontSize;
+  if (passageFontSize < 28) {
+    passageFontSize = 28;
+    document.documentElement.style.setProperty('--passage-font-size', '28px');
+  }
+  if (drawerFontSize < 22) {
+    drawerFontSize = 22;
+    document.documentElement.style.setProperty('--drawer-font-size', '22px');
+    document.documentElement.style.setProperty('--drawer-font-size-lg', '23px');
+    document.documentElement.style.setProperty('--drawer-font-size-sm', '21px');
+  }
   // 尝试浏览器全屏
   try {
     if (document.documentElement.requestFullscreen) {
@@ -5724,6 +5864,21 @@ function enterProjectionMode() {
 
 function exitProjectionMode() {
   document.body.classList.remove('projection-mode');
+
+  // 恢复进入投影前的字号（如果记录过）
+  if (_prePassageFontSize !== null) {
+    passageFontSize = _prePassageFontSize;
+    document.documentElement.style.setProperty('--passage-font-size', passageFontSize + 'px');
+    _prePassageFontSize = null;
+  }
+  if (_preDrawerFontSize !== null) {
+    drawerFontSize = _preDrawerFontSize;
+    document.documentElement.style.setProperty('--drawer-font-size', drawerFontSize + 'px');
+    document.documentElement.style.setProperty('--drawer-font-size-lg', (drawerFontSize + 1) + 'px');
+    document.documentElement.style.setProperty('--drawer-font-size-sm', (drawerFontSize - 1) + 'px');
+    _preDrawerFontSize = null;
+  }
+
   // 清抽屉的投影 size 状态
   var drawer = document.getElementById('drawer');
   if (drawer) {

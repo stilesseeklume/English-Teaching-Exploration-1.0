@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeklume · 考点审校</title>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --surface-2: #fafafa;
+    --surface-3: #f0f0f2;
+    --border: #e5e5ea;
+    --text: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #aeaeb2;
+    --accent: #0071e3;
+    --red: #ff3b30;
+    --red-bg: #fee8e7;
+    --orange: #ff9500;
+    --orange-bg: #fff3e0;
+    --green: #34c759;
+    --green-bg: #e8f8ed;
+    --blue: #007aff;
+    --blue-bg: #e8f2fd;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
+  }
+  [data-theme="dark"] {
+    --bg: #1c1c1e;
+    --surface: #2c2c2e;
+    --surface-2: #3a3a3c;
+    --surface-3: #48484a;
+    --border: #38383a;
+    --text: #f5f5f7;
+    --text-2: #aeaeb2;
+    --text-3: #8e8e93;
+    --accent: #0a84ff;
+    --red: #ff453a;
+    --red-bg: #3a1f1d;
+    --orange: #ff9f0a;
+    --orange-bg: #3a2a14;
+    --green: #30d158;
+    --green-bg: #1a3022;
+    --blue: #0a84ff;
+    --blue-bg: #11253a;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.04);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  header .subtitle { color: var(--text-2); font-size: 13px; margin-top: 4px; }
+  main { max-width: 1280px; margin: 24px auto; padding: 0 32px; }
+
+  .overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .num { font-size: 28px; font-weight: 700; }
+  .stat-card .label { color: var(--text-2); font-size: 13px; margin-top: 4px; }
+  .stat-card.high .num { color: var(--red); }
+  .stat-card.med .num { color: var(--orange); }
+  .stat-card.low .num { color: var(--green); }
+  .stat-card.info .num { color: var(--blue); }
+
+  .controls {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+  .controls label { font-size: 13px; color: var(--text-2); }
+  .controls select, .controls input {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .controls input[type="search"] { width: 220px; }
+  .controls .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .pill.severity-high.active { background: var(--red); border-color: var(--red); }
+  .pill.severity-med.active { background: var(--orange); border-color: var(--orange); }
+  .pill.severity-low.active { background: var(--green); border-color: var(--green); }
+  .pill.severity-info.active { background: var(--blue); border-color: var(--blue); }
+
+  .table-wrap {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 60px 160px 120px 200px 1fr 100px;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .row:hover { background: var(--surface-2); }
+  .row.head {
+    background: var(--surface-2);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: default;
+    position: sticky;
+    top: 0;
+  }
+  .row .col-no { font-weight: 600; }
+  .row .col-answer {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tag-chip {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 5px;
+    background: var(--surface-3);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.high { background: var(--red-bg); color: var(--red); }
+  .badge.med  { background: var(--orange-bg); color: var(--orange); }
+  .badge.low  { background: var(--green-bg); color: var(--green); }
+  .badge.info { background: var(--blue-bg); color: var(--blue); }
+
+  .row-expand {
+    padding: 16px 24px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: none;
+  }
+  .row-expand.open { display: block; }
+  .row-expand .field { margin-bottom: 10px; }
+  .row-expand .field-label { font-size: 12px; color: var(--text-2); font-weight: 600; margin-bottom: 4px; }
+  .row-expand .warning-box {
+    background: var(--red-bg);
+    color: var(--red);
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  .row-expand .warning-box.med { background: var(--orange-bg); color: var(--orange); }
+  .row-expand .warning-box.low { background: var(--green-bg); color: var(--green); }
+  .row-expand .warning-box.info { background: var(--blue-bg); color: var(--blue); }
+  .row-expand .explanation {
+    background: var(--surface);
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.7;
+    border: 1px solid var(--border);
+  }
+  .row-expand .same-cat {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .empty { padding: 60px; text-align: center; color: var(--text-3); }
+
+  .footer-note {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .footer-note code { background: var(--surface-3); padding: 1px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>考点审校（只读）</h1>
+  <div class="subtitle">所有题的 fine_category + 静态启发式警告。点击题展开详情。不修改数据。</div>
+</header>
+
+<main>
+  <!-- 总览 -->
+  <div class="overview">
+    <div class="stat-card"><div class="num" id="stat-total">—</div><div class="label">总题数</div></div>
+    <div class="stat-card high"><div class="num" id="stat-high">—</div><div class="label">🔴 高严重度（硬矛盾）</div></div>
+    <div class="stat-card med"><div class="num" id="stat-med">—</div><div class="label">🟡 中严重度（形态不匹配）</div></div>
+    <div class="stat-card low"><div class="num" id="stat-low">—</div><div class="label">🟢 低严重度（命名不一致）</div></div>
+    <div class="stat-card info"><div class="num" id="stat-info">—</div><div class="label">🔵 系统性归类冲突</div></div>
+  </div>
+
+  <!-- 控制条 -->
+  <div class="controls">
+    <input type="search" id="search" placeholder="搜索：题号 / 答案 / 套卷">
+    <label>大类：</label>
+    <select id="filter-category">
+      <option value="">全部</option>
+    </select>
+    <label>严重度：</label>
+    <div class="filter-group" id="severity-filter">
+      <span class="pill active" data-sev="all">全部</span>
+      <span class="pill severity-high" data-sev="high">🔴 高</span>
+      <span class="pill severity-med" data-sev="med">🟡 中</span>
+      <span class="pill severity-low" data-sev="low">🟢 低</span>
+      <span class="pill severity-info" data-sev="info">🔵 系统性</span>
+      <span class="pill" data-sev="clean">✅ 无警告</span>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <div class="row head">
+      <div>题号</div>
+      <div>套卷</div>
+      <div>答案</div>
+      <div>大类</div>
+      <div>fine_category</div>
+      <div style="text-align:right;">警告</div>
+    </div>
+    <div id="rows"></div>
+    <div class="empty" id="empty" style="display:none;">没有符合条件的题</div>
+  </div>
+
+  <div class="footer-note">
+    <strong>使用提示</strong><br>
+    • 此页面只读。如需修改 fine_category，请直接编辑 <code>docs/data/grammar_bank.js</code> 或运行
+      <code>scripts/audit_fine_category.js</code> 生成 Markdown 报告作为修改清单。<br>
+    • 启动校验：浏览器 console 会输出"<code>[考点完整性]</code>"日志——任何漏打/错配会立即报警。<br>
+    • 警告分级：<strong>🔴 高</strong>=硬矛盾必错；<strong>🟡 中</strong>=形态不匹配大概率错；<strong>🟢 低</strong>=命名差异；<strong>🔵 信息</strong>=系统性归类设计冲突，需统一决策。
+  </div>
+</main>
+
+<script src="../data/grammar_bank.js"></script>
+<script src="../data/grammar_fine_tags.js"></script>
+<script>
+(function() {
+  var BANK = window.GRAMMAR_BANK;
+  var FINE_TAGS = window.GRAMMAR_FINE_TAGS;
+
+  // ─── 数据扁平化 ─────
+  var allQuestions = [];
+  (BANK.exams || []).forEach(function(exam) {
+    (exam.questions || []).forEach(function(q) {
+      allQuestions.push(Object.assign({}, q, { exam_id: exam.exam_id, year: exam.year }));
+    });
+  });
+
+  // ─── 启发式规则（与 scripts/audit_fine_category.js 同步精简版） ─────
+  function getFineInfo(fineCat) {
+    return FINE_TAGS.tags_by_id[fineCat] || null;
+  }
+
+  var MULTI_POS = ['that','which','who','whom','whose','what','when','where','why','how',
+                   'for','as','since','before','after','until','while','though'];
+
+  function classifyAnswerForm(answer) {
+    if (!answer) return 'unknown';
+    var a = String(answer).trim().toLowerCase();
+    if (!a) return 'unknown';
+    if (a.indexOf(' ') >= 0) {
+      if (a.indexOf('to ') === 0) return 'to-do';
+      if (a.indexOf('having ') === 0) return 'having-done';
+      if (a.indexOf('being ') === 0) return 'being-done';
+      return 'multi-word';
+    }
+    if (MULTI_POS.indexOf(a) >= 0) return 'multi-pos';
+    if (a === 'a' || a === 'an' || a === 'the') return 'article';
+    if (['i','you','he','she','it','we','they','me','him','her','us','them',
+         'my','your','his','its','our','their','mine','yours','hers','ours','theirs',
+         'myself','yourself','himself','herself','itself','ourselves','yourselves','themselves',
+         'this','these','those','one','ones'].indexOf(a) >= 0) return 'pronoun';
+    if (['and','but','or','so','yet','nor'].indexOf(a) >= 0) return 'coord-conj';
+    if (['because','although','if','unless','whereas'].indexOf(a) >= 0) return 'sub-conj';
+    if (['in','on','at','by','with','of','to','from','about','into','onto','through','during','among','between','under','over','against','beyond','within','without','despite'].indexOf(a) >= 0) return 'prep';
+    if (/(tion|sion|ment|ness|ity|ance|ence|ship|hood|dom|ist|ism|er|or|ar|ee)$/.test(a)) return 'noun-derivation-candidate';
+    if (/ly$/.test(a) && a.length > 3) return 'adv-candidate';
+    if (/(ful|less|ous|able|ible|ive|al|ic|ish|ary|ory|en)$/.test(a)) return 'adj-candidate';
+    if (/ing$/.test(a) && a.length > 4) return 'ing-form';
+    if (/ed$/.test(a) && a.length > 3) return 'ed-form';
+    if (/(s|es|ies)$/.test(a) && a.length > 2) return 'plural-or-3sg';
+    return 'base-form';
+  }
+
+  function evaluateQuestion(q) {
+    var finfo = getFineInfo(q.fine_category);
+    var warnings = [];
+
+    // B：fine_category 不存在
+    if (!q.fine_category) {
+      warnings.push({ rule: 'B', severity: 'high', reason: '缺 fine_category 字段' });
+      return { finfo: null, warnings: warnings };
+    }
+    if (!finfo) {
+      warnings.push({ rule: 'B', severity: 'high', reason: 'fine_category="' + q.fine_category + '" 不在 FINE_TAGS 注册表' });
+      return { finfo: null, warnings: warnings };
+    }
+
+    // A：category vs fine_category.category 硬矛盾（已排除 word ↔ number）
+    if (q.category && q.category !== finfo.category) {
+      var compatPairs = [['word','number'],['number','word']];
+      var isCompat = compatPairs.some(function(p) { return p[0] === q.category && p[1] === finfo.category; });
+      if (!isCompat) {
+        warnings.push({ rule: 'A', severity: 'high', reason: '题 category="' + q.category + '" 但 fine_category 属 "' + finfo.category + '"，硬矛盾' });
+      } else {
+        warnings.push({ rule: 'G', severity: 'info', reason: '已知系统性归类冲突：题 category="' + q.category + '"，fine_tag 属 "' + finfo.category + '"。需统一决策。' });
+      }
+    }
+
+    // C：答案形态 vs fine_category 大类
+    var form = classifyAnswerForm(q.answer);
+    var expected = {
+      'article':    ['article'],
+      'pronoun':    ['pronoun'],
+      'coord-conj': ['logic'],
+      'sub-conj':   ['logic','advclause','attrib','nounclause'],
+      'prep':       ['preposition'],
+      'to-do':      ['nonpredicate','predicate'],
+      'having-done':['nonpredicate'],
+      'being-done': ['nonpredicate'],
+      'ing-form':   ['nonpredicate','predicate','word'],
+      'ed-form':    ['nonpredicate','predicate','word'],
+      'noun-derivation-candidate': ['word','number'],
+      'adv-candidate': ['word'],
+      'adj-candidate': ['word'],
+    };
+    if (expected[form] && expected[form].indexOf(finfo.category) < 0) {
+      warnings.push({ rule: 'C', severity: 'med', reason: '答案 "' + q.answer + '" 形态判定为 "' + form + '"，期望大类 ∈ [' + expected[form].join(', ') + ']，实际是 "' + finfo.category + '"' });
+    }
+
+    // E：-ing/-ed + 作状语 + explanation 无状语关键词
+    if (/(ing|ed)$/.test(String(q.answer || '').toLowerCase()) && /nonp-adverbial-/.test(q.fine_category)) {
+      var advKeywords = ['伴随','原因','时间','方式','结果','让步','条件','状语','同时'];
+      var hasAdvKw = advKeywords.some(function(k) { return (q.explanation || '').indexOf(k) >= 0; });
+      if (!hasAdvKw) {
+        warnings.push({ rule: 'E', severity: 'med', reason: '"' + q.answer + '" 标作状语，但 explanation 无状语语义关键词。可能是同位/宾补/介词宾语等误归类' });
+      }
+    }
+
+    // F：to-do vs 非 nonpredicate
+    if (form === 'to-do' && finfo.category !== 'nonpredicate') {
+      warnings.push({ rule: 'F', severity: 'med', reason: 'to-do 形式答案，fine_category 大类应是 nonpredicate' });
+    }
+
+    return { finfo: finfo, warnings: warnings };
+  }
+
+  function topSeverity(warnings) {
+    if (!warnings.length) return null;
+    var rank = { high: 4, med: 3, low: 2, info: 1 };
+    return warnings.reduce(function(top, w) {
+      return (rank[w.severity] || 0) > (rank[top] || 0) ? w.severity : top;
+    }, null);
+  }
+
+  // ─── 计算每题的警告 ─────
+  var evaluated = allQuestions.map(function(q) {
+    var ev = evaluateQuestion(q);
+    return Object.assign({}, q, { _finfo: ev.finfo, _warnings: ev.warnings, _topSeverity: topSeverity(ev.warnings) });
+  });
+
+  // ─── 总览统计 ─────
+  var stats = { total: evaluated.length, high: 0, med: 0, low: 0, info: 0 };
+  evaluated.forEach(function(q) {
+    if (q._topSeverity) stats[q._topSeverity]++;
+  });
+  document.getElementById('stat-total').textContent = stats.total;
+  document.getElementById('stat-high').textContent = stats.high;
+  document.getElementById('stat-med').textContent = stats.med;
+  document.getElementById('stat-low').textContent = stats.low;
+  document.getElementById('stat-info').textContent = stats.info;
+
+  // ─── 大类筛选下拉 ─────
+  var catSelect = document.getElementById('filter-category');
+  var cats = FINE_TAGS.categories || {};
+  Object.keys(cats).forEach(function(catId) {
+    var opt = document.createElement('option');
+    opt.value = catId;
+    opt.textContent = cats[catId].name + '（' + catId + '）';
+    catSelect.appendChild(opt);
+  });
+
+  // ─── 状态 ─────
+  var state = {
+    search: '',
+    category: '',
+    severity: 'all',
+  };
+
+  // ─── 渲染 ─────
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  function renderRows() {
+    var container = document.getElementById('rows');
+    var empty = document.getElementById('empty');
+    var filtered = evaluated.filter(function(q) {
+      if (state.search) {
+        var s = state.search.toLowerCase();
+        var hay = (q.exam_id + ' ' + q.no + ' ' + q.answer + ' ' + (q.fine_category || '')).toLowerCase();
+        if (hay.indexOf(s) < 0) return false;
+      }
+      if (state.category) {
+        var fc = q._finfo ? q._finfo.category : (q.category || '');
+        if (fc !== state.category) return false;
+      }
+      if (state.severity === 'clean' && q._topSeverity) return false;
+      if (state.severity !== 'all' && state.severity !== 'clean' && q._topSeverity !== state.severity) return false;
+      return true;
+    });
+
+    container.innerHTML = '';
+    if (!filtered.length) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    filtered.forEach(function(q) {
+      var row = document.createElement('div');
+      row.className = 'row';
+      var topSev = q._topSeverity || '';
+      var badgeHtml = '';
+      if (topSev) {
+        var label = { high: '🔴 高', med: '🟡 中', low: '🟢 低', info: '🔵 系统' }[topSev];
+        badgeHtml = '<div style="text-align:right;"><span class="badge ' + topSev + '">' + label + ' · ' + q._warnings.length + '</span></div>';
+      } else {
+        badgeHtml = '<div style="text-align:right;color:var(--text-3);font-size:12px;">无警告</div>';
+      }
+      var catName = q._finfo ? (FINE_TAGS.categories[q._finfo.category] || {}).name || q._finfo.category : '(无)';
+      var fineName = q._finfo ? q._finfo.name : '(无效)';
+      row.innerHTML =
+        '<div class="col-no">第' + escapeHtml(q.no) + '题</div>' +
+        '<div style="font-size:13px;color:var(--text-2);">' + escapeHtml(q.exam_id) + '</div>' +
+        '<div class="col-answer">' + escapeHtml(q.answer) + '</div>' +
+        '<div><span class="tag-chip">' + escapeHtml(catName) + '</span></div>' +
+        '<div style="font-size:13px;">' + escapeHtml(fineName) + ' <span style="color:var(--text-3);font-size:11px;">' + escapeHtml(q.fine_category) + '</span></div>' +
+        badgeHtml;
+      container.appendChild(row);
+
+      var expand = document.createElement('div');
+      expand.className = 'row-expand';
+
+      var warningHtml = '';
+      q._warnings.forEach(function(w) {
+        warningHtml += '<div class="warning-box ' + w.severity + '"><strong>[规则 ' + w.rule + ' · ' + w.severity + ']</strong> ' + escapeHtml(w.reason) + '</div>';
+      });
+
+      var sameCat = evaluated.filter(function(other) {
+        return other !== q && other.fine_category === q.fine_category;
+      });
+
+      expand.innerHTML =
+        warningHtml +
+        '<div class="field"><div class="field-label">grammar_point 字段</div><div>' + escapeHtml(q.grammar_point || '(无)') + '</div></div>' +
+        '<div class="field"><div class="field-label">explanation 全文</div><div class="explanation">' + escapeHtml(q.explanation || '(无)') + '</div></div>' +
+        '<div class="same-cat">同 fine_category（<code>' + escapeHtml(q.fine_category) + '</code>）下共 ' + (sameCat.length + 1) + ' 道题</div>';
+      container.appendChild(expand);
+
+      row.addEventListener('click', function() {
+        expand.classList.toggle('open');
+      });
+    });
+  }
+
+  // ─── 事件绑定 ─────
+  document.getElementById('search').addEventListener('input', function(e) {
+    state.search = e.target.value.trim();
+    renderRows();
+  });
+  document.getElementById('filter-category').addEventListener('change', function(e) {
+    state.category = e.target.value;
+    renderRows();
+  });
+  document.querySelectorAll('#severity-filter .pill').forEach(function(p) {
+    p.addEventListener('click', function() {
+      document.querySelectorAll('#severity-filter .pill').forEach(function(o) { o.classList.remove('active'); });
+      p.classList.add('active');
+      state.severity = p.dataset.sev;
+      renderRows();
+    });
+  });
+
+  // ─── 初始渲染 ─────
+  renderRows();
+
+  // ─── 启动校验日志 ─────
+  var missing = evaluated.filter(function(q) { return !q.fine_category; }).length;
+  var invalid = evaluated.filter(function(q) { return q.fine_category && !q._finfo; }).length;
+  if (missing || invalid) {
+    console.error('[考点完整性] 缺 fine_category：' + missing + ' 道，fine_category 无效：' + invalid + ' 道');
+  } else {
+    console.log('[考点完整性] ✓ 全部 ' + evaluated.length + ' 道题 fine_category 校验通过');
+  }
+})();
+</script>
+</body>
+</html>
