@@ -399,6 +399,8 @@
 
   function finalizePassages(passagesArr) {
     passagesArr = passagesArr.map(repairPassageMarkers);
+
+    // ─── 第 1 步：题号+答案签名去重（AI 两次识别答案一致的重复）─────
     var seenSigs = {};
     passagesArr = passagesArr.filter(function(p) {
       var sig = (p.blanks || []).map(function(b) {
@@ -409,19 +411,58 @@
       seenSigs[sig] = p;
       return true;
     });
-    passagesArr = passagesArr.filter(function(p) { return p.blanks && p.blanks.length > 0; });
 
-    // 同名标题去重：加"第N篇"后缀，让同一批导入的多篇可区分
-    var titleCount = {};
-    passagesArr.forEach(function(p) { titleCount[p.title] = (titleCount[p.title] || 0) + 1; });
-    var titleIdx = {};
-    passagesArr = passagesArr.map(function(p) {
-      if (titleCount[p.title] > 1) {
-        titleIdx[p.title] = (titleIdx[p.title] || 0) + 1;
-        p.title = p.title + ' · 第' + titleIdx[p.title] + '篇';
+    // ─── 第 2 步：passage 文本前缀去重（AI 答案识别有差异但内容相同的重复）─────
+    // 取 passage 前 200 字（去标点空格）作指纹，能识别文档里被复制粘贴两次的同一篇文章
+    function passageFingerprint(p) {
+      var raw = String(p.passage || '').replace(/___\d+___/g, '').replace(/\s+/g, '').replace(/[^\w一-龥]/g, '');
+      return raw.slice(0, 200);
+    }
+    var seenFps = {};
+    passagesArr = passagesArr.filter(function(p) {
+      var fp = passageFingerprint(p);
+      if (!fp || fp.length < 50) return true;  // 太短无法判断，放过
+      if (seenFps[fp]) {
+        // 已存在同指纹篇章——保留 blanks 数更多的那个
+        var existing = seenFps[fp];
+        var existingBlanks = (existing.blanks || []).length;
+        var currentBlanks = (p.blanks || []).length;
+        if (currentBlanks > existingBlanks) {
+          // 当前的更完整，替换
+          var idx = passagesArr.indexOf(existing);
+          if (idx >= 0) passagesArr[idx] = null;  // 标记后续过滤掉
+          seenFps[fp] = p;
+          return true;
+        }
+        return false;
       }
-      return p;
-    });
+      seenFps[fp] = p;
+      return true;
+    }).filter(function(p) { return p !== null; });
+
+    // ─── 第 3 步：相同标题去重（合集格式里同标题重复几乎一定是同篇）─────
+    var seenTitles = {};
+    passagesArr = passagesArr.filter(function(p) {
+      var key = titleKey(p.title);
+      if (!key) return true;
+      if (seenTitles[key]) {
+        var existing = seenTitles[key];
+        var existingBlanks = (existing.blanks || []).length;
+        var currentBlanks = (p.blanks || []).length;
+        if (currentBlanks > existingBlanks) {
+          var idx = passagesArr.indexOf(existing);
+          if (idx >= 0) passagesArr[idx] = null;
+          seenTitles[key] = p;
+          return true;
+        }
+        return false;
+      }
+      seenTitles[key] = p;
+      return true;
+    }).filter(function(p) { return p !== null; });
+
+    // ─── 第 4 步：过滤掉空 blanks 的篇章 ─────
+    passagesArr = passagesArr.filter(function(p) { return p.blanks && p.blanks.length > 0; });
 
     return passagesArr;
   }
