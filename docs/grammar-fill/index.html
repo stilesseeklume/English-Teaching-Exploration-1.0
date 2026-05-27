@@ -924,14 +924,111 @@
     flex: 1; overflow-y: auto; padding: 20px; min-height: 0;
   }
 
+  .analysis-answer-row-lg {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
   .analysis-answer-lg {
-    font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 10px;
+    font-size: 22px; font-weight: 800; color: var(--accent);
     padding: 8px 14px; background: var(--accent-bg); border-radius: 6px;
     display: inline-flex; align-items: center; line-height: 1.35;
+  }
+  .analysis-answer-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .analysis-tool-btn {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: calc(var(--drawer-font-size-sm, 23px) - 7px);
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s, transform .15s;
+  }
+  .analysis-tool-btn:hover,
+  .analysis-tool-btn.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .analysis-tool-btn:active {
+    transform: scale(.97);
+  }
+  .analysis-float-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    display: none;
+    width: min(720px, calc(100vw - 56px));
+    max-height: min(52vh, 430px);
+    overflow-y: auto;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: 0 16px 48px rgba(0,0,0,.2);
+  }
+  .analysis-float-panel.show {
+    display: block;
+  }
+  .analysis-float-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .analysis-float-title {
+    color: var(--text-2);
+    font-size: calc(var(--drawer-font-size-sm, 23px) - 5px);
+    font-weight: 900;
+  }
+  .analysis-float-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-2);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .analysis-float-panel .teacher-quick-card {
+    margin: 0;
+  }
+  .analysis-solution-card {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: var(--drawer-font-size-sm, 23px);
+    line-height: 1.75;
   }
   .analysis-sentence-lg {
     font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
     padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
+  }
+  .analysis-sentence-zh {
+    margin: -4px 0 14px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    background: var(--accent-bg);
+    color: var(--text-2);
+    font-size: calc(var(--drawer-font-size-sm, 23px) - 2px);
+    line-height: 1.7;
   }
   .analysis-steps-lg { font-size: var(--drawer-font-size-sm, 23px); color: var(--text-2); line-height: 1.75; }
   .analysis-steps-lg p { margin: 0; }
@@ -1160,6 +1257,342 @@
   }
   .migration-card.open .migration-card-body { display: block; }
   .migration-card-body .ans { font-weight: 700; color: var(--accent); }
+
+  body.teaching-mode {
+    overflow: hidden;
+  }
+  body.teaching-mode header,
+  body.teaching-mode #mainDock,
+  body.teaching-mode .classroom-switcher,
+  body.teaching-mode .context-sidebar,
+  body.teaching-mode .sidebar-edge-trigger,
+  body.teaching-mode #syncStatus {
+    display: none !important;
+  }
+  body.teaching-mode .drawer,
+  body.teaching-mode .drawer-overlay {
+    display: none !important;
+  }
+
+  .teaching-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: none;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .teaching-stage.open {
+    display: flex;
+    flex-direction: column;
+  }
+  .teaching-stage-main {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 18px clamp(18px, 3vw, 42px) 130px;
+  }
+  .teaching-stage-shell {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+  }
+  .teaching-stage-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-2);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .teaching-stage-meta span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .teaching-question-panel,
+  .teaching-content-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+  .teaching-question-panel {
+    padding: clamp(18px, 2.5vw, 28px);
+  }
+  .teaching-question-line {
+    font-size: clamp(25px, 2.6vw, 34px);
+    line-height: 1.8;
+    font-weight: 650;
+  }
+  .teaching-question-line .blank-hl {
+    display: inline-block;
+    min-width: 74px;
+    text-align: center;
+    padding: 0 10px;
+    border-bottom: 3px dashed var(--accent);
+    border-radius: 4px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 900;
+  }
+  .teaching-question-line .hl {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 900;
+  }
+  .teaching-question-zh {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    background: var(--accent-bg);
+    color: var(--text-2);
+    font-size: clamp(19px, 1.7vw, 25px);
+    line-height: 1.65;
+    font-weight: 650;
+  }
+  .teaching-answer-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .teaching-answer-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 24px;
+    font-weight: 900;
+  }
+  .teaching-answer-pill.muted {
+    background: var(--surface-3);
+    color: var(--text-3);
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .teaching-inline-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .teaching-inline-tools .analysis-tool-btn {
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 17px;
+    background: var(--surface);
+  }
+  .teaching-float-panel {
+    position: fixed;
+    right: clamp(18px, 4vw, 56px);
+    top: clamp(92px, 14vh, 150px);
+    z-index: 1220;
+    display: none;
+    width: min(760px, calc(100vw - 36px));
+    max-height: min(68vh, 620px);
+    overflow-y: auto;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: 0 20px 60px rgba(0,0,0,.24);
+  }
+  .teaching-float-panel.show {
+    display: block;
+  }
+  .teaching-float-panel .teacher-quick-card {
+    margin: 0;
+  }
+  .teaching-content-panel {
+    padding: clamp(16px, 2vw, 24px);
+  }
+  .teaching-content-panel .analysis-answer-lg,
+  .teaching-content-panel .analysis-sentence-lg {
+    display: none;
+  }
+  .teaching-content-panel .teacher-quick-card:first-child {
+    margin-top: 0;
+  }
+  .teaching-content-panel .migration-card {
+    cursor: pointer;
+  }
+  .teaching-content-panel .migration-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  .teaching-dock {
+    position: fixed;
+    left: 50%;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 1210;
+    width: min(1200px, calc(100vw - 20px));
+    min-height: 74px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 0.5px solid var(--dock-border);
+    border-radius: 20px;
+    background: var(--dock-bg);
+    box-shadow: var(--dock-shadow-outer), var(--dock-shadow-inner);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+  }
+  .teaching-dock-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .teaching-question-rail {
+    flex: 1;
+    min-width: 160px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding: 2px;
+  }
+  .teaching-question-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .teaching-dock button {
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    min-height: 56px;
+    padding: 0 15px;
+    background: rgba(255,255,255,0.06);
+    color: #f5f5f7;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .teaching-dock button:hover {
+    background: rgba(255,255,255,0.12);
+  }
+  .teaching-dock button:active {
+    transform: scale(.96);
+  }
+  .teaching-dock button.active,
+  .teaching-dock button.primary {
+    background: #f5f5f7;
+    border-color: #f5f5f7;
+    color: #1d1d1f;
+  }
+  .teaching-dock button.danger {
+    background: rgba(255,59,48,.88);
+    border-color: rgba(255,59,48,.95);
+    color: #fff;
+  }
+  .teaching-dock button.return {
+    background: rgba(255,214,10,.18);
+    border-color: rgba(255,214,10,.42);
+    color: #ffd60a;
+  }
+  .teaching-q-btn {
+    min-width: 58px;
+    padding: 0 13px !important;
+  }
+  .teaching-popover {
+    position: fixed;
+    left: 50%;
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 88px);
+    transform: translateX(-50%);
+    z-index: 1208;
+    width: min(760px, calc(100vw - 24px));
+    max-height: min(52vh, 420px);
+    overflow-y: auto;
+    display: none;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: 0 14px 46px rgba(0,0,0,.22);
+  }
+  .teaching-popover.show {
+    display: grid;
+    gap: 8px;
+  }
+  .teaching-popover-title {
+    padding: 6px 8px 4px;
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .teaching-menu-btn {
+    width: 100%;
+    min-height: 54px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 750;
+    text-align: left;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+  .teaching-menu-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+  .teaching-menu-sub {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-3);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 760px) {
+    .teaching-stage-main {
+      padding: 12px 12px 152px;
+    }
+    .teaching-question-line {
+      font-size: 24px;
+    }
+    .teaching-dock {
+      align-items: stretch;
+      flex-wrap: wrap;
+      min-height: 124px;
+      border-radius: 18px;
+    }
+    .teaching-question-rail {
+      order: -1;
+      flex-basis: 100%;
+    }
+    .teaching-dock button {
+      min-height: 52px;
+      padding: 0 12px;
+      font-size: 15px;
+    }
+    .teaching-popover {
+      bottom: calc(max(14px, env(safe-area-inset-bottom)) + 138px);
+    }
+  }
 
   .error-import-toggle {
     display: inline-block; padding: 8px 18px; font-size: 14px; font-weight: 600;
@@ -2535,6 +2968,11 @@
         </div>
         <div class="drawer-content" id="drawerContent"></div>
       </div>
+      <div class="teaching-stage" id="teachingStage" aria-live="polite">
+        <div class="teaching-stage-main" id="teachingStageMain"></div>
+        <div class="teaching-popover" id="teachingExamMenu"></div>
+        <div class="teaching-dock" id="teachingDock"></div>
+      </div>
     </div>
 
     <div class="page" id="page-knowledge">
@@ -3688,6 +4126,11 @@ function nonpAxisFormMatch(item, q) {
 let currentExam = null;
 let currentQuestions = [];
 let selectedQuestion = null;
+let teachingSession = null;
+let teachingReturnStack = [];
+let teachingBaseContext = null;
+var _keepTeachingOnPageSwitch = false;
+var _teachingMenuOpen = '';
 let passageFontSize = 24;
 let drawerFontSize = 24;
 let showAnswers = false;
@@ -3725,6 +4168,8 @@ function applyDrawerHeight() {
 function setupDrawerResize() {
   var drawer = document.getElementById('drawer');
   var handle = document.getElementById('drawerHandle');
+  if (!drawer || !handle || handle.dataset.resizeBound === '1') return;
+  handle.dataset.resizeBound = '1';
   var startY, startHeight, newHeight;
 
   function onStart(e) {
@@ -4238,7 +4683,7 @@ function init() {
   renderKnowledgePage();
   renderErrorBook();
   renderPrepList();
-  setupDrawerResize();
+  try { localStorage.removeItem(DRAWER_STORAGE_KEY); } catch(e) {}
   setupBatchDrop();
   setupPrepDrop();
   setupDocxDrop();
@@ -4631,6 +5076,7 @@ function getOrderedExams() {
 
 function getCurrentQuestionIndex() {
   if (!currentQuestions || currentQuestions.length === 0) return -1;
+  if (teachingSession && typeof teachingSession.idx === 'number') return teachingSession.idx;
   if (selectedQuestion) {
     var selectedIdx = findBlankIndex();
     if (selectedIdx !== -1) return selectedIdx;
@@ -4922,6 +5368,7 @@ function setActiveDock(dockKey) {
 }
 
 function switchPage(page) {
+  if (teachingSession && !_keepTeachingOnPageSwitch) closeTeachingStage();
   // 访客守卫：错题本/备课资料/管理员需要登录
   if ((page === 'error-book' || page === 'lesson-prep' || page === 'admin') && !requireAuth()) return;
 
@@ -5116,29 +5563,7 @@ function startByExam(examId, preserveDrawerReturn) {
     return;
   }
   // 用套卷自带的题目（顺序、passage 都来自题库）
-  currentQuestions = ex.questions.map(q => ({
-    no: q.no,
-    answer: q.answer,
-    category: q.category,
-    category_name: q.category_name,
-    grammar_point: q.grammar_point,
-    fine_category: q.fine_category,  // Sprint 1 · 精细化考点 tag
-    nonp_function: q.nonp_function,
-    nonp_function_label: q.nonp_function_label,
-    nonp_form: q.nonp_form,
-    nonp_form_label: q.nonp_form_label,
-    nonp_rule: q.nonp_rule,
-    nonp_needs_review: q.nonp_needs_review,
-    exam: ex.exam_id,
-    exam_id: ex.exam_id,
-    year: ex.year,
-    type: ex.type,
-    passage: ex.passage,
-    sentence: '',
-    analysis: q.explanation || ('答案：' + q.answer + '。'),
-    technique: '考点：' + (q.category_name || q.grammar_point || '语法填空') +
-               '。' + (CATEGORY_TIPS[q.category] || '先判空格成分，再确定词形。'),
-  }));
+  currentQuestions = buildExamQuestions(ex);
   currentExam = {
     source: `${ex.exam_id} · ${ex.type}`,
     examId: ex.exam_id,
@@ -5365,45 +5790,16 @@ function getPassageText(fillAnswers) {
 function showAnalysisByIdx(idx) {
   var q = currentQuestions[idx];
   if (!q) return;
-  selectedQuestion = q;
-  clearBlankHighlight();
-  highlightBlankByIdx(idx);
-
-  document.getElementById('drawerQInfo').textContent =
-    '第' + q.no + '题 · ' + (CATEGORY_MAP[q.category] || q.category) +
-    ' · ' + q.exam;
-
-  document.querySelectorAll('.drawer-tab').forEach(function(t) { t.classList.remove('active'); });
-  document.querySelector('.drawer-tab[data-tab="analysis"]').classList.add('active');
-  document.getElementById('drawerTabMigration').style.display = '';
-  document.getElementById('drawerTabTheory').style.display = 'none';
-
-  document.getElementById('drawer').classList.add('open');
-  document.getElementById('drawerOverlay').classList.add('show');
-  document.getElementById('drawerContent').scrollTop = 0;
-  // 投影模式下点题直接铺满全屏，不用老师手动拖
-  if (document.body.classList.contains('projection-mode')) {
-    setDrawerProjectionSize('full');
-  }
-  try {
-    document.getElementById('drawerContent').innerHTML = buildAnalysisContent(q);
-  } catch (e) {
-    console.error('解析面板渲染失败：', e);
-    document.getElementById('drawerContent').innerHTML =
-      '<h3>解析</h3>' +
-      '<p class="sentence-display">第 ' + escapeHtml(q.no || '') + ' 题答案：<span class="hl">' + escapeHtml(q.answer || '') + '</span></p>' +
-      '<div class="analysis-steps-lg">' +
-      '<p><strong>解题：</strong>' + escapeHtml(q.analysis || q.explanation || '这道题的数据不完整，先按答案和原句讲解。') + '</p>' +
-      '<p><strong>技巧：</strong>' + escapeHtml(CATEGORY_TIPS[q.category] || '先判空格成分，再确定答案方向。') + '</p>' +
-      '</div>';
-  }
-  renderClassroomSwitcher();
+  openTeachingStageByIdx(idx, { tab: 'analysis', source: 'practice' });
 }
 
 function closeDrawer(preserveDrawerReturn) {
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('drawerOverlay').classList.remove('show');
+  var drawer = document.getElementById('drawer');
+  var overlay = document.getElementById('drawerOverlay');
+  if (drawer) drawer.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
   selectedQuestion = null;
+  closeAnalysisFloat();
   clearBlankHighlight();
   renderClassroomSwitcher();
   // 手动关闭抽屉清返回上下文（避免下次打开抽屉残留过期的"返回"按钮）
@@ -5411,6 +5807,10 @@ function closeDrawer(preserveDrawerReturn) {
 }
 
 function switchDrawerTab(tab) {
+  if (teachingSession) {
+    setTeachingTab(tab);
+    return;
+  }
   document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
   var activeTab = document.querySelector(`.drawer-tab[data-tab="${tab}"]`);
   if (activeTab) activeTab.classList.add('active');
@@ -5510,6 +5910,99 @@ function renderSentenceWithBlank(q, revealAnswer) {
     escaped = escaped.replace(token, replacement);
   }
   return escaped;
+}
+
+function splitTextParagraphs(text) {
+  return String(text || '').split(/\n\s*\n/).map(function(p) {
+    return p.trim();
+  }).filter(Boolean);
+}
+
+function findQuestionBlankMatch(q) {
+  q = q || {};
+  var passage = asText(q.passage);
+  var no = safeQuestionNo(q);
+  if (!passage || !no) return null;
+  var re = new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}');
+  return re.exec(passage);
+}
+
+function findParagraphIndexAtOffset(text, offset) {
+  var paragraphs = splitTextParagraphs(text);
+  var cursor = 0;
+  for (var i = 0; i < paragraphs.length; i++) {
+    var start = String(text || '').indexOf(paragraphs[i], cursor);
+    if (start === -1) continue;
+    var end = start + paragraphs[i].length;
+    if (offset >= start && offset <= end) return i;
+    cursor = end;
+  }
+  return -1;
+}
+
+function splitEnglishSentences(paragraph) {
+  var text = String(paragraph || '').trim();
+  if (!text) return [];
+  var parts = [];
+  var start = 0;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text.charAt(i);
+    if (ch === '.' || ch === '!' || ch === '?') {
+      var end = i + 1;
+      while (end < text.length && /["')\]]/.test(text.charAt(end))) end++;
+      var sentence = text.substring(start, end).trim();
+      if (sentence) parts.push({ text: sentence, start: start, end: end });
+      start = end;
+      while (start < text.length && /\s/.test(text.charAt(start))) start++;
+      i = start - 1;
+    }
+  }
+  if (start < text.length) {
+    var tail = text.substring(start).trim();
+    if (tail) parts.push({ text: tail, start: start, end: text.length });
+  }
+  return parts;
+}
+
+function splitChineseSentences(paragraph) {
+  return (String(paragraph || '').match(/[^。！？!?]+[。！？!?]+|[^。！？!?]+$/g) || [])
+    .map(function(s) { return s.trim(); })
+    .filter(Boolean);
+}
+
+function getQuestionTranslationText(q) {
+  q = q || {};
+  if (q.chinese_translation) return q.chinese_translation;
+  if (currentExam && currentExam.chinese_translation) return currentExam.chinese_translation;
+  var examId = q.exam_id || q.exam;
+  var ex = examId && EXAMS_BY_ID[examId];
+  return ex && ex.chinese_translation ? ex.chinese_translation : '';
+}
+
+function getQuestionChineseSentence(q) {
+  q = q || {};
+  var zhText = getQuestionTranslationText(q);
+  if (!zhText) return '';
+
+  var passage = asText(q.passage) || (currentExam && currentExam.passage) || '';
+  var match = findQuestionBlankMatch(q);
+  if (!passage || !match) return '';
+
+  var paragraphIndex = findParagraphIndexAtOffset(passage, match.index);
+  var enParagraphs = splitTextParagraphs(passage);
+  var zhParagraphs = splitTextParagraphs(zhText);
+  if (paragraphIndex < 0 || !zhParagraphs[paragraphIndex]) return '';
+
+  var enParagraph = enParagraphs[paragraphIndex] || '';
+  var paragraphStart = passage.indexOf(enParagraph);
+  var relativeOffset = paragraphStart >= 0 ? match.index - paragraphStart : -1;
+  var enSentences = splitEnglishSentences(enParagraph);
+  var sentenceIndex = enSentences.findIndex(function(item) {
+    return relativeOffset >= item.start && relativeOffset <= item.end;
+  });
+  var zhSentences = splitChineseSentences(zhParagraphs[paragraphIndex]);
+  if (sentenceIndex >= 0 && zhSentences[sentenceIndex]) return zhSentences[sentenceIndex];
+  return zhParagraphs[paragraphIndex] || '';
 }
 
 function safeQuestionFocus(q) {
@@ -5872,6 +6365,36 @@ function buildPracticalGuideHtml(guide) {
     + '</section>';
 }
 
+function buildSolutionPanelHtml(q) {
+  q = q || {};
+  return '<div class="analysis-solution-card">'
+    + '<strong>解题：</strong>' + escapeHtml(q.analysis || ('答案：' + (q.answer || '') + '。'))
+    + '</div>';
+}
+
+function closeAnalysisFloat() {
+  document.querySelectorAll('.analysis-float-panel.show, .teaching-float-panel.show').forEach(function(panel) {
+    panel.classList.remove('show');
+  });
+  document.querySelectorAll('.analysis-tool-btn.active').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+}
+
+function toggleAnalysisFloat(kind, btn) {
+  var content = btn && btn.closest ? btn.closest('.analysis-answer-row-lg, .teaching-answer-row') : null;
+  if (!content) content = document.getElementById('drawerContent') || document;
+  var selector = '[data-analysis-float="' + kind + '"]';
+  var panel = content.querySelector ? content.querySelector(selector) : document.querySelector(selector);
+  if (!panel) return;
+  var shouldOpen = !panel.classList.contains('show');
+  closeAnalysisFloat();
+  if (shouldOpen) {
+    panel.classList.add('show');
+    if (btn && btn.classList) btn.classList.add('active');
+  }
+}
+
 function getTeachingMigrationKeys(q, focus, nonpAxis) {
   var guide = getQuestionPracticalGuide(q, focus || safeQuestionFocus(q), nonpAxis || getNonpAxis(q));
   return guide ? asArray(guide.migrationKeys) : [];
@@ -5888,9 +6411,12 @@ function hasTeachingMigrationOverlap(item, q, qKeys) {
 function buildAnalysisContent(q) {
   q = q || {};
   var sent = renderSentenceWithBlank(q, true);
+  var zhSentence = getQuestionChineseSentence(q);
   var focus = safeQuestionFocus(q);
   var nonpAxis = getNonpAxis(q);
   var practicalGuide = getQuestionPracticalGuide(q, focus, nonpAxis);
+  var guideHtml = buildPracticalGuideHtml(practicalGuide);
+  var solutionHtml = buildSolutionPanelHtml(q);
 
   // 迁移练习题数：优先按课堂判断路径，旧题再回退到 fine_category / focus。
   var sameTagCount = 0;
@@ -5917,21 +6443,32 @@ function buildAnalysisContent(q) {
     }
   } catch(e) {}
 
-  var navHtml = '<div style="display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;">'
+  var navHtml = teachingSession ? '' : ('<div style="display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;">'
     + '<button onclick="navigateBlank(-1)" style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">◀ 上一题</button>'
     + '<button onclick="navigateBlank(1)"  style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">下一题 ▶</button>'
     + (sameTagCount > 0
         ? '<button onclick="switchDrawerTab(\'migration\')" style="flex:0;padding:8px 18px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);font-weight:700;">'
           + '迁移 ' + sameTagCount + ' 题 →</button>'
         : '')
-    + '</div>';
+    + '</div>');
 
-  return '<div class="analysis-answer-lg">' + escapeHtml(q.answer || '') + '</div>'
-    + '<div class="analysis-sentence-lg">' + sent + '</div>'
-    + buildPracticalGuideHtml(practicalGuide)
-    + '<div class="analysis-steps-lg" style="margin-bottom:0;">'
-    + '<p><strong>解题：</strong>' + escapeHtml(q.analysis || ('答案：' + (q.answer || '') + '。')) + '</p>'
+  return '<div class="analysis-answer-row-lg">'
+    + '<div class="analysis-answer-lg">' + escapeHtml(q.answer || '') + '</div>'
+    + '<div class="analysis-answer-tools">'
+    + '<button type="button" class="analysis-tool-btn" onclick="toggleAnalysisFloat(\'guide\', this)">讲题卡</button>'
+    + '<button type="button" class="analysis-tool-btn" onclick="toggleAnalysisFloat(\'solution\', this)">解题</button>'
     + '</div>'
+    + '<div class="analysis-float-panel" data-analysis-float="guide">'
+    + '<div class="analysis-float-head"><div class="analysis-float-title">讲题卡</div><button type="button" class="analysis-float-close" onclick="closeAnalysisFloat()">×</button></div>'
+    + guideHtml
+    + '</div>'
+    + '<div class="analysis-float-panel" data-analysis-float="solution">'
+    + '<div class="analysis-float-head"><div class="analysis-float-title">解题</div><button type="button" class="analysis-float-close" onclick="closeAnalysisFloat()">×</button></div>'
+    + solutionHtml
+    + '</div>'
+    + '</div>'
+    + '<div class="analysis-sentence-lg">' + sent + '</div>'
+    + (zhSentence ? '<div class="analysis-sentence-zh">' + escapeHtml(zhSentence) + '</div>' : '')
     + navHtml;
 }
 
@@ -5945,6 +6482,11 @@ var _migrationSource = (function(){
 function setMigrationSource(src) {
   _migrationSource = src;
   try { localStorage.setItem(MIGRATION_SOURCE_KEY, src); } catch(e) {}
+  if (teachingSession) {
+    closeTeachingExamMenu();
+    renderTeachingStage();
+    return;
+  }
   if (selectedQuestion) {
     try {
       document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedQuestion);
@@ -5956,7 +6498,529 @@ function setMigrationSource(src) {
   }
 }
 
-function buildMigrationContent(q) {
+var _teachingMigrationRegistry = {};
+var _teachingMigrationCounter = 0;
+
+function clearTeachingMigrationRegistry() {
+  _teachingMigrationRegistry = {};
+}
+
+function registerTeachingMigrationItem(item) {
+  _teachingMigrationCounter += 1;
+  var id = 'tm_' + _teachingMigrationCounter;
+  _teachingMigrationRegistry[id] = item;
+  return id;
+}
+
+function getTeachingMigrationItem(id) {
+  return _teachingMigrationRegistry[id] || null;
+}
+
+function isErrorQuestionItem(item) {
+  return !!(item && (item.exam === '错题本' || (item.id && item.id.indexOf('err_') === 0)));
+}
+
+function createExamQuestionFromRaw(raw, exam) {
+  raw = raw || {};
+  exam = exam || {};
+  return {
+    no: raw.no,
+    answer: raw.answer,
+    category: raw.category,
+    category_name: raw.category_name,
+    grammar_point: raw.grammar_point,
+    fine_category: raw.fine_category,
+    nonp_function: raw.nonp_function,
+    nonp_function_label: raw.nonp_function_label,
+    nonp_form: raw.nonp_form,
+    nonp_form_label: raw.nonp_form_label,
+    nonp_rule: raw.nonp_rule,
+    nonp_needs_review: raw.nonp_needs_review,
+    exam: exam.exam_id || raw.exam_id || raw.exam,
+    exam_id: exam.exam_id || raw.exam_id || raw.exam,
+    year: exam.year || raw.year || '',
+    type: exam.type || raw.type || '',
+    passage: exam.passage || raw.passage || '',
+    sentence: raw.sentence || '',
+    analysis: raw.explanation || raw.analysis || ('答案：' + (raw.answer || '') + '。'),
+    technique: '考点：' + (raw.category_name || raw.grammar_point || '语法填空') +
+               '。' + (CATEGORY_TIPS[raw.category] || '先判空格成分，再确定词形。')
+  };
+}
+
+function buildExamQuestions(exam) {
+  if (!exam || !Array.isArray(exam.questions)) return [];
+  return exam.questions.map(function(q) { return createExamQuestionFromRaw(q, exam); });
+}
+
+function createExamStateFromId(examId) {
+  var ex = EXAMS_BY_ID[examId];
+  if (!ex) return null;
+  var questions = buildExamQuestions(ex);
+  return {
+    currentExam: {
+      source: ex.exam_id + ' · ' + ex.type,
+      examId: ex.exam_id,
+      questions: questions,
+      mode: 'exam',
+      passage: ex.passage,
+      chinese_translation: ex.chinese_translation || ''
+    },
+    currentQuestions: questions
+  };
+}
+
+function createErrorStateForQuestion(q) {
+  if (!q) return null;
+  return {
+    currentExam: {
+      source: '错题本 · ' + (CATEGORY_MAP[q.category] || q.category),
+      questions: [q],
+      mode: 'error'
+    },
+    currentQuestions: [q]
+  };
+}
+
+function captureTeachingContext() {
+  return {
+    currentExam: currentExam,
+    currentQuestions: currentQuestions ? currentQuestions.slice() : [],
+    selectedQuestion: selectedQuestion,
+    idx: getCurrentQuestionIndex(),
+    tab: teachingSession ? teachingSession.tab : 'analysis',
+    showAnswer: teachingSession ? teachingSession.showAnswer : false,
+    previousView: previousView,
+    showAnswers: showAnswers,
+    showChinese: showChinese
+  };
+}
+
+function isSameTeachingExamContext(a, b) {
+  a = a || {};
+  b = b || {};
+  if (!a.mode || !b.mode || a.mode !== b.mode) return false;
+  if (a.mode === 'exam') return a.examId === b.examId;
+  if (a.mode === 'prep') return a.prepId === b.prepId;
+  if (a.mode === 'category') return a.category === b.category;
+  if (a.mode === 'error') {
+    var aQ = a.questions && a.questions[0];
+    var bQ = b.questions && b.questions[0];
+    return sameQuestion(aQ, bQ);
+  }
+  return a.source === b.source;
+}
+
+function restoreTeachingContext(ctx) {
+  if (!ctx || !ctx.currentExam) return false;
+  currentExam = ctx.currentExam;
+  currentQuestions = ctx.currentQuestions || [];
+  selectedQuestion = ctx.selectedQuestion || currentQuestions[ctx.idx] || null;
+  previousView = ctx.previousView || previousView;
+  showAnswers = !!ctx.showAnswers;
+  showChinese = !!ctx.showChinese;
+  _keepTeachingOnPageSwitch = true;
+  switchPage('practice');
+  _keepTeachingOnPageSwitch = false;
+  renderExam();
+  return true;
+}
+
+function applyTeachingContext(ctx) {
+  if (!ctx) return;
+  restoreTeachingContext(ctx);
+}
+
+function syncTeachingQuestion(idx) {
+  if (!currentQuestions || currentQuestions.length === 0) return null;
+  if (idx < 0) idx = 0;
+  if (idx >= currentQuestions.length) idx = currentQuestions.length - 1;
+  var q = currentQuestions[idx];
+  selectedQuestion = q;
+  clearBlankHighlight();
+  highlightBlankByIdx(idx);
+  renderClassroomSwitcher();
+  return q;
+}
+
+function openTeachingStageByIdx(idx, options) {
+  options = options || {};
+  var q = syncTeachingQuestion(idx);
+  if (!q) return;
+  closeAnalysisFloat();
+  if (!teachingSession) {
+    teachingBaseContext = captureTeachingContext();
+    teachingBaseContext.idx = idx;
+    teachingBaseContext.selectedQuestion = q;
+  }
+  var prevTab = teachingSession && teachingSession.tab;
+  var prevAnswer = teachingSession && teachingSession.showAnswer;
+  teachingSession = {
+    source: options.source || (teachingSession && teachingSession.source) || 'practice',
+    idx: idx,
+    tab: options.tab || prevTab || 'analysis',
+    showAnswer: typeof options.showAnswer === 'boolean' ? options.showAnswer : !!prevAnswer
+  };
+  document.body.classList.add('teaching-mode');
+  var stage = document.getElementById('teachingStage');
+  if (stage) stage.classList.add('open');
+  var drawer = document.getElementById('drawer');
+  var overlay = document.getElementById('drawerOverlay');
+  if (drawer) drawer.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
+  renderTeachingStage();
+}
+
+function renderTeachingStage() {
+  if (!teachingSession) return;
+  var idx = teachingSession.idx;
+  var q = currentQuestions && currentQuestions[idx];
+  if (!q) {
+    closeTeachingStage();
+    return;
+  }
+  selectedQuestion = q;
+  clearTeachingMigrationRegistry();
+  var main = document.getElementById('teachingStageMain');
+  if (!main) return;
+  var cat = CATEGORY_MAP[q.category] || q.category || '语法填空';
+  var sourceLabel = (currentExam && currentExam.source) || q.exam || '当前资料';
+  var focus = safeQuestionFocus(q);
+  var nonpAxis = getNonpAxis(q);
+  var practicalGuide = getQuestionPracticalGuide(q, focus, nonpAxis);
+  var zhSentence = getQuestionChineseSentence(q);
+  var answerHtml = teachingSession.showAnswer
+    ? '<span class="teaching-answer-pill">答案：' + escapeHtml(q.answer || '') + '</span>'
+    : '<span class="teaching-answer-pill muted">答案已隐藏</span>';
+  answerHtml += '<span class="teaching-inline-tools">'
+    + '<button type="button" class="analysis-tool-btn" onclick="toggleAnalysisFloat(\'guide\', this)">讲题卡</button>'
+    + '<button type="button" class="analysis-tool-btn" onclick="toggleAnalysisFloat(\'solution\', this)">解题</button>'
+    + '</span>'
+    + '<div class="teaching-float-panel" data-analysis-float="guide">'
+    + '<div class="analysis-float-head"><div class="analysis-float-title">讲题卡</div><button type="button" class="analysis-float-close" onclick="closeAnalysisFloat()">×</button></div>'
+    + buildPracticalGuideHtml(practicalGuide)
+    + '</div>'
+    + '<div class="teaching-float-panel" data-analysis-float="solution">'
+    + '<div class="analysis-float-head"><div class="analysis-float-title">解题</div><button type="button" class="analysis-float-close" onclick="closeAnalysisFloat()">×</button></div>'
+    + buildSolutionPanelHtml(q)
+    + '</div>';
+  var contentHtml = '';
+  try {
+    contentHtml = teachingSession.tab === 'migration'
+      ? buildTeachingMigrationHtml(q)
+      : buildTeachingAnalysisHtml(q, practicalGuide);
+  } catch (e) {
+    console.error('演示台渲染失败：', e);
+    contentHtml = '<div class="empty-hint">当前题内容加载失败，请退出后重新进入。</div>';
+  }
+  main.innerHTML = '<div class="teaching-stage-shell">'
+    + '<div class="teaching-stage-meta">'
+    + '<span>' + escapeHtml(sourceLabel) + '</span>'
+    + '<span>第' + escapeHtml(q.no || '') + '题</span>'
+    + '<span>' + escapeHtml(cat) + '</span>'
+    + '</div>'
+    + '<section class="teaching-question-panel">'
+    + '<div class="teaching-question-line">' + renderSentenceWithBlank(q, !!teachingSession.showAnswer) + '</div>'
+    + (zhSentence ? '<div class="teaching-question-zh">' + escapeHtml(zhSentence) + '</div>' : '')
+    + '<div class="teaching-answer-row">' + answerHtml + '</div>'
+    + '</section>'
+    + (contentHtml ? '<section class="teaching-content-panel">' + contentHtml + '</section>' : '')
+    + '</div>';
+  renderTeachingDock();
+  requestAnimationFrame(function() {
+    var active = document.querySelector('.teaching-q-btn.active');
+    if (active) {
+      try { active.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch(e) {}
+    }
+  });
+}
+
+function buildTeachingAnalysisHtml(q, practicalGuide) {
+  return buildPracticalGuideHtml(practicalGuide)
+    + buildSolutionPanelHtml(q);
+}
+
+function buildTeachingMigrationHtml(q) {
+  var data = getMigrationData(q);
+  var html = '<div class="teacher-quick-card" style="margin-top:0;">'
+    + '<div class="teacher-quick-head" style="margin-bottom:6px;">'
+    + '<div class="teacher-quick-kicker">迁移练习</div>'
+    + '<div class="teacher-quick-title-line">' + escapeHtml(data.headerLabel) + '</div>'
+    + '</div>'
+    + (data.headerSubLabel ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.5;">' + escapeHtml(data.headerSubLabel) + '</div>' : '')
+    + '<div style="font-size:calc(var(--drawer-font-size-sm,23px) - 2px);color:var(--text-3);line-height:1.5;margin-top:4px;">'
+    + '共 <strong>' + data.poolCount + '</strong> 题，展示 <strong>' + data.migration.length + '</strong> 题。'
+    + '</div>'
+    + '</div>';
+  if (data.emptyHint) {
+    return html + '<div class="empty-hint">' + data.emptyHint + '</div>';
+  }
+  html += '<div class="migration-list">';
+  data.migration.forEach(function(entry) {
+    var item = entry.item;
+    var typeTagHtml = '';
+    if (!entry.isError && item.type === '真题') {
+      typeTagHtml = '<span style="background:var(--green-bg);color:var(--green);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">真题</span>';
+    } else if (!entry.isError && (item.type === '模拟卷' || item.type === '模拟题')) {
+      typeTagHtml = '<span style="background:var(--orange-bg);color:var(--orange);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">模拟</span>';
+    }
+    html += '<div class="migration-card" onclick="jumpToMigrationQuestionById(\'' + entry.id + '\')">'
+      + '<div class="migration-card-head">'
+      + '<span class="migration-card-source"' + (entry.isError ? ' style="color:var(--accent);"' : '') + '>'
+      + escapeHtml(entry.srcLabel || '题库') + typeTagHtml + ' · 第' + escapeHtml(item.no || '') + '题</span>'
+      + '<span class="migration-card-tag">' + escapeHtml(entry.tagLabel || '') + '</span>'
+      + '</div>'
+      + '<div class="migration-card-sentence">' + entry.sentenceHtml + '</div>'
+      + '<div class="migration-card-body" style="display:block;">'
+      + (entry.teachingLine ? '<p><strong>讲法：</strong>' + escapeHtml(entry.teachingLine) + '</p>' : '')
+      + '<p style="font-weight:800;color:var(--accent);margin-bottom:0;">点击切到这道题完整演示</p>'
+      + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderTeachingDock() {
+  if (!teachingSession) return;
+  var dock = document.getElementById('teachingDock');
+  if (!dock) return;
+  var idx = teachingSession.idx;
+  var returnCtx = teachingReturnStack.length ? teachingReturnStack[teachingReturnStack.length - 1] : null;
+  var returnLabel = returnCtx && returnCtx.type === 'unit-question-list' ? '返回教材' : '返回原题';
+  var qBtns = (currentQuestions || []).map(function(q, i) {
+    return '<button class="teaching-q-btn' + (i === idx ? ' active' : '') + '" onclick="jumpTeachingQuestion(' + i + ')">第' + escapeHtml(q.no || '') + '题</button>';
+  }).join('');
+  var migrationTabs = '';
+  if (teachingSession.tab === 'migration') {
+    var migrationData = getMigrationData(currentQuestions[idx]);
+    migrationTabs = migrationData.tabs.map(function(item) {
+      return '<button class="' + (_migrationSource === item.key ? 'active' : '') + '" onclick="setMigrationSource(\'' + item.key + '\')">'
+        + escapeHtml(item.label) + ' ' + item.count
+        + '</button>';
+    }).join('');
+  }
+  dock.innerHTML = ''
+    + '<div class="teaching-dock-group">'
+    + '<button onclick="jumpTeachingQuestion(-1, true)" title="上一题">‹</button>'
+    + '<button onclick="jumpTeachingQuestion(1, true)" title="下一题">›</button>'
+    + '</div>'
+    + '<div class="teaching-question-rail"><div class="teaching-dock-group">' + qBtns + '</div></div>'
+    + '<div class="teaching-dock-group">'
+    + '<button class="' + (teachingSession.tab === 'analysis' ? 'active' : '') + '" onclick="setTeachingTab(\'analysis\')">解析</button>'
+    + '<button class="' + (teachingSession.tab === 'migration' ? 'active' : '') + '" onclick="setTeachingTab(\'migration\')">迁移</button>'
+    + migrationTabs
+    + '<button class="' + (teachingSession.showAnswer ? 'primary' : '') + '" onclick="toggleTeachingAnswer()">答案</button>'
+    + (returnCtx ? '<button class="return" onclick="returnTeachingQuestion()">' + escapeHtml(returnLabel) + '</button>' : '')
+    + '<button onclick="toggleTeachingExamMenu()">套题</button>'
+    + '<button class="danger" onclick="closeTeachingStage()">退出</button>'
+    + '</div>';
+}
+
+function setTeachingTab(tab) {
+  if (!teachingSession) return;
+  teachingSession.tab = tab === 'migration' ? 'migration' : 'analysis';
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  renderTeachingStage();
+}
+
+function toggleTeachingAnswer() {
+  if (!teachingSession) return;
+  teachingSession.showAnswer = !teachingSession.showAnswer;
+  renderTeachingStage();
+}
+
+function jumpTeachingQuestion(deltaOrIdx, isDelta) {
+  if (!teachingSession || !currentQuestions || currentQuestions.length === 0) return;
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  var nextIdx = isDelta ? teachingSession.idx + deltaOrIdx : deltaOrIdx;
+  if (nextIdx < 0) nextIdx = currentQuestions.length - 1;
+  if (nextIdx >= currentQuestions.length) nextIdx = 0;
+  openTeachingStageByIdx(nextIdx, {
+    tab: teachingSession.tab,
+    showAnswer: teachingSession.showAnswer,
+    source: teachingSession.source
+  });
+}
+
+function toggleTeachingExamMenu() {
+  if (_teachingMenuOpen === 'exam') {
+    closeTeachingExamMenu();
+    return;
+  }
+  _teachingMenuOpen = 'exam';
+  renderTeachingExamMenu();
+}
+
+function closeTeachingExamMenu() {
+  _teachingMenuOpen = '';
+  var menu = document.getElementById('teachingExamMenu');
+  if (menu) {
+    menu.classList.remove('show');
+    menu.innerHTML = '';
+  }
+}
+
+function renderTeachingExamMenu() {
+  var menu = document.getElementById('teachingExamMenu');
+  if (!menu) return;
+  var html = '<div class="teaching-popover-title">切换套题</div>';
+  if (currentExam && currentExam.mode === 'exam') {
+    getOrderedExams().forEach(function(ex) {
+      var active = currentExam.examId === ex.exam_id;
+      var label = ex.exam_id + (ex.type ? ' · ' + ex.type : '');
+      var sub = (ex.blank_count || (ex.questions || []).length || 0) + ' 题';
+      html += '<button class="teaching-menu-btn' + (active ? ' active' : '') + '" onclick="jumpTeachingExam(\'' + escapeHtml(ex.exam_id) + '\')">'
+        + escapeHtml(label)
+        + '<span class="teaching-menu-sub">' + escapeHtml(sub) + '</span>'
+        + '</button>';
+    });
+  } else {
+    html += '<button class="teaching-menu-btn active">'
+      + escapeHtml((currentExam && currentExam.source) || '当前资料')
+      + '<span class="teaching-menu-sub">当前来源不是公开套卷，题号仍可在底部切换。</span>'
+      + '</button>';
+  }
+  menu.innerHTML = html;
+  menu.classList.add('show');
+}
+
+function jumpTeachingExam(examId, no) {
+  var state = createExamStateFromId(examId);
+  if (!state) return;
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  currentExam = state.currentExam;
+  currentQuestions = state.currentQuestions;
+  selectedQuestion = null;
+  showAnswers = false;
+  showChinese = false;
+  previousView = { page: 'home', view: 'exams' };
+  _keepTeachingOnPageSwitch = true;
+  switchPage('practice');
+  _keepTeachingOnPageSwitch = false;
+  renderExam();
+  var idx = 0;
+  if (no !== undefined && no !== null) {
+    var found = currentQuestions.findIndex(function(item) { return String(item.no) === String(no); });
+    if (found !== -1) idx = found;
+  }
+  openTeachingStageByIdx(idx, {
+    tab: teachingSession ? teachingSession.tab : 'analysis',
+    showAnswer: teachingSession ? teachingSession.showAnswer : false,
+    source: 'exam-switch'
+  });
+}
+
+function jumpToMigrationQuestionById(id) {
+  var item = getTeachingMigrationItem(id);
+  if (item) jumpToMigrationQuestion(item);
+}
+
+function jumpToMigrationQuestion(item) {
+  if (!item) return;
+  closeAnalysisFloat();
+  var returnCtx = captureTeachingContext();
+  var tab = teachingSession ? teachingSession.tab : 'migration';
+  var showAnswer = teachingSession ? teachingSession.showAnswer : false;
+  var state = null;
+  var targetIdx = 0;
+  var isError = isErrorQuestionItem(item);
+  if (isError) {
+    state = createErrorStateForQuestion(item);
+    previousView = { page: 'error-book' };
+  } else {
+    var examId = item.exam_id || item.exam;
+    state = createExamStateFromId(examId);
+    if (!state) {
+      var raw = ALL_QUESTIONS.find(function(q) {
+        return sameQuestion(q, item) || (String(q.exam_id || q.exam) === String(examId) && String(q.no) === String(item.no));
+      });
+      if (raw) state = createExamStateFromId(raw.exam_id || raw.exam);
+    }
+    previousView = { page: 'home', view: 'exams' };
+  }
+  if (!state) return;
+  currentExam = state.currentExam;
+  currentQuestions = state.currentQuestions;
+  selectedQuestion = null;
+  showAnswers = false;
+  showChinese = false;
+  var foundIdx = currentQuestions.findIndex(function(q) {
+    return sameQuestion(q, item) || String(q.no) === String(item.no);
+  });
+  targetIdx = foundIdx === -1 ? 0 : foundIdx;
+  teachingReturnStack.push(returnCtx);
+  _keepTeachingOnPageSwitch = true;
+  switchPage('practice');
+  _keepTeachingOnPageSwitch = false;
+  renderExam();
+  openTeachingStageByIdx(targetIdx, {
+    tab: tab,
+    showAnswer: showAnswer,
+    source: 'migration'
+  });
+}
+
+function returnTeachingQuestion() {
+  var ctx = teachingReturnStack.pop();
+  if (!ctx) return;
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  if (ctx.type === 'unit-question-list') {
+    teardownTeachingStage({ skipRestore: true });
+    setDrawerReturnTo(ctx);
+    executeDrawerReturn();
+    return;
+  }
+  applyTeachingContext(ctx);
+  openTeachingStageByIdx(ctx.idx || 0, {
+    tab: ctx.tab || 'analysis',
+    showAnswer: !!ctx.showAnswer,
+    source: 'return'
+  });
+}
+
+function teardownTeachingStage(options) {
+  options = options || {};
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  var lastIdx = teachingSession ? teachingSession.idx : getCurrentQuestionIndex();
+  var baseCtx = teachingBaseContext;
+  var shouldRestoreBase = !options.skipRestore && baseCtx && !isSameTeachingExamContext(currentExam, baseCtx.currentExam);
+  teachingSession = null;
+  teachingReturnStack = [];
+  if (shouldRestoreBase) {
+    restoreTeachingContext(baseCtx);
+    lastIdx = baseCtx.idx || 0;
+  }
+  teachingBaseContext = null;
+  document.body.classList.remove('teaching-mode');
+  var stage = document.getElementById('teachingStage');
+  if (stage) stage.classList.remove('open');
+  var main = document.getElementById('teachingStageMain');
+  var dock = document.getElementById('teachingDock');
+  if (main) main.innerHTML = '';
+  if (dock) dock.innerHTML = '';
+  if (currentQuestions && currentQuestions[lastIdx]) {
+    selectedQuestion = currentQuestions[lastIdx];
+    renderExam();
+    clearBlankHighlight();
+    highlightBlankByIdx(lastIdx);
+  } else {
+    selectedQuestion = null;
+    clearBlankHighlight();
+  }
+  renderClassroomSwitcher();
+}
+
+function closeTeachingStage() {
+  teardownTeachingStage();
+}
+
+function getMigrationData(q) {
   q = q || {};
   var focus = safeQuestionFocus(q);
   var trap = safeQuestionTrap(q);
@@ -6049,25 +7113,6 @@ function buildMigrationContent(q) {
   else if (_migrationSource === 'all') pool = allDisplayPool;
   else pool = bankDisplayPool;
 
-  // 顶部 segmented 控件
-  function tab(key, label, count) {
-    var active = (_migrationSource === key);
-    return '<button onclick="setMigrationSource(\'' + key + '\')" '
-      + 'style="flex:1;padding:7px 10px;border:none;background:' + (active ? 'var(--surface)' : 'transparent')
-      + ';color:' + (active ? 'var(--text)' : 'var(--text-2)')
-      + ';font-size:calc(var(--drawer-font-size-sm,23px) - 5px);font-weight:' + (active ? '700' : '600')
-      + ';border-radius:6px;cursor:pointer;transition:all .15s;font-family:inherit;'
-      + (active ? 'box-shadow:0 1px 3px rgba(0,0,0,0.08);' : '')
-      + '">'
-      + label + ' <span style="color:var(--text-3);font-weight:400;">' + count + '</span>'
-      + '</button>';
-  }
-  var tabsHtml = '<div style="display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:8px;margin-bottom:12px;">'
-    + tab('bank',   '真题库', bankDisplayPool.length)
-    + tab('errors', '我的错题', errorDisplayPool.length)
-    + tab('all',    '全部',   allDisplayPool.length)
-    + '</div>';
-
   if (pool.length === 0) {
     var focusLabel = practicalGuide && practicalGuide.title ? practicalGuide.title : (nonpAxis ? nonpAxis.title : (fineInfo ? fineInfo.name : (trap ? trap.name : focus.label)));
     var hint;
@@ -6082,7 +7127,21 @@ function buildMigrationContent(q) {
     if (fallbackCount > 0) {
       hint += '<br><span style="color:var(--text-3);">可切回粗分类「' + escapeHtml(CATEGORY_MAP[q.category] || q.category || '语法填空') + '」，但课堂复习会更泛。</span>';
     }
-    return tabsHtml + '<div class="empty-hint">' + hint + '</div>';
+    return {
+      q: q,
+      focus: focus,
+      practicalGuide: practicalGuide,
+      headerLabel: practicalGuide && practicalGuide.title ? ('同类迁移：' + practicalGuide.title) : (fineInfo ? ('同考点：' + fineInfo.name) : ('同类型：' + focus.label)),
+      headerSubLabel: practicalGuide && practicalGuide.trigger ? practicalGuide.trigger : '',
+      poolCount: 0,
+      migration: [],
+      emptyHint: hint,
+      tabs: [
+        { key: 'bank', label: '真题库', count: bankDisplayPool.length },
+        { key: 'errors', label: '我的错题', count: errorDisplayPool.length },
+        { key: 'all', label: '全部', count: allDisplayPool.length }
+      ]
+    };
   }
 
   // 真题库按"每套卷一题"去重，错题本不去重（每道错题都独立有意义）
@@ -6131,26 +7190,85 @@ function buildMigrationContent(q) {
   } else {
     headerLabel = '同类型：' + focus.label;
   }
+  return {
+    q: q,
+    focus: focus,
+    practicalGuide: practicalGuide,
+    headerLabel: headerLabel,
+    headerSubLabel: headerSubLabel,
+    poolCount: pool.length,
+    tabs: [
+      { key: 'bank', label: '真题库', count: bankDisplayPool.length },
+      { key: 'errors', label: '我的错题', count: errorDisplayPool.length },
+      { key: 'all', label: '全部', count: allDisplayPool.length }
+    ],
+    migration: migration.map(function(item) {
+      var isError = isErrorQuestionItem(item);
+      var srcLabel = isError ? '📝 我的错题' : item.exam;
+      var itemFineInfo = getFineTagInfo(item.fine_category);
+      var itemFocus = safeQuestionFocus(item);
+      var itemAxis = getNonpAxis(item);
+      var itemGuide = getQuestionPracticalGuide(item, itemFocus, itemAxis);
+      var itemTagLabel = itemGuide && itemGuide.title
+        ? itemGuide.title
+        : (itemAxis
+          ? (itemAxis.formLabel + ' · ' + itemAxis.functionLabel)
+          : ((itemFineInfo && itemFineInfo.name) || itemFocus.label));
+      var itemTeachingLine = itemGuide && itemGuide.trigger
+        ? itemGuide.trigger
+        : (itemAxis && itemAxis.rule ? itemAxis.rule : '');
+      return {
+        id: registerTeachingMigrationItem(item),
+        item: item,
+        isError: isError,
+        srcLabel: srcLabel,
+        tagLabel: itemTagLabel,
+        teachingLine: itemTeachingLine,
+        sentenceHtml: renderSentenceWithBlank(item, false)
+      };
+    })
+  };
+}
+
+function buildMigrationContent(q) {
+  clearTeachingMigrationRegistry();
+  var data = getMigrationData(q);
+  function tab(key, label, count) {
+    var active = (_migrationSource === key);
+    return '<button onclick="setMigrationSource(\'' + key + '\')" '
+      + 'style="flex:1;padding:7px 10px;border:none;background:' + (active ? 'var(--surface)' : 'transparent')
+      + ';color:' + (active ? 'var(--text)' : 'var(--text-2)')
+      + ';font-size:calc(var(--drawer-font-size-sm,23px) - 5px);font-weight:' + (active ? '700' : '600')
+      + ';border-radius:6px;cursor:pointer;transition:all .15s;font-family:inherit;'
+      + (active ? 'box-shadow:0 1px 3px rgba(0,0,0,0.08);' : '')
+      + '">'
+      + label + ' <span style="color:var(--text-3);font-weight:400;">' + count + '</span>'
+      + '</button>';
+  }
+  var tabsHtml = '<div style="display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:8px;margin-bottom:12px;">'
+    + data.tabs.map(function(item) { return tab(item.key, item.label, item.count); }).join('')
+    + '</div>';
+
+  if (data.emptyHint) {
+    return tabsHtml + '<div class="empty-hint">' + data.emptyHint + '</div>';
+  }
 
   var html = tabsHtml
     + '<div class="teacher-quick-card" style="margin-top:0;">'
     + '<div class="teacher-quick-head" style="margin-bottom:6px;">'
     + '<div class="teacher-quick-kicker">迁移练习</div>'
     + '<div class="teacher-quick-title-line">'
-    + escapeHtml(headerLabel)
+    + escapeHtml(data.headerLabel)
     + '</div>'
     + '</div>'
-    + (headerSubLabel ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.5;">' + escapeHtml(headerSubLabel) + '</div>' : '')
+    + (data.headerSubLabel ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.5;">' + escapeHtml(data.headerSubLabel) + '</div>' : '')
     + '<div style="font-size:calc(var(--drawer-font-size-sm,23px) - 2px);color:var(--text-3);line-height:1.5;margin-top:4px;">'
-    + '共 <strong>' + pool.length + '</strong> 题，展示 <strong>' + migration.length + '</strong> 题。'
+    + '共 <strong>' + data.poolCount + '</strong> 题，展示 <strong>' + data.migration.length + '</strong> 题。'
     + '</div>'
     + '</div>'
     + '<div class="migration-list">';
-  migration.forEach(function(item) {
-    var sent = renderSentenceWithBlank(item, false);
-
-    var isError = (item.exam === '错题本' || (item.id && item.id.indexOf('err_') === 0));
-    var srcLabel = isError ? '📝 我的错题' : item.exam;
+  data.migration.forEach(function(entry) {
+    var item = entry.item;
     var itemFineInfo = getFineTagInfo(item.fine_category);
     var itemFocus = safeQuestionFocus(item);
     var itemAxis = getNonpAxis(item);
@@ -6166,7 +7284,7 @@ function buildMigrationContent(q) {
 
     // Sprint 1.5 · type 标签：真题 / 模拟卷 / 错题本，醒目颜色编码
     var typeTagHtml = '';
-    if (isError) {
+    if (entry.isError) {
       typeTagHtml = ''; // 错题本不另加 type tag，srcLabel 已带 emoji
     } else if (item.type === '真题') {
       typeTagHtml = '<span style="background:var(--green-bg);color:var(--green);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">真题</span>';
@@ -6174,17 +7292,16 @@ function buildMigrationContent(q) {
       typeTagHtml = '<span style="background:var(--orange-bg);color:var(--orange);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">模拟</span>';
     }
 
-    html += '<div class="migration-card" onclick="this.classList.toggle(\'open\')">'
+    html += '<div class="migration-card" onclick="jumpToMigrationQuestionById(\'' + entry.id + '\')">'
       + '<div class="migration-card-head">'
-      + '<span class="migration-card-source"' + (isError ? ' style="color:var(--accent);"' : '') + '>'
-      +    escapeHtml(srcLabel || '题库') + typeTagHtml + ' · 第' + escapeHtml(item.no || '') + '题</span>'
-      + '<span class="migration-card-tag">' + escapeHtml(itemTagLabel) + '</span>'
+      + '<span class="migration-card-source"' + (entry.isError ? ' style="color:var(--accent);"' : '') + '>'
+      +    escapeHtml(entry.srcLabel || '题库') + typeTagHtml + ' · 第' + escapeHtml(item.no || '') + '题</span>'
+      + '<span class="migration-card-tag">' + escapeHtml(entry.tagLabel || itemTagLabel) + '</span>'
       + '</div>'
-      + '<div class="migration-card-sentence">' + sent + '</div>'
-      + '<div class="migration-card-body">'
-      + '<p><span class="ans">答案：' + escapeHtml(item.answer || '') + '</span></p>'
-      + (itemTeachingLine ? '<p><strong>讲法：</strong>' + escapeHtml(itemTeachingLine) + '</p>' : '')
-      + '<p>' + escapeHtml(item.analysis || '') + '</p>'
+      + '<div class="migration-card-sentence">' + entry.sentenceHtml + '</div>'
+      + '<div class="migration-card-body" style="display:block;">'
+      + (entry.teachingLine ? '<p><strong>讲法：</strong>' + escapeHtml(entry.teachingLine) + '</p>' : '')
+      + '<p style="font-weight:700;color:var(--accent);margin-bottom:0;">点击进入完整讲解</p>'
       + '</div>'
       + '</div>';
   });
@@ -6247,6 +7364,7 @@ function highlightBlankByIdx(idx) {
     target.classList.add('highlight');
     var p = target.closest('p');
     if (p) p.classList.add('paragraph-active');
+    try { target.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }); } catch(e) {}
   }
 }
 
@@ -6277,6 +7395,10 @@ function clearBlankHighlight() {
 
 function navigateBlank(delta) {
   if (!currentQuestions || currentQuestions.length === 0) return;
+  if (teachingSession) {
+    jumpTeachingQuestion(delta, true);
+    return;
+  }
   if (!selectedQuestion) {
     showAnalysisByIdx(delta < 0 ? currentQuestions.length - 1 : 0);
     return;
@@ -6291,6 +7413,10 @@ function navigateBlank(delta) {
 }
 
 function toggleAnswers() {
+  if (teachingSession) {
+    toggleTeachingAnswer();
+    return;
+  }
   if (showChinese) showChinese = false;
   showAnswers = !showAnswers;
   var btn = document.getElementById('btnToggleAnswers');
@@ -6322,32 +7448,9 @@ function enterProjectionMode() {
     alert('请先进入答题/讲题页面再开投影模式。');
     return;
   }
-  document.body.classList.add('projection-mode');
-  // 抽屉默认半屏
-  setDrawerProjectionSize('half');
-  // 尝试浏览器全屏
-  try {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(function() {});
-    }
-  } catch(e) {}
-  // 加顶部居中浮动控制条（重设计：胶囊 pill 风格）
-  if (!document.getElementById('projectionControls')) {
-    var bar = document.createElement('div');
-    bar.id = 'projectionControls';
-    bar.className = 'projection-controls';
-    bar.innerHTML = ''
-      + '<button onclick="navigateBlank(-1)" title="上一题"><span style="font-size:16px;">◀</span></button>'
-      + '<button onclick="navigateBlank(1)" title="下一题"><span style="font-size:16px;">▶</span></button>'
-      + '<span class="pc-divider"></span>'
-      + '<button onclick="toggleAnswers()" title="显示/隐藏答案"><span style="font-size:14px;">👁</span> 答案</button>'
-      + '<span class="pc-divider"></span>'
-      + '<button class="pc-exit" onclick="exitProjectionMode()" title="退出投影">退出</button>';
-    document.body.appendChild(bar);
-  }
-  document.addEventListener('keydown', _onProjectionKey);
-  // fullscreen 状态变化也要监听（用户按 F11 退全屏时同步退出投影）
-  document.addEventListener('fullscreenchange', _onProjectionFullscreenChange);
+  var idx = getCurrentQuestionIndex();
+  if (idx < 0) idx = 0;
+  openTeachingStageByIdx(idx, { tab: 'analysis', source: 'projection' });
 }
 
 function exitProjectionMode() {
@@ -6360,8 +7463,8 @@ function exitProjectionMode() {
   }
   var bar = document.getElementById('projectionControls');
   if (bar) bar.remove();
-  document.removeEventListener('keydown', _onProjectionKey);
   document.removeEventListener('fullscreenchange', _onProjectionFullscreenChange);
+  if (teachingSession) closeTeachingStage();
   try {
     if (document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(function() {});
@@ -6371,14 +7474,6 @@ function exitProjectionMode() {
   if (_drawerReturnTo && _drawerReturnTo.fromProjection) {
     setTimeout(executeDrawerReturn, 100);
   }
-}
-
-function _onProjectionKey(e) {
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    exitProjectionMode();
-  }
-  // 不再用 ← → 切题（user 反馈一体机不方便用键盘，专心用按钮）
 }
 
 function _onProjectionFullscreenChange() {
@@ -6445,6 +7540,19 @@ function jumpToCategory(cat) {
 
 // Keyboard navigation
 document.addEventListener('keydown', function(e) {
+  if (teachingSession) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      jumpTeachingQuestion(-1, true);
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      jumpTeachingQuestion(1, true);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeTeachingStage();
+    }
+    return;
+  }
   var drawerOpen = document.getElementById('drawer').classList.contains('open');
   if (!drawerOpen) return;
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
@@ -7084,45 +8192,54 @@ function _closeUnitMiniModal() {
 function _onUnitMiniKey(e) { if (e.key === 'Escape') _closeUnitMiniModal(); }
 
 function _gotoUnitQuestion(examId, no, source, autoProjection) {
-  // 记录返回上下文，进讲题后抽屉显示"← 返回"按钮
   var ctx = _unitMiniContext ? {
     unitLabel: _unitMiniContext.unitLabel,
     tagIds: _unitMiniContext.tagIds.slice(),
     source: _unitMiniContext.source,
     filter: _unitMiniContext.filter
   } : null;
-  setDrawerReturnTo(ctx ? {
-    type: 'unit-question-list',
-    label: '返回「' + ctx.unitLabel + '」',
-    context: ctx,
-    fromProjection: !!autoProjection  // 标记是否从投影模式进来
-  } : null);
 
   _closeUnitMiniModal();
   closeTextbookModal();
   setTimeout(function() {
     if (source === 'errors') {
       var errQ = errorBookQuestions.find(function(q) { return String(q.no) === String(no); });
-      if (errQ && typeof viewErrorQuestion === 'function') {
-        viewErrorQuestion(errQ.id, true);
+      if (errQ) {
+        var errState = createErrorStateForQuestion(errQ);
+        currentExam = errState.currentExam;
+        currentQuestions = errState.currentQuestions;
+        previousView = { page: 'error-book' };
+        _keepTeachingOnPageSwitch = true;
+        switchPage('practice');
+        _keepTeachingOnPageSwitch = false;
+        renderExam();
+        openTeachingStageByIdx(0, { tab: 'analysis', source: 'knowledge', showAnswer: !!autoProjection });
       } else {
         switchPage('error-book');
       }
     } else {
-      if (typeof startByExam === 'function') {
-        startByExam(examId, true);
-        setTimeout(function() {
-          if (typeof showAnalysis === 'function') showAnalysis(no);
-        }, 100);
+      var state = createExamStateFromId(examId);
+      if (state) {
+        currentExam = state.currentExam;
+        currentQuestions = state.currentQuestions;
+        previousView = { page: 'home', view: 'exams' };
+        _keepTeachingOnPageSwitch = true;
+        switchPage('practice');
+        _keepTeachingOnPageSwitch = false;
+        renderExam();
+        var idx = currentQuestions.findIndex(function(q) { return String(q.no) === String(no); });
+        openTeachingStageByIdx(idx === -1 ? 0 : idx, { tab: 'analysis', source: 'knowledge', showAnswer: !!autoProjection });
       }
     }
-    // 自动进投影模式（如果要求）
-    if (autoProjection) {
-      setTimeout(function() {
-        if (typeof enterProjectionMode === 'function' && !document.body.classList.contains('projection-mode')) {
-          enterProjectionMode();
-        }
-      }, 400);
+    if (ctx) {
+      teachingReturnStack.push({
+        type: 'unit-question-list',
+        label: '返回「' + ctx.unitLabel + '」',
+        context: ctx,
+        tab: 'analysis',
+        showAnswer: !!autoProjection
+      });
+      renderTeachingDock();
     }
   }, 250);
 }
@@ -7494,6 +8611,16 @@ Object.assign(window, {
   submitAuth: submitAuth,
   switchDrawerTab: switchDrawerTab,
   switchPage: switchPage,
+  closeTeachingStage: closeTeachingStage,
+  jumpTeachingExam: jumpTeachingExam,
+  jumpTeachingQuestion: jumpTeachingQuestion,
+  jumpToMigrationQuestion: jumpToMigrationQuestion,
+  jumpToMigrationQuestionById: jumpToMigrationQuestionById,
+  returnTeachingQuestion: returnTeachingQuestion,
+  setTeachingTab: setTeachingTab,
+  toggleTeachingAnswer: toggleTeachingAnswer,
+  toggleTeachingExamMenu: toggleTeachingExamMenu,
+  openTeachingStageByIdx: openTeachingStageByIdx,
   toggleAnswers: toggleAnswers,
   toggleAssistant: toggleAssistant,
   toggleAuthMode: toggleAuthMode,
