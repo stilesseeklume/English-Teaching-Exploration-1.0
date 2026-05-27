@@ -1286,6 +1286,14 @@
     display: flex;
     flex-direction: column;
   }
+  .teaching-stage:fullscreen,
+  .teaching-stage:-webkit-full-screen {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg);
+  }
   .teaching-stage-main {
     flex: 1;
     min-height: 0;
@@ -4129,6 +4137,7 @@ let selectedQuestion = null;
 let teachingSession = null;
 let teachingReturnStack = [];
 let teachingBaseContext = null;
+let teachingFullscreenRequested = false;
 var _keepTeachingOnPageSwitch = false;
 var _teachingMenuOpen = '';
 let passageFontSize = 24;
@@ -6664,6 +6673,9 @@ function openTeachingStageByIdx(idx, options) {
   document.body.classList.add('teaching-mode');
   var stage = document.getElementById('teachingStage');
   if (stage) stage.classList.add('open');
+  if (options.fullscreen !== false) {
+    requestTeachingFullscreen();
+  }
   var drawer = document.getElementById('drawer');
   var overlay = document.getElementById('drawerOverlay');
   if (drawer) drawer.classList.remove('open');
@@ -6998,6 +7010,7 @@ function teardownTeachingStage(options) {
   }
   teachingBaseContext = null;
   document.body.classList.remove('teaching-mode');
+  exitTeachingFullscreen();
   var stage = document.getElementById('teachingStage');
   if (stage) stage.classList.remove('open');
   var main = document.getElementById('teachingStageMain');
@@ -7442,6 +7455,55 @@ function toggleCompact() {
 
 // ─── 投影模式 ─────────────────────────
 // 全屏 + 适度放大 + 隐藏 chrome，适合教室大屏讲题
+function getFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null;
+}
+
+function requestTeachingFullscreen() {
+  document.body.classList.add('projection-mode');
+  if (getFullscreenElement()) {
+    teachingFullscreenRequested = true;
+    return;
+  }
+  var stage = document.getElementById('teachingStage');
+  var target = stage && stage.classList.contains('open') ? stage : document.documentElement;
+  var request = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen;
+  if (!request) return;
+  teachingFullscreenRequested = true;
+  document.removeEventListener('fullscreenchange', _onTeachingFullscreenChange);
+  document.addEventListener('fullscreenchange', _onTeachingFullscreenChange);
+  document.removeEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
+  try {
+    var result = request.call(target);
+    if (result && result.catch) result.catch(function() {});
+  } catch(e) {}
+}
+
+function exitTeachingFullscreen() {
+  document.body.classList.remove('projection-mode');
+  document.removeEventListener('fullscreenchange', _onTeachingFullscreenChange);
+  document.removeEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
+  if (!teachingFullscreenRequested && !getFullscreenElement()) return;
+  teachingFullscreenRequested = false;
+  try {
+    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (getFullscreenElement() && exit) {
+      var result = exit.call(document);
+      if (result && result.catch) result.catch(function() {});
+    }
+  } catch(e) {}
+}
+
+function _onTeachingFullscreenChange() {
+  if (!getFullscreenElement()) {
+    teachingFullscreenRequested = false;
+    document.body.classList.remove('projection-mode');
+    document.removeEventListener('fullscreenchange', _onTeachingFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
+  }
+}
+
 function enterProjectionMode() {
   var practicePage = document.getElementById('page-practice');
   if (!practicePage || !practicePage.classList.contains('active')) {
@@ -7450,11 +7512,10 @@ function enterProjectionMode() {
   }
   var idx = getCurrentQuestionIndex();
   if (idx < 0) idx = 0;
-  openTeachingStageByIdx(idx, { tab: 'analysis', source: 'projection' });
+  openTeachingStageByIdx(idx, { tab: 'analysis', source: 'projection', fullscreen: true });
 }
 
 function exitProjectionMode() {
-  document.body.classList.remove('projection-mode');
   // 清抽屉的投影 size 状态
   var drawer = document.getElementById('drawer');
   if (drawer) {
@@ -7463,13 +7524,8 @@ function exitProjectionMode() {
   }
   var bar = document.getElementById('projectionControls');
   if (bar) bar.remove();
-  document.removeEventListener('fullscreenchange', _onProjectionFullscreenChange);
   if (teachingSession) closeTeachingStage();
-  try {
-    if (document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(function() {});
-    }
-  } catch(e) {}
+  exitTeachingFullscreen();
   // 如果是从教材视图进的投影 → 退出投影后自动返回教材视图原位
   if (_drawerReturnTo && _drawerReturnTo.fromProjection) {
     setTimeout(executeDrawerReturn, 100);
@@ -7477,10 +7533,7 @@ function exitProjectionMode() {
 }
 
 function _onProjectionFullscreenChange() {
-  // 如果用户通过 F11 / Esc 退出了全屏（但还在 projection-mode），同步退出投影
-  if (!document.fullscreenElement && document.body.classList.contains('projection-mode')) {
-    exitProjectionMode();
-  }
+  _onTeachingFullscreenChange();
 }
 
 // 投影模式下抽屉的三档尺寸：mini / half / full
@@ -8192,6 +8245,7 @@ function _closeUnitMiniModal() {
 function _onUnitMiniKey(e) { if (e.key === 'Escape') _closeUnitMiniModal(); }
 
 function _gotoUnitQuestion(examId, no, source, autoProjection) {
+  requestTeachingFullscreen();
   var ctx = _unitMiniContext ? {
     unitLabel: _unitMiniContext.unitLabel,
     tagIds: _unitMiniContext.tagIds.slice(),
