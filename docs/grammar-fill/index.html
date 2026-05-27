@@ -520,27 +520,6 @@
   .passage-box .cat-hint { font-size: 14px; color: var(--text-2); margin-bottom: 12px; }
   .passage-box .cat-exam-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
   .passage-box .cat-sentence { font-size: var(--passage-font-size, 24px); line-height: 1.8; margin: 6px 0; }
-  .question-jump-bar {
-    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-    padding: 12px 14px; margin: 0 0 14px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-  }
-  .question-jump-label {
-    font-size: var(--font-sm, 21px); color: var(--text-3); margin-right: 2px;
-  }
-  .question-jump-btn {
-    min-width: 48px; height: 36px; padding: 0 12px;
-    border: 1px solid var(--border); border-radius: 6px;
-    background: var(--surface-2); color: var(--text);
-    font-size: var(--font-sm, 21px); font-weight: 800;
-    cursor: pointer; transition: all .15s;
-  }
-  .question-jump-btn:hover,
-  .question-jump-btn.active {
-    background: var(--accent-bg); color: var(--accent);
-    border-color: var(--accent); box-shadow: var(--shadow);
-  }
   .font-ctrl-btn {
     width: 22px; height: 22px; border: 1px solid var(--border);
     border-radius: 4px; background: var(--surface); cursor: pointer;
@@ -5232,14 +5211,14 @@ function renderExam() {
     } else {
       passage = passage.replace(/_{2,}\s*\d+\s*_{2,}/, replacement);
     }
-    document.getElementById('passageBox').innerHTML = buildQuestionJumpBar() + '<p>' + passage + '</p>';
+    document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
     return;
   }
 
   if (currentExam.mode === 'category') {
-    var html = buildQuestionJumpBar() + '<div class="cat-hint">' +
+    var html = '<div class="cat-hint">' +
                '同类训练共 ' + currentQuestions.length + ' 题，按套卷顺序排列。点击 ' +
-               '<span class="blank-hl">空格序号</span> 或上方题号查看解析。</div>';
+               '<span class="blank-hl">空格序号</span> 查看解析。</div>';
     var byExam = {};
     currentQuestions.forEach(function(q, idx) {
       (byExam[q.exam] = byExam[q.exam] || []).push({ q: q, idx: idx });
@@ -5300,19 +5279,8 @@ function renderExam() {
         }).join('') +
         '</div>';
     }
-    document.getElementById('passageBox').innerHTML = buildQuestionJumpBar() + passage;
+    document.getElementById('passageBox').innerHTML = passage;
   }
-}
-
-function buildQuestionJumpBar() {
-  if (!currentQuestions || currentQuestions.length === 0) return '';
-  var html = '<div class="question-jump-bar" id="questionJumpBar">'
-    + '<span class="question-jump-label">点题号讲解</span>';
-  currentQuestions.forEach(function(q, idx) {
-    html += '<button class="question-jump-btn" data-blank-idx="' + idx + '" onclick="showAnalysisByIdx(' + idx + ')">第' + q.no + '题</button>';
-  });
-  html += '</div>';
-  return html;
 }
 
 // --- 中文翻译 ---
@@ -6280,8 +6248,6 @@ function highlightBlankByIdx(idx) {
     var p = target.closest('p');
     if (p) p.classList.add('paragraph-active');
   }
-  var jumpBtn = box.querySelector('.question-jump-btn[data-blank-idx="' + idx + '"]');
-  if (jumpBtn) jumpBtn.classList.add('active');
 }
 
 function highlightBlankInPassage(no) {
@@ -6306,7 +6272,6 @@ function clearBlankHighlight() {
   var box = document.getElementById('passageBox');
   if (!box) return;
   box.querySelectorAll('.blank-inline.highlight, .answer-filled.highlight').forEach(function(b) { b.classList.remove('highlight'); });
-  box.querySelectorAll('.question-jump-btn.active').forEach(function(b) { b.classList.remove('active'); });
   box.querySelectorAll('.paragraph-active').forEach(function(p) { p.classList.remove('paragraph-active'); });
 }
 
