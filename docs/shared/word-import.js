@@ -374,7 +374,13 @@
           answer: (b.answer || '?').toString().trim(),
           category: b.category || 'word',
           fine_category: b.fine_category || '',
-          analysis: (b.analysis || '').toString().trim()
+          analysis: (b.analysis || '').toString().trim(),
+          nonp_function: b.nonp_function || '',
+          nonp_function_label: b.nonp_function_label || '',
+          nonp_form: b.nonp_form || '',
+          nonp_form_label: b.nonp_form_label || '',
+          nonp_rule: b.nonp_rule || '',
+          nonp_needs_review: b.nonp_needs_review || false
         };
       });
       return mergeAnswersIntoPassage(item, fallbackAnswers);
@@ -759,7 +765,13 @@
         answer: b.answer || '?',
         category: b.category || 'word',
         fine_category: b.fine_category || '',
-        analysis: b.analysis || ''
+        analysis: b.analysis || '',
+        nonp_function: b.nonp_function || '',
+        nonp_function_label: b.nonp_function_label || '',
+        nonp_form: b.nonp_form || '',
+        nonp_form_label: b.nonp_form_label || '',
+        nonp_rule: b.nonp_rule || '',
+        nonp_needs_review: b.nonp_needs_review || false
       };
     });
 
@@ -826,6 +838,12 @@
         answer: answer,
         category: cat,
         fine_category: fineCategory,
+        nonp_function: b.nonp_function || '',
+        nonp_function_label: b.nonp_function_label || '',
+        nonp_form: b.nonp_form || '',
+        nonp_form_label: b.nonp_form_label || '',
+        nonp_rule: b.nonp_rule || '',
+        nonp_needs_review: b.nonp_needs_review || false,
         category_name: CATEGORY_MAP[b.category] || b.category,
         grammar_point: '',
         analysis: b.analysis || ('答案：' + answer + '。'),

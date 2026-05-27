@@ -104,6 +104,7 @@
   /* 投影模式：全屏 + 适度放大 + 隐藏 chrome（讲题专用）*/
   body.projection-mode header,
   body.projection-mode .dock,
+  body.projection-mode .classroom-switcher,
   body.projection-mode .context-sidebar,
   body.projection-mode .sidebar-edge-trigger,
   body.projection-mode #syncStatus,
@@ -447,6 +448,59 @@
   }
   .source-switch-btn:hover { background: var(--surface-3); }
   .source-switch-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); font-weight: 600; }
+
+  .classroom-switcher {
+    position: sticky; top: 64px; z-index: 220;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 12px; margin-bottom: 12px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+  [data-theme="dark"] .classroom-switcher { background: rgba(44,44,46,0.92); }
+  .classroom-switcher-group {
+    display: flex; align-items: center; gap: 6px; min-width: 0;
+  }
+  .classroom-switcher-label {
+    font-size: 12px; font-weight: 700; color: var(--text-3);
+    white-space: nowrap;
+  }
+  .classroom-switcher select {
+    height: 34px; min-width: 132px; max-width: min(42vw, 320px);
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--input-bg); color: var(--text);
+    padding: 0 28px 0 10px; font-size: 13px; font-family: inherit;
+    outline: none;
+  }
+  .classroom-switcher select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+  .classroom-icon-btn,
+  .classroom-action-btn {
+    height: 34px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface); color: var(--text-2);
+    cursor: pointer; font-family: inherit; font-weight: 700;
+    transition: all .15s;
+  }
+  .classroom-icon-btn {
+    width: 34px; padding: 0; font-size: 17px; line-height: 32px;
+  }
+  .classroom-action-btn {
+    padding: 0 12px; font-size: 13px; white-space: nowrap;
+  }
+  .classroom-icon-btn:hover,
+  .classroom-action-btn:hover {
+    background: var(--accent-bg); color: var(--accent); border-color: var(--accent);
+  }
+  .classroom-action-btn.primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .classroom-action-btn.primary:hover { background: var(--accent-light); color: #fff; }
+  .classroom-progress {
+    margin-left: auto; font-size: 12px; color: var(--text-3);
+    white-space: nowrap;
+  }
 
   .passage-box {
     background: var(--surface);
@@ -892,16 +946,86 @@
   }
 
   .analysis-answer-lg {
-    font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 14px;
-    padding: 10px 18px; background: var(--accent-bg); border-radius: 8px;
-    display: inline-block;
+    font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 10px;
+    padding: 8px 14px; background: var(--accent-bg); border-radius: 6px;
+    display: inline-flex; align-items: center; line-height: 1.35;
   }
   .analysis-sentence-lg {
-    font-size: var(--drawer-font-size-lg, 25px); line-height: 2; color: var(--text); margin-bottom: 16px;
-    padding: 14px 18px; background: var(--surface-3); border-radius: 8px;
+    font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
+    padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
   }
-  .analysis-steps-lg { font-size: var(--drawer-font-size, 24px); color: var(--text-2); line-height: 1.9; }
-  .analysis-steps-lg p { margin-bottom: 8px; }
+  .analysis-steps-lg { font-size: var(--drawer-font-size-sm, 23px); color: var(--text-2); line-height: 1.75; }
+  .analysis-steps-lg p { margin: 0; }
+
+  .teacher-quick-card {
+    margin: 10px 0 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .teacher-quick-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .teacher-quick-kicker {
+    font-size: calc(var(--drawer-font-size-sm, 23px) - 7px);
+    font-weight: 800;
+    color: var(--text-3);
+    letter-spacing: 0;
+    flex: 0 0 auto;
+  }
+  .teacher-quick-title-line {
+    font-size: calc(var(--drawer-font-size-sm, 23px) - 1px);
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1.35;
+    text-align: right;
+    flex: 1;
+  }
+  .teacher-quick-lead {
+    font-size: var(--drawer-font-size, 24px);
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.45;
+    margin-bottom: 8px;
+  }
+  .teacher-quick-steps {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .teacher-quick-step {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 8px;
+    align-items: start;
+    font-size: var(--drawer-font-size-sm, 23px);
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .teacher-quick-step-no {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .teacher-quick-warn {
+    margin-top: 8px;
+    font-size: calc(var(--drawer-font-size-sm, 23px) - 2px);
+    color: var(--orange);
+    line-height: 1.5;
+  }
 
   .lesson-card {
     margin: 16px 0 18px;
@@ -1225,6 +1349,10 @@
 
   @media (max-width: 960px) {
     .grid-11 { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .classroom-switcher { top: 56px; }
+    .classroom-switcher-group { flex: 1 1 220px; }
+    .classroom-switcher select { flex: 1; min-width: 0; max-width: none; }
+    .classroom-progress { width: 100%; margin-left: 0; }
   }
 
   /* ============== 紧凑模式（白板/投影）============== */
@@ -1241,6 +1369,11 @@
   body.compact .source-tag { font-size: 11px; padding: 1px 6px; }
   body.compact .source-count { font-size: 11px; }
   body.compact .source-switch-btn { padding: 1px 7px; font-size: 11px; }
+  body.compact .classroom-switcher { top: 46px; padding: 6px 8px; gap: 6px; }
+  body.compact .classroom-switcher select { height: 30px; font-size: 12px; }
+  body.compact .classroom-icon-btn,
+  body.compact .classroom-action-btn { height: 30px; font-size: 12px; }
+  body.compact .classroom-icon-btn { width: 30px; line-height: 28px; }
   body.compact .passage-box { padding: 14px 18px; margin-bottom: 6px; }
   body.compact .passage-box p { margin-bottom: 10px; }
   body.compact .hint-text { display: none; }
@@ -2195,7 +2328,7 @@
           <span class="module-card-badge live">已上线</span>
           <div class="module-card-icon">📝</div>
           <div class="module-card-title">语法填空</div>
-          <div class="module-card-desc">20 套真题 + 按考点训练 + 同考点跨卷迁移 + 错题本与备课资料</div>
+          <div class="module-card-desc">20 套真题 + 按考点训练 + 同类判断迁移 + 错题本与备课资料</div>
           <div class="module-card-meta">v1.0 · 已可用</div>
         </div>
         <div class="module-card coming">
@@ -2247,7 +2380,6 @@
     <div class="page active" id="page-home">
       <h1 class="page-title">语法填空 · 考点分类训练</h1>
       <p class="page-desc"><span id="bankStat">题库加载中…</span></p>
-
 
       <div id="homeCards">
         <div id="homeDashboard">
@@ -2366,6 +2498,23 @@
               <button class="source-switch-btn" id="btnToggleAnswers" onclick="toggleAnswers()">👁 显示答案</button>
             </div>
           </div>
+          <div class="classroom-switcher" id="classroomSwitcher">
+            <div class="classroom-switcher-group">
+              <span class="classroom-switcher-label">套题</span>
+              <button class="classroom-icon-btn" onclick="navigateExam(-1)" title="上一套题" aria-label="上一套题">‹</button>
+              <select id="classroomExamSelect" onchange="jumpToExamFromSwitcher(this.value)" aria-label="切换套题"></select>
+              <button class="classroom-icon-btn" onclick="navigateExam(1)" title="下一套题" aria-label="下一套题">›</button>
+            </div>
+            <div class="classroom-switcher-group">
+              <span class="classroom-switcher-label">题号</span>
+              <button class="classroom-icon-btn" onclick="jumpQuestionFromSwitcher(-1)" title="上一题" aria-label="上一题">‹</button>
+              <select id="classroomQuestionSelect" onchange="jumpToQuestionFromSwitcher(this.value)" aria-label="切换题目"></select>
+              <button class="classroom-icon-btn" onclick="jumpQuestionFromSwitcher(1)" title="下一题" aria-label="下一题">›</button>
+            </div>
+            <button class="classroom-action-btn" onclick="toggleAnswers()" id="classroomAnswerBtn">答案</button>
+            <button class="classroom-action-btn primary" onclick="enterProjectionMode()">投影</button>
+            <span class="classroom-progress" id="classroomProgress">--</span>
+          </div>
           <div class="category-stats" id="categoryStats"></div>
           <div class="passage-box" id="passageBox"></div>
           <div class="hint-text">💡 点击文中空白处，弹出解析与迁移训练</div>
@@ -2402,8 +2551,8 @@
         </div>
         <div class="drawer-tabs">
           <div class="drawer-tab active" data-tab="analysis" onclick="switchDrawerTab('analysis')">解析</div>
-          <div class="drawer-tab" id="drawerTabMigration" data-tab="migration" onclick="switchDrawerTab('migration')">迁移训练</div>
-          <div class="drawer-tab" id="drawerTabTheory" data-tab="theory" onclick="switchDrawerTab('theory')">考点理论</div>
+          <div class="drawer-tab" id="drawerTabMigration" data-tab="migration" onclick="switchDrawerTab('migration')">迁移</div>
+          <div class="drawer-tab" id="drawerTabTheory" data-tab="theory" onclick="switchDrawerTab('theory')" style="display:none;">考点理论</div>
         </div>
         <div class="drawer-content" id="drawerContent"></div>
       </div>
@@ -2580,10 +2729,55 @@ function getQuestionTextBlob(q) {
     q.category_name,
     q.analysis,
     q.explanation,
-    q.technique,
     q.sentence,
     q.passage && q.no ? extractSentence(q.passage, q.no) : ''
   ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function hasExplicitWordCue(text, keyword) {
+  return String(text || '').indexOf(keyword) >= 0;
+}
+
+function hasAdverbCue(answer, blob, grammarPoint) {
+  return hasExplicitWordCue(grammarPoint, '副词')
+    || /副词|作状语|修饰(?:动词|谓语|形容词|副词)|修饰(?:整个句子|全句|句子整体)/.test(blob)
+    || /ly$/i.test(answer);
+}
+
+function hasAdjectiveCue(answer, blob, grammarPoint) {
+  return hasExplicitWordCue(grammarPoint, '形容词')
+    || /形容词|作定语|作表语|作宾补|定语|表语|宾补|修饰(?:名词|代词)/.test(blob);
+}
+
+function hasBeDoneAnswer(answer) {
+  var ans = String(answer || '').trim().toLowerCase();
+  var irregularDone = 'built|caught|made|put|set|shown|seen|known|done|drawn|given|taken|written|spoken|chosen|found|left|lost|sent|held|led|told|taught|brought|bought|thought|kept|paid|sold|read|cut';
+  return new RegExp('\\b(?:am|is|are|was|were|be|been|being)\\s+(?:[a-z]+(?:ed|en)|' + irregularDone + ')\\b', 'i').test(ans);
+}
+
+function hasPredicatePassiveCue(q, answer, blob, grammarPoint) {
+  var fine = String((q && q.fine_category) || '');
+  if (/^pred-passive/.test(fine)) return true;
+  if (hasBeDoneAnswer(answer)) return true;
+  return /被动语态|被动关系|被动式|构成被动|动宾关系|承受.*动作|\bbe\s*\+\s*done\b|\bbe done\b/.test([grammarPoint, blob].filter(Boolean).join(' '));
+}
+
+function hasPredicateAgreementCue(q, blob, grammarPoint) {
+  var fine = String((q && q.fine_category) || '');
+  if (/^pred-sva/.test(fine)) return true;
+  return /主谓一致|主语中心词|主语为动名词|主语是不定式|动名词短语|不定式.*主语|第三人称单数|谓语应用单数|谓语用复数|be动词应用/.test([grammarPoint, blob].filter(Boolean).join(' '));
+}
+
+function hasPredicatePerfectCue(q, blob) {
+  var fine = String((q && q.fine_category) || '');
+  return /^pred-tense-(?:past-)?perfect/.test(fine)
+    || /完成时|现在完成|过去完成|\b(?:since|so far|over the past|ever since)\b|\b(?:has|have|had)\s+been\b/.test(blob);
+}
+
+function hasPredicatePastCue(q, blob) {
+  var fine = String((q && q.fine_category) || '');
+  return /^pred-tense-past/.test(fine)
+    || /过去|一般过去|\bin 20\d\d\b|\b(?:last|ago|wished)\b|as a little girl|recent ceremony|明清|dynasties/.test(blob);
 }
 
 const TRAP_DATA = window.GRAMMAR_KNOWLEDGE_TRAPS || { trap_index: {}, traps_by_category: {} };
@@ -2597,18 +2791,19 @@ function inferQuestionTrapId(q) {
   if (q.trap_id && getTrapById(q.trap_id)) return q.trap_id;
   var answer = String(q.answer || '').trim().toLowerCase();
   var blob = getQuestionTextBlob(q);
+  var grammarPoint = String(q.grammar_point || '');
   var category = q.category || '';
 
   if (category === 'nonpredicate') {
     if (/^to\s+be\b/.test(answer)) return 'nonp-todo-passive-complement';
     if (/^to\b/.test(answer)) {
-      if (/whether|how|what|where|when|which|疑问词/.test(blob)) return 'nonp-question-word-todo';
-      if (/目的|为了|in order to|so as to|以便|to give|to save|to benefit/.test(blob)) return 'nonp-purpose-todo';
-      if (/first|last|only|best|序数词|最高级/.test(blob)) return 'nonp-first-last-only-todo';
+      if (/\b(?:whether|how|what|where|when|which)\b|疑问词/.test(blob)) return 'nonp-question-word-todo';
+      if (/目的|为了|\bin order to\b|\bso as to\b|以便|\bto (?:give|save|benefit)\b/.test(blob)) return 'nonp-purpose-todo';
+      if (/\b(?:first|last|only|best)\b|序数词|最高级/.test(blob)) return 'nonp-first-last-only-todo';
       return 'nonp-verb-object-todo';
     }
     if (/ing$/.test(answer)) {
-      if (/介词|动名词|作宾语|beyond|after|before|by |without|to doing/.test(blob)) return 'nonp-gerund-after-prep';
+      if (/介词|动名词|作宾语|\b(?:beyond|after|before|by|without)\b|to doing/.test(blob)) return 'nonp-gerund-after-prep';
       if (/定语|修饰|后置定语|被修饰词/.test(blob)) return 'nonp-ing-postmodifier-active';
       if (/宾补|补足语|leave|find|keep|see|hear/.test(blob)) return 'nonp-object-complement-active';
       return 'nonp-ing-adverbial-active';
@@ -2621,35 +2816,39 @@ function inferQuestionTrapId(q) {
   }
 
   if (category === 'predicate') {
+    if (hasPredicatePassiveCue(q, answer, blob, grammarPoint)) return 'pred-passive-subject-receives';
     if (/动名词短语|不定式.*主语|主语为动名词|主语是不定式/.test(blob)) return 'pred-gerund-subject-singular';
-    if (/被动|was |were |is |are |be |been |forced|built|selected|recognized|revealed|designed/.test(blob)) return 'pred-passive-subject-receives';
-    if (/since|完成|has |have |had |in the past|over the past|ever since/.test(blob)) return 'pred-present-perfect-since';
-    if (/in 20\d\d|as a little girl|过去|一般过去|recent ceremony|明清|dynasties/.test(blob)) return 'pred-past-time-marker';
-    if (/主谓一致|单数|复数|第三人称|中心词/.test(blob)) return 'pred-subject-core-not-modifier';
+    if (hasPredicatePerfectCue(q, blob)) return 'pred-present-perfect-since';
+    if (hasPredicatePastCue(q, blob)) return 'pred-past-time-marker';
+    if (hasPredicateAgreementCue(q, blob, grammarPoint)) return 'pred-subject-core-not-modifier';
     return 'pred-objective-present';
   }
 
   if (category === 'word') {
+    if (/名词复数|名词的数/.test(grammarPoint)) return 'word-countable-plural-context';
+    if (hasExplicitWordCue(grammarPoint, '名词')) return 'word-verb-to-noun-branch';
+    if (hasAdverbCue(answer, blob, grammarPoint)) return 'word-adv-modifies-adj-verb-sentence';
+    if (hasAdjectiveCue(answer, blob, grammarPoint)) return 'word-adj-before-noun';
     if (/动词.*名词|名词.*动词|arrive|arrival|recover|recovery|enjoy|enjoyment|translate|translation|appear|appearance/.test(blob)) return 'word-verb-to-noun-branch';
     if (/名词复数|名词的数|复数|these|there are|favourites|themes|interviews|events|wonders/.test(blob)) return 'word-countable-plural-context';
-    if (/副词|修饰形容词|修饰动词|修饰.*句|visibly|basically|rarely|freely/.test(blob) || /ly$/.test(answer)) return 'word-adv-modifies-adj-verb-sentence';
+    if (hasAdverbCue(answer, blob, grammarPoint) || /visibly|basically|rarely|freely/.test(blob)) return 'word-adv-modifies-adj-verb-sentence';
     if (/比较级|最高级|than|simpler|further/.test(blob)) return 'word-comparative-superlative-trigger';
-    if (/形容词|定语|表语|宾补|修饰.*名词|comfortable|functional|tasty|emotional/.test(blob)) return 'word-adj-before-noun';
+    if (hasAdjectiveCue(answer, blob, grammarPoint) || /comfortable|functional|tasty|emotional/.test(blob)) return 'word-adj-before-noun';
     return 'word-word-family-spelling';
   }
 
   if (category === 'article') {
-    if (/first|earliest|最高级|序数词/.test(blob)) return 'article-superlative-the';
+    if (/\b(?:first|earliest|last|only)\b|最高级|序数词/.test(blob)) return 'article-superlative-the';
     if (/touch of|for the first time|固定/.test(blob)) return 'article-fixed-phrase';
     if (/特指|中心|heart|language used/.test(blob) || answer === 'the') return 'article-specific-the';
-    if (/元音|辅音|a\/an|an /.test(blob) || answer === 'a' || answer === 'an') return 'article-a-an-sound';
+    if (/元音|辅音|a\/an|\ban\b/.test(blob) || answer === 'a' || answer === 'an') return 'article-a-an-sound';
     return 'article-generic-single-countable';
   }
 
   if (category === 'pronoun') {
     if (/myself|itself|反身/.test(blob) || /self$/.test(answer)) return 'pron-reflexive-same-subject';
     if (answer === 'it') return 'pron-it-reference';
-    if (/ones|one/.test(answer)) return 'pron-one-ones-substitution';
+    if (/^(one|ones)$/.test(answer)) return 'pron-one-ones-substitution';
     if (/people's|所有格/.test(blob)) return 'pron-possessive-noun-peoples';
     return 'pron-possessive-before-noun';
   }
@@ -2664,8 +2863,8 @@ function inferQuestionTrapId(q) {
   }
 
   if (category === 'logic') {
-    if (/whether|either/.test(blob) || answer === 'or') return 'logic-whether-or';
-    if (/not just|not only/.test(blob) || answer === 'but') return 'logic-not-only-but-also';
+    if (/\b(?:whether|either)\b/.test(blob) || answer === 'or') return 'logic-whether-or';
+    if (/\bnot (?:just|only)\b/.test(blob) || answer === 'but') return 'logic-not-only-but-also';
     if (answer === 'so') return 'logic-cause-result-so';
     if (answer === 'and') return 'logic-parallel-and';
     return 'logic-contrast-but';
@@ -2673,9 +2872,9 @@ function inferQuestionTrapId(q) {
 
   if (category === 'attrib') {
     if (answer === 'whose') return 'attrib-whose-possessive';
-    if (/where|when|why/.test(answer)) return 'attrib-where-when-why-complete-clause';
+    if (/^(where|when|why)$/.test(answer)) return 'attrib-where-when-why-complete-clause';
     if (/非限制|逗号/.test(blob)) return 'attrib-nonrestrictive-no-that';
-    if (/what/.test(answer)) return 'attrib-what-not-relative-pronoun';
+    if (answer === 'what') return 'attrib-what-not-relative-pronoun';
     return 'attrib-which-that-for-things';
   }
 
@@ -2683,14 +2882,14 @@ function inferQuestionTrapId(q) {
     if (answer === 'what') return 'nounclause-what-missing-subject-object';
     if (answer === 'why') return 'nounclause-why-predicative-reason';
     if (answer === 'how') return 'nounclause-how-degree-or-manner';
-    if (/whether|if/.test(answer)) return 'nounclause-whether-if';
+    if (/^(whether|if)$/.test(answer)) return 'nounclause-whether-if';
     return 'nounclause-connector-role';
   }
 
   if (category === 'advclause') {
     if (answer === 'when') return 'advclause-when-vs-attrib-when';
-    if (/although|though/.test(answer)) return 'advclause-although-no-but';
-    if (/because|since|as/.test(answer)) return 'advclause-because-since-as';
+    if (/^(although|though)$/.test(answer)) return 'advclause-although-no-but';
+    if (/^(because|since|as)$/.test(answer)) return 'advclause-because-since-as';
     return 'advclause-time-main-future-sub-present';
   }
 
@@ -2710,6 +2909,7 @@ function getQuestionFocus(q) {
   var answer = String(q.answer || '').trim().toLowerCase();
   var blob = getQuestionTextBlob(q);
   var category = q.category || '';
+  var grammarPoint = String(q.grammar_point || '');
   var inferredTrapId = inferQuestionTrapId(q);
 
   if (category === 'nonpredicate') {
@@ -2752,19 +2952,31 @@ function getQuestionFocus(q) {
   }
 
   if (category === 'predicate') {
-    if (/被动|was |were |is |are |be |been /.test(blob)) {
+    if (hasPredicatePassiveCue(q, answer, blob, grammarPoint)) {
       return { key: 'predicate-passive', label: '谓语 · 被动语态', note: '先问主语是执行动作，还是承受动作。' };
     }
-    if (/since|完成|has |have |had /.test(blob)) {
+    if (hasPredicatePerfectCue(q, blob)) {
       return { key: 'predicate-perfect', label: '谓语 · 完成时', note: '看动作是否从过去延续/影响到现在，或发生在过去的过去。' };
     }
-    if (/主谓一致|单数|复数|第三人称/.test(blob)) {
+    if (hasPredicateAgreementCue(q, blob, grammarPoint)) {
       return { key: 'predicate-agreement', label: '谓语 · 主谓一致', note: '找主语中心词，不要被修饰语带跑。' };
     }
     return { key: 'predicate-tense', label: '谓语 · 时态判断', note: '先找时间锚点，再看语境。' };
   }
 
   if (category === 'word') {
+    if (/名词复数|名词的数/.test(grammarPoint)) {
+      return { key: 'word-noun-plural', label: '词性转换 · 名词复数', note: '先判断是否可数，再找数量和上下文提示。' };
+    }
+    if (hasExplicitWordCue(grammarPoint, '名词')) {
+      return { key: 'word-noun-form', label: '词性转换 · 名词形式', note: '看空格是否作主语、宾语或介词宾语。' };
+    }
+    if (hasAdverbCue(answer, blob, grammarPoint)) {
+      return { key: 'word-adverb', label: '词性转换 · 副词', note: '副词修饰动作、形容词、其他副词或整句话。' };
+    }
+    if (hasAdjectiveCue(answer, blob, grammarPoint)) {
+      return { key: 'word-adjective', label: '词性转换 · 形容词', note: '形容词常作定语、表语、宾补。' };
+    }
     if (inferredTrapId === 'word-verb-to-noun-branch' || /动词.*名词|名词.*动词|arrive|recover|enjoy|appear|perform|translate/.test(blob)) {
       return { key: 'word-verb-to-noun', label: '词性转换 · 动词变名词', note: '动词填空不一定走谓语/非谓语，也可能要变成名词。' };
     }
@@ -2774,10 +2986,10 @@ function getQuestionFocus(q) {
     if (/名词形式|名词。|应填名词|填名词|用名词|应用名词|作.*宾语|visibility|richness|arrival|recovery|enjoyment/.test(blob)) {
       return { key: 'word-noun-form', label: '词性转换 · 名词形式', note: '看空格是否作主语、宾语或介词宾语。' };
     }
-    if (inferredTrapId === 'word-adv-modifies-adj-verb-sentence' || /副词|修饰形容词|修饰动词|修饰.*句|ly/.test(blob) || /ly$/.test(answer)) {
+    if (inferredTrapId === 'word-adv-modifies-adj-verb-sentence' || hasAdverbCue(answer, blob, grammarPoint)) {
       return { key: 'word-adverb', label: '词性转换 · 副词', note: '副词修饰动作、形容词、其他副词或整句话。' };
     }
-    if (inferredTrapId === 'word-adj-before-noun' || /形容词|定语|表语|宾补|修饰.*名词/.test(blob)) {
+    if (inferredTrapId === 'word-adj-before-noun' || hasAdjectiveCue(answer, blob, grammarPoint)) {
       return { key: 'word-adjective', label: '词性转换 · 形容词', note: '形容词常作定语、表语、宾补。' };
     }
     return { key: 'word-general', label: '词性转换 · 词类判断', note: '先看句子成分，再定词性。' };
@@ -2785,12 +2997,12 @@ function getQuestionFocus(q) {
 
   if (category === 'attrib') {
     if (/whose/.test(answer)) return { key: 'attrib-whose', label: '定语从句 · whose 所属关系', note: '空后有名词且表示“谁的/其……”。' };
-    if (/where|when|why/.test(answer)) return { key: 'attrib-relative-adverb', label: '定语从句 · 关系副词', note: '从句主谓宾完整，空格作时间/地点/原因状语。' };
+    if (/^(where|when|why)$/.test(answer)) return { key: 'attrib-relative-adverb', label: '定语从句 · 关系副词', note: '从句主谓宾完整，空格作时间/地点/原因状语。' };
     return { key: 'attrib-relative-pronoun', label: '定语从句 · 关系代词', note: '从句缺主语或宾语，关系词要补成分。' };
   }
 
   if (category === 'article') {
-    if (inferredTrapId === 'article-superlative-the' || /first|earliest|最高级|序数词/.test(blob)) return { key: 'article-superlative', label: '冠词 · 序数词/最高级前 the', note: 'first、earliest、most 等前面常用 the。' };
+    if (inferredTrapId === 'article-superlative-the' || /\b(?:first|earliest|last|only)\b|最高级|序数词/.test(blob)) return { key: 'article-superlative', label: '冠词 · 序数词/最高级前 the', note: 'first、earliest、most 等前面常用 the。' };
     if (inferredTrapId === 'article-fixed-phrase' || /固定|touch of|for the first time/.test(blob)) return { key: 'article-fixed', label: '冠词 · 固定短语', note: '固定表达先整体识别，再解释冠词。' };
     if (inferredTrapId === 'article-specific-the' || answer === 'the' || /特指|上文|中心|heart|language used/.test(blob)) return { key: 'article-specific', label: '冠词 · the 表特指', note: '能指向上下文明确对象时用 the。' };
     return { key: 'article-indefinite', label: '冠词 · a/an 泛指单数', note: '单数可数名词第一次出现或泛指一类，用 a/an。' };
@@ -2816,21 +3028,21 @@ function getQuestionFocus(q) {
   if (category === 'pronoun') {
     if (/myself|itself|反身/.test(blob) || /self$/.test(answer)) return { key: 'pron-reflexive', label: '代词 · 反身代词', note: '主宾同一对象或强调“亲自/本身”时用反身代词。' };
     if (answer === 'it') return { key: 'pron-it', label: '代词 · it 指代/形式主语', note: 'it 可回指前文事物，也可作形式主语/宾语。' };
-    if (/one|ones/.test(answer)) return { key: 'pron-one', label: '代词 · one/ones 替代', note: 'one/ones 替代同类名词，避免重复。' };
+    if (/^(one|ones)$/.test(answer)) return { key: 'pron-one', label: '代词 · one/ones 替代', note: 'one/ones 替代同类名词，避免重复。' };
     return { key: 'pron-possessive', label: '代词 · 形容词性物主代词', note: '空后有名词时，常先考虑“谁的”。' };
   }
 
   if (category === 'nounclause') {
     if (answer === 'what') return { key: 'nounclause-what', label: '名词性从句 · what 补成分', note: '从句缺主语/宾语/表语且表示“……的东西/事情”。' };
-    if (/whether|if/.test(answer)) return { key: 'nounclause-whether', label: '名词性从句 · whether/if 是否', note: '表示“是否”，且不在从句中作成分。' };
+    if (/^(whether|if)$/.test(answer)) return { key: 'nounclause-whether', label: '名词性从句 · whether/if 是否', note: '表示“是否”，且不在从句中作成分。' };
     if (answer === 'why') return { key: 'nounclause-why', label: '名词性从句 · why 表原因', note: 'why 在从句中作原因状语。' };
     if (answer === 'how') return { key: 'nounclause-how', label: '名词性从句 · how 表方式/程度', note: 'how 在从句中作方式或程度状语。' };
     return { key: 'nounclause-that', label: '名词性从句 · that 不作成分', note: '从句完整、只需连接，常用 that。' };
   }
 
   if (category === 'advclause') {
-    if (/although|though/.test(answer)) return { key: 'advclause-concession', label: '状语从句 · although/though 让步', note: 'although/though 不和 but 连用。' };
-    if (/because|since|as/.test(answer)) return { key: 'advclause-cause', label: '状语从句 · 原因', note: '后句解释原因或背景。' };
+    if (/^(although|though)$/.test(answer)) return { key: 'advclause-concession', label: '状语从句 · although/though 让步', note: 'although/though 不和 but 连用。' };
+    if (/^(because|since|as)$/.test(answer)) return { key: 'advclause-cause', label: '状语从句 · 原因', note: '后句解释原因或背景。' };
     if (answer === 'when') return { key: 'advclause-time', label: '状语从句 · when 时间', note: 'when 引导时间状语从句，不修饰名词。' };
     return { key: 'advclause-relation', label: '状语从句 · 主从句逻辑关系', note: '先判断主从句之间是时间、原因、条件、让步还是结果。' };
   }
@@ -3383,6 +3595,12 @@ const ALL_QUESTIONS = BANK.questions.map(q => ({
   category_name: q.category_name,
   grammar_point: q.grammar_point,
   fine_category: q.fine_category,  // Sprint 1 · 精细化考点 tag（来自 grammar_fine_tags.js）
+  nonp_function: q.nonp_function,
+  nonp_function_label: q.nonp_function_label,
+  nonp_form: q.nonp_form,
+  nonp_form_label: q.nonp_form_label,
+  nonp_rule: q.nonp_rule,
+  nonp_needs_review: q.nonp_needs_review,
   passage: q.passage,
   sentence: '',
   analysis: q.explanation || ('答案：' + q.answer + '。'),
@@ -3408,6 +3626,85 @@ function getFineTagInfo(fineCategory) {
     category_name: category ? category.name : tag.category,
     textbook_units: FINE_TAGS.tag_to_units[fineCategory] || []
   };
+}
+
+const NONP_FUNCTION_LABELS = {
+  subject_predicative: '作主语 / 表语',
+  object: '作宾语',
+  attribute: '作定语',
+  adverbial: '作状语',
+  complement: '作补语',
+  with_absolute: 'with 复合结构',
+  other: '其他'
+};
+
+const NONP_FORM_LABELS = {
+  to_do: 'to do',
+  doing: 'doing',
+  done: 'done',
+  to_be_done: 'to be done',
+  being_done: 'being done',
+  having_done: 'having done',
+  having_been_done: 'having been done',
+  bare_do: 'bare do',
+  other: 'other'
+};
+
+const NONP_FORM_NOTES = {
+  to_do: '目的 / 将来 / 特定搭配',
+  doing: '主动 / 进行 / 动名词',
+  done: '被动 / 完成 / 状态',
+  to_be_done: '将来 / 目的中的被动',
+  being_done: '正在被进行',
+  having_done: '主动且先于谓语',
+  having_been_done: '被动且先于谓语',
+  bare_do: '省 to 原形',
+  other: '特殊非谓语形式'
+};
+
+function getNonpAxis(q) {
+  if (!q || q.category !== 'nonpredicate') return null;
+  var formKey = q.nonp_form || '';
+  var fnKey = q.nonp_function || '';
+  if (!formKey && !fnKey && !q.nonp_rule) return null;
+  var formLabel = q.nonp_form_label || NONP_FORM_LABELS[formKey] || formKey;
+  var fnLabel = q.nonp_function_label || NONP_FUNCTION_LABELS[fnKey] || fnKey;
+  var note = NONP_FORM_NOTES[formKey] || '';
+  var title = '非谓语';
+  if (formLabel) title += '：' + formLabel;
+  if (fnLabel) title += ' · ' + fnLabel;
+  return {
+    formKey: formKey,
+    functionKey: fnKey,
+    formLabel: formLabel,
+    functionLabel: fnLabel,
+    note: note,
+    rule: q.nonp_rule || '',
+    title: title
+  };
+}
+
+function sameQuestion(a, b) {
+  return a && b && (
+    (a.exam === b.exam && String(a.no) === String(b.no)) ||
+    (a.exam_id && b.exam_id && a.exam_id === b.exam_id && String(a.no) === String(b.no)) ||
+    (a.id && b.id && a.id === b.id)
+  );
+}
+
+function nonpAxisExactMatch(item, q) {
+  return item && q && item.category === 'nonpredicate' && q.category === 'nonpredicate'
+    && item.nonp_form && q.nonp_form
+    && item.nonp_function && q.nonp_function
+    && item.nonp_form === q.nonp_form
+    && item.nonp_function === q.nonp_function;
+}
+
+function nonpAxisFormMatch(item, q) {
+  return item && q && item.category === 'nonpredicate' && q.category === 'nonpredicate'
+    && item.nonp_form && q.nonp_form
+    && item.nonp_form === q.nonp_form
+    && !nonpAxisExactMatch(item, q);
 }
 let currentExam = null;
 let currentQuestions = [];
@@ -3563,6 +3860,12 @@ function batchImportJson() {
       category_name: CATEGORY_MAP[item.category] || item.category,
       grammar_point: '',
       analysis: item.analysis || ('答案：' + item.answer + '。'),
+      nonp_function: item.nonp_function || '',
+      nonp_function_label: item.nonp_function_label || '',
+      nonp_form: item.nonp_form || '',
+      nonp_form_label: item.nonp_form_label || '',
+      nonp_rule: item.nonp_rule || '',
+      nonp_needs_review: item.nonp_needs_review || false,
       technique: '考点：' + (CATEGORY_MAP[item.category] || item.category) +
                  '。' + (CATEGORY_TIPS[item.category] || '先判空格成分，再确定词形。'),
       exam: '错题本',
@@ -3670,9 +3973,12 @@ async function deleteSelectedPreps() {
   syncPrepBulkInfo();
 }
 
-function viewErrorQuestion(id) {
+function viewErrorQuestion(id, preserveDrawerReturn) {
   var q = errorBookQuestions.find(function(item) { return item.id === id; });
   if (!q) return;
+  closeDrawer(!!preserveDrawerReturn);
+  showAnswers = false;
+  showChinese = false;
 
   currentQuestions = [q];
   currentExam = {
@@ -3785,7 +4091,19 @@ function batchImportPrepJson() {
       title: item.title,
       passage: item.passage,
       blanks: item.blanks.map(function(b) {
-        return { no: b.no, answer: b.answer, category: b.category, fine_category: b.fine_category || '', analysis: b.analysis || '' };
+        return {
+          no: b.no,
+          answer: b.answer,
+          category: b.category,
+          fine_category: b.fine_category || '',
+          analysis: b.analysis || '',
+          nonp_function: b.nonp_function || '',
+          nonp_function_label: b.nonp_function_label || '',
+          nonp_form: b.nonp_form || '',
+          nonp_form_label: b.nonp_form_label || '',
+          nonp_rule: b.nonp_rule || '',
+          nonp_needs_review: b.nonp_needs_review || false
+        };
       }),
       created_at: new Date().toISOString()
     };
@@ -3820,9 +4138,12 @@ async function deletePrepPassage(id) {
   }
 }
 
-function viewPrepPassage(id) {
+function viewPrepPassage(id, preserveDrawerReturn) {
   var p = prepPassages.find(function(item) { return item.id === id; });
   if (!p) return;
+  closeDrawer(!!preserveDrawerReturn);
+  showAnswers = false;
+  showChinese = false;
 
   // Build currentQuestions from blanks
   currentQuestions = p.blanks.map(function(b) {
@@ -3833,6 +4154,12 @@ function viewPrepPassage(id) {
       category_name: CATEGORY_MAP[b.category] || b.category,
       grammar_point: '',
       fine_category: b.fine_category || '',  // Sprint 1 · 精细化考点 tag（AI 解析时填入，旧备课资料可能无此字段）
+      nonp_function: b.nonp_function || '',
+      nonp_function_label: b.nonp_function_label || '',
+      nonp_form: b.nonp_form || '',
+      nonp_form_label: b.nonp_form_label || '',
+      nonp_rule: b.nonp_rule || '',
+      nonp_needs_review: b.nonp_needs_review || false,
       exam: p.title,
       exam_id: p.title,
       year: '',
@@ -4308,13 +4635,110 @@ function renderHomeDashboard() {
   el.innerHTML = html;
 }
 
-
 // ────────── 按套卷练习 · 全部 19 套真题/模拟卷 ──────────
 const EXAM_TAG_STYLE = {
   '真题':   '',
   '模拟卷': 'green',
   '模拟题': 'green',
 };
+
+function getOrderedExams() {
+  return BANK.exams.slice().sort(function(a, b) {
+    var yearDelta = Number(b.year || 0) - Number(a.year || 0);
+    if (yearDelta) return yearDelta;
+    return String(a.exam_id || '').localeCompare(String(b.exam_id || ''), 'zh-Hans-CN');
+  });
+}
+
+function getCurrentQuestionIndex() {
+  if (!currentQuestions || currentQuestions.length === 0) return -1;
+  if (selectedQuestion) {
+    var selectedIdx = findBlankIndex();
+    if (selectedIdx !== -1) return selectedIdx;
+  }
+  return 0;
+}
+
+function renderClassroomSwitcher() {
+  var bar = document.getElementById('classroomSwitcher');
+  if (!bar) return;
+  if (!currentExam || !currentExam.mode || !currentQuestions || currentQuestions.length === 0) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = '';
+
+  var examSelect = document.getElementById('classroomExamSelect');
+  if (examSelect) {
+    var examOptions = '';
+    if (currentExam.mode === 'exam') {
+      getOrderedExams().forEach(function(ex) {
+        var selected = currentExam.examId === ex.exam_id ? ' selected' : '';
+        var label = ex.exam_id + (ex.type ? ' · ' + ex.type : '') + ' · ' + (ex.blank_count || (ex.questions || []).length) + '题';
+        examOptions += '<option value="' + escapeHtml(ex.exam_id) + '"' + selected + '>' + escapeHtml(label) + '</option>';
+      });
+    } else {
+      examOptions = '<option value="" selected>' + escapeHtml(currentExam.source || '当前资料') + '</option>';
+    }
+    examSelect.innerHTML = examOptions;
+    examSelect.disabled = currentExam.mode !== 'exam';
+    examSelect.title = currentExam.mode === 'exam' ? '快速切换套题' : '当前来源不是公开套卷';
+  }
+
+  var questionSelect = document.getElementById('classroomQuestionSelect');
+  var idx = getCurrentQuestionIndex();
+  if (questionSelect) {
+    questionSelect.innerHTML = currentQuestions.map(function(q, i) {
+      var cat = CATEGORY_MAP[q.category] || q.category || '语法填空';
+      var answer = q.answer ? ' · ' + q.answer : '';
+      return '<option value="' + i + '"' + (i === idx ? ' selected' : '') + '>' +
+        escapeHtml('第' + q.no + '题 · ' + cat + answer) + '</option>';
+    }).join('');
+    questionSelect.disabled = currentQuestions.length <= 1;
+  }
+
+  var answerBtn = document.getElementById('classroomAnswerBtn');
+  if (answerBtn) {
+    answerBtn.textContent = showAnswers ? '隐藏答案' : '显示答案';
+    answerBtn.classList.toggle('primary', showAnswers);
+  }
+
+  var progress = document.getElementById('classroomProgress');
+  if (progress) {
+    progress.textContent = currentQuestions.length
+      ? ((idx >= 0 ? idx + 1 : 1) + '/' + currentQuestions.length + ' · ' + (currentExam.mode === 'exam' ? currentExam.examId : currentExam.source))
+      : '--';
+  }
+}
+
+function navigateExam(delta) {
+  if (!currentExam || currentExam.mode !== 'exam') return;
+  var exams = getOrderedExams();
+  if (!exams.length) return;
+  var idx = exams.findIndex(function(ex) { return ex.exam_id === currentExam.examId; });
+  if (idx === -1) idx = 0;
+  var nextIdx = (idx + delta + exams.length) % exams.length;
+  startByExam(exams[nextIdx].exam_id);
+}
+
+function jumpToExamFromSwitcher(examId) {
+  if (!examId || !currentExam || currentExam.mode !== 'exam' || examId === currentExam.examId) return;
+  startByExam(examId);
+}
+
+function jumpToQuestionFromSwitcher(value) {
+  var idx = parseInt(value, 10);
+  if (isNaN(idx) || idx < 0 || idx >= currentQuestions.length) return;
+  showAnalysisByIdx(idx);
+}
+
+function jumpQuestionFromSwitcher(delta) {
+  if (!currentQuestions || currentQuestions.length === 0) return;
+  var idx = getCurrentQuestionIndex();
+  if (idx === -1) idx = 0;
+  var nextIdx = (idx + delta + currentQuestions.length) % currentQuestions.length;
+  showAnalysisByIdx(nextIdx);
+}
 
 function renderExamGrid() {
   const grid = document.getElementById('examGrid');
@@ -4684,6 +5108,9 @@ function updateCounts() {
 }
 
 function startByCategory(cat) {
+  closeDrawer();
+  showAnswers = false;
+  showChinese = false;
   currentQuestions = ALL_QUESTIONS.filter(q => q.category === cat);
   if (currentQuestions.length === 0) {
     alert('该考点暂无题目');
@@ -4700,7 +5127,10 @@ function startByCategory(cat) {
   renderExam();
 }
 
-function startByExam(examId) {
+function startByExam(examId, preserveDrawerReturn) {
+  closeDrawer(!!preserveDrawerReturn);
+  showAnswers = false;
+  showChinese = false;
   const ex = EXAMS_BY_ID[examId];
   if (!ex) {
     alert('未找到该套卷：' + examId);
@@ -4714,6 +5144,12 @@ function startByExam(examId) {
     category_name: q.category_name,
     grammar_point: q.grammar_point,
     fine_category: q.fine_category,  // Sprint 1 · 精细化考点 tag
+    nonp_function: q.nonp_function,
+    nonp_function_label: q.nonp_function_label,
+    nonp_form: q.nonp_form,
+    nonp_form_label: q.nonp_form_label,
+    nonp_rule: q.nonp_rule,
+    nonp_needs_review: q.nonp_needs_review,
     exam: ex.exam_id,
     exam_id: ex.exam_id,
     year: ex.year,
@@ -4742,6 +5178,7 @@ function renderExam() {
   document.getElementById('sourceCount').textContent = `共${currentQuestions.length}题`;
 
   renderContextSidebar();
+  renderClassroomSwitcher();
 
   // Update answer toggle button text
   var btnToggle = document.getElementById('btnToggleAnswers');
@@ -4801,7 +5238,7 @@ function renderExam() {
 
   if (currentExam.mode === 'category') {
     var html = buildQuestionJumpBar() + '<div class="cat-hint">' +
-               '同考点共 ' + currentQuestions.length + ' 题，按套卷顺序排列。点击 ' +
+               '同类训练共 ' + currentQuestions.length + ' 题，按套卷顺序排列。点击 ' +
                '<span class="blank-hl">空格序号</span> 或上方题号查看解析。</div>';
     var byExam = {};
     currentQuestions.forEach(function(q, idx) {
@@ -4971,7 +5408,7 @@ function showAnalysisByIdx(idx) {
   document.querySelectorAll('.drawer-tab').forEach(function(t) { t.classList.remove('active'); });
   document.querySelector('.drawer-tab[data-tab="analysis"]').classList.add('active');
   document.getElementById('drawerTabMigration').style.display = '';
-  document.getElementById('drawerTabTheory').style.display = '';
+  document.getElementById('drawerTabTheory').style.display = 'none';
 
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerOverlay').classList.add('show');
@@ -4992,15 +5429,17 @@ function showAnalysisByIdx(idx) {
       '<p><strong>技巧：</strong>' + escapeHtml(CATEGORY_TIPS[q.category] || '先判空格成分，再确定答案方向。') + '</p>' +
       '</div>';
   }
+  renderClassroomSwitcher();
 }
 
-function closeDrawer() {
+function closeDrawer(preserveDrawerReturn) {
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawerOverlay').classList.remove('show');
   selectedQuestion = null;
   clearBlankHighlight();
+  renderClassroomSwitcher();
   // 手动关闭抽屉清返回上下文（避免下次打开抽屉残留过期的"返回"按钮）
-  if (typeof setDrawerReturnTo === 'function') setDrawerReturnTo(null);
+  if (!preserveDrawerReturn && typeof setDrawerReturnTo === 'function') setDrawerReturnTo(null);
 }
 
 function switchDrawerTab(tab) {
@@ -5085,14 +5524,22 @@ function renderSentenceWithBlank(q, revealAnswer) {
   var raw = extractSentence(asText(q.passage), no) || asText(q.sentence) || extractContextWindow(asText(q.passage), no);
   if (!raw) raw = no ? ('___' + no + '___') : '空格上下文不可用';
 
-  var replacement = revealAnswer
-    ? '<span class="hl">' + escapeHtml(q.answer || '') + '</span>'
-    : '<span class="blank-hl">___' + escapeHtml(no) + '___</span>';
   var escaped = escapeHtml(raw);
-
   if (no) {
-    escaped = escaped.replace(new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}'), replacement);
-    escaped = escaped.replace('___' + escapeHtml(no) + '___', replacement);
+    var token = '[[BLANK_' + no + ']]';
+    var blankRe = new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}');
+    var match = blankRe.exec(raw);
+    var prefix = '';
+    if (match && match.index > 0) {
+      var prevChar = raw.charAt(match.index - 1);
+      if (/[A-Za-z0-9]/.test(prevChar)) prefix = ' ';
+    }
+    var replacement = revealAnswer
+      ? prefix + '<span class="hl">' + escapeHtml(q.answer || '') + '</span>'
+      : prefix + '<span class="blank-hl">___' + escapeHtml(no) + '___</span>';
+    escaped = escaped.replace(new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}'), token);
+    escaped = escaped.replace('___' + escapeHtml(no) + '___', token);
+    escaped = escaped.replace(token, replacement);
   }
   return escaped;
 }
@@ -5151,53 +5598,369 @@ function safeTeachingGuide(q, focus, trap) {
   };
 }
 
+function normalizeTeachingAxes(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  return {
+    title: raw.title || raw.label || '',
+    trigger: raw.trigger || raw.rule || raw.decision || '',
+    decisionPath: raw.decision_path || raw.decisionPath || '',
+    commonMistake: raw.common_mistake || raw.commonMistake || '',
+    teacherAsk: raw.teacher_ask || raw.teacherAsk || '',
+    steps: asArray(raw.steps || raw.questions),
+    chips: asArray(raw.chips),
+    migrationKeys: asArray(raw.migration_keys || raw.migrationKeys)
+  };
+}
+
+function detectPredicateForm(q, blob, answer) {
+  var fine = q.fine_category || '';
+  var ans = String(answer || '').toLowerCase();
+  var grammarPoint = String((q && q.grammar_point) || '');
+  if (hasPredicatePassiveCue(q, ans, blob, grammarPoint)) {
+    return { label: '谓语 · 被动语态', key: 'predicate:passive', trigger: '主语承受动作，谓语要体现 be + done。' };
+  }
+  if (hasPredicateAgreementCue(q, blob, grammarPoint)) {
+    return { label: '谓语 · 主谓一致', key: 'predicate:sva', trigger: '先找主语中心词，再定谓语单复数。' };
+  }
+  if (hasPredicatePerfectCue(q, blob)) {
+    return { label: '谓语 · 完成时', key: 'predicate:tense:perfect', trigger: '时间线索指向完成时，再看主语和语态。' };
+  }
+  if (hasPredicatePastCue(q, blob)) {
+    return { label: '谓语 · 过去时间', key: 'predicate:tense:past', trigger: '时间背景落在过去，先定过去时，再看语态和一致。' };
+  }
+  if (/^pred-tense-present/.test(fine) || /客观事实|一般现在|\b(?:always|usually)\b|陈述.*事实/.test(blob)) {
+    return { label: '谓语 · 一般现在', key: 'predicate:tense:present', trigger: '语境是客观事实或常态，谓语多用一般现在。' };
+  }
+  return { label: '谓语 · 时态语态一致', key: 'predicate:finite', trigger: '先确认句中缺谓语，再同时处理时态、语态和主谓一致。' };
+}
+
+function getArticleGuide(q, blob, answer) {
+  var ans = String(answer || '').toLowerCase();
+  var isAn = ans === 'an';
+  var isA = ans === 'a' || isAn;
+  if (isA) {
+    return {
+      title: '冠词：泛指一个',
+      trigger: '空后是单数可数名词，语境表示“一个/一次/一段”，用 ' + (isAn ? 'an' : 'a') + '。',
+      steps: ['先确认名词是否单数可数。', '再判断是否首次出现或泛指一个。', '最后按发音选择 a / an。'],
+      commonMistake: '常错：看到中文“这个/那个”才想冠词，忽略单数可数名词前必须有限定词。',
+      teacherAsk: '这里是在说特定的那一个，还是泛指一个？',
+      chips: ['a/an', '泛指', '单数可数名词'],
+      migrationKeys: ['article:a_an']
+    };
+  }
+  if (/\b(?:first|last|only)\b|最高级|序数词|\bthe first\b|\bfor the first time\b|固定/.test(blob)) {
+    return {
+      title: '冠词：固定触发 the',
+      trigger: '最高级、序数词或固定表达触发 the。',
+      steps: ['先看空后结构是否有最高级、序数词或固定短语。', '再判断它是否形成固定表达。'],
+      commonMistake: '常错：只按“特指”讲，漏掉固定结构触发。',
+      teacherAsk: '这个 the 是特指，还是固定结构本身要求？',
+      chips: ['the', '固定结构'],
+      migrationKeys: ['article:the:fixed', 'article:the']
+    };
+  }
+  return {
+    title: '冠词：特指 / 共知',
+    trigger: '上下文已经限定这个名词，或说话双方都知道所指对象，用 the。',
+    steps: ['先找空前后有没有限定信息。', '再判断名词是否已经被上下文锁定。'],
+    commonMistake: '常错：只看到名词第一次出现就填 a/an，忽略后置限定或语境特指。',
+    teacherAsk: '这个名词有没有被后面的修饰语或上下文锁定？',
+    chips: ['the', '特指'],
+    migrationKeys: ['article:the']
+  };
+}
+
+function getLogicRelation(answer, blob) {
+  var ans = String(answer || '').toLowerCase();
+  if (/\b(?:whether|either)\b.*\bor\b/.test(blob) || ans === 'or') return { label: '选择关系', key: 'choice' };
+  if (/\bnot (?:only|just)\b|\bbut also\b/.test(blob) || ans === 'but') return { label: '转折 / 递进结构', key: 'contrast' };
+  if (/\b(?:so|therefore)\b|因此|所以|结果/.test(blob) || ans === 'so') return { label: '结果关系', key: 'result' };
+  if (ans === 'and') return { label: '并列 / 顺承关系', key: 'parallel' };
+  return { label: '逻辑关系', key: ans || 'general' };
+}
+
+function getClauseRole(blob, fallback) {
+  if (/主语从句/.test(blob)) return '主语从句';
+  if (/宾语从句/.test(blob)) return '宾语从句';
+  if (/表语从句/.test(blob)) return '表语从句';
+  if (/同位语从句/.test(blob)) return '同位语从句';
+  if (/非限制性/.test(blob)) return '非限制性定语从句';
+  if (/定语从句/.test(blob)) return '定语从句';
+  return fallback || '从句';
+}
+
+function getQuestionPracticalGuide(q, focus, nonpAxis) {
+  q = q || {};
+  var explicit = normalizeTeachingAxes(q.teaching_axes);
+  if (explicit && (explicit.title || explicit.trigger || explicit.steps.length)) return explicit;
+
+  var answer = String(q.answer || '').trim();
+  var answerLower = answer.toLowerCase();
+  var blob = getQuestionTextBlob(q);
+  var category = q.category || '';
+  var fine = q.fine_category || '';
+
+  if (nonpAxis) {
+    return {
+      title: '非谓语：' + nonpAxis.formLabel + ' · ' + nonpAxis.functionLabel,
+      trigger: nonpAxis.rule || '先找逻辑主语，再看主被动和时间关系。',
+      steps: ['句中已有谓语，空格不能再作谓语。', '找逻辑主语：谁做/承受这个动作？', '用形式轴定答案：to do / doing / done。'],
+      commonMistake: '常错：只按“作什么成分”讲，忽略 to do / doing / done 的形式差异。',
+      teacherAsk: '这个动作是谁发出的？是主动、被动，还是目的/将来？',
+      chips: [nonpAxis.formLabel, nonpAxis.functionLabel].filter(Boolean),
+      migrationKeys: [
+        'nonpredicate:' + (nonpAxis.formKey || 'form') + ':' + (nonpAxis.functionKey || 'function'),
+        'nonpredicate:' + (nonpAxis.formKey || 'form')
+      ]
+    };
+  }
+
+  if (category === 'predicate') {
+    var pred = detectPredicateForm(q, blob, answer);
+    var predSteps = ['先确认空格是句子的谓语。', '看时间线索和上下文语境。', '最后核对时态、语态和主谓一致。'];
+    var predMistake = '常错：只盯一个维度，不回到主语和整句时间线核对。';
+    var predAsk = '这句话的主语是谁？空格缺的是哪一类谓语信息？';
+    if (pred.key === 'predicate:sva') {
+      predSteps = ['先确认句中缺谓语。', '抓主语中心词，不看插入修饰语。', '按语境核对单复数和第三人称。'];
+      predMistake = '常错：把修饰语、并列成分或就近名词误当成主语中心。';
+      predAsk = '真正决定单复数的是哪个主语中心词？';
+    } else if (pred.key === 'predicate:passive') {
+      predSteps = ['先确认空格作谓语。', '判断主语是动作承受者还是执行者。', '确定 be + done，再核对时态和单复数。'];
+      predMistake = '常错：只看到 done 就判被动，没有把 be 的形式一起补全。';
+      predAsk = '主语是在做动作，还是在承受动作？';
+    } else if (pred.key === 'predicate:tense:perfect') {
+      predSteps = ['先确认句中缺谓语。', '抓完成时的时间线索。', '再核对主语和是否需要被动。'];
+      predMistake = '常错：看到过去时间就直接用一般过去时，漏掉“已完成/持续到现在”的线索。';
+      predAsk = '动作是已经完成并和现在有关，还是只是发生在过去？';
+    } else if (pred.key === 'predicate:tense:past') {
+      predSteps = ['先确认句中缺谓语。', '看语境是否明确落在过去。', '再核对主动被动和单复数。'];
+      predMistake = '常错：只因句子像事实陈述就误填一般现在，忽略过去时间背景。';
+      predAsk = '这句时间背景落在哪个时点？';
+    } else if (pred.key === 'predicate:tense:present') {
+      predSteps = ['先确认句中缺谓语。', '判断是否在陈述常态或客观事实。', '再核对主语单复数。'];
+      predMistake = '常错：看到动作词就随手填过去式，没有先判断是不是常态表达。';
+      predAsk = '这是一次过去动作，还是一般事实/常态？';
+    }
+    return {
+      title: pred.label,
+      trigger: pred.trigger,
+      steps: predSteps,
+      commonMistake: predMistake,
+      teacherAsk: predAsk,
+      chips: ['时态', '语态', '主谓一致'],
+      migrationKeys: [pred.key]
+    };
+  }
+
+  if (category === 'word') {
+    var wordTitle = '词性转换：先看空格功能';
+    var trigger = '先判断空格在句中缺什么成分，再决定变名词、形容词、副词、复数或比较级。';
+    var key = 'word:general';
+    var chips = ['句子成分', '词形变化'];
+    if (/num-plural|复数|名词的数|these|many|several|various|fewer/.test(fine + ' ' + blob)) {
+      wordTitle = '词性转换：名词复数';
+      trigger = '空格要填名词，且受数量词、these 或上下文复数意义触发。';
+      key = 'word:plural';
+      chips = ['名词', '复数'];
+    } else if (/noun|名词|arrival|richness|visibility|recovery|solution|relief/.test(fine + ' ' + blob)) {
+      wordTitle = '词性转换：变名词';
+      trigger = '空格作主语、宾语或介词宾语，需要名词形式。';
+      key = 'word:noun';
+      chips = ['名词', '句子成分'];
+    } else if (hasAdverbCue(answerLower, blob, q.grammar_point || '')) {
+      wordTitle = '词性转换：变副词';
+      trigger = '空格修饰动词、形容词、副词或整句，用副词形式。';
+      key = 'word:adverb';
+      chips = ['副词', '修饰关系'];
+    } else if (/comparative|比较级|than|fewer|simpler|tougher/.test(fine + ' ' + blob)) {
+      wordTitle = '词性转换：比较级';
+      trigger = '比较语境或 than / fewer 等线索触发比较级。';
+      key = 'word:comparative';
+      chips = ['比较级'];
+    } else if (hasAdjectiveCue(answerLower, blob, q.grammar_point || '')) {
+      wordTitle = '词性转换：变形容词';
+      trigger = '空格修饰名词，或在系动词后作表语/宾补，用形容词。';
+      key = 'word:adjective';
+      chips = ['形容词', '定表补'];
+    }
+    return {
+      title: wordTitle,
+      trigger: trigger,
+      steps: ['先找空格在句中的位置。', '判断它承担的成分：定语、状语、表语、宾语等。', '再处理拼写和词缀变化。'],
+      commonMistake: '常错：看到括号词就直接套词缀，没有先判断句子成分。',
+      teacherAsk: '这个空格在句子里是修饰谁，还是自己充当一个名词性成分？',
+      chips: chips,
+      migrationKeys: [key]
+    };
+  }
+
+  if (category === 'article') return getArticleGuide(q, blob, answer);
+
+  if (category === 'preposition') {
+    var relation = /prep-time|时间/.test(fine + blob) ? '时间关系'
+      : /prep-location|地点|位置/.test(fine + blob) ? '地点位置'
+      : /搭配|固定|短语|prep-verb|depend|prepare|wait|suitable|transform|praise|from.*to/.test(fine + blob) ? '固定搭配'
+      : '语义关系';
+    return {
+      title: '介词：' + relation,
+      trigger: relation === '固定搭配' ? '空前词与介词形成固定搭配，不能只按中文硬译。' : '介词表示名词/动作之间的关系，要从语义关系判断。',
+      steps: ['先看空前核心词是否有固定搭配。', '再判断介词表达时间、地点、方式、对象、来源还是方向。', '最后回到原句验证语义是否通顺。'],
+      commonMistake: '常错：按中文“一对一”翻译介词，忽略英语固定搭配。',
+      teacherAsk: '这个介词是搭配要求，还是在表达两个词之间的关系？',
+      chips: [answer, relation],
+      migrationKeys: ['preposition:' + answerLower, 'preposition:' + relation]
+    };
+  }
+
+  if (category === 'logic') {
+    var rel = getLogicRelation(answer, blob);
+    return {
+      title: '逻辑连词：' + rel.label,
+      trigger: '看空格前后两个成分之间的逻辑关系，而不是只背 and/or/but。',
+      steps: ['先找被连接的两个成分。', '判断它们是并列、选择、转折、结果还是固定结构。', '检查是否存在 whether/either/not only 等结构提示。'],
+      commonMistake: '常错：只看中文顺口填 and，忽略选择、转折或固定搭配。',
+      teacherAsk: '空格前后是同向推进，还是二选一/转折/结果？',
+      chips: [answer, rel.label],
+      migrationKeys: ['logic:' + rel.key, 'logic:' + answerLower]
+    };
+  }
+
+  if (category === 'attrib') {
+    var clauseRole = getClauseRole(blob, '定语从句');
+    var gap = /^(where|when|why)$/.test(answerLower) ? '从句缺状语'
+      : answerLower === 'whose' ? '从句缺定语'
+      : '从句缺主语/宾语';
+    return {
+      title: clauseRole + '：' + gap,
+      trigger: '先找先行词，再看从句里缺什么成分。',
+      steps: ['圈出先行词。', '把从句单独读一遍，看缺主宾表还是状语。', '缺状语用 where/when/why 或介词+关系代词，缺主宾多用 who/which/that。'],
+      commonMistake: '常错：只看先行词是人还是物，不看关系词在从句中作什么成分。',
+      teacherAsk: '从句里真正缺的是名词性成分，还是地点/时间/原因状语？',
+      chips: [answer, gap],
+      migrationKeys: ['attrib:' + gap, 'attrib:' + answerLower]
+    };
+  }
+
+  if (category === 'nounclause') {
+    var role = getClauseRole(blob, '名词性从句');
+    var missing = /what|whatever|whoever|whichever/.test(answerLower) ? '连接词在从句中作成分'
+      : '从句结构完整，连接词表达意义';
+    return {
+      title: role + '：' + answer,
+      trigger: '先判断整个从句在主句中充当什么成分，再看从句内部缺不缺成分。',
+      steps: ['找出从句边界。', '判断它作主语、宾语、表语还是同位语。', '看从句内部缺主宾表，还是结构完整只缺意义。'],
+      commonMistake: '常错：把所有 wh 词都当“意思差不多”，不看它是否在从句里作成分。',
+      teacherAsk: '这个连接词在从句里有没有承担主语、宾语或表语？',
+      chips: [role, missing],
+      migrationKeys: ['nounclause:' + role, 'nounclause:' + answerLower]
+    };
+  }
+
+  if (category === 'pronoun') {
+    var pronType = /^(myself|yourself|himself|herself|itself|ourselves|themselves)$/.test(answerLower) ? '反身代词'
+      : /^(their|his|her|its|people's)$/.test(answerLower) ? '物主/所有格'
+      : answerLower === 'it' ? 'it 指代' : '代词指代';
+    return {
+      title: '代词：' + pronType,
+      trigger: '先找代词指代对象，再看它在句中作主语、宾语、定语还是强调自身。',
+      steps: ['回到前文找指代对象。', '判断空格在句中的功能。', '核对人称、数、格和是否反身。'],
+      commonMistake: '常错：只按中文“他/它/他们”翻译，不核对句中功能。',
+      teacherAsk: '它指代谁？在这里是作定语、宾语，还是强调主语自身？',
+      chips: [pronType],
+      migrationKeys: ['pronoun:' + pronType]
+    };
+  }
+
+  return {
+    title: (focus && focus.label) || (CATEGORY_MAP[category] || '语法填空'),
+    trigger: (focus && focus.note) || CATEGORY_TIPS[category] || '先看句子结构，再判断答案方向。',
+    steps: ['先找句子主干。', '判断空格成分。', '结合搭配和上下文确定答案。'],
+    commonMistake: '常错：脱离句子结构，只凭局部词义猜答案。',
+    teacherAsk: '这个空格在句子里承担什么功能？',
+    chips: [CATEGORY_MAP[category] || category].filter(Boolean),
+    migrationKeys: [category || 'grammar']
+  };
+}
+
+function buildPracticalGuideHtml(guide) {
+  if (!guide) return '';
+  var title = String(guide.title || '讲题卡');
+  var mistake = String(guide.commonMistake || '').replace(/^常错[:：]\s*/, '');
+  var steps = asArray(guide.steps).filter(Boolean).slice(0, 3).map(function(step, idx) {
+    return '<div class="teacher-quick-step">'
+      + '<span class="teacher-quick-step-no">' + (idx + 1) + '</span>'
+      + '<span>' + escapeHtml(step) + '</span>'
+      + '</div>';
+  }).join('');
+  return '<section class="teacher-quick-card">'
+    + '<div class="teacher-quick-head">'
+    + '<div class="teacher-quick-kicker">讲题卡</div>'
+    + '<div class="teacher-quick-title-line">考点：' + escapeHtml(title.replace(/^考点[:：]\s*/, '')) + '</div>'
+    + '</div>'
+    + (guide.trigger ? '<div class="teacher-quick-lead">' + escapeHtml(guide.trigger) + '</div>' : '')
+    + (steps ? '<div class="teacher-quick-steps">' + steps + '</div>' : '')
+    + (mistake ? '<div class="teacher-quick-warn">常错：' + escapeHtml(mistake) + '</div>' : '')
+    + '</section>';
+}
+
+function getTeachingMigrationKeys(q, focus, nonpAxis) {
+  var guide = getQuestionPracticalGuide(q, focus || safeQuestionFocus(q), nonpAxis || getNonpAxis(q));
+  return guide ? asArray(guide.migrationKeys) : [];
+}
+
+function hasTeachingMigrationOverlap(item, q, qKeys) {
+  if (!item || !q || sameQuestion(item, q)) return false;
+  qKeys = asArray(qKeys);
+  if (!qKeys.length) return false;
+  var itemKeys = getTeachingMigrationKeys(item);
+  return itemKeys.some(function(key) { return qKeys.indexOf(key) !== -1; });
+}
+
 function buildAnalysisContent(q) {
   q = q || {};
   var sent = renderSentenceWithBlank(q, true);
   var focus = safeQuestionFocus(q);
-  var fineInfo = getFineTagInfo(q.fine_category);
-  var tagLabel = (fineInfo && fineInfo.name) || focus.label;
-  var path = getQuestionLessonPath(q, focus, null);
+  var nonpAxis = getNonpAxis(q);
+  var practicalGuide = getQuestionPracticalGuide(q, focus, nonpAxis);
 
-  // 一句话核心：技巧字段 > focus.note > 分类通用提示
-  var core = q.technique || focus.note || CATEGORY_TIPS[q.category] || '';
-
-  // 同考点题数（fine_category 优先，fallback focus.key）
+  // 迁移练习题数：优先按课堂判断路径，旧题再回退到 fine_category / focus。
   var sameTagCount = 0;
   try {
-    sameTagCount = (ALL_QUESTIONS || []).filter(function(item) {
-      if (item.exam === q.exam && item.no === q.no) return false;
-      return q.fine_category
-        ? item.fine_category === q.fine_category
-        : safeQuestionFocusKey(item) === focus.key;
-    }).length;
+    if (nonpAxis) {
+      var exactCount = (ALL_QUESTIONS || []).filter(function(item) {
+        return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
+      }).length;
+      var formCount = (ALL_QUESTIONS || []).filter(function(item) {
+        return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
+      }).length;
+      sameTagCount = exactCount + formCount;
+    } else {
+      var qMigrationKeys = practicalGuide ? asArray(practicalGuide.migrationKeys) : [];
+      var guideCount = qMigrationKeys.length ? (ALL_QUESTIONS || []).filter(function(item) {
+        return hasTeachingMigrationOverlap(item, q, qMigrationKeys);
+      }).length : 0;
+      sameTagCount = guideCount || (ALL_QUESTIONS || []).filter(function(item) {
+        if (item.exam === q.exam && item.no === q.no) return false;
+        return q.fine_category
+          ? item.fine_category === q.fine_category
+          : safeQuestionFocusKey(item) === focus.key;
+      }).length;
+    }
   } catch(e) {}
-
-  var tagPath = '<div class="lesson-path" style="margin:14px 0 10px;">'
-    + path.map(function(item, idx) {
-        return '<span class="lesson-path-chip' + (idx === path.length - 1 ? ' current' : '') + '">'
-          + escapeHtml(item) + '</span>';
-      }).join('')
-    + '</div>';
-
-  var coreHtml = core
-    ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.65;margin-bottom:18px;padding:10px 14px;background:var(--surface-2);border-radius:8px;">'
-      + escapeHtml(core) + '</div>'
-    : '';
 
   var navHtml = '<div style="display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;">'
     + '<button onclick="navigateBlank(-1)" style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">◀ 上一题</button>'
     + '<button onclick="navigateBlank(1)"  style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">下一题 ▶</button>'
     + (sameTagCount > 0
-        ? '<button onclick="switchDrawerTab(\'migration\')" style="flex:1;padding:8px 18px;border:none;background:var(--accent);color:#fff;border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);font-weight:600;">'
-          + '同考点 ' + sameTagCount + ' 题 →</button>'
+        ? '<button onclick="switchDrawerTab(\'migration\')" style="flex:0;padding:8px 18px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);font-weight:700;">'
+          + '迁移 ' + sameTagCount + ' 题 →</button>'
         : '')
     + '</div>';
 
   return '<div class="analysis-answer-lg">' + escapeHtml(q.answer || '') + '</div>'
     + '<div class="analysis-sentence-lg">' + sent + '</div>'
-    + tagPath
-    + coreHtml
+    + buildPracticalGuideHtml(practicalGuide)
     + '<div class="analysis-steps-lg" style="margin-bottom:0;">'
     + '<p><strong>解题：</strong>' + escapeHtml(q.analysis || ('答案：' + (q.answer || '') + '。')) + '</p>'
     + '</div>'
@@ -5232,38 +5995,64 @@ function buildMigrationContent(q) {
   var trapId = trap ? trap.id : '';
   var fineCat = q.fine_category;                          // Sprint 1 新增：精细考点 tag
   var fineInfo = getFineTagInfo(fineCat);                  // tag 完整对象（含 name + 教材引用）
+  var nonpAxis = getNonpAxis(q);                           // 非谓语专项：形式轴 + 功能轴
+  var practicalGuide = getQuestionPracticalGuide(q, focus, nonpAxis);
+  var teachingKeys = practicalGuide ? asArray(practicalGuide.migrationKeys) : [];
+  var focusFirst = q.category === 'word' && fineCat === 'word-adj-adv-choice';
 
-  // Sprint 1 新增：精细 tag 池（最高优先级匹配）
+  // 课堂判断池：按老师讲题时真正使用的判断路径匹配，避免只按教材知识点凑题。
+  var teachingBankPool = teachingKeys.length ? ALL_QUESTIONS.filter(function(item) {
+    return hasTeachingMigrationOverlap(item, q, teachingKeys);
+  }) : [];
+  var teachingErrorPool = teachingKeys.length ? errorBookQuestions.filter(function(item) {
+    return hasTeachingMigrationOverlap(item, q, teachingKeys);
+  }) : [];
+
+  // 非谓语专项：课堂迁移优先按"形式 + 功能"，再退回同形式。
+  var nonpExactBankPool = nonpAxis ? ALL_QUESTIONS.filter(function(item) {
+    return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
+  }) : [];
+  var nonpExactErrorPool = nonpAxis ? errorBookQuestions.filter(function(item) {
+    return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
+  }) : [];
+  var nonpFormBankPool = nonpAxis ? ALL_QUESTIONS.filter(function(item) {
+    return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
+  }) : [];
+  var nonpFormErrorPool = nonpAxis ? errorBookQuestions.filter(function(item) {
+    return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
+  }) : [];
+
+  // Sprint 1 新增：精细 tag 池（非非谓语最高优先级；非谓语作为第三层兜底）
   var fineBankPool = fineCat ? ALL_QUESTIONS.filter(function(item) {
-    return item.fine_category === fineCat && !(item.exam === q.exam && item.no === q.no);
+    return item.fine_category === fineCat && !sameQuestion(item, q);
   }) : [];
   var fineErrorPool = fineCat ? errorBookQuestions.filter(function(item) {
-    return item.fine_category === fineCat && item.id !== q.id;
+    return item.fine_category === fineCat && !sameQuestion(item, q);
   }) : [];
 
   // 旧 trap 池（保留作为讲题口诀辅助，不再用于主匹配）
   var trapBankPool = trapId ? ALL_QUESTIONS.filter(function(item) {
-    return safeQuestionTrapId(item) === trapId && !(item.exam === q.exam && item.no === q.no);
+    return safeQuestionTrapId(item) === trapId && !sameQuestion(item, q);
   }) : [];
   var trapErrorPool = trapId ? errorBookQuestions.filter(function(item) {
-    return safeQuestionTrapId(item) === trapId && item.id !== q.id;
+    return safeQuestionTrapId(item) === trapId && !sameQuestion(item, q);
   }) : [];
   // 旧 focus 池（次级匹配，向后兼容没 fine_category 的题）
   var bankPool = ALL_QUESTIONS.filter(function(item) {
-    return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !(item.exam === q.exam && item.no === q.no);
+    return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !sameQuestion(item, q);
   });
   var errorPool = errorBookQuestions.filter(function(item) {
-    return item.category === q.category && safeQuestionFocusKey(item) === focus.key && item.id !== q.id;
+    return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !sameQuestion(item, q);
   });
   // 兜底：仅同 category
   var fallbackBankPool = ALL_QUESTIONS.filter(function(item) {
-    return item.category === q.category && !(item.exam === q.exam && item.no === q.no);
+    return item.category === q.category && !sameQuestion(item, q);
   });
   var fallbackErrorPool = errorBookQuestions.filter(function(item) {
-    return item.category === q.category && item.id !== q.id;
+    return item.category === q.category && !sameQuestion(item, q);
   });
 
-  // 显示池：fine_category 优先，找不到再退回 trap / focus / category
+  // 显示池：非谓语用"形式+功能 → 形式 → fine tag"；其他题仍 fine_category 优先。
   // 用 Map 去重（同一题不重复出现）
   function dedupe(items) {
     var seen = {};
@@ -5274,8 +6063,16 @@ function buildMigrationContent(q) {
       return true;
     });
   }
-  var bankDisplayPool = dedupe(fineBankPool.concat(trapBankPool).concat(bankPool));
-  var errorDisplayPool = dedupe(fineErrorPool.concat(trapErrorPool).concat(errorPool));
+  var bankDisplayPool = nonpAxis
+    ? dedupe(nonpExactBankPool.concat(nonpFormBankPool).concat(teachingBankPool).concat(fineBankPool).concat(trapBankPool).concat(bankPool))
+    : (focusFirst
+        ? dedupe(teachingBankPool.concat(bankPool).concat(trapBankPool).concat(fineBankPool))
+        : dedupe(teachingBankPool.concat(fineBankPool).concat(trapBankPool).concat(bankPool)));
+  var errorDisplayPool = nonpAxis
+    ? dedupe(nonpExactErrorPool.concat(nonpFormErrorPool).concat(teachingErrorPool).concat(fineErrorPool).concat(trapErrorPool).concat(errorPool))
+    : (focusFirst
+        ? dedupe(teachingErrorPool.concat(errorPool).concat(trapErrorPool).concat(fineErrorPool))
+        : dedupe(teachingErrorPool.concat(fineErrorPool).concat(trapErrorPool).concat(errorPool)));
   var allDisplayPool = dedupe(bankDisplayPool.concat(errorDisplayPool));
 
   // 当前选定来源
@@ -5304,14 +6101,14 @@ function buildMigrationContent(q) {
     + '</div>';
 
   if (pool.length === 0) {
-    var focusLabel = fineInfo ? fineInfo.name : (trap ? trap.name : focus.label);
+    var focusLabel = practicalGuide && practicalGuide.title ? practicalGuide.title : (nonpAxis ? nonpAxis.title : (fineInfo ? fineInfo.name : (trap ? trap.name : focus.label)));
     var hint;
     if (_migrationSource === 'errors') {
-      hint = '错题本里还没有同考点「' + escapeHtml(focusLabel) + '」的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选&quot;高频错题&quot;，多积累几道再来。</span>';
+      hint = '错题本里还没有同类判断「' + escapeHtml(focusLabel) + '」的题。<br><span style="color:var(--text-3);">上传 Word 文档时勾选&quot;高频错题&quot;，多积累几道再来。</span>';
     } else if (_migrationSource === 'all') {
-      hint = '题库和错题本里都没有同考点「' + escapeHtml(focusLabel) + '」的题。';
+      hint = '题库和错题本里都没有同类判断「' + escapeHtml(focusLabel) + '」的题。';
     } else {
-      hint = '真题库里暂无同考点「' + escapeHtml(focusLabel) + '」的其他题目。';
+      hint = '真题库里暂无同类判断「' + escapeHtml(focusLabel) + '」的其他题目。';
     }
     var fallbackCount = (_migrationSource === 'errors') ? fallbackErrorPool.length : (_migrationSource === 'all' ? fallbackBankPool.length + fallbackErrorPool.length : fallbackBankPool.length);
     if (fallbackCount > 0) {
@@ -5350,7 +6147,10 @@ function buildMigrationContent(q) {
     var _topId = Object.keys(_fineCounts).sort(function(a, b) { return _fineCounts[b] - _fineCounts[a]; })[0];
     if (_topId && _fineCounts[_topId] >= 2) resolvedFineInfo = getFineTagInfo(_topId);
   }
-  if (resolvedFineInfo) {
+  if (practicalGuide && practicalGuide.title) {
+    headerLabel = '同类迁移：' + practicalGuide.title;
+    headerSubLabel = practicalGuide.trigger || '';
+  } else if (resolvedFineInfo) {
     headerLabel = '同考点：' + resolvedFineInfo.name;
     headerSubLabel = resolvedFineInfo.category_name;
     if (resolvedFineInfo.textbook_units && resolvedFineInfo.textbook_units.length > 0) {
@@ -5365,15 +6165,16 @@ function buildMigrationContent(q) {
   }
 
   var html = tabsHtml
-    + '<div class="lesson-card" style="margin-top:0;padding:14px 16px;">'
-    + '<div class="lesson-card-kicker" style="margin-bottom:8px;">迁移训练筛选</div>'
-    + '<div style="font-size:var(--drawer-font-size,24px);font-weight:800;color:var(--text);line-height:1.55;">'
+    + '<div class="teacher-quick-card" style="margin-top:0;">'
+    + '<div class="teacher-quick-head" style="margin-bottom:6px;">'
+    + '<div class="teacher-quick-kicker">迁移练习</div>'
+    + '<div class="teacher-quick-title-line">'
     + escapeHtml(headerLabel)
     + '</div>'
-    + (headerSubLabel ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-3);line-height:1.55;margin-top:2px;">' + escapeHtml(headerSubLabel) + '</div>' : '')
-    + '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.6;margin-top:4px;">'
-    + '共 <strong>' + pool.length + '</strong> 题，已展示 <strong>' + migration.length + '</strong> 题。'
-    + (focus.note ? ' 复习抓手：' + escapeHtml(focus.note) : '')
+    + '</div>'
+    + (headerSubLabel ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.5;">' + escapeHtml(headerSubLabel) + '</div>' : '')
+    + '<div style="font-size:calc(var(--drawer-font-size-sm,23px) - 2px);color:var(--text-3);line-height:1.5;margin-top:4px;">'
+    + '共 <strong>' + pool.length + '</strong> 题，展示 <strong>' + migration.length + '</strong> 题。'
     + '</div>'
     + '</div>'
     + '<div class="migration-list">';
@@ -5384,7 +6185,16 @@ function buildMigrationContent(q) {
     var srcLabel = isError ? '📝 我的错题' : item.exam;
     var itemFineInfo = getFineTagInfo(item.fine_category);
     var itemFocus = safeQuestionFocus(item);
-    var itemTagLabel = (itemFineInfo && itemFineInfo.name) || itemFocus.label;
+    var itemAxis = getNonpAxis(item);
+    var itemGuide = getQuestionPracticalGuide(item, itemFocus, itemAxis);
+    var itemTagLabel = itemGuide && itemGuide.title
+      ? itemGuide.title
+      : (itemAxis
+        ? (itemAxis.formLabel + ' · ' + itemAxis.functionLabel)
+        : ((itemFineInfo && itemFineInfo.name) || itemFocus.label));
+    var itemTeachingLine = itemGuide && itemGuide.trigger
+      ? itemGuide.trigger
+      : (itemAxis && itemAxis.rule ? itemAxis.rule : '');
 
     // Sprint 1.5 · type 标签：真题 / 模拟卷 / 错题本，醒目颜色编码
     var typeTagHtml = '';
@@ -5405,6 +6215,7 @@ function buildMigrationContent(q) {
       + '<div class="migration-card-sentence">' + sent + '</div>'
       + '<div class="migration-card-body">'
       + '<p><span class="ans">答案：' + escapeHtml(item.answer || '') + '</span></p>'
+      + (itemTeachingLine ? '<p><strong>讲法：</strong>' + escapeHtml(itemTeachingLine) + '</p>' : '')
       + '<p>' + escapeHtml(item.analysis || '') + '</p>'
       + '</div>'
       + '</div>';
@@ -5500,7 +6311,11 @@ function clearBlankHighlight() {
 }
 
 function navigateBlank(delta) {
-  if (!selectedQuestion || currentQuestions.length === 0) return;
+  if (!currentQuestions || currentQuestions.length === 0) return;
+  if (!selectedQuestion) {
+    showAnalysisByIdx(delta < 0 ? currentQuestions.length - 1 : 0);
+    return;
+  }
   var idx = findBlankIndex();
   if (idx === -1) return;
   var newIdx = idx + delta;
@@ -5511,6 +6326,7 @@ function navigateBlank(delta) {
 }
 
 function toggleAnswers() {
+  if (showChinese) showChinese = false;
   showAnswers = !showAnswers;
   var btn = document.getElementById('btnToggleAnswers');
   if (btn) btn.textContent = showAnswers ? '👁 显示空格' : '👁 显示答案';
@@ -6323,13 +7139,13 @@ function _gotoUnitQuestion(examId, no, source, autoProjection) {
     if (source === 'errors') {
       var errQ = errorBookQuestions.find(function(q) { return String(q.no) === String(no); });
       if (errQ && typeof viewErrorQuestion === 'function') {
-        viewErrorQuestion(errQ.id);
+        viewErrorQuestion(errQ.id, true);
       } else {
         switchPage('error-book');
       }
     } else {
       if (typeof startByExam === 'function') {
-        startByExam(examId);
+        startByExam(examId, true);
         setTimeout(function() {
           if (typeof showAnalysis === 'function') showAnalysis(no);
         }, 100);
@@ -6693,8 +7509,12 @@ Object.assign(window, {
   handleDocxUpload: handleDocxUpload,
   handleDocxUploadForError: handleDocxUploadForError,
   jumpToCategory: jumpToCategory,
+  jumpQuestionFromSwitcher: jumpQuestionFromSwitcher,
+  jumpToExamFromSwitcher: jumpToExamFromSwitcher,
+  jumpToQuestionFromSwitcher: jumpToQuestionFromSwitcher,
   logoClick: logoClick,
   navigateBlank: navigateBlank,
+  navigateExam: navigateExam,
   navigateHome: navigateHome,
   navigateToKnowledge: navigateToKnowledge,
   openAuthModal: openAuthModal,
@@ -6794,7 +7614,7 @@ init();
       </div>
       <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-top:10px;">
         所有篇章会作为<b style="color:var(--text);">备课资料</b>入库（讲题模式整篇可用）。<br>
-        勾选下面任意题目，这些题会<b style="color:var(--text);">额外进入错题本</b>，按考点分类，下次自动联动同考点题做迁移训练。
+        勾选下面任意题目，这些题会<b style="color:var(--text);">额外进入错题本</b>，下次自动联动同类判断题做迁移训练。
       </p>
       <div style="margin-top:10px;display:flex;gap:8px;font-size:12px;align-items:center;">
         <button onclick="unifiedSelectAll(true)" style="background:var(--surface-3);border:none;padding:5px 12px;border-radius:14px;font-size:12px;cursor:pointer;color:var(--text-2);">全选</button>

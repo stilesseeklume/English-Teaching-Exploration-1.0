@@ -49,6 +49,18 @@ CATEGORY_NAMES = {
     "advclause":   "状语从句",
 }
 
+CLASSIFICATION_CORRECTIONS = {
+    ("2023浙江首考", 60): {
+        "grammar_point": "谓语动词",
+        "category": "predicate",
+        "explanation": (
+            "考查谓语动词。句中缺少谓语，主语 The large siheyuan of these "
+            "high-ranking officials and wealthy businessmen 与 feature 是主动关系；"
+            "结合上文 dynastic period、Ming Dynasty 等历史语境，用一般过去时 featured。"
+        ),
+    },
+}
+
 
 def classify(grammar_point: str, explanation: str, answer: str) -> str:
     """根据「考查 XX」标签 + 解析正文 + 答案表面形态，落到 11 类之一
@@ -463,6 +475,7 @@ def process_file(path: Path) -> dict | None:
     answers = parse_answers(body, blanks)
     explanations = parse_explanations(body, blanks)
 
+    exam_id = fm.get("exam", path.stem.split("_")[0])
     questions = []
     for no in sorted(blanks):
         if no not in answers:
@@ -471,6 +484,11 @@ def process_file(path: Path) -> dict | None:
         expl = explanations.get(no, "")
         gp = extract_grammar_point(expl)
         cat = classify(gp, expl, ans)
+        correction = CLASSIFICATION_CORRECTIONS.get((exam_id, no))
+        if correction:
+            expl = correction.get("explanation", expl)
+            gp = correction.get("grammar_point", gp)
+            cat = correction.get("category", cat)
         questions.append({
             "no": no,
             "answer": ans,
@@ -481,7 +499,7 @@ def process_file(path: Path) -> dict | None:
         })
 
     return {
-        "exam_id": fm.get("exam", path.stem.split("_")[0]),
+        "exam_id": exam_id,
         "year": int(fm.get("year", "0")),
         "type": fm.get("type", "真题"),
         "question_id": fm.get("question_id", ""),

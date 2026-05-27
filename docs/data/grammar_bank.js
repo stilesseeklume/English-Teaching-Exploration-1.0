@@ -39,7 +39,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-object",
+          "nonp_function": "object",
+          "nonp_function_label": "作宾语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "特定动词 decide 后接 to do 作宾语，空格与后面的 to put 并列。",
+          "nonp_needs_review": false
         },
         {
           "no": 58,
@@ -57,7 +63,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "recognized 修饰 home，home 与 recognize 是动宾关系，用 done 作前置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 60,
@@ -75,7 +87,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-perfect-passive-neg"
+          "fine_category": "nonp-perfect-passive-neg",
+          "nonp_function": "complement",
+          "nonp_function_label": "作补语",
+          "nonp_form": "to_be_done",
+          "nonp_form_label": "to be done",
+          "nonp_rule": "allow 后接宾语补足语；them 与 lift out 是动宾关系，所以用 to be done。",
+          "nonp_needs_review": false
         },
         {
           "no": 62,
@@ -111,7 +129,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-complement"
+          "fine_category": "nonp-complement",
+          "nonp_function": "complement",
+          "nonp_function_label": "作补语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "be left 后接主语补足语，I 与 want 是主谓关系，用 doing 表主动状态。",
+          "nonp_needs_review": false
         }
       ],
       "chinese_translation": "小笼包，这些由精致面皮包裹着滚烫鲜美汤汁和甜嫩肉馅的精妙构造，无疑是我最爱的中国街头美食。蒸笼端上时热气腾腾，烫得令人心惊。吃小笼包时，你得决定是先咬开一个小口让汤汁流出（冒着溢出的风险），还是将整只包子送入口中，让热汤在舌尖迸溅。上海虽被公认为小笼包的故乡，但美食史学家会告诉你，真正发源地其实是邻近的水乡古镇南翔。在那里，你会尝到不同做法——皮更厚、汤更少，面皮是手工按压而非擀制而成。撇开南翔不谈，最棒的小笼包皮薄如蝉翼，能直接从蒸笼里夹起而不破皮漏汤。肉馅需鲜嫩带甜，汤汁滚烫清澈，滋味鲜美。\n\n无论在哪里买，一笼总嫌不够，两笼又显贪心，于是每次吃完都盼着下次再多来些。"
@@ -250,7 +274,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "主句已有谓语，the Forbidden City 与 surround 是动宾关系，用 done 表被环绕的状态。",
+          "nonp_needs_review": false
         },
         {
           "no": 59,
@@ -264,11 +294,11 @@ window.GRAMMAR_BANK = {
         {
           "no": 60,
           "answer": "featured",
-          "explanation": "",
-          "grammar_point": "",
-          "category": "nonpredicate",
-          "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "explanation": "考查谓语动词。句中缺少谓语，主语 The large siheyuan of these high-ranking officials and wealthy businessmen 与 feature 是主动关系；结合上文 dynastic period、Ming Dynasty 等历史语境，用一般过去时 featured。",
+          "grammar_point": "谓语动词",
+          "category": "predicate",
+          "category_name": "谓语动词",
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 61,
@@ -333,7 +363,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "engineering 修饰 techniques，是动名词作定语，说明技术用途或类别。",
+          "nonp_needs_review": false
         },
         {
           "no": 57,
@@ -351,7 +387,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "主句已有谓语 open，to give 表目的，说明萼片打开是为了提供阳光和空气。",
+          "nonp_needs_review": false
         },
         {
           "no": 59,
@@ -421,7 +463,7 @@ window.GRAMMAR_BANK = {
     },
     {
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "question_id": "56-65",
       "passage": "Chinese cultural elements commemorating (纪念) Tang Xianzu, ___36___ is known as \"the Shakespeare of Asia,\" add an international character to Stratford-upon-Avon, William Shakespeare's hometown.\n\nTang and Shakespeare were contemporaries and both died in 1616. Although they could never have met, there are common ___37___ (theme)in their works, said Paul Edmondson, head of research for the Shakespeare Birthplace Trust. \"Some of the things that Tang was writing about ___38___ (be)also Shakespeare's concerns. I happen to know that Tang's play The Peony Pavilion (《牡丹亭》) is similar in some ways ___39___ Romeo and Juliet.\"\n\nA statue commemorating Shakespeare and Tang was put up at Shakespeare's Birthplace Garden in 2017. Two years later, a six-meter-tall pavilion, ___40___ (inspire)by The Peony Pavilion, ___41___ (build)at the Firs Garden, just ten minutes' walk from Shakespeare's birthplace.\n\nThose cultural elements have increased Stratford's international ___42___ (visible), said Edmondson, adding that visitors walking through the Birthplace Garden were often amazed ___43___ (find)the connection between the two great writers.\n\n___44___ (recall)watching a Chinese opera version of Shakespeare's play Richard III in Shanghai and meeting Chinese actors who came to Stratford a few years ago to perform parts of The Peony Pavilion, Edmondson said, \"It was very exciting to hear the Chinese language ___45___ see how Tang's play was being performed.\"\n\n为纪念素有\"东方莎士比亚\"之称的汤显祖,一座凉亭在莎士比亚的故乡建立,此举提高了莎士比亚故乡的国际知名度。来此地的游客惊奇地发现东西方的这两位伟大作家的作品有一些共性。\n\n36.",
@@ -470,7 +512,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "主句已有谓语，a pavilion 与 inspire 是动宾关系，用 done 作原因状语。",
+          "nonp_needs_review": false
         },
         {
           "no": 41,
@@ -497,7 +545,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-object",
+          "nonp_function": "object",
+          "nonp_function_label": "作宾语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "be amazed 后接 to do，说明“惊讶地发现”，不定式作形容词补足成分。",
+          "nonp_needs_review": false
         },
         {
           "no": 44,
@@ -506,7 +560,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "句中已有谓语 said，Edmondson 与 recall 是主谓关系，用 doing 作伴随状语。",
+          "nonp_needs_review": false
         },
         {
           "no": 45,
@@ -535,7 +595,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "dating 修饰 homes，homes 与 date from 是主谓关系，用 doing 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 37,
@@ -580,7 +646,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "主句已有谓语 are looking，to save 表目的，说明关注天井原则的目的。",
+          "nonp_needs_review": false
         },
         {
           "no": 42,
@@ -708,7 +780,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态、语态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 45,
@@ -737,7 +809,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-object",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "buying extra 后接 to benefit from price reductions，to do 表目的。",
+          "nonp_needs_review": false
         },
         {
           "no": 57,
@@ -782,7 +860,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-tense-other"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 62,
@@ -791,7 +869,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-tense-other"
+          "fine_category": "pred-tense-perfect"
         },
         {
           "no": 63,
@@ -800,7 +878,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "designed 修饰 packs，packs 与 design 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 64,
@@ -856,7 +940,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "句中已有谓语 must keep，players 与 use 是主谓关系，用 doing 作方式状语。",
+          "nonp_needs_review": false
         },
         {
           "no": 39,
@@ -874,7 +964,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 41,
@@ -892,7 +982,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-basic"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "句中已有谓语 have，audience 与 draw 是动宾关系，用 done 表被吸引的状态。",
+          "nonp_needs_review": false
         },
         {
           "no": 43,
@@ -939,7 +1035,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "created 修饰 a museum，museum 与 create 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 37,
@@ -984,7 +1086,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-object",
+          "nonp_function": "object",
+          "nonp_function_label": "作宾语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "beyond 是介词，后面接 doing，exhibiting 作介词宾语。",
+          "nonp_needs_review": false
         },
         {
           "no": 42,
@@ -1002,7 +1110,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态、语态和主谓一致",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-form"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 44,
@@ -1058,7 +1166,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-object",
+          "nonp_function": "object",
+          "nonp_function_label": "作宾语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "hope 后接 to do 作宾语，表示“希望呈现”。",
+          "nonp_needs_review": false
         },
         {
           "no": 59,
@@ -1195,7 +1309,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "chance 后常接 to do 作后置定语，表示“发现……的机会”。",
+          "nonp_needs_review": false
         },
         {
           "no": 43,
@@ -1222,7 +1342,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "left 修饰 a sheet or shirt，二者与 leave 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         }
       ],
       "chinese_translation": "我出生并成长于美国俄亥俄州的克利夫兰。然而现在，我和我的中国丈夫及其家人一起生活在中国浙江的乡村，这里山间竹林丛生、茶树遍野，鸡群自由放养，也没有集中供暖。\n\n过去的生活从未让我为这样的环境做好准备——说实话，第一次来到这里时，我从未想过自己会在这里感到自在。但令人惊叹的是，人竟能在新环境中如此迅速地适应和学习。随着时间的推移，我发现自己在这里感到无比自在。在这个过程中，我时常经历一些真正令我惊喜的事物。其中一件便是刚晒过衣服的\"阳光香味\"。\n\n从小到大，我家和邻居们从不用晾衣绳晾晒衣物，这让我无缘发现阳光的一大奇迹——经过一整天晾晒后衣物散发的甜美\"阳光香味\"。在我居住的地方，由于没有雾霾，加上午后常有蓝天白云和清新空气，阳光晒过的衣物闻起来格外宜人。\n\n如果你从未体验过被单或衬衫在阳光下晾晒一天后散发的\"阳光香味\"，那么你正在错过人生的一大奇迹。"
@@ -1251,7 +1377,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-sva-collective"
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 38,
@@ -1260,7 +1386,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "themed 修饰 competition，competition 与 theme 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 39,
@@ -1323,7 +1455,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "不定式",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-complement",
+          "nonp_function": "complement",
+          "nonp_function_label": "作补语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "inspire sb. to do sth. 中 to reconnect 作宾语补足语，说明激励对象去做什么。",
+          "nonp_needs_review": false
         }
       ],
       "chinese_translation": "由中国国家地理主办的\"中国野生生物影像年赛\"，长期以来一直是野生动物记录领域极具影响力的盛事。近日在北京举行的颁奖典礼上，从全球超过37600份投稿中精选出的17件震撼人心的影像作品，深深吸引了在场观众。\n\n本届赛事以\"山海有灵\"为主题，旨在提升公众对野生动物及生态保护的认知。在获奖作品中，贾海宁团队拍摄的黄河三角洲东方白鹳作品尤为引人注目。这部精致的影像作品完美展现了该区域的生态和谐与物种多样性。\n\n为了捕捉雏鸟离巢的动人瞬间，他们凌晨4点半便抵达拍摄地点，耐心等待了近两个月，只为记录幼鹳的首次振翅高飞！评委盛赞这部作品是一曲令人叹为观止的生命交响乐。\n\n此外，赛事新增设的手机摄影奖和社交媒体互动奖，旨在鼓励更广泛的公众参与。正如珍·古道尔博士所言，这项赛事能够激发人们——特别是那些鲜有机会亲身体验自然的人们——重新与自然世界建立联结。"
@@ -1388,7 +1526,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "cooked 修饰 the soup，soup 与 cook 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 62,
@@ -1406,7 +1550,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "to suit 表目的，说明调整汤味是为了适应本地口味。",
+          "nonp_needs_review": false
         },
         {
           "no": 64,
@@ -1424,7 +1574,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-compound-structure"
+          "fine_category": "nonp-absolute-with",
+          "nonp_function": "with_absolute",
+          "nonp_function_label": "with 复合结构",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "with 复合结构中 each bowl 与 tell 是主谓关系，用 doing 作宾语补足语。",
+          "nonp_needs_review": false
         }
       ],
       "chinese_translation": "曾经只是中国西北一道鲜为人知的小吃，兰州牛肉面如今正赢得全球食客的青睐。近日一篇报道讲述了这道看似简单的面食如何在纽约、伦敦、悉尼等城市走红。\n\n诱人的美食图片和视频在网络上传播，激发了当地人的食欲和好奇心，促使他们前来一探究竟。食客们不仅欣赏其味道，更享受整个用餐体验。在曼哈顿的一家餐馆里，厨师当着顾客的面将面团拉成面条。\"就像变魔术一样，\"一位食客感叹道。兰州面条独特而令人难忘的嚼劲也让食客们惊叹不已，这种与众不同的口感别具一格。\n\n用牛骨和香料熬制数小时的汤底味道浓郁。在皇后区，一家餐馆在尊重这道菜文化根源的基础上，融合了20种香料熬制出醇厚的汤底。店主甚至通过视频通话向远在中国的祖父母请教配方。在法拉盛，一家面馆的老板根据顾客反馈调整汤底，使其更浓更辣，以适应当地人的口味。正如美食专家C·多伊尔所言：\"没有所谓的'正宗'版本——它一直在演变。\"\n\n从街头小吃到全球明星，兰州牛肉面证明了美食能够跨越文化差异，每一碗面都在讲述着传统、创新和发现美味之乐的故事。"
@@ -1480,7 +1636,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-object"
+          "fine_category": "nonp-object",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "to_do",
+          "nonp_form_label": "to do",
+          "nonp_rule": "clothes for women to rent 中 to rent 作后置定语，说明衣服的用途。",
+          "nonp_needs_review": false
         },
         {
           "no": 61,
@@ -1525,7 +1687,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-object",
+          "nonp_function": "object",
+          "nonp_function_label": "作宾语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "mean 表“意味着”时后接 doing，returning 作宾语。",
+          "nonp_needs_review": false
         }
       ],
       "chinese_translation": "时尚的经济与环境代价催生了一种新的穿衣方式，这种趋势在澳大利亚也开始兴起。如今人们选择减少单件衣物的穿着次数，服装租赁服务因此日益流行。\n\n\"我认为这是个绝妙的主意，\"服装租赁店店主坦尼娅·佩里利表示，\"现在的顾客不再介意衣物是二手的，反而更看重能穿到独特款式，既不会塞爆自家衣柜，也不会给垃圾填埋场增加负担。\"\n\n坦尼娅的店铺提供女装租赁而非直接购买，为一次性活动着装提供了更经济的解决方案。这种概念本身并不新鲜——男士租赁正装已有数十年历史——但对女性消费者而言才刚刚兴起。这种\"服装即服务\"模式顺应了共享经济的社会大趋势。\n\n坦尼娅还将目光投向非正式服装领域，计划将其打包成\"胶囊衣橱\"向旅客提供，例如前往海外参加婚礼的客人，租期可更长。\"我真心希望这种模式能适应当代人的生活节奏，\"她说，\"毕竟不是所有人都能在特殊周末后的周一就归还裙子。\""
@@ -1554,7 +1722,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "featuring 修饰 badge，badge 与 feature 是主谓关系，用 doing 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 38,
@@ -1563,7 +1737,7 @@ window.GRAMMAR_BANK = {
           "grammar_point": "时态",
           "category": "predicate",
           "category_name": "谓语动词",
-          "fine_category": "pred-tense-past-perfect"
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 39,
@@ -1626,7 +1800,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "paired 修饰 competition, unity, and mutual respect，与 pair 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         }
       ],
       "chinese_translation": "2024年8月5日，中国羽毛球运动员何冰娇在巴黎奥运会上获得银牌。然而，真正引人注目的是领奖台上一个感人的瞬间。在领取奖牌时，何冰娇手持一枚印有西班牙国旗的徽章，这引发了网友们的广泛好奇。\n\n这一举动是为了向半决赛对手、因伤退赛的西班牙选手卡罗琳娜·马林表达尊重与关怀。何冰娇解释道：\"我带上西班牙徽章，是因为马林的受伤让我心碎。我希望她能看见这枚徽章，并祝愿她早日康复。\"\n\n在半决赛中，马林表现出色，但受伤后被迫停止比赛。何冰娇立即上前，给予支持并查看马林的情况，当时马林明显情绪低落。\n\n这一举动迅速成为全球头条新闻。国际奥委会称赞何冰娇展现了尊重与友谊的奥林匹克价值观。西班牙媒体也强调了这一感人时刻，许多球迷为她的体育精神喝彩。西班牙传奇篮球运动员保罗·加索尔称这是奥林匹克精神的美丽展现。\n\n何冰娇的行为不仅体现了对对手的尊重，更反映了奥运会的真正精神——在竞争中融入团结与相互尊重。"
@@ -1655,7 +1835,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "battling 与 crossing 并列，主语与 battle 是主谓关系，用 doing 作伴随状语。",
+          "nonp_needs_review": false
         },
         {
           "no": 38,
@@ -1682,7 +1868,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-adverbial-1",
+          "nonp_function": "adverbial",
+          "nonp_function_label": "作状语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "Li Xuyao 与 cover 是动宾关系，用 done 作状语，表示被积雪覆盖的状态。",
+          "nonp_needs_review": false
         },
         {
           "no": 41,
@@ -1783,7 +1975,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-adverbial-1"
+          "fine_category": "nonp-subject-predicative",
+          "nonp_function": "subject_predicative",
+          "nonp_function_label": "作主语 / 表语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "valuing 是动名词短语，解释 core message 的内容，具有名词性。",
+          "nonp_needs_review": false
         },
         {
           "no": 41,
@@ -1819,7 +2017,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "rooted 修饰 art，art 与 root in 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 45,
@@ -1857,7 +2061,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute"
+          "fine_category": "nonp-attribute",
+          "nonp_function": "attribute",
+          "nonp_function_label": "作定语",
+          "nonp_form": "done",
+          "nonp_form_label": "done",
+          "nonp_rule": "translated 修饰 Tang poems，poems 与 translate 是动宾关系，用 done 作后置定语。",
+          "nonp_needs_review": false
         },
         {
           "no": 38,
@@ -1920,7 +2130,13 @@ window.GRAMMAR_BANK = {
           "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
-          "fine_category": "nonp-subject-predicative"
+          "fine_category": "nonp-subject-predicative",
+          "nonp_function": "subject_predicative",
+          "nonp_function_label": "作主语 / 表语",
+          "nonp_form": "doing",
+          "nonp_form_label": "doing",
+          "nonp_rule": "Reading 是动名词作主语，表示“阅读这本书”这一动作整体。",
+          "nonp_needs_review": false
         },
         {
           "no": 45,
@@ -1962,7 +2178,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Xiao long bao (soup dumplings), those amazing constructions of delicate dumpling wrappers, encasing hot, ___56___ (taste) soup and sweet, fresh meat, are far and away my favorite Chinese street food. The dumplings arrive steaming and dangerously hot. To eat one, you have to decide whether ___57___ (bite) a small hole in it first, releasing the stream and risking a spill (溢出), ___58___ to put the whole dumpling in your mouth, letting the hot soup explode on your tongue. Shanghai may be the ___59___ (recognize) home of the soup dumplings but food historians will actually point you to the neighboring canal town of Nanxiang as Xiao long bao's birthplace. There you will find them prepared differently --- more dumpling and less soup, and the wrappers are pressed ___60___ hand rather than rolled. Nanxiang aside, the best Xiao long bao have a fine skin, allowing them ___61___ (lift) out of the steamer basket without tearing or spilling any of ___62___ (they) contents. The meat should be fresh with ___63___ touch of sweetness and the soup hot, clear and delicious.\n\nNo matter where I buy them, one steamer is ___64___ (rare) enough, yet two seems greedy, so I am always left ___65___ (want) more next time.",
-      "fine_category": "nonp-object"
+      "fine_category": "nonp-object",
+      "nonp_function": "object",
+      "nonp_function_label": "作宾语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "特定动词 decide 后接 to do 作宾语，空格与后面的 to put 并列。",
+      "nonp_needs_review": false
     },
     {
       "id": "2023全国一卷-58",
@@ -1990,7 +2212,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Xiao long bao (soup dumplings), those amazing constructions of delicate dumpling wrappers, encasing hot, ___56___ (taste) soup and sweet, fresh meat, are far and away my favorite Chinese street food. The dumplings arrive steaming and dangerously hot. To eat one, you have to decide whether ___57___ (bite) a small hole in it first, releasing the stream and risking a spill (溢出), ___58___ to put the whole dumpling in your mouth, letting the hot soup explode on your tongue. Shanghai may be the ___59___ (recognize) home of the soup dumplings but food historians will actually point you to the neighboring canal town of Nanxiang as Xiao long bao's birthplace. There you will find them prepared differently --- more dumpling and less soup, and the wrappers are pressed ___60___ hand rather than rolled. Nanxiang aside, the best Xiao long bao have a fine skin, allowing them ___61___ (lift) out of the steamer basket without tearing or spilling any of ___62___ (they) contents. The meat should be fresh with ___63___ touch of sweetness and the soup hot, clear and delicious.\n\nNo matter where I buy them, one steamer is ___64___ (rare) enough, yet two seems greedy, so I am always left ___65___ (want) more next time.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "recognized 修饰 home，home 与 recognize 是动宾关系，用 done 作前置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2023全国一卷-60",
@@ -2018,7 +2246,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Xiao long bao (soup dumplings), those amazing constructions of delicate dumpling wrappers, encasing hot, ___56___ (taste) soup and sweet, fresh meat, are far and away my favorite Chinese street food. The dumplings arrive steaming and dangerously hot. To eat one, you have to decide whether ___57___ (bite) a small hole in it first, releasing the stream and risking a spill (溢出), ___58___ to put the whole dumpling in your mouth, letting the hot soup explode on your tongue. Shanghai may be the ___59___ (recognize) home of the soup dumplings but food historians will actually point you to the neighboring canal town of Nanxiang as Xiao long bao's birthplace. There you will find them prepared differently --- more dumpling and less soup, and the wrappers are pressed ___60___ hand rather than rolled. Nanxiang aside, the best Xiao long bao have a fine skin, allowing them ___61___ (lift) out of the steamer basket without tearing or spilling any of ___62___ (they) contents. The meat should be fresh with ___63___ touch of sweetness and the soup hot, clear and delicious.\n\nNo matter where I buy them, one steamer is ___64___ (rare) enough, yet two seems greedy, so I am always left ___65___ (want) more next time.",
-      "fine_category": "nonp-perfect-passive-neg"
+      "fine_category": "nonp-perfect-passive-neg",
+      "nonp_function": "complement",
+      "nonp_function_label": "作补语",
+      "nonp_form": "to_be_done",
+      "nonp_form_label": "to be done",
+      "nonp_rule": "allow 后接宾语补足语；them 与 lift out 是动宾关系，所以用 to be done。",
+      "nonp_needs_review": false
     },
     {
       "id": "2023全国一卷-62",
@@ -2074,7 +2308,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Xiao long bao (soup dumplings), those amazing constructions of delicate dumpling wrappers, encasing hot, ___56___ (taste) soup and sweet, fresh meat, are far and away my favorite Chinese street food. The dumplings arrive steaming and dangerously hot. To eat one, you have to decide whether ___57___ (bite) a small hole in it first, releasing the stream and risking a spill (溢出), ___58___ to put the whole dumpling in your mouth, letting the hot soup explode on your tongue. Shanghai may be the ___59___ (recognize) home of the soup dumplings but food historians will actually point you to the neighboring canal town of Nanxiang as Xiao long bao's birthplace. There you will find them prepared differently --- more dumpling and less soup, and the wrappers are pressed ___60___ hand rather than rolled. Nanxiang aside, the best Xiao long bao have a fine skin, allowing them ___61___ (lift) out of the steamer basket without tearing or spilling any of ___62___ (they) contents. The meat should be fresh with ___63___ touch of sweetness and the soup hot, clear and delicious.\n\nNo matter where I buy them, one steamer is ___64___ (rare) enough, yet two seems greedy, so I am always left ___65___ (want) more next time.",
-      "fine_category": "nonp-complement"
+      "fine_category": "nonp-complement",
+      "nonp_function": "complement",
+      "nonp_function_label": "作补语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "be left 后接主语补足语，I 与 want 是主谓关系，用 doing 表主动状态。",
+      "nonp_needs_review": false
     },
     {
       "id": "2023全国二卷-56",
@@ -2256,7 +2496,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "During China's dynastic period, emperors planned the city of Beijing ___56___ arranged the residential areas according to social classes. The term \"hutong\", ___57___ (original) meaning \"water well\" in Mongolian, appeared first during the Yuan Dynasty.\n\nIn the Ming Dynasty, the center was the Forbidden City, ___58___ (surround) in concentric (同心的) circles by the Inner City and Outer City. Citizens of higher social classes ___59___ (permit) to live closer to the center of the circles. The large siheyuan of these high-ranking officials and wealthy businessmen often ___60___ (feature) beautifully carved and painted roof beams and pillars (柱子). The hutongs they formed were orderly, lined by ___61___ (space) homes and walled gardens. Farther from the center lived the commoners and laborers. Their siheyuan were far smaller in scale and ___62___ (simple) in design and decoration, and the hutongs were narrower.\n\nHutongs represent an important cultural element of the city of Beijing. Thanks to Beijing's long history ___63___ capital of China, almost every hutong has its stories, and some are even associated with historic ___64___ (event). In contrast to the court life and upper-class culture represented by the Forbidden City, the Summer Palace, and the Temple of Heaven, the hutongs reflect ___65___ culture of grassroots Beijingers.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "主句已有谓语，the Forbidden City 与 surround 是动宾关系，用 done 表被环绕的状态。",
+      "nonp_needs_review": false
     },
     {
       "id": "2023浙江首考-59",
@@ -2279,12 +2525,12 @@ window.GRAMMAR_BANK = {
       "type": "真题",
       "no": 60,
       "answer": "featured",
-      "explanation": "",
-      "grammar_point": "",
-      "category": "nonpredicate",
-      "category_name": "非谓语动词",
+      "explanation": "考查谓语动词。句中缺少谓语，主语 The large siheyuan of these high-ranking officials and wealthy businessmen 与 feature 是主动关系；结合上文 dynastic period、Ming Dynasty 等历史语境，用一般过去时 featured。",
+      "grammar_point": "谓语动词",
+      "category": "predicate",
+      "category_name": "谓语动词",
       "passage": "During China's dynastic period, emperors planned the city of Beijing ___56___ arranged the residential areas according to social classes. The term \"hutong\", ___57___ (original) meaning \"water well\" in Mongolian, appeared first during the Yuan Dynasty.\n\nIn the Ming Dynasty, the center was the Forbidden City, ___58___ (surround) in concentric (同心的) circles by the Inner City and Outer City. Citizens of higher social classes ___59___ (permit) to live closer to the center of the circles. The large siheyuan of these high-ranking officials and wealthy businessmen often ___60___ (feature) beautifully carved and painted roof beams and pillars (柱子). The hutongs they formed were orderly, lined by ___61___ (space) homes and walled gardens. Farther from the center lived the commoners and laborers. Their siheyuan were far smaller in scale and ___62___ (simple) in design and decoration, and the hutongs were narrower.\n\nHutongs represent an important cultural element of the city of Beijing. Thanks to Beijing's long history ___63___ capital of China, almost every hutong has its stories, and some are even associated with historic ___64___ (event). In contrast to the court life and upper-class culture represented by the Forbidden City, the Summer Palace, and the Temple of Heaven, the hutongs reflect ___65___ culture of grassroots Beijingers.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "pred-tense-past-future"
     },
     {
       "id": "2023浙江首考-61",
@@ -2368,7 +2614,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Heatherwick Studio recently built a greenhouse at the edge of the National Trust's Woolbeding Gardens. This beautiful structure, named Glasshouse, is at the centre of a new garden that shows how the Silk Road influences English gardens even in modern times.\n\nThe latest ___56___ (engineer) techniques are applied to create this protective ___57___ (function) structure that is also beautiful. The design features ten steel “sepals (萼片)” made of glass and aluminium (铝). These sepals open on warm days ___58___ (give) the inside plants sunshine and fresh air. In cold weather, the structure stays ___59___ (close) to protect the plants.\n\nFurther, the Silk Route Garden around the greenhouse ___60___ (walk) visitors through a journey influenced by the ancient Silk Road, by which silk as well as many plant species came to Britain for ___61___ first time. These plants included modern Western ___62___ (favourite) such as rosemary, lavender and fennel. The garden also contains a winding path that guides visitors through the twelve regions of the Silk Road. The path offers over 300 plant species for visitors to see, too.\n\nThe Glasshouse stands ___63___ a great achievement in contemporary design, to house the plants of the southwestern part of China at the end of a path retracing (追溯) the steps along the Silk Route ___64___ brought the plants from their native habitat in Asia to come to define much of the ___65___ (rich) of gardening in England.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "engineering 修饰 techniques，是动名词作定语，说明技术用途或类别。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024全国一卷-57",
@@ -2396,7 +2648,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Heatherwick Studio recently built a greenhouse at the edge of the National Trust's Woolbeding Gardens. This beautiful structure, named Glasshouse, is at the centre of a new garden that shows how the Silk Road influences English gardens even in modern times.\n\nThe latest ___56___ (engineer) techniques are applied to create this protective ___57___ (function) structure that is also beautiful. The design features ten steel “sepals (萼片)” made of glass and aluminium (铝). These sepals open on warm days ___58___ (give) the inside plants sunshine and fresh air. In cold weather, the structure stays ___59___ (close) to protect the plants.\n\nFurther, the Silk Route Garden around the greenhouse ___60___ (walk) visitors through a journey influenced by the ancient Silk Road, by which silk as well as many plant species came to Britain for ___61___ first time. These plants included modern Western ___62___ (favourite) such as rosemary, lavender and fennel. The garden also contains a winding path that guides visitors through the twelve regions of the Silk Road. The path offers over 300 plant species for visitors to see, too.\n\nThe Glasshouse stands ___63___ a great achievement in contemporary design, to house the plants of the southwestern part of China at the end of a path retracing (追溯) the steps along the Silk Route ___64___ brought the plants from their native habitat in Asia to come to define much of the ___65___ (rich) of gardening in England.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "主句已有谓语 open，to give 表目的，说明萼片打开是为了提供阳光和空气。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024全国一卷-59",
@@ -2499,7 +2757,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-36",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 36,
       "answer": "who",
@@ -2513,7 +2771,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-37",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 37,
       "answer": "themes",
@@ -2527,7 +2785,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-38",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 38,
       "answer": "were",
@@ -2541,7 +2799,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-39",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 39,
       "answer": "to",
@@ -2555,7 +2813,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-40",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 40,
       "answer": "inspired",
@@ -2564,12 +2822,18 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Chinese cultural elements commemorating (纪念) Tang Xianzu, ___36___ is known as \"the Shakespeare of Asia,\" add an international character to Stratford-upon-Avon, William Shakespeare's hometown.\n\nTang and Shakespeare were contemporaries and both died in 1616. Although they could never have met, there are common ___37___ (theme)in their works, said Paul Edmondson, head of research for the Shakespeare Birthplace Trust. \"Some of the things that Tang was writing about ___38___ (be)also Shakespeare's concerns. I happen to know that Tang's play The Peony Pavilion (《牡丹亭》) is similar in some ways ___39___ Romeo and Juliet.\"\n\nA statue commemorating Shakespeare and Tang was put up at Shakespeare's Birthplace Garden in 2017. Two years later, a six-meter-tall pavilion, ___40___ (inspire)by The Peony Pavilion, ___41___ (build)at the Firs Garden, just ten minutes' walk from Shakespeare's birthplace.\n\nThose cultural elements have increased Stratford's international ___42___ (visible), said Edmondson, adding that visitors walking through the Birthplace Garden were often amazed ___43___ (find)the connection between the two great writers.\n\n___44___ (recall)watching a Chinese opera version of Shakespeare's play Richard III in Shanghai and meeting Chinese actors who came to Stratford a few years ago to perform parts of The Peony Pavilion, Edmondson said, \"It was very exciting to hear the Chinese language ___45___ see how Tang's play was being performed.\"\n\n为纪念素有\"东方莎士比亚\"之称的汤显祖,一座凉亭在莎士比亚的故乡建立,此举提高了莎士比亚故乡的国际知名度。来此地的游客惊奇地发现东西方的这两位伟大作家的作品有一些共性。\n\n36.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "主句已有谓语，a pavilion 与 inspire 是动宾关系，用 done 作原因状语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024全国二卷-41",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 41,
       "answer": "was built",
@@ -2583,7 +2847,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-42",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 42,
       "answer": "visibility",
@@ -2597,7 +2861,7 @@ window.GRAMMAR_BANK = {
     {
       "id": "2024全国二卷-43",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 43,
       "answer": "to find",
@@ -2606,12 +2870,18 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Chinese cultural elements commemorating (纪念) Tang Xianzu, ___36___ is known as \"the Shakespeare of Asia,\" add an international character to Stratford-upon-Avon, William Shakespeare's hometown.\n\nTang and Shakespeare were contemporaries and both died in 1616. Although they could never have met, there are common ___37___ (theme)in their works, said Paul Edmondson, head of research for the Shakespeare Birthplace Trust. \"Some of the things that Tang was writing about ___38___ (be)also Shakespeare's concerns. I happen to know that Tang's play The Peony Pavilion (《牡丹亭》) is similar in some ways ___39___ Romeo and Juliet.\"\n\nA statue commemorating Shakespeare and Tang was put up at Shakespeare's Birthplace Garden in 2017. Two years later, a six-meter-tall pavilion, ___40___ (inspire)by The Peony Pavilion, ___41___ (build)at the Firs Garden, just ten minutes' walk from Shakespeare's birthplace.\n\nThose cultural elements have increased Stratford's international ___42___ (visible), said Edmondson, adding that visitors walking through the Birthplace Garden were often amazed ___43___ (find)the connection between the two great writers.\n\n___44___ (recall)watching a Chinese opera version of Shakespeare's play Richard III in Shanghai and meeting Chinese actors who came to Stratford a few years ago to perform parts of The Peony Pavilion, Edmondson said, \"It was very exciting to hear the Chinese language ___45___ see how Tang's play was being performed.\"\n\n为纪念素有\"东方莎士比亚\"之称的汤显祖,一座凉亭在莎士比亚的故乡建立,此举提高了莎士比亚故乡的国际知名度。来此地的游客惊奇地发现东西方的这两位伟大作家的作品有一些共性。\n\n36.",
-      "fine_category": "nonp-object"
+      "fine_category": "nonp-object",
+      "nonp_function": "object",
+      "nonp_function_label": "作宾语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "be amazed 后接 to do，说明“惊讶地发现”，不定式作形容词补足成分。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024全国二卷-44",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 44,
       "answer": "Recalling",
@@ -2620,12 +2890,18 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Chinese cultural elements commemorating (纪念) Tang Xianzu, ___36___ is known as \"the Shakespeare of Asia,\" add an international character to Stratford-upon-Avon, William Shakespeare's hometown.\n\nTang and Shakespeare were contemporaries and both died in 1616. Although they could never have met, there are common ___37___ (theme)in their works, said Paul Edmondson, head of research for the Shakespeare Birthplace Trust. \"Some of the things that Tang was writing about ___38___ (be)also Shakespeare's concerns. I happen to know that Tang's play The Peony Pavilion (《牡丹亭》) is similar in some ways ___39___ Romeo and Juliet.\"\n\nA statue commemorating Shakespeare and Tang was put up at Shakespeare's Birthplace Garden in 2017. Two years later, a six-meter-tall pavilion, ___40___ (inspire)by The Peony Pavilion, ___41___ (build)at the Firs Garden, just ten minutes' walk from Shakespeare's birthplace.\n\nThose cultural elements have increased Stratford's international ___42___ (visible), said Edmondson, adding that visitors walking through the Birthplace Garden were often amazed ___43___ (find)the connection between the two great writers.\n\n___44___ (recall)watching a Chinese opera version of Shakespeare's play Richard III in Shanghai and meeting Chinese actors who came to Stratford a few years ago to perform parts of The Peony Pavilion, Edmondson said, \"It was very exciting to hear the Chinese language ___45___ see how Tang's play was being performed.\"\n\n为纪念素有\"东方莎士比亚\"之称的汤显祖,一座凉亭在莎士比亚的故乡建立,此举提高了莎士比亚故乡的国际知名度。来此地的游客惊奇地发现东西方的这两位伟大作家的作品有一些共性。\n\n36.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "句中已有谓语 said，Edmondson 与 recall 是主谓关系，用 doing 作伴随状语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024全国二卷-45",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 45,
       "answer": "and",
@@ -2648,7 +2924,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "A skywell, or “tian jing” in Chinese, is a typical feature of a traditional home in Southern and Eastern China. They are commonly seen in homes ___36___ (date) to the Ming and Qing dynasties, which ___37___ (design) to house different generations of relatives. Despite their varied sizes and designs, these skywells are typically square and located in ___38___ heart of the house. They serve to allow in light, enhance airflow, and harvest rainwater.\n\nSince decades ago, the government ___39___ (advocate) green buildings, promoting environmentally-friendly practice. The increased interest towards traditional Chinese architecture is leading to the restoration of historic buildings with skywells ___40___ modern use. Architects are also looking towards the principles behind skywells while designing new buildings ___41___ (save) energy. The Dongguan TBA Tower in Guangdong Province, for example, brings natural airflows into every floor with internal “windpipes”___42___ function in a similar way to skywells. The aim is to keep the building's temperature ___43___ (comfort) in all seasons, using only natural airflow.\n\nThe fact that skywells still exist today shows ___44___ clever ancient builders were in using nature's elements to create energy-sufficient and sustainable living spaces. These timeless architectural ___45___ (wonder) continue to inspire architects in their efforts to find green solutions for cooling homes and buildings.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "dating 修饰 homes，homes 与 date from 是主谓关系，用 doing 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024广州一模-37",
@@ -2718,7 +3000,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "A skywell, or “tian jing” in Chinese, is a typical feature of a traditional home in Southern and Eastern China. They are commonly seen in homes ___36___ (date) to the Ming and Qing dynasties, which ___37___ (design) to house different generations of relatives. Despite their varied sizes and designs, these skywells are typically square and located in ___38___ heart of the house. They serve to allow in light, enhance airflow, and harvest rainwater.\n\nSince decades ago, the government ___39___ (advocate) green buildings, promoting environmentally-friendly practice. The increased interest towards traditional Chinese architecture is leading to the restoration of historic buildings with skywells ___40___ modern use. Architects are also looking towards the principles behind skywells while designing new buildings ___41___ (save) energy. The Dongguan TBA Tower in Guangdong Province, for example, brings natural airflows into every floor with internal “windpipes”___42___ function in a similar way to skywells. The aim is to keep the building's temperature ___43___ (comfort) in all seasons, using only natural airflow.\n\nThe fact that skywells still exist today shows ___44___ clever ancient builders were in using nature's elements to create energy-sufficient and sustainable living spaces. These timeless architectural ___45___ (wonder) continue to inspire architects in their efforts to find green solutions for cooling homes and buildings.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "主句已有谓语 are looking，to save 表目的，说明关注天井原则的目的。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024广州一模-42",
@@ -2900,7 +3188,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "Over a decade ago, Wu Kai, an enthusiast of ancient pagodas (塔), was looking for a book ___36___ comprehensively detailed the total number and locations of pagodas with quality introductions and images.\n\n“I read extensively but found the books available had limited information and few good pictures,” he explains. Dissatisfied with the ___37___ (exist) options, Wu decided to create his own. Despite an estimated 10,000 ancient pagodas nationwide, many remain unaccounted for due to___38___ (they) remote locations and poor conditions.\n\nVisiting hilltop or cliff-top pagodas, or those hidden in deep forests, ___39___ (require) great determination, physical strength and even luck, ___40___ few people get to see them in person. For those who do, there’s the added challenge of taking good pictures, especially those suitable___41___ print.\n\n___42___ (fortunate), Wu’s plan was applauded by like-minded enthusiasts, who generously contributed great ___43___ (photo). In 2019, Wu published a 500-page book introducing over 300 ancient pagodas in Beijing. He then continued to work with Wang Xuebin, one of the enthusiasts. In 2023, their weighty 960-page book ___44___ (release), entitled The l,001 Chinese Ancient Pagodas You Must See Before You Die.\n\n“In each pagoda, I see the beauty of our heritage and the ___45___ (lose) values of simplicity, perfection, and respect for nature in modern life,” Wu writes in the introduction. “Across the vast land of China, no two pagodas are completely identical.”",
-      "fine_category": "pred-sva-form"
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024广州二模-45",
@@ -2928,7 +3216,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well.",
-      "fine_category": "nonp-object"
+      "fine_category": "nonp-object",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "buying extra 后接 to benefit from price reductions，to do 表目的。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024浙江首考-57",
@@ -2998,7 +3292,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well.",
-      "fine_category": "pred-tense-other"
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024浙江首考-62",
@@ -3012,7 +3306,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well.",
-      "fine_category": "pred-tense-other"
+      "fine_category": "pred-tense-perfect"
     },
     {
       "id": "2024浙江首考-63",
@@ -3026,7 +3320,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "designed 修饰 packs，packs 与 design 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024浙江首考-64",
@@ -3096,7 +3396,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "句中已有谓语 must keep，players 与 use 是主谓关系，用 doing 作方式状语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024深圳一模-39",
@@ -3124,7 +3430,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship.",
-      "fine_category": "pred-sva-form"
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024深圳一模-41",
@@ -3152,7 +3458,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship.",
-      "fine_category": "nonp-basic"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "句中已有谓语 have，audience 与 draw 是动宾关系，用 done 表被吸引的状态。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024深圳一模-43",
@@ -3208,7 +3520,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "In the center of Reykjavik, Iceland, stands a museum ___36___ (create) by Lillian Hopps, which symbolizes the friendship between Icelandic and Chinese people. A passionate admirer of Chinese heritage, Lillian began her journey to learn about China in the 1990s, a time ___37___ she deeply engaged herself in exploring China’s rich culture. Her passion transformed her home into a place filled with Chinese artifacts, which ___38___ (eventual) led to the establishment of a museum in Reykjavik.\n\nThe museum ___39___ (house) an extensive collection of cultural relics, from ancient clothing ___40___ contemporary art, displaying thousands of years of Chinese civilization. Lillian’s work goes beyond just ___41___ (exhibit) these items; she brings the culture alive through highly ___42___ (interact) activities like tea performances, calligraphy classes, and traditional medicine talks, promoting the Icelandic understanding of China’s rich traditions.\n\nLilian’s museum, attracting thousands of visitors annually from around the world, ___43___ (recognize) by the Icelandic government in 2021 for its impact. As Marta Jonsdottir, a director at Iceland’s Ministry of Foreign Affairs, put it in an interview, “Lillian, with her enthusiasm and expertise, has developed diverse cultural ___44___ (link) between Iceland and China. Her museum has not just enabled both peoples to better understand each other ___45___ strengthened our relations.”",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "created 修饰 a museum，museum 与 create 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024深圳二模-37",
@@ -3278,7 +3596,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "In the center of Reykjavik, Iceland, stands a museum ___36___ (create) by Lillian Hopps, which symbolizes the friendship between Icelandic and Chinese people. A passionate admirer of Chinese heritage, Lillian began her journey to learn about China in the 1990s, a time ___37___ she deeply engaged herself in exploring China’s rich culture. Her passion transformed her home into a place filled with Chinese artifacts, which ___38___ (eventual) led to the establishment of a museum in Reykjavik.\n\nThe museum ___39___ (house) an extensive collection of cultural relics, from ancient clothing ___40___ contemporary art, displaying thousands of years of Chinese civilization. Lillian’s work goes beyond just ___41___ (exhibit) these items; she brings the culture alive through highly ___42___ (interact) activities like tea performances, calligraphy classes, and traditional medicine talks, promoting the Icelandic understanding of China’s rich traditions.\n\nLilian’s museum, attracting thousands of visitors annually from around the world, ___43___ (recognize) by the Icelandic government in 2021 for its impact. As Marta Jonsdottir, a director at Iceland’s Ministry of Foreign Affairs, put it in an interview, “Lillian, with her enthusiasm and expertise, has developed diverse cultural ___44___ (link) between Iceland and China. Her museum has not just enabled both peoples to better understand each other ___45___ strengthened our relations.”",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-object",
+      "nonp_function": "object",
+      "nonp_function_label": "作宾语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "beyond 是介词，后面接 doing，exhibiting 作介词宾语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2024深圳二模-42",
@@ -3306,7 +3630,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "In the center of Reykjavik, Iceland, stands a museum ___36___ (create) by Lillian Hopps, which symbolizes the friendship between Icelandic and Chinese people. A passionate admirer of Chinese heritage, Lillian began her journey to learn about China in the 1990s, a time ___37___ she deeply engaged herself in exploring China’s rich culture. Her passion transformed her home into a place filled with Chinese artifacts, which ___38___ (eventual) led to the establishment of a museum in Reykjavik.\n\nThe museum ___39___ (house) an extensive collection of cultural relics, from ancient clothing ___40___ contemporary art, displaying thousands of years of Chinese civilization. Lillian’s work goes beyond just ___41___ (exhibit) these items; she brings the culture alive through highly ___42___ (interact) activities like tea performances, calligraphy classes, and traditional medicine talks, promoting the Icelandic understanding of China’s rich traditions.\n\nLilian’s museum, attracting thousands of visitors annually from around the world, ___43___ (recognize) by the Icelandic government in 2021 for its impact. As Marta Jonsdottir, a director at Iceland’s Ministry of Foreign Affairs, put it in an interview, “Lillian, with her enthusiasm and expertise, has developed diverse cultural ___44___ (link) between Iceland and China. Her museum has not just enabled both peoples to better understand each other ___45___ strengthened our relations.”",
-      "fine_category": "pred-sva-form"
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024深圳二模-44",
@@ -3376,7 +3700,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "An exhibition at the Jiushi Art Museum in Shanghai is featuring artwork inspired by Go, or weiqi in Chinese, ___56___ originated in China more than 4,000 years ago.\n\nGo is one of ___57___ earliest binary-based (基于二元的) games. The movements of the black and white pieces reflect the basic ideas of Eastern philosophy, according to Tu Ningning, who is in charge of the exhibition.\n\n\"The exhibition brings together Go culture, cutting-edge technology and contemporary art,\" says Tu. \"We hope ___58___ (present) the rather abstract Go game and AI in a visual context, and initiate dialogues with minimalist art, conceptual art and expressionism.\"\n\n\"In a Go game, each move should serve a long-term goal. You try to lead the opponent into your trap and force them to follow your '___59___ (guide)' till they lose,\" explains Wang Wei, a Go player among the visitors to the exhibition.\n\n\"The players' personalities ___60___ (reveal) during the game, and one's weaknesses are exposed to the opponent,\" she adds. \"A decent winner always ___61___ (try) to beat the opponent ___62___ no more than one or two points as a gesture (姿态) of respect for the other side.\"\n\nTu says that the balance between the black and white pieces, the beauty in the ___63___ (strategy) placement of the pieces, ___64___ the energy flow following each move inspired artists to create oil paintings, sculptures, ___65___ (digital) generated pictures and silk-screen prints for the exhibition.",
-      "fine_category": "nonp-object"
+      "fine_category": "nonp-object",
+      "nonp_function": "object",
+      "nonp_function_label": "作宾语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "hope 后接 to do 作宾语，表示“希望呈现”。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025全国一卷-59",
@@ -3572,7 +3902,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "I was born and raised in Cleveland, Ohio in the United States. Yet now, I live in the countryside of Zhejiang, China with my Chinese husband and his family, ___36___ bamboo and tea bushes (灌木) grow wild in the mountains, chickens are always free-range, and ___37___ (center) heating doesn't exist.\n\nNothing in my life before prepared me ___38___ this one-and to be sure, the first time I came here I never imagined I would ever feel comfortable in this area. But it's amazing how you can adapt ___39___ learn in a new environment. Over time, I've found ___40___ (I) feeling extremely at home here. And in the process, I've experienced things that really surprise me at times. The \"sunshine scent (香味)\" of freshly sunned clothes ___41___ (be) one of them.\n\nGrowing up, my family and our neighbors never used clotheslines to dry clothing, denying me the chance ___42___ (discover) one of the great wonders of sunshine --- the sweet \"sunshine scent\" after sunning clothes for an entire day. The sun-dried clothes smell especially pleasant where I live, thanks to the ___43___ (absent) of smog and plenty of blue sky ___44___ (afternoon) with lots of fresh air.\n\nIf you've never experienced the \"sunshine scent\" from a sheet or shirt ___45___ (leave) to sun for a day, well, you're missing out on one of life's wonders.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "chance 后常接 to do 作后置定语，表示“发现……的机会”。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025全国二卷-43",
@@ -3614,7 +3950,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "I was born and raised in Cleveland, Ohio in the United States. Yet now, I live in the countryside of Zhejiang, China with my Chinese husband and his family, ___36___ bamboo and tea bushes (灌木) grow wild in the mountains, chickens are always free-range, and ___37___ (center) heating doesn't exist.\n\nNothing in my life before prepared me ___38___ this one-and to be sure, the first time I came here I never imagined I would ever feel comfortable in this area. But it's amazing how you can adapt ___39___ learn in a new environment. Over time, I've found ___40___ (I) feeling extremely at home here. And in the process, I've experienced things that really surprise me at times. The \"sunshine scent (香味)\" of freshly sunned clothes ___41___ (be) one of them.\n\nGrowing up, my family and our neighbors never used clotheslines to dry clothing, denying me the chance ___42___ (discover) one of the great wonders of sunshine --- the sweet \"sunshine scent\" after sunning clothes for an entire day. The sun-dried clothes smell especially pleasant where I live, thanks to the ___43___ (absent) of smog and plenty of blue sky ___44___ (afternoon) with lots of fresh air.\n\nIf you've never experienced the \"sunshine scent\" from a sheet or shirt ___45___ (leave) to sun for a day, well, you're missing out on one of life's wonders.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "left 修饰 a sheet or shirt，二者与 leave 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025广州一模-36",
@@ -3642,7 +3984,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world.",
-      "fine_category": "pred-sva-collective"
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2025广州一模-38",
@@ -3656,7 +3998,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "themed 修饰 competition，competition 与 theme 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025广州一模-39",
@@ -3754,7 +4102,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world.",
-      "fine_category": "nonp-object"
+      "fine_category": "nonp-complement",
+      "nonp_function": "complement",
+      "nonp_function_label": "作补语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "inspire sb. to do sth. 中 to reconnect 作宾语补足语，说明激励对象去做什么。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025广州二模-56",
@@ -3838,7 +4192,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Once a little-known dish from China's northwest,Lanzhou beef noodle soup is now winning hearts globally.A recent article describes ___56___ this surprisingly simple meal has become popular in ___57___ (city)like New York,London,and Sydney.\n\nAppealing online photos and videos of the dish stimulate local people's appetite and arouse their curiosity,driving them to give ___58___ a try.Diners appreciate both its taste and the experience it offers.In a Manhattan eatery,cooks stretch dough(面团)into noodles right ___59___ customers' eyes.\"It's like magic,\"said one diner.Diners are also amazed by the unique and ___60___ (impressive) chewy texture of Lanzhou noodles,which offers a distinct mouthfeel unlike any other.\n\nThe soup, ___61___ (cook)for hours with beef bones and spices,has a rich flavor.In Queens, a restaurant prepares a version ___62___ respects the dishes' cultural roots and combines 20 spices to produce a hearty soup.The owner even video-calls her grandparents in China for recipes.In Flushing,the owner of a noodle shop adapts the soup based on customer feedback,making it thicker and spicier ___63___ (suit)local preferences.As food expert C.Doyle notes,\"There's no single 'correct' version—it keeps evolving.\"\n\nFrom street food to global star,Lanzhou beef noodle soup shows that sharing food. ___64___(bridge) cultural differences,with each bowl ___65___ (tell)a story of tradition,creativity,and the delight of flavor discovery.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "cooked 修饰 the soup，soup 与 cook 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025广州二模-62",
@@ -3866,7 +4226,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Once a little-known dish from China's northwest,Lanzhou beef noodle soup is now winning hearts globally.A recent article describes ___56___ this surprisingly simple meal has become popular in ___57___ (city)like New York,London,and Sydney.\n\nAppealing online photos and videos of the dish stimulate local people's appetite and arouse their curiosity,driving them to give ___58___ a try.Diners appreciate both its taste and the experience it offers.In a Manhattan eatery,cooks stretch dough(面团)into noodles right ___59___ customers' eyes.\"It's like magic,\"said one diner.Diners are also amazed by the unique and ___60___ (impressive) chewy texture of Lanzhou noodles,which offers a distinct mouthfeel unlike any other.\n\nThe soup, ___61___ (cook)for hours with beef bones and spices,has a rich flavor.In Queens, a restaurant prepares a version ___62___ respects the dishes' cultural roots and combines 20 spices to produce a hearty soup.The owner even video-calls her grandparents in China for recipes.In Flushing,the owner of a noodle shop adapts the soup based on customer feedback,making it thicker and spicier ___63___ (suit)local preferences.As food expert C.Doyle notes,\"There's no single 'correct' version—it keeps evolving.\"\n\nFrom street food to global star,Lanzhou beef noodle soup shows that sharing food. ___64___(bridge) cultural differences,with each bowl ___65___ (tell)a story of tradition,creativity,and the delight of flavor discovery.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "to suit 表目的，说明调整汤味是为了适应本地口味。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025广州二模-64",
@@ -3894,7 +4260,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Once a little-known dish from China's northwest,Lanzhou beef noodle soup is now winning hearts globally.A recent article describes ___56___ this surprisingly simple meal has become popular in ___57___ (city)like New York,London,and Sydney.\n\nAppealing online photos and videos of the dish stimulate local people's appetite and arouse their curiosity,driving them to give ___58___ a try.Diners appreciate both its taste and the experience it offers.In a Manhattan eatery,cooks stretch dough(面团)into noodles right ___59___ customers' eyes.\"It's like magic,\"said one diner.Diners are also amazed by the unique and ___60___ (impressive) chewy texture of Lanzhou noodles,which offers a distinct mouthfeel unlike any other.\n\nThe soup, ___61___ (cook)for hours with beef bones and spices,has a rich flavor.In Queens, a restaurant prepares a version ___62___ respects the dishes' cultural roots and combines 20 spices to produce a hearty soup.The owner even video-calls her grandparents in China for recipes.In Flushing,the owner of a noodle shop adapts the soup based on customer feedback,making it thicker and spicier ___63___ (suit)local preferences.As food expert C.Doyle notes,\"There's no single 'correct' version—it keeps evolving.\"\n\nFrom street food to global star,Lanzhou beef noodle soup shows that sharing food. ___64___(bridge) cultural differences,with each bowl ___65___ (tell)a story of tradition,creativity,and the delight of flavor discovery.",
-      "fine_category": "nonp-compound-structure"
+      "fine_category": "nonp-absolute-with",
+      "nonp_function": "with_absolute",
+      "nonp_function_label": "with 复合结构",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "with 复合结构中 each bowl 与 tell 是主谓关系，用 doing 作宾语补足语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025浙江首考-56",
@@ -3964,7 +4336,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "The price of fashion — economically and environmentally — has led to the rise of ___56___ new way of dressing, and it's beginning to take off in Australia, too. As people now choose to wear more clothes fewer ___57___ (time), clothing rental services have become increasingly popular.\n\n\"I think it's an amazing idea,\" says Tanya Perilli, who owns a clothing rental shop. \"Customers today look past the fact that something is secondhand and focus instead ___58___ the fact that they have something unique to wear ___59___ are not overstuffing their own wardrobes (衣柜) or contributing to landfill.\"\n\nTanya's shop offers fashion clothes for women ___60___ (rent) rather than purchase them outright, providing a less expensive ___61___ (solve) to one-time event dressing. The concept ___62___ (be) certainly not new — men have been renting good suits for decades — but for female shoppers, it is just taking off. This clothing-as-service model follows the broader societal movement towards shared economies.\n\nTanya is also looking beyond special-occasion dresses to less formal clothing, ___63___ she plans to package as capsule wardrobes and offer to travellers, such as those headed to weddings abroad, with a longer-term rental period. \"I really want to make this work for ___64___ (people) lives today, and I know that doesn't always mean ___65___ (return) a dress on the Monday after a special weekend,\" she says.",
-      "fine_category": "nonp-object"
+      "fine_category": "nonp-object",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "to_do",
+      "nonp_form_label": "to do",
+      "nonp_rule": "clothes for women to rent 中 to rent 作后置定语，说明衣服的用途。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025浙江首考-61",
@@ -4034,7 +4412,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "The price of fashion — economically and environmentally — has led to the rise of ___56___ new way of dressing, and it's beginning to take off in Australia, too. As people now choose to wear more clothes fewer ___57___ (time), clothing rental services have become increasingly popular.\n\n\"I think it's an amazing idea,\" says Tanya Perilli, who owns a clothing rental shop. \"Customers today look past the fact that something is secondhand and focus instead ___58___ the fact that they have something unique to wear ___59___ are not overstuffing their own wardrobes (衣柜) or contributing to landfill.\"\n\nTanya's shop offers fashion clothes for women ___60___ (rent) rather than purchase them outright, providing a less expensive ___61___ (solve) to one-time event dressing. The concept ___62___ (be) certainly not new — men have been renting good suits for decades — but for female shoppers, it is just taking off. This clothing-as-service model follows the broader societal movement towards shared economies.\n\nTanya is also looking beyond special-occasion dresses to less formal clothing, ___63___ she plans to package as capsule wardrobes and offer to travellers, such as those headed to weddings abroad, with a longer-term rental period. \"I really want to make this work for ___64___ (people) lives today, and I know that doesn't always mean ___65___ (return) a dress on the Monday after a special weekend,\" she says.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-object",
+      "nonp_function": "object",
+      "nonp_function_label": "作宾语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "mean 表“意味着”时后接 doing，returning 作宾语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025深圳一模-36",
@@ -4062,7 +4446,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "On August 5, 2024, Chinese badminton player He Bingjiao won a silver medal at the Paris Olympics. However, ___36___ truly stood out was a touching moment on the podium (领奖台). As she received her medal, He Bingjiao held a badge (徽章) ___37___ (feature) the Spanish flag, which aroused widespread curiosity online.\n\nThis gesture was to express respect and care for her semifinal opponent, Spain’s Carolina Marin, who ___38___ (retire) from the match due to injury. He Bingjiao explained, “I brought the Spanish badge because Marin’s suffering broke my heart. I hope she sees this and wish her a speedy ___39___ (recover).”\n\nDuring their semifinal match, Marin performed well but ___40___ (force) to stop after getting injured. He Bingjiao immediately reached out, offering support and checking on Marin, who was ___41___ (visible) upset.\n\nThe act rapidly made headlines around the world. The International Olympic Committee praised He Bingjiao ___42___ showing the Olympic values of respect and friendship. Spanish media also highlighted the ___43___ (emotion) moment, with many fans applauding her sportsmanship. Pau Gasol, the legendary Spanish basketball player, called it ___44___ beautiful display of Olympic spirit.\n\nHe Bingjiao’s action not only demonstrated her respect for her opponent but also reflected the true spirit of the Olympics — competition, ___45___ (pair) with unity and mutual (相互的) respect.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "featuring 修饰 badge，badge 与 feature 是主谓关系，用 doing 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025深圳一模-38",
@@ -4076,7 +4466,7 @@ window.GRAMMAR_BANK = {
       "category": "predicate",
       "category_name": "谓语动词",
       "passage": "On August 5, 2024, Chinese badminton player He Bingjiao won a silver medal at the Paris Olympics. However, ___36___ truly stood out was a touching moment on the podium (领奖台). As she received her medal, He Bingjiao held a badge (徽章) ___37___ (feature) the Spanish flag, which aroused widespread curiosity online.\n\nThis gesture was to express respect and care for her semifinal opponent, Spain’s Carolina Marin, who ___38___ (retire) from the match due to injury. He Bingjiao explained, “I brought the Spanish badge because Marin’s suffering broke my heart. I hope she sees this and wish her a speedy ___39___ (recover).”\n\nDuring their semifinal match, Marin performed well but ___40___ (force) to stop after getting injured. He Bingjiao immediately reached out, offering support and checking on Marin, who was ___41___ (visible) upset.\n\nThe act rapidly made headlines around the world. The International Olympic Committee praised He Bingjiao ___42___ showing the Olympic values of respect and friendship. Spanish media also highlighted the ___43___ (emotion) moment, with many fans applauding her sportsmanship. Pau Gasol, the legendary Spanish basketball player, called it ___44___ beautiful display of Olympic spirit.\n\nHe Bingjiao’s action not only demonstrated her respect for her opponent but also reflected the true spirit of the Olympics — competition, ___45___ (pair) with unity and mutual (相互的) respect.",
-      "fine_category": "pred-tense-past-perfect"
+      "fine_category": "pred-tense-past-future"
     },
     {
       "id": "2025深圳一模-39",
@@ -4174,7 +4564,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "On August 5, 2024, Chinese badminton player He Bingjiao won a silver medal at the Paris Olympics. However, ___36___ truly stood out was a touching moment on the podium (领奖台). As she received her medal, He Bingjiao held a badge (徽章) ___37___ (feature) the Spanish flag, which aroused widespread curiosity online.\n\nThis gesture was to express respect and care for her semifinal opponent, Spain’s Carolina Marin, who ___38___ (retire) from the match due to injury. He Bingjiao explained, “I brought the Spanish badge because Marin’s suffering broke my heart. I hope she sees this and wish her a speedy ___39___ (recover).”\n\nDuring their semifinal match, Marin performed well but ___40___ (force) to stop after getting injured. He Bingjiao immediately reached out, offering support and checking on Marin, who was ___41___ (visible) upset.\n\nThe act rapidly made headlines around the world. The International Olympic Committee praised He Bingjiao ___42___ showing the Olympic values of respect and friendship. Spanish media also highlighted the ___43___ (emotion) moment, with many fans applauding her sportsmanship. Pau Gasol, the legendary Spanish basketball player, called it ___44___ beautiful display of Olympic spirit.\n\nHe Bingjiao’s action not only demonstrated her respect for her opponent but also reflected the true spirit of the Olympics — competition, ___45___ (pair) with unity and mutual (相互的) respect.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "paired 修饰 competition, unity, and mutual respect，与 pair 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025深圳二模-36",
@@ -4202,7 +4598,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "For many, cycling to Lhasa is a romantic dream. But for Li Shuangsheng and his son, Li Xuyao, it was ___36___ 36-day, 2298-kilometer journey of growth --- crossing 14 mountains over 4,000 meters and ___37___ (battle) altitude (海拔) sickness. This was the father's special gift to his son's 16th birthday.\n\nSetting off ___38___ Chongqing, they rode in a “father in front, son behind” formation, determined to bike up one mountain each day. One day, they so ___39___ (catch) in a heavy rainstorm on Kazila Mountain's slopes (山坡). Li Shuangsheng led the way downhill and stopped by the roadside to wait for his son. Ten minutes later, Li Xuyao appeared, ___40___ (cover) in mud. His bike, ___41___ chain had slipped off, caused him to lose balance and fall to the ground.\n\nDuring the day, the mountain roads, burning sun, and rainstorms exhausted the father and the son. At night, they either sheltered with Tibetan families ___42___ camped alone. Several times, the father jokingly suggested giving up, but Li Xuyao always replied ___43___ (firm), “No way. I'll do whatever it takes to get there.”\n\nAfter wearing down six sets of brake pads (刹车片), they finally arrived in Lhasa. For Li Xuyao's mother, it was a moment of ___44___ (relieve) and pride. “I prayed for their safe return every night,” she said. “My son has grown into a ___45___ (tough) and more mature young man.”",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "battling 与 crossing 并列，主语与 battle 是主谓关系，用 doing 作伴随状语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025深圳二模-38",
@@ -4244,7 +4646,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "For many, cycling to Lhasa is a romantic dream. But for Li Shuangsheng and his son, Li Xuyao, it was ___36___ 36-day, 2298-kilometer journey of growth --- crossing 14 mountains over 4,000 meters and ___37___ (battle) altitude (海拔) sickness. This was the father's special gift to his son's 16th birthday.\n\nSetting off ___38___ Chongqing, they rode in a “father in front, son behind” formation, determined to bike up one mountain each day. One day, they so ___39___ (catch) in a heavy rainstorm on Kazila Mountain's slopes (山坡). Li Shuangsheng led the way downhill and stopped by the roadside to wait for his son. Ten minutes later, Li Xuyao appeared, ___40___ (cover) in mud. His bike, ___41___ chain had slipped off, caused him to lose balance and fall to the ground.\n\nDuring the day, the mountain roads, burning sun, and rainstorms exhausted the father and the son. At night, they either sheltered with Tibetan families ___42___ camped alone. Several times, the father jokingly suggested giving up, but Li Xuyao always replied ___43___ (firm), “No way. I'll do whatever it takes to get there.”\n\nAfter wearing down six sets of brake pads (刹车片), they finally arrived in Lhasa. For Li Xuyao's mother, it was a moment of ___44___ (relieve) and pride. “I prayed for their safe return every night,” she said. “My son has grown into a ___45___ (tough) and more mature young man.”",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-adverbial-1",
+      "nonp_function": "adverbial",
+      "nonp_function_label": "作状语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "Li Xuyao 与 cover 是动宾关系，用 done 作状语，表示被积雪覆盖的状态。",
+      "nonp_needs_review": false
     },
     {
       "id": "2025深圳二模-41",
@@ -4384,7 +4792,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Distant pleasant music floated above the Sydney Opera House stage. Soft light gradually revealed motionless figures at work, as if lifted ___36___ the pages of a Ming-dynasty book. Slowly they began to move. Accompanied by the soft sound of page turning and the gentle flow of water, their graceful ___37___ (gesture) formed a living picture of labour.\n\nThis breathtaking opening of the dance drama _Tiangong Kaiwu_ pulled me ___38___ (instant) into that world of ancient creation. Through ___39___ (express) movement, the performance conveyed the book’s core message — ___40___ (value) the skills passed down by countless unknown labourers and the power of practical tools. The beautiful scenes of golden fields and shiny silk made me feel the deep bond between humanity and nature.\n\nThe most moving moment came ___41___ Song Yingxing took off his official robe (官袍) and stepped into a “field” formed by the other dancers. All motion ceased; only his figure remained, arms stretched upward, silent yet full of strength. At that instant, history ___42___ (it) seemed to hold its breath.\n\nAs I left the theatre I overheard a visitor say “This is beauty that ___43___ (go) beyond borders.” His words deepened my belief: art ___44___ (root) in a culture’s finest traditions possesses a timeless power to move anyone. This was more than ___45___ ancient book brought to life — it was a celebration of Chinese wisdom and its spirit of sharing with the world.",
-      "fine_category": "nonp-adverbial-1"
+      "fine_category": "nonp-subject-predicative",
+      "nonp_function": "subject_predicative",
+      "nonp_function_label": "作主语 / 表语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "valuing 是动名词短语，解释 core message 的内容，具有名词性。",
+      "nonp_needs_review": false
     },
     {
       "id": "2026广州一模-41",
@@ -4440,7 +4854,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "Distant pleasant music floated above the Sydney Opera House stage. Soft light gradually revealed motionless figures at work, as if lifted ___36___ the pages of a Ming-dynasty book. Slowly they began to move. Accompanied by the soft sound of page turning and the gentle flow of water, their graceful ___37___ (gesture) formed a living picture of labour.\n\nThis breathtaking opening of the dance drama _Tiangong Kaiwu_ pulled me ___38___ (instant) into that world of ancient creation. Through ___39___ (express) movement, the performance conveyed the book’s core message — ___40___ (value) the skills passed down by countless unknown labourers and the power of practical tools. The beautiful scenes of golden fields and shiny silk made me feel the deep bond between humanity and nature.\n\nThe most moving moment came ___41___ Song Yingxing took off his official robe (官袍) and stepped into a “field” formed by the other dancers. All motion ceased; only his figure remained, arms stretched upward, silent yet full of strength. At that instant, history ___42___ (it) seemed to hold its breath.\n\nAs I left the theatre I overheard a visitor say “This is beauty that ___43___ (go) beyond borders.” His words deepened my belief: art ___44___ (root) in a culture’s finest traditions possesses a timeless power to move anyone. This was more than ___45___ ancient book brought to life — it was a celebration of Chinese wisdom and its spirit of sharing with the world.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "rooted 修饰 art，art 与 root in 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2026广州一模-45",
@@ -4482,7 +4902,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "When I first opened _Where the Deer Hide in the Woods_, I felt as if I were stepping into a world ___36___ the author’s words flow like gentle music. The Tang poems, ___37___ (translate) with the master touch of Xu Yuanchong, speak softly in two voices — one Chinese, one English — each echoing (回响) with calm, beauty, and quiet ___38___ (deep).\n\nThe book ___39___ (divide) into six chapters, each unfolding a distinct landscape of emotion— sorrow, peace, love, longing, solitude, and reflection. I was ___40___ (genuine) moved when I read “The monkeys on both banks are still calling; my light boat has sailed past a thousand hills.” I fully ___41___ (sense) Li Bai’s liberated soul — his joy at being pardoned by the emperor — flowing through the lines.\n\nEach page of the book is enriched with thoughtful notes vivid background stories, and traditional Chinese brush-style ___42___ (illustration). Xu’s artful work transforms the rhythm (节奏) of Chinese poems ___43___ English music, a recreation that honors both the original and its new form.\n\n___44___ (read) this book feels like a journey through hearts and landscapes. For anyone who treasures poetry, painting, or the meeting of two cultures in perfect harmony, _Where the Deer Hide in the Woods_ is ___45___ must-read that beautifully serves as the bridge.",
-      "fine_category": "nonp-attribute"
+      "fine_category": "nonp-attribute",
+      "nonp_function": "attribute",
+      "nonp_function_label": "作定语",
+      "nonp_form": "done",
+      "nonp_form_label": "done",
+      "nonp_rule": "translated 修饰 Tang poems，poems 与 translate 是动宾关系，用 done 作后置定语。",
+      "nonp_needs_review": false
     },
     {
       "id": "2026深圳一模-38",
@@ -4580,7 +5006,13 @@ window.GRAMMAR_BANK = {
       "category": "nonpredicate",
       "category_name": "非谓语动词",
       "passage": "When I first opened _Where the Deer Hide in the Woods_, I felt as if I were stepping into a world ___36___ the author’s words flow like gentle music. The Tang poems, ___37___ (translate) with the master touch of Xu Yuanchong, speak softly in two voices — one Chinese, one English — each echoing (回响) with calm, beauty, and quiet ___38___ (deep).\n\nThe book ___39___ (divide) into six chapters, each unfolding a distinct landscape of emotion— sorrow, peace, love, longing, solitude, and reflection. I was ___40___ (genuine) moved when I read “The monkeys on both banks are still calling; my light boat has sailed past a thousand hills.” I fully ___41___ (sense) Li Bai’s liberated soul — his joy at being pardoned by the emperor — flowing through the lines.\n\nEach page of the book is enriched with thoughtful notes vivid background stories, and traditional Chinese brush-style ___42___ (illustration). Xu’s artful work transforms the rhythm (节奏) of Chinese poems ___43___ English music, a recreation that honors both the original and its new form.\n\n___44___ (read) this book feels like a journey through hearts and landscapes. For anyone who treasures poetry, painting, or the meeting of two cultures in perfect harmony, _Where the Deer Hide in the Woods_ is ___45___ must-read that beautifully serves as the bridge.",
-      "fine_category": "nonp-subject-predicative"
+      "fine_category": "nonp-subject-predicative",
+      "nonp_function": "subject_predicative",
+      "nonp_function_label": "作主语 / 表语",
+      "nonp_form": "doing",
+      "nonp_form_label": "doing",
+      "nonp_rule": "Reading 是动名词作主语，表示“阅读这本书”这一动作整体。",
+      "nonp_needs_review": false
     },
     {
       "id": "2026深圳一模-45",

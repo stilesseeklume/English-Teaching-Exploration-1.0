@@ -35,6 +35,24 @@ function has(text, ...keywords) {
   return keywords.some(k => text.includes(k));
 }
 
+function isPassiveAnswer(answer) {
+  const ans = String(answer || '').trim().toLowerCase();
+  const irregularDone = [
+    'built', 'caught', 'made', 'put', 'set', 'shown', 'seen', 'known', 'done',
+    'drawn', 'given', 'taken', 'written', 'spoken', 'chosen', 'found', 'left',
+    'lost', 'sent', 'held', 'led', 'told', 'taught', 'brought', 'bought',
+    'thought', 'kept', 'paid', 'sold', 'read', 'cut', 'offered'
+  ].join('|');
+  return new RegExp(
+    '\\b(?:am|is|are|was|were|be|been|being)\\s+(?:[a-z]+(?:ed|en)|' + irregularDone + ')\\b',
+    'i'
+  ).test(ans);
+}
+
+function isPerfectAnswer(answer) {
+  return /\b(?:has|have|had)\s+(?!been\s+\w+ing\b)\w+(?:ed|en)\b/i.test(String(answer || ''));
+}
+
 // ─── 主映射函数 ──────────────────────
 // 输入 question 对象，输出 fine_category id（或 'UNCERTAIN'）
 function classify(q) {
@@ -44,20 +62,21 @@ function classify(q) {
 
   // ============= predicate 谓语动词 =============
   if (cat === 'predicate') {
+    if (has(exp, '被动语态') || has(exp, '被动关系') || has(exp, '动宾关系') || isPassiveAnswer(ans)) {
+      if (has(exp, '主动形式表') || has(exp, '主动表被动')) return 'pred-passive-implicit';
+      return 'pred-passive-form';
+    }
     if (has(exp, '主谓一致')) {
       if (has(exp, '集合', '复数', '-s', '形状', 'pair')) return 'pred-sva-collective';
       if (has(exp, '数量', '分数', '百分')) return 'pred-sva-quantity';
       if (has(exp, '就近', '意义')) return 'pred-sva-meaning';
       return 'pred-sva-form';
     }
-    if (has(exp, '被动语态') || has(ans, ' be ') || /(was|were|been|being|are|am|is)\s+\w+ed/.test(ans)) {
-      if (has(exp, '主动形式表') || has(exp, '主动表被动')) return 'pred-passive-implicit';
-      return 'pred-passive-form';
-    }
     // 时态
     if (has(exp, '过去完成')) return 'pred-tense-past-perfect';
     if (has(exp, '现在完成')) return 'pred-tense-perfect';
     if (has(exp, '完成时')) return 'pred-tense-perfect';
+    if (isPerfectAnswer(ans)) return 'pred-tense-perfect';
     if (has(exp, '进行时')) return 'pred-tense-continuous';
     if (has(exp, '一般现在')) return 'pred-tense-present';
     if (has(exp, '一般过去') || has(exp, '一般将来') || has(exp, '过去将来')) return 'pred-tense-past-future';

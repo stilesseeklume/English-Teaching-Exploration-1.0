@@ -240,10 +240,10 @@
         {
           "no": 60,
           "answer": "featured",
-          "explanation": "",
-          "grammar_point": "",
-          "category": "nonpredicate",
-          "category_name": "非谓语动词"
+          "explanation": "考查谓语动词。句中缺少谓语，主语 The large siheyuan of these high-ranking officials and wealthy businessmen 与 feature 是主动关系；结合上文 dynastic period、Ming Dynasty 等历史语境，用一般过去时 featured。",
+          "grammar_point": "谓语动词",
+          "category": "predicate",
+          "category_name": "谓语动词"
         },
         {
           "no": 61,
@@ -381,7 +381,7 @@
     },
     {
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "question_id": "56-65",
       "passage": "Chinese cultural elements commemorating (纪念) Tang Xianzu, ___36___ is known as \"the Shakespeare of Asia,\" add an international character to Stratford-upon-Avon, William Shakespeare's hometown.\n\nTang and Shakespeare were contemporaries and both died in 1616. Although they could never have met, there are common ___37___ (theme)in their works, said Paul Edmondson, head of research for the Shakespeare Birthplace Trust. \"Some of the things that Tang was writing about ___38___ (be)also Shakespeare's concerns. I happen to know that Tang's play The Peony Pavilion (《牡丹亭》) is similar in some ways ___39___ Romeo and Juliet.\"\n\nA statue commemorating Shakespeare and Tang was put up at Shakespeare's Birthplace Garden in 2017. Two years later, a six-meter-tall pavilion, ___40___ (inspire)by The Peony Pavilion, ___41___ (build)at the Firs Garden, just ten minutes' walk from Shakespeare's birthplace.\n\nThose cultural elements have increased Stratford's international ___42___ (visible), said Edmondson, adding that visitors walking through the Birthplace Garden were often amazed ___43___ (find)the connection between the two great writers.\n\n___44___ (recall)watching a Chinese opera version of Shakespeare's play Richard III in Shanghai and meeting Chinese actors who came to Stratford a few years ago to perform parts of The Peony Pavilion, Edmondson said, \"It was very exciting to hear the Chinese language ___45___ see how Tang's play was being performed.\"\n\n为纪念素有\"东方莎士比亚\"之称的汤显祖,一座凉亭在莎士比亚的故乡建立,此举提高了莎士比亚故乡的国际知名度。来此地的游客惊奇地发现东西方的这两位伟大作家的作品有一些共性。\n\n36.",
@@ -639,7 +639,8 @@
           "explanation": "考查时态、语态和主谓一致。句意：2023年，他们出版了960页厚的书，书名为《有生之年一定要看的1001座中国古塔》。根据“In 2023”可知，这里表示过去发生的事情，应用一般过去时。主语their weighty 960-page book和release之间是动宾关系，应用被动语态，且be动词应用was。故填was released。",
           "grammar_point": "时态、语态和主谓一致",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 45,
@@ -706,7 +707,8 @@
           "explanation": "",
           "grammar_point": "",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 62,
@@ -714,7 +716,8 @@
           "explanation": "",
           "grammar_point": "",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-tense-perfect"
         },
         {
           "no": 63,
@@ -789,7 +792,8 @@
           "explanation": "考查时态，语态和主谓一致。句意：虽然在中国各地都很受欢迎，但毽子被Chai形容为胡同文化的一个重要方面。毽子被Chai形容，且句子描述客观事实，时态是一般现在时，因此空格处是一般现在时的被动语态，主语Jianzi是不可数名词，因此空格处是is described。故填is described。",
           "grammar_point": "时态",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 41,
@@ -904,7 +908,8 @@
           "explanation": "考查时态、语态和主谓一致。句意：Lillian的博物馆每年吸引来自世界各地的数千名游客，2021年因其影响力而获得冰岛政府的认可。空处作句子的谓语。根据句中的“in 2021”可知，这里是过去发生的事情，应用一般过去时。主语Lilian’s museum和recognize之间是动宾关系，应用被动语态，且主语为单数，be动词应用was。故填was recognized。",
           "grammar_point": "时态、语态和主谓一致",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 44,
@@ -1129,7 +1134,8 @@
           "explanation": "考查时态，被动语态和主谓一致。句意：最近在北京举行的颁奖典礼上，从全球超过37,600份参赛作品中选出了17张出色的图片和视频，深深吸引了观众。图片和视频是被选择，由attracted可知句子时态是一般过去时，因此空格处用一般过去时的被动语态，which指代的先行词17 remarkable images and videos是复数，因此空格处是were selected。故填were selected。",
           "grammar_point": "时态",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-passive-form"
         },
         {
           "no": 38,
@@ -1410,7 +1416,8 @@
           "explanation": "考查时态。句意：这一姿态是为了表达对她的半决赛对手、西班牙选手卡罗琳娜·马林的尊重和关心，马林因伤退出了比赛。根据句意和句中“was”可知，句子应用一般过去时，表示过去发生的事，故空格处应用“retire”的过去式“retired”；当强调“退出比赛”的动作发生在“表达尊重和关心”之前时，即过去的过去，可用过去完成时，空格处应用“had retired”。故填retired/had retired。",
           "grammar_point": "时态",
           "category": "predicate",
-          "category_name": "谓语动词"
+          "category_name": "谓语动词",
+          "fine_category": "pred-tense-past-future"
         },
         {
           "no": 39,
@@ -2065,10 +2072,10 @@
       "type": "真题",
       "no": 60,
       "answer": "featured",
-      "explanation": "",
-      "grammar_point": "",
-      "category": "nonpredicate",
-      "category_name": "非谓语动词",
+      "explanation": "考查谓语动词。句中缺少谓语，主语 The large siheyuan of these high-ranking officials and wealthy businessmen 与 feature 是主动关系；结合上文 dynastic period、Ming Dynasty 等历史语境，用一般过去时 featured。",
+      "grammar_point": "谓语动词",
+      "category": "predicate",
+      "category_name": "谓语动词",
       "passage": "During China's dynastic period, emperors planned the city of Beijing ___56___ arranged the residential areas according to social classes. The term \"hutong\", ___57___ (original) meaning \"water well\" in Mongolian, appeared first during the Yuan Dynasty.\n\nIn the Ming Dynasty, the center was the Forbidden City, ___58___ (surround) in concentric (同心的) circles by the Inner City and Outer City. Citizens of higher social classes ___59___ (permit) to live closer to the center of the circles. The large siheyuan of these high-ranking officials and wealthy businessmen often ___60___ (feature) beautifully carved and painted roof beams and pillars (柱子). The hutongs they formed were orderly, lined by ___61___ (space) homes and walled gardens. Farther from the center lived the commoners and laborers. Their siheyuan were far smaller in scale and ___62___ (simple) in design and decoration, and the hutongs were narrower.\n\nHutongs represent an important cultural element of the city of Beijing. Thanks to Beijing's long history ___63___ capital of China, almost every hutong has its stories, and some are even associated with historic ___64___ (event). In contrast to the court life and upper-class culture represented by the Forbidden City, the Summer Palace, and the Temple of Heaven, the hutongs reflect ___65___ culture of grassroots Beijingers."
     },
     {
@@ -2269,7 +2276,7 @@
     {
       "id": "2024全国二卷-36",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 36,
       "answer": "who",
@@ -2282,7 +2289,7 @@
     {
       "id": "2024全国二卷-37",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 37,
       "answer": "themes",
@@ -2295,7 +2302,7 @@
     {
       "id": "2024全国二卷-38",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 38,
       "answer": "were",
@@ -2308,7 +2315,7 @@
     {
       "id": "2024全国二卷-39",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 39,
       "answer": "to",
@@ -2321,7 +2328,7 @@
     {
       "id": "2024全国二卷-40",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 40,
       "answer": "inspired",
@@ -2334,7 +2341,7 @@
     {
       "id": "2024全国二卷-41",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 41,
       "answer": "was built",
@@ -2347,7 +2354,7 @@
     {
       "id": "2024全国二卷-42",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 42,
       "answer": "visibility",
@@ -2360,7 +2367,7 @@
     {
       "id": "2024全国二卷-43",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 43,
       "answer": "to find",
@@ -2373,7 +2380,7 @@
     {
       "id": "2024全国二卷-44",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 44,
       "answer": "Recalling",
@@ -2386,7 +2393,7 @@
     {
       "id": "2024全国二卷-45",
       "exam_id": "2024全国二卷",
-      "year": 2023,
+      "year": 2024,
       "type": "真题",
       "no": 45,
       "answer": "and",
@@ -2641,7 +2648,8 @@
       "grammar_point": "时态、语态和主谓一致",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "Over a decade ago, Wu Kai, an enthusiast of ancient pagodas (塔), was looking for a book ___36___ comprehensively detailed the total number and locations of pagodas with quality introductions and images.\n\n“I read extensively but found the books available had limited information and few good pictures,” he explains. Dissatisfied with the ___37___ (exist) options, Wu decided to create his own. Despite an estimated 10,000 ancient pagodas nationwide, many remain unaccounted for due to___38___ (they) remote locations and poor conditions.\n\nVisiting hilltop or cliff-top pagodas, or those hidden in deep forests, ___39___ (require) great determination, physical strength and even luck, ___40___ few people get to see them in person. For those who do, there’s the added challenge of taking good pictures, especially those suitable___41___ print.\n\n___42___ (fortunate), Wu’s plan was applauded by like-minded enthusiasts, who generously contributed great ___43___ (photo). In 2019, Wu published a 500-page book introducing over 300 ancient pagodas in Beijing. He then continued to work with Wang Xuebin, one of the enthusiasts. In 2023, their weighty 960-page book ___44___ (release), entitled The l,001 Chinese Ancient Pagodas You Must See Before You Die.\n\n“In each pagoda, I see the beauty of our heritage and the ___45___ (lose) values of simplicity, perfection, and respect for nature in modern life,” Wu writes in the introduction. “Across the vast land of China, no two pagodas are completely identical.”"
+      "passage": "Over a decade ago, Wu Kai, an enthusiast of ancient pagodas (塔), was looking for a book ___36___ comprehensively detailed the total number and locations of pagodas with quality introductions and images.\n\n“I read extensively but found the books available had limited information and few good pictures,” he explains. Dissatisfied with the ___37___ (exist) options, Wu decided to create his own. Despite an estimated 10,000 ancient pagodas nationwide, many remain unaccounted for due to___38___ (they) remote locations and poor conditions.\n\nVisiting hilltop or cliff-top pagodas, or those hidden in deep forests, ___39___ (require) great determination, physical strength and even luck, ___40___ few people get to see them in person. For those who do, there’s the added challenge of taking good pictures, especially those suitable___41___ print.\n\n___42___ (fortunate), Wu’s plan was applauded by like-minded enthusiasts, who generously contributed great ___43___ (photo). In 2019, Wu published a 500-page book introducing over 300 ancient pagodas in Beijing. He then continued to work with Wang Xuebin, one of the enthusiasts. In 2023, their weighty 960-page book ___44___ (release), entitled The l,001 Chinese Ancient Pagodas You Must See Before You Die.\n\n“In each pagoda, I see the beauty of our heritage and the ___45___ (lose) values of simplicity, perfection, and respect for nature in modern life,” Wu writes in the introduction. “Across the vast land of China, no two pagodas are completely identical.”",
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024广州二模-45",
@@ -2732,7 +2740,8 @@
       "grammar_point": "",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well."
+      "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well.",
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024浙江首考-62",
@@ -2745,7 +2754,8 @@
       "grammar_point": "",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well."
+      "passage": "The shelves in most supermarkets are full of family-size this and multi-buy that. However, if you're shopping for one, buying extra ___56___ (benefit) from price reductions doesn't make sense. Either your shopping is then too heavy to carry home, ___57___ you can't use what you've bought while it's still fresh. Of course, shops are not charities—they price goods in the way ___58___ will make them the most money. If most of their customers are happy to buy larger quantities, that's ___59___ they'll promote. But that leaves the solo (单独) customers out of pocket and disappointed.\n\nMany supermarkets are no longer doing \"buy one get one free\" promotions because of the ___60___ (criticize) that they lead to waste. Consumers prefer money off individual items. However, though it's nice to get a few cents off a pack of sausages, it would help even more if they could sometimes ___61___ (offer) in smaller packs. Even the biggest sausage fan doesn't want to eat them every day.\n\nIf your supermarket sells loose produce, then buying smaller quantities is easier. Over the last two years, some supermarkets ___62___ (start) selling chicken or salad in packs ___63___ (design) with two halves containing separate portions (份). Then, when you use one section, ___64___ other stays fresh.\n\nWho knows, perhaps some of the more forward looking ___65___ (one) may yet come out with a whole range of \"just for you\" pack sizes with special offers as well.",
+      "fine_category": "pred-tense-perfect"
     },
     {
       "id": "2024浙江首考-63",
@@ -2849,7 +2859,8 @@
       "grammar_point": "时态",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship."
+      "passage": "Despite being 75 years old, Chai Tixia’s expertise in Jianzi is truly impressive. With quick kicks, he effortlessly sends the Jianzi into the air and gracefully guides it to land___36___ (gentle) on his head.\n\n_Jianzi,___37___ game that dates back to the Han Dynasty, is surprisingly simple: players must keep the Jianzi in the air,___38___ (use) any part of their body except their hands and arms. However, to master this game___39___ (require) a lot of practice.\n\nWhile enjoyed throughout China, _Jianzi_ ___40___ (describe) by Chai as an important aspect of hutong culture. The narrow alleyways, situated within Beijing’s inner city, provide the setting for the game’s___41___ (popular). Each morning, Chai and his fellow hutong residents gather for their shared passion for _Jianzi_.\n\nChai’s spirited matches with his neighbors have a big audience ___42___ (draw) to the artistry and excitement of the game. The onlookers who watch them playing with great athleticism are amazed at ___43___ Chai and his fellow players can achieve.\n\nHaving practiced Jianzi for over 30 years, Chai cherishes the physical and social ___44___ (benefit) the game brings. Engaging in lively matches with his neighbors energizes his body, enhances his flexibility, ___45___ promotes unity within the community. Through Jianzi, Chai harvests not only health but a sense of belonging and friendship.",
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024深圳一模-41",
@@ -3018,7 +3029,8 @@
       "grammar_point": "时态、语态和主谓一致",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "In the center of Reykjavik, Iceland, stands a museum ___36___ (create) by Lillian Hopps, which symbolizes the friendship between Icelandic and Chinese people. A passionate admirer of Chinese heritage, Lillian began her journey to learn about China in the 1990s, a time ___37___ she deeply engaged herself in exploring China’s rich culture. Her passion transformed her home into a place filled with Chinese artifacts, which ___38___ (eventual) led to the establishment of a museum in Reykjavik.\n\nThe museum ___39___ (house) an extensive collection of cultural relics, from ancient clothing ___40___ contemporary art, displaying thousands of years of Chinese civilization. Lillian’s work goes beyond just ___41___ (exhibit) these items; she brings the culture alive through highly ___42___ (interact) activities like tea performances, calligraphy classes, and traditional medicine talks, promoting the Icelandic understanding of China’s rich traditions.\n\nLilian’s museum, attracting thousands of visitors annually from around the world, ___43___ (recognize) by the Icelandic government in 2021 for its impact. As Marta Jonsdottir, a director at Iceland’s Ministry of Foreign Affairs, put it in an interview, “Lillian, with her enthusiasm and expertise, has developed diverse cultural ___44___ (link) between Iceland and China. Her museum has not just enabled both peoples to better understand each other ___45___ strengthened our relations.”"
+      "passage": "In the center of Reykjavik, Iceland, stands a museum ___36___ (create) by Lillian Hopps, which symbolizes the friendship between Icelandic and Chinese people. A passionate admirer of Chinese heritage, Lillian began her journey to learn about China in the 1990s, a time ___37___ she deeply engaged herself in exploring China’s rich culture. Her passion transformed her home into a place filled with Chinese artifacts, which ___38___ (eventual) led to the establishment of a museum in Reykjavik.\n\nThe museum ___39___ (house) an extensive collection of cultural relics, from ancient clothing ___40___ contemporary art, displaying thousands of years of Chinese civilization. Lillian’s work goes beyond just ___41___ (exhibit) these items; she brings the culture alive through highly ___42___ (interact) activities like tea performances, calligraphy classes, and traditional medicine talks, promoting the Icelandic understanding of China’s rich traditions.\n\nLilian’s museum, attracting thousands of visitors annually from around the world, ___43___ (recognize) by the Icelandic government in 2021 for its impact. As Marta Jonsdottir, a director at Iceland’s Ministry of Foreign Affairs, put it in an interview, “Lillian, with her enthusiasm and expertise, has developed diverse cultural ___44___ (link) between Iceland and China. Her museum has not just enabled both peoples to better understand each other ___45___ strengthened our relations.”",
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2024深圳二模-44",
@@ -3330,7 +3342,8 @@
       "grammar_point": "时态",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world."
+      "passage": "The China Wildlife Image and Video Competition, hosted by the Chinese National Geography, has long been ___36___ event of great significance in the field of wildlife documentation. At an awards ceremony recently held in Beijing, 17 remarkable images and videos, which ___37___ (select) from over 37,600 submissions globally, deeply attracted the audience.\n\nThe competition, ___38___ (theme) “Spirituality of Mountains and Seas” this year, aims to enhance public awareness of wildlife and ecological conservation. Among the award-winning ___39___ (entry), the work of Jia Haining’s team on Oriental storks (东方白鹳) in the Yellow River Delta stood out ___40___ (noticeable). Their delicate piece of art beautifully demonstrated the region’s ecological harmony and species ___41___ (diverse).\n\nTo film the dynamic moment ___42___ the birds left their nests, they arrived at the filming site as early as 4:30 am. And they waited patiently for almost two months ___43___ the young storks’ first flight! The judges praised their work as a breathtaking symphony of life.\n\nAdditionally, special awards for mobile photography and social media engagement were introduced to encourage ___44___ (broad) public participation. The competition, as Dr. Jane Goodall noted, has the power to inspire people, especially those who rarely have the opportunity to experience nature firsthand, ___45___ (reconnect) with the natural world.",
+      "fine_category": "pred-passive-form"
     },
     {
       "id": "2025广州一模-38",
@@ -3733,7 +3746,8 @@
       "grammar_point": "时态",
       "category": "predicate",
       "category_name": "谓语动词",
-      "passage": "On August 5, 2024, Chinese badminton player He Bingjiao won a silver medal at the Paris Olympics. However, ___36___ truly stood out was a touching moment on the podium (领奖台). As she received her medal, He Bingjiao held a badge (徽章) ___37___ (feature) the Spanish flag, which aroused widespread curiosity online.\n\nThis gesture was to express respect and care for her semifinal opponent, Spain’s Carolina Marin, who ___38___ (retire) from the match due to injury. He Bingjiao explained, “I brought the Spanish badge because Marin’s suffering broke my heart. I hope she sees this and wish her a speedy ___39___ (recover).”\n\nDuring their semifinal match, Marin performed well but ___40___ (force) to stop after getting injured. He Bingjiao immediately reached out, offering support and checking on Marin, who was ___41___ (visible) upset.\n\nThe act rapidly made headlines around the world. The International Olympic Committee praised He Bingjiao ___42___ showing the Olympic values of respect and friendship. Spanish media also highlighted the ___43___ (emotion) moment, with many fans applauding her sportsmanship. Pau Gasol, the legendary Spanish basketball player, called it ___44___ beautiful display of Olympic spirit.\n\nHe Bingjiao’s action not only demonstrated her respect for her opponent but also reflected the true spirit of the Olympics — competition, ___45___ (pair) with unity and mutual (相互的) respect."
+      "passage": "On August 5, 2024, Chinese badminton player He Bingjiao won a silver medal at the Paris Olympics. However, ___36___ truly stood out was a touching moment on the podium (领奖台). As she received her medal, He Bingjiao held a badge (徽章) ___37___ (feature) the Spanish flag, which aroused widespread curiosity online.\n\nThis gesture was to express respect and care for her semifinal opponent, Spain’s Carolina Marin, who ___38___ (retire) from the match due to injury. He Bingjiao explained, “I brought the Spanish badge because Marin’s suffering broke my heart. I hope she sees this and wish her a speedy ___39___ (recover).”\n\nDuring their semifinal match, Marin performed well but ___40___ (force) to stop after getting injured. He Bingjiao immediately reached out, offering support and checking on Marin, who was ___41___ (visible) upset.\n\nThe act rapidly made headlines around the world. The International Olympic Committee praised He Bingjiao ___42___ showing the Olympic values of respect and friendship. Spanish media also highlighted the ___43___ (emotion) moment, with many fans applauding her sportsmanship. Pau Gasol, the legendary Spanish basketball player, called it ___44___ beautiful display of Olympic spirit.\n\nHe Bingjiao’s action not only demonstrated her respect for her opponent but also reflected the true spirit of the Olympics — competition, ___45___ (pair) with unity and mutual (相互的) respect.",
+      "fine_category": "pred-tense-past-future"
     },
     {
       "id": "2025深圳一模-39",
