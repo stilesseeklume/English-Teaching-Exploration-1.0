@@ -1605,11 +1605,11 @@ window.GRAMMAR_BANK = {
         {
           "no": 57,
           "answer": "times",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查名词复数。time 表“次数”时为可数名词，前有 fewer 修饰，应用复数形式 times。",
+          "grammar_point": "名词复数",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "num-plural"
         },
         {
           "no": 58,
@@ -1647,20 +1647,20 @@ window.GRAMMAR_BANK = {
         {
           "no": 61,
           "answer": "solution",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查名词。空前有形容词 less expensive 修饰，且空格作 providing 的宾语，solve 应变为名词 solution。",
+          "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 62,
           "answer": "is",
-          "explanation": "",
-          "grammar_point": "",
-          "category": "word",
-          "category_name": "词性转换",
-          "fine_category": "word-adj-adv-other"
+          "explanation": "考查谓语动词。主语 The concept 为单数，句子陈述一般事实，应用一般现在时 is。",
+          "grammar_point": "谓语动词",
+          "category": "predicate",
+          "category_name": "谓语动词",
+          "fine_category": "pred-tense-present"
         },
         {
           "no": 63,
@@ -4289,12 +4289,12 @@ window.GRAMMAR_BANK = {
       "type": "真题",
       "no": 57,
       "answer": "times",
-      "explanation": "",
-      "grammar_point": "",
+      "explanation": "考查名词复数。time 表“次数”时为可数名词，前有 fewer 修饰，应用复数形式 times。",
+      "grammar_point": "名词复数",
       "category": "word",
       "category_name": "词性转换",
       "passage": "The price of fashion — economically and environmentally — has led to the rise of ___56___ new way of dressing, and it's beginning to take off in Australia, too. As people now choose to wear more clothes fewer ___57___ (time), clothing rental services have become increasingly popular.\n\n\"I think it's an amazing idea,\" says Tanya Perilli, who owns a clothing rental shop. \"Customers today look past the fact that something is secondhand and focus instead ___58___ the fact that they have something unique to wear ___59___ are not overstuffing their own wardrobes (衣柜) or contributing to landfill.\"\n\nTanya's shop offers fashion clothes for women ___60___ (rent) rather than purchase them outright, providing a less expensive ___61___ (solve) to one-time event dressing. The concept ___62___ (be) certainly not new — men have been renting good suits for decades — but for female shoppers, it is just taking off. This clothing-as-service model follows the broader societal movement towards shared economies.\n\nTanya is also looking beyond special-occasion dresses to less formal clothing, ___63___ she plans to package as capsule wardrobes and offer to travellers, such as those headed to weddings abroad, with a longer-term rental period. \"I really want to make this work for ___64___ (people) lives today, and I know that doesn't always mean ___65___ (return) a dress on the Monday after a special weekend,\" she says.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "num-plural"
     },
     {
       "id": "2025浙江首考-58",
@@ -4351,12 +4351,12 @@ window.GRAMMAR_BANK = {
       "type": "真题",
       "no": 61,
       "answer": "solution",
-      "explanation": "",
-      "grammar_point": "",
+      "explanation": "考查名词。空前有形容词 less expensive 修饰，且空格作 providing 的宾语，solve 应变为名词 solution。",
+      "grammar_point": "名词",
       "category": "word",
       "category_name": "词性转换",
       "passage": "The price of fashion — economically and environmentally — has led to the rise of ___56___ new way of dressing, and it's beginning to take off in Australia, too. As people now choose to wear more clothes fewer ___57___ (time), clothing rental services have become increasingly popular.\n\n\"I think it's an amazing idea,\" says Tanya Perilli, who owns a clothing rental shop. \"Customers today look past the fact that something is secondhand and focus instead ___58___ the fact that they have something unique to wear ___59___ are not overstuffing their own wardrobes (衣柜) or contributing to landfill.\"\n\nTanya's shop offers fashion clothes for women ___60___ (rent) rather than purchase them outright, providing a less expensive ___61___ (solve) to one-time event dressing. The concept ___62___ (be) certainly not new — men have been renting good suits for decades — but for female shoppers, it is just taking off. This clothing-as-service model follows the broader societal movement towards shared economies.\n\nTanya is also looking beyond special-occasion dresses to less formal clothing, ___63___ she plans to package as capsule wardrobes and offer to travellers, such as those headed to weddings abroad, with a longer-term rental period. \"I really want to make this work for ___64___ (people) lives today, and I know that doesn't always mean ___65___ (return) a dress on the Monday after a special weekend,\" she says.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2025浙江首考-62",
@@ -4365,12 +4365,12 @@ window.GRAMMAR_BANK = {
       "type": "真题",
       "no": 62,
       "answer": "is",
-      "explanation": "",
-      "grammar_point": "",
-      "category": "word",
-      "category_name": "词性转换",
+      "explanation": "考查谓语动词。主语 The concept 为单数，句子陈述一般事实，应用一般现在时 is。",
+      "grammar_point": "谓语动词",
+      "category": "predicate",
+      "category_name": "谓语动词",
       "passage": "The price of fashion — economically and environmentally — has led to the rise of ___56___ new way of dressing, and it's beginning to take off in Australia, too. As people now choose to wear more clothes fewer ___57___ (time), clothing rental services have become increasingly popular.\n\n\"I think it's an amazing idea,\" says Tanya Perilli, who owns a clothing rental shop. \"Customers today look past the fact that something is secondhand and focus instead ___58___ the fact that they have something unique to wear ___59___ are not overstuffing their own wardrobes (衣柜) or contributing to landfill.\"\n\nTanya's shop offers fashion clothes for women ___60___ (rent) rather than purchase them outright, providing a less expensive ___61___ (solve) to one-time event dressing. The concept ___62___ (be) certainly not new — men have been renting good suits for decades — but for female shoppers, it is just taking off. This clothing-as-service model follows the broader societal movement towards shared economies.\n\nTanya is also looking beyond special-occasion dresses to less formal clothing, ___63___ she plans to package as capsule wardrobes and offer to travellers, such as those headed to weddings abroad, with a longer-term rental period. \"I really want to make this work for ___64___ (people) lives today, and I know that doesn't always mean ___65___ (return) a dress on the Monday after a special weekend,\" she says.",
-      "fine_category": "word-adj-adv-other"
+      "fine_category": "pred-tense-present"
     },
     {
       "id": "2025浙江首考-63",
