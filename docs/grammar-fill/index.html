@@ -300,62 +300,6 @@
   .page-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
   .page-desc { font-size: var(--font-base, 24px); color: var(--text-2); margin-bottom: 24px; }
 
-  .home-entry-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
-  }
-  .home-entry-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px 24px;
-    cursor: pointer;
-    transition: all .22s cubic-bezier(.22,.61,.36,1);
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-  }
-  .home-entry-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    opacity: 0;
-    transition: opacity .22s ease;
-    pointer-events: none;
-  }
-  .home-entry-card:hover {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
-    transform: translateY(-2px);
-    border-color: rgba(0,0,0,0.12);
-  }
-  .home-entry-card:active { transform: translateY(0) scale(0.985); }
-  .home-entry-card-icon {
-    width: 44px; height: 44px;
-    border-radius: 11px;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 14px;
-    flex-shrink: 0;
-    font-size: 22px;
-    line-height: 1;
-  }
-  .home-entry-card-icon.exams    { background: #e8f2fd; }
-  .home-entry-card-icon.categories { background: #fff3e0; }
-  .home-entry-card-icon.knowledge { background: #f6edfb; }
-  .home-entry-card-icon.errors   { background: #fee8e7; }
-  .home-entry-card-icon.prep     { background: #e8f8ed; }
-  .home-entry-card-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 3px; letter-spacing: -.2px; }
-  .home-entry-card-desc { font-size: 13px; color: var(--text-3); line-height: 1.5; }
-  .home-entry-card-arrow {
-    font-size: 16px; color: var(--text-3);
-    opacity: 0; transform: translateX(-4px);
-    transition: all .22s ease;
-    flex-shrink: 0; margin-top: 2px;
-  }
-  .home-entry-card:hover .home-entry-card-arrow { opacity: 1; transform: translateX(0); }
   .home-subview { display: none; }
   .home-subview.active { display: block; }
 
@@ -1307,8 +1251,6 @@
   body.compact .context-sidebar-item { padding: 4px 8px; font-size: 11px; }
   body.compact .context-sidebar-year { padding: 6px 8px 1px; font-size: 9px; }
   body.compact .left-panel { padding-left: 0; }
-  body.compact .home-entry-card { padding: 16px 18px; }
-  body.compact .home-entry-cards { gap: 10px; }
   body.compact .category-section { margin-bottom: 14px; }
   body.compact .category-section-title { font-size: 15px; margin-bottom: 6px; }
   body.compact .card { padding: 12px 14px; }
@@ -2088,13 +2030,7 @@
   .assistant-panel { width: 100vw; }
 }
 
-[data-theme="dark"] .home-entry-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); }
 [data-theme="dark"] .context-sidebar:hover { box-shadow: 8px 0 40px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.08); }
-[data-theme="dark"] .home-entry-card-icon.exams { background: rgba(64,156,255,0.18); }
-[data-theme="dark"] .home-entry-card-icon.categories { background: rgba(255,159,10,0.18); }
-[data-theme="dark"] .home-entry-card-icon.knowledge { background: rgba(191,90,242,0.18); }
-[data-theme="dark"] .home-entry-card-icon.errors { background: rgba(255,69,58,0.18); }
-[data-theme="dark"] .home-entry-card-icon.prep { background: rgba(48,209,88,0.18); }
 [data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
 </style>
 <script src="../data/grammar_bank.js"></script>
@@ -2312,64 +2248,10 @@
       <h1 class="page-title">语法填空 · 考点分类训练</h1>
       <p class="page-desc"><span id="bankStat">题库加载中…</span></p>
 
-      <!-- 主页模式切换 chip（按 §5b 规则保留旧版） -->
-      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
-        <div style="display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;font-size:12px;">
-          <button id="homeModeNewBtn" onclick="switchHomeMode('dashboard')" style="border:none;background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">✨ 智能 Dashboard</button>
-          <button id="homeModeClassicBtn" onclick="switchHomeMode('classic')" style="border:none;background:transparent;color:var(--text-2);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">📋 经典视图</button>
-        </div>
-      </div>
 
       <div id="homeCards">
-        <!-- 新版 Dashboard（默认） -->
         <div id="homeDashboard">
           <div id="homeDashboardContent"></div>
-        </div>
-
-        <!-- 经典版 5 卡片（默认隐藏，可切换） -->
-        <div id="homeCardsClassic" style="display:none;">
-          <div class="home-entry-cards">
-            <div class="home-entry-card" onclick="navigateHome('exams')">
-              <div>
-                <div class="home-entry-card-icon exams">📋</div>
-                <div class="home-entry-card-title">按套卷练习</div>
-                <div class="home-entry-card-desc" id="homeExamCount">-- 套真题/模拟卷</div>
-              </div>
-              <div class="home-entry-card-arrow">→</div>
-            </div>
-            <div class="home-entry-card" onclick="navigateHome('categories')">
-              <div>
-                <div class="home-entry-card-icon categories">🏷️</div>
-                <div class="home-entry-card-title">按考点练习</div>
-                <div class="home-entry-card-desc">11 个考点分类</div>
-              </div>
-              <div class="home-entry-card-arrow">→</div>
-            </div>
-            <div class="home-entry-card" onclick="switchPage('knowledge')">
-              <div>
-                <div class="home-entry-card-icon knowledge">📖</div>
-                <div class="home-entry-card-title">知识库</div>
-                <div class="home-entry-card-desc">11 类语法考点详解</div>
-              </div>
-              <div class="home-entry-card-arrow">→</div>
-            </div>
-            <div class="home-entry-card" onclick="switchPage('error-book')">
-              <div>
-                <div class="home-entry-card-icon errors">📝</div>
-                <div class="home-entry-card-title">错题本</div>
-                <div class="home-entry-card-desc" id="homeErrorCountClassic">-- 道错题</div>
-              </div>
-              <div class="home-entry-card-arrow">→</div>
-            </div>
-            <div class="home-entry-card" onclick="switchPage('lesson-prep')">
-              <div>
-                <div class="home-entry-card-icon prep">📁</div>
-                <div class="home-entry-card-title">备课资料</div>
-                <div class="home-entry-card-desc" id="homePrepCountClassic">-- 份资料</div>
-              </div>
-              <div class="home-entry-card-arrow">→</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -4055,7 +3937,7 @@ function init() {
   setupPrepDrop();
   setupDocxDrop();
   setupPassageClickDelegation();
-  _initHomeMode();
+  try { localStorage.removeItem('grammar-home-mode'); } catch(e) {}
 
   // 紧凑模式（白板/投影）从 localStorage 恢复
   try {
@@ -4307,14 +4189,11 @@ function renderBankStat() {
   const sets = BANK.exams.length;
   const total = ALL_QUESTIONS.length;
   el.textContent = `题库：${sets} 套卷 · ${total} 题（数据源：data/语法填空库）。`;
-  // 经典版 5 卡片字段
-  const examCountEl = document.getElementById('homeExamCount');
-  if (examCountEl) examCountEl.textContent = `${sets} 套真题/模拟卷`;
-  ['homeErrorCount','homeErrorCountClassic'].forEach(function(id){
+  ['homeErrorCount'].forEach(function(id){
     var e = document.getElementById(id);
     if (e) e.textContent = `${errorBookQuestions.length} 道错题`;
   });
-  ['homePrepCount','homePrepCountClassic'].forEach(function(id){
+  ['homePrepCount'].forEach(function(id){
     var e = document.getElementById(id);
     if (e) e.textContent = `${prepPassages.length} 份资料`;
   });
@@ -4429,38 +4308,6 @@ function renderHomeDashboard() {
   el.innerHTML = html;
 }
 
-// 切换主页模式
-var HOME_MODE_KEY = 'grammar-home-mode';
-function switchHomeMode(mode) {
-  var dash = document.getElementById('homeDashboard');
-  var classic = document.getElementById('homeCardsClassic');
-  var newBtn = document.getElementById('homeModeNewBtn');
-  var classicBtn = document.getElementById('homeModeClassicBtn');
-  var isDash = (mode !== 'classic');
-  if (dash) dash.style.display = isDash ? '' : 'none';
-  if (classic) classic.style.display = isDash ? 'none' : '';
-  if (newBtn) {
-    newBtn.style.background = isDash ? 'var(--accent)' : 'transparent';
-    newBtn.style.color = isDash ? '#fff' : 'var(--text-2)';
-  }
-  if (classicBtn) {
-    classicBtn.style.background = isDash ? 'transparent' : 'var(--accent)';
-    classicBtn.style.color = isDash ? 'var(--text-2)' : '#fff';
-  }
-  try { localStorage.setItem(HOME_MODE_KEY, mode); } catch(e) {}
-  if (isDash) renderHomeDashboard();
-  // 切换 mode 后同步刷新 sidebar（dashboard 收起 / classic 显示套卷或考点列表）
-  if (typeof renderPageSidebar === 'function') renderPageSidebar('home');
-}
-
-// 启动时恢复用户偏好
-function _initHomeMode() {
-  try {
-    var saved = localStorage.getItem(HOME_MODE_KEY);
-    if (saved === 'classic') switchHomeMode('classic');
-    else switchHomeMode('dashboard');
-  } catch(e) { switchHomeMode('dashboard'); }
-}
 
 // ────────── 按套卷练习 · 全部 19 套真题/模拟卷 ──────────
 const EXAM_TAG_STYLE = {
@@ -4702,7 +4549,7 @@ function switchPage(page) {
   if (page === 'lesson-prep') renderPrepList();
   if (page === 'admin') renderAdminPage();
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
-  // 错题本/备课/讲题/经典 home 显示）
+  // 错题本/备课/讲题显示）
   if (typeof renderPageSidebar === 'function') renderPageSidebar(page);
 }
 
