@@ -1,0 +1,14 @@
+{
+  "name": "seeklume-engineering-checks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bash scripts/check_all.sh",
+    "test:smoke": "playwright test tests/smoke.spec.js --project=chromium",
+    "test:smoke:headed": "playwright test tests/smoke.spec.js --project=chromium --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}

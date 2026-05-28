@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY") || "";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const MAX_TRANSLATE_TEXT_CHARS = 20000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -60,11 +61,24 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (!DEEPSEEK_API_KEY) {
+      return new Response(JSON.stringify({ error: "AI 翻译服务未配置，请联系管理员。" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { text } = body;
 
     if (!text || typeof text !== "string" || text.trim().length < 20) {
       return new Response(JSON.stringify({ error: "文本内容太短，无法翻译" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (text.length > MAX_TRANSLATE_TEXT_CHARS) {
+      return new Response(JSON.stringify({ error: `文本过长，请分段翻译（最多 ${MAX_TRANSLATE_TEXT_CHARS} 字符）。` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

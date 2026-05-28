@@ -162,6 +162,129 @@
     if (r.error) throw r.error;
   }
 
+  async function clearLearningData() {
+    if (!sb || !state.user) throw new Error('未登录');
+    if (state.viewingUserId) throw new Error('管理员查看他人数据时不能清空数据');
+    var r1 = await sb.from('error_book').delete().eq('user_id', state.user.id);
+    if (r1.error) throw r1.error;
+    var r2 = await sb.from('lesson_prep').delete().eq('user_id', state.user.id);
+    if (r2.error) throw r2.error;
+    return true;
+  }
+
+  function isSensitiveContextKey(key) {
+    var lower = String(key || '').toLowerCase();
+    return lower.indexOf('password') !== -1
+      || lower.indexOf('token') !== -1
+      || lower.indexOf('key') !== -1
+      || lower.indexOf('secret') !== -1
+      || lower.indexOf('authorization') !== -1
+      || lower.indexOf('cookie') !== -1;
+  }
+
+  function redactContextString(value) {
+    return String(value || '')
+      .replace(/sk-[A-Za-z0-9_-]{12,}/g, '[redacted]')
+      .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[redacted]')
+      .replace(/\b(password|token|api[_-]?key|authorization)\s*[:=]\s*[^,\s;]+/gi, '[redacted]')
+      .slice(0, 800);
+  }
+
+  function sanitizeContextValue(value, depth) {
+    if (depth <= 0) return '[truncated]';
+    if (value === null || typeof value === 'number' || typeof value === 'boolean') return value;
+    if (typeof value === 'string') return redactContextString(value);
+    if (Array.isArray(value)) {
+      return value.slice(0, 20).map(function(item){ return sanitizeContextValue(item, depth - 1); });
+    }
+    if (typeof value === 'object') {
+      var cleanObj = {};
+      Object.keys(value).slice(0, 40).forEach(function(key){
+        if (isSensitiveContextKey(key)) return;
+        cleanObj[key] = sanitizeContextValue(value[key], depth - 1);
+      });
+      return cleanObj;
+    }
+    return redactContextString(value);
+  }
+
+  function sanitizeContext(context) {
+    var clean = {};
+    context = context || {};
+    Object.keys(context).slice(0, 40).forEach(function(key){
+      if (isSensitiveContextKey(key)) return;
+      clean[key] = sanitizeContextValue(context[key], 4);
+    });
+    return clean;
+  }
+
+  async function submitFeedback(report) {
+    if (!sb) return null;
+    report = report || {};
+    var message = (report.message || '').trim();
+    if (!message) throw new Error('反馈内容不能为空');
+    var category = ['bug', 'data', 'ux', 'ai', 'feature'].indexOf(report.category) !== -1 ? report.category : 'ux';
+    var severity = ['P0', 'P1', 'P2', 'P3'].indexOf(report.severity) !== -1 ? report.severity : 'P2';
+    var reproducible = ['yes', 'no', 'unknown'].indexOf(report.reproducible) !== -1 ? report.reproducible : 'unknown';
+    var source = ['user', 'system', 'admin'].indexOf(report.source) !== -1 ? report.source : 'user';
+    var affectedCount = parseInt(report.affected_users_count, 10);
+    if (!Number.isFinite(affectedCount) || affectedCount < 0) affectedCount = 1;
+    var row = {
+      user_id: state.user ? state.user.id : null,
+      category: category,
+      severity: severity,
+      reproducible: reproducible,
+      affected_users_count: affectedCount,
+      source: source,
+      page_url: (report.page_url || location.href).slice(0, 1000),
+      module: (report.module || '').slice(0, 120),
+      message: message.slice(0, 4000),
+      context: sanitizeContext(report.context)
+    };
+    var r = await sb.from('feedback_reports').insert(row).select('id').single();
+    if (r.error) throw r.error;
+    return r.data;
+  }
+
+  async function recordEvent(event) {
+    if (!sb) return null;
+    event = event || {};
+    var row = {
+      user_id: state.user ? state.user.id : null,
+      event_type: (event.event_type || 'unknown').slice(0, 120),
+      severity: event.severity || 'info',
+      page_url: (event.page_url || location.href).slice(0, 1000),
+      module: (event.module || '').slice(0, 120),
+      message: event.message ? String(event.message).slice(0, 2000) : null,
+      context: sanitizeContext(event.context)
+    };
+    var r = await sb.from('app_events').insert(row);
+    if (r.error) throw r.error;
+    return true;
+  }
+
+  async function listFeedbackReports(limit) {
+    if (!sb || !state.isAdmin) return [];
+    var r = await sb.from('feedback_reports')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit || 20);
+    if (r.error) throw r.error;
+    return r.data || [];
+  }
+
+  async function updateFeedbackStatus(reportId, status) {
+    if (!sb || !state.isAdmin) throw new Error('需要管理员权限');
+    if (['new', 'triaged', 'in_progress', 'released', 'closed'].indexOf(status) === -1) {
+      throw new Error('反馈状态不合法');
+    }
+    var r = await sb.from('feedback_reports')
+      .update({ status: status })
+      .eq('id', reportId);
+    if (r.error) throw r.error;
+    return true;
+  }
+
   async function listUsers() {
     if (!sb) throw new Error('未配置');
     var r = await sb.rpc('admin_list_users');
@@ -200,6 +323,9 @@
     approveUsernameChange: approveUsernameChange, rejectUsernameChange: rejectUsernameChange,
     pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
+    clearLearningData: clearLearningData,
+    submitFeedback: submitFeedback, recordEvent: recordEvent,
+    listFeedbackReports: listFeedbackReports, updateFeedbackStatus: updateFeedbackStatus,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,
     viewAs: viewAs, clearViewAs: clearViewAs
   };

@@ -311,8 +311,14 @@ if (!fs.existsSync(backupPath)) {
   console.log(`\n已备份原文件 → ${backupPath}`);
 }
 
-// 生成新内容（保持 `window.GRAMMAR_BANK = {...};` 包装格式）
-const newContent = 'window.GRAMMAR_BANK = ' + JSON.stringify(BANK, null, 2) + ';\n';
+// 生成新内容（保持 canonical 说明和 `window.GRAMMAR_BANK = {...};` 包装格式）
+const newContent = [
+  '// 当前 canonical · 可手工编辑（历史过渡期）',
+  '// 页面实际读取：docs/data/grammar_bank.js',
+  '// 修改后必须运行：bash scripts/check_all.sh',
+  'window.GRAMMAR_BANK = ' + JSON.stringify(BANK, null, 2) + ';',
+  ''
+].join('\n');
 fs.writeFileSync(BANK_PATH, newContent, 'utf8');
 console.log(`已写回 ${BANK_PATH}`);
 console.log(`新文件大小: ${(fs.statSync(BANK_PATH).size / 1024).toFixed(1)} KB`);

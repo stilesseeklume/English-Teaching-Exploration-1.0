@@ -1,3 +1,6 @@
+// 当前 canonical · 可手工编辑（历史过渡期）
+// 页面实际读取：docs/data/grammar_bank.js
+// 修改后必须运行：bash scripts/check_all.sh
 window.GRAMMAR_BANK = {
   "version": "1.0",
   "generated_from": "data/语法填空库",
@@ -252,8 +255,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 56,
           "answer": "and",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查并列连词。空格连接 planned the city of Beijing 和 arranged the residential areas 两个并列谓语动作，表示顺承关系，应用 and。",
+          "grammar_point": "连词",
           "category": "logic",
           "category_name": "逻辑连词",
           "fine_category": "logic-conj-phrase"
@@ -261,8 +264,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 57,
           "answer": "originally",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查副词。originally 修饰 meaning，表示“最初意为”，应用副词形式 originally。",
+          "grammar_point": "副词",
           "category": "word",
           "category_name": "词性转换",
           "fine_category": "word-adj-adv-choice"
@@ -270,8 +273,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 58,
           "answer": "surrounded",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查非谓语动词。Forbidden City 与 surround 构成逻辑上的动宾关系，空格作后置定语，应用过去分词 surrounded。",
+          "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
           "fine_category": "nonp-attribute",
@@ -285,8 +288,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 59,
           "answer": "were permitted",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查谓语动词。主语 Citizens 与 permit 为被动关系，结合历史叙述语境用一般过去时被动语态 were permitted。",
+          "grammar_point": "谓语动词",
           "category": "predicate",
           "category_name": "谓语动词",
           "fine_category": "pred-passive-form"
@@ -303,8 +306,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 61,
           "answer": "spacious",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查形容词。空格修饰 homes，space 变为形容词 spacious，表示“宽敞的”。",
+          "grammar_point": "形容词",
           "category": "word",
           "category_name": "词性转换",
           "fine_category": "word-adj-adv-choice"
@@ -312,8 +315,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 62,
           "answer": "simpler",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查形容词比较级。空格与 far smaller 并列，比较普通百姓住宅与高阶层住宅的设计装饰，应用 simpler 或 more simple。",
+          "grammar_point": "形容词比较级",
           "category": "word",
           "category_name": "词性转换",
           "fine_category": "word-cmp-comparative"
@@ -321,8 +324,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 63,
           "answer": "as",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查介词。history as capital of China 表示“作为中国首都的历史”，应用介词 as。",
+          "grammar_point": "介词",
           "category": "preposition",
           "category_name": "介词",
           "fine_category": "prep-common"
@@ -330,8 +333,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 64,
           "answer": "events",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查名词复数。event 为可数名词，前有 historic 修饰且语境表示多个历史事件，应用复数 events。",
+          "grammar_point": "名词复数",
           "category": "word",
           "category_name": "词性转换",
           "fine_category": "word-adj-adv-other"
@@ -339,8 +342,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 65,
           "answer": "the",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查定冠词。culture 后有 of grassroots Beijingers 限定，表示特定文化，应用 the。",
+          "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
           "fine_category": "art-the"
@@ -805,8 +808,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 56,
           "answer": "to benefit",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查非谓语动词。buying extra 的目的或结果是 benefit from price reductions，此处用不定式作目的状语，填 to benefit。",
+          "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
           "fine_category": "nonp-object",
@@ -820,8 +823,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 57,
           "answer": "or",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查连词。Either...or... 为固定搭配，表示“要么……要么……”，应用 or。",
+          "grammar_point": "连词",
           "category": "logic",
           "category_name": "逻辑连词",
           "fine_category": "logic-conj-phrase"
@@ -829,8 +832,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 58,
           "answer": "that",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查定语从句。先行词为 the way，关系词在从句中作主语，且 way 前有 the 限定，此处用 that。",
+          "grammar_point": "定语从句",
           "category": "attrib",
           "category_name": "定语从句",
           "fine_category": "attrib-choice"
@@ -838,8 +841,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 59,
           "answer": "what",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查表语从句。空格引导表语从句，并在从句中作 promote 的宾语，表示“他们会推广的东西”，用 what。",
+          "grammar_point": "名词性从句",
           "category": "nounclause",
           "category_name": "名词性从句",
           "fine_category": "nounc-wh-words"
@@ -847,8 +850,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 60,
           "answer": "criticism",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查名词。空格前有定冠词 the，后接同位语从句 that they lead to waste，应用名词 criticism。",
+          "grammar_point": "名词",
           "category": "word",
           "category_name": "词性转换",
           "fine_category": "word-adj-adv-other"
@@ -856,8 +859,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 61,
           "answer": "be offered",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查被动语态。they 指商品，与 offer 是被动关系，且位于 could 后，应用 be offered。",
+          "grammar_point": "谓语动词",
           "category": "predicate",
           "category_name": "谓语动词",
           "fine_category": "pred-passive-form"
@@ -865,8 +868,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 62,
           "answer": "have started",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查谓语动词。时间状语 Over the last two years 常与现在完成时连用，主语 some supermarkets 为复数，填 have started。",
+          "grammar_point": "谓语动词",
           "category": "predicate",
           "category_name": "谓语动词",
           "fine_category": "pred-tense-perfect"
@@ -874,8 +877,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 63,
           "answer": "designed",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查非谓语动词。packs 与 design 为被动关系，空格作后置定语，应用过去分词 designed。",
+          "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
           "fine_category": "nonp-attribute",
@@ -889,8 +892,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 64,
           "answer": "the",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查定冠词。one section 与 the other 构成“一者……另一者……”的对应关系，应用 the。",
+          "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
           "fine_category": "art-the"
@@ -898,8 +901,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 65,
           "answer": "ones",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查代词。one 代指前文 some supermarkets 中的个体，前有 some of the more forward looking 修饰，应用复数 ones。",
+          "grammar_point": "代词",
           "category": "pronoun",
           "category_name": "代词",
           "fine_category": "pron-personal-possessive"
@@ -1596,8 +1599,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 56,
           "answer": "a",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查冠词。way 为可数名词单数，此处表示“一种新的穿衣方式”，new 以辅音音素开头，应用 a。",
+          "grammar_point": "冠词",
           "category": "article",
           "category_name": "冠词",
           "fine_category": "art-a-an"
@@ -1614,8 +1617,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 58,
           "answer": "on",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查介词。focus on 为固定搭配，表示“关注”，应用 on。",
+          "grammar_point": "介词",
           "category": "preposition",
           "category_name": "介词",
           "fine_category": "prep-common"
@@ -1623,8 +1626,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 59,
           "answer": "and",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查并列连词。have something unique to wear 与 are not overstuffing... 构成并列关系，应用 and。",
+          "grammar_point": "连词",
           "category": "logic",
           "category_name": "逻辑连词",
           "fine_category": "logic-conj-phrase"
@@ -1632,8 +1635,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 60,
           "answer": "to rent",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查非谓语动词。fashion clothes for women to rent 表示“供女性租用的时装”，用不定式作后置定语。",
+          "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
           "fine_category": "nonp-object",
@@ -1665,8 +1668,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 63,
           "answer": "which",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查非限制性定语从句。先行词为 less formal clothing，关系词在从句中作 package 的宾语，应用 which。",
+          "grammar_point": "定语从句",
           "category": "attrib",
           "category_name": "定语从句",
           "fine_category": "attrib-choice"
@@ -1674,8 +1677,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 64,
           "answer": "people's",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查名词所有格。空格修饰 lives，表示“人们的生活”，应用 people 的所有格 people's。",
+          "grammar_point": "名词所有格",
           "category": "pronoun",
           "category_name": "代词",
           "fine_category": "pron-personal-possessive"
@@ -1683,8 +1686,8 @@ window.GRAMMAR_BANK = {
         {
           "no": 65,
           "answer": "returning",
-          "explanation": "",
-          "grammar_point": "",
+          "explanation": "考查非谓语动词。mean 表示“意味着”时后接动名词作宾语，应用 returning。",
+          "grammar_point": "非谓语动词",
           "category": "nonpredicate",
           "category_name": "非谓语动词",
           "fine_category": "nonp-object",

@@ -18,7 +18,7 @@ import time
 import urllib.request
 import urllib.error
 
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY") or "sk-90494f47bb6b46a3acbcb2b0e183ae23"
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY")
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +51,9 @@ def fill_answers(passage: str, questions: list) -> str:
 
 def translate_passage(passage: str, exam_id: str) -> str:
     """调用 DeepSeek API 翻译一篇短文."""
+    if not DEEPSEEK_API_KEY:
+        raise RuntimeError("缺少 DEEPSEEK_API_KEY 环境变量，不能调用 DeepSeek API")
+
     body = json.dumps({
         "model": "deepseek-chat",
         "temperature": 0.3,

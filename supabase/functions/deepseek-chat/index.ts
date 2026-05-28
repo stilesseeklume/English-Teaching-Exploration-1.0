@@ -6,6 +6,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.10";
 
 const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY") || "";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const MAX_CHAT_HISTORY = 20;
+const MAX_CHAT_MESSAGE_CHARS = 2000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -103,6 +105,13 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (!DEEPSEEK_API_KEY) {
+      return new Response(JSON.stringify({ error: "AI 服务未配置，请联系管理员。" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const messages = Array.isArray(body.messages) ? body.messages : [];
 
@@ -113,10 +122,10 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    // 限制对话总长度，防止 token 爆炸（每条消息最长 2000 字符，最多 20 条历史）
-    const trimmed = messages.slice(-20).map((m: any) => ({
+    // 限制对话总长度，防止 token 爆炸。
+    const trimmed = messages.slice(-MAX_CHAT_HISTORY).map((m: any) => ({
       role: m.role === "assistant" ? "assistant" : "user",
-      content: String(m.content || "").slice(0, 2000),
+      content: String(m.content || "").slice(0, MAX_CHAT_MESSAGE_CHARS),
     }));
 
     const deepseekRes = await fetch(DEEPSEEK_API_URL, {

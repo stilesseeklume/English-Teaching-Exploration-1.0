@@ -168,6 +168,7 @@
     document.getElementById('settingsNewUsername').value = '';
     document.getElementById('settingsPwdMsg').textContent = '';
     document.getElementById('settingsUnameMsg').textContent = '';
+    settingsDataMsg('var(--text-2)', '');
     var pu = window.cloud && window.cloud.pendingUsername;
     if (pu) {
       document.getElementById('pendingUsernameInfo').style.display = '';
@@ -215,6 +216,158 @@
     }
   }
 
+  function settingsDataMsg(color, text) {
+    var msg = document.getElementById('settingsDataMsg');
+    if (msg) {
+      msg.style.color = color;
+      msg.textContent = text || '';
+    }
+  }
+
+  function getSafeUserExportInfo() {
+    var user = window.cloud && window.cloud.state && window.cloud.state.user;
+    if (!user) return null;
+    return {
+      id: user.id || '',
+      email: user.email || '',
+      username: user.user_metadata && user.user_metadata.username ? user.user_metadata.username : ''
+    };
+  }
+
+  function cloneData(value) {
+    try { return JSON.parse(JSON.stringify(value || [])); }
+    catch(e) { return []; }
+  }
+
+  async function exportMyLearningData() {
+    if (window.cloud && window.cloud.state && window.cloud.state.viewingUserId) {
+      settingsDataMsg('var(--red)', '管理员查看他人数据时不能导出。');
+      return;
+    }
+    var btn = document.getElementById('settingsExportDataBtn');
+    if (btn) btn.disabled = true;
+    settingsDataMsg('var(--text-2)', '正在准备导出…');
+    try {
+      var errors = window.errorBookQuestions || [];
+      var preps = window.prepPassages || [];
+      if (window.cloud && window.cloud.state && window.cloud.state.user) {
+        var cloudErrors = await window.cloud.pullErrorBook();
+        var cloudPreps = await window.cloud.pullLessonPrep();
+        if (cloudErrors) errors = cloudErrors;
+        if (cloudPreps) preps = cloudPreps;
+      }
+      var payload = {
+        app: 'seeklume',
+        export_version: 1,
+        exported_at: new Date().toISOString(),
+        user: getSafeUserExportInfo(),
+        data: {
+          error_book: cloneData(errors),
+          lesson_prep: cloneData(preps)
+        }
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'seeklume-learning-data-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      settingsDataMsg('var(--green)', '已导出错题本和备课资料。');
+      if (window.cloud && window.cloud.recordEvent) {
+        window.cloud.recordEvent({
+          event_type: 'learning_data_exported',
+          severity: 'info',
+          module: 'account-settings',
+          message: 'learning data exported',
+          context: { error_count: errors.length, prep_count: preps.length }
+        }).catch(function(){});
+      }
+    } catch (e) {
+      settingsDataMsg('var(--red)', '导出失败：' + (e.message || e));
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function clearMyLearningData() {
+    if (window.cloud && window.cloud.state && window.cloud.state.viewingUserId) {
+      settingsDataMsg('var(--red)', '管理员查看他人数据时不能清空。');
+      return;
+    }
+    if (!confirm('确定清空自己的错题本和备课资料吗？\n这会删除云端学习数据，并清空本机缓存。')) return;
+    var btn = document.getElementById('settingsClearDataBtn');
+    if (btn) btn.disabled = true;
+    settingsDataMsg('var(--text-2)', '正在清空…');
+    try {
+      if (window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.clearLearningData) {
+        await window.cloud.clearLearningData();
+      }
+      window.errorBookQuestions = [];
+      window.prepPassages = [];
+      if (typeof window.saveErrorBook === 'function') window.saveErrorBook();
+      if (typeof window.savePrepPassages === 'function') window.savePrepPassages();
+      if (typeof window.renderErrorBook === 'function') window.renderErrorBook();
+      if (typeof window.renderPrepList === 'function') window.renderPrepList();
+      if (typeof window.renderBankStat === 'function') window.renderBankStat();
+      settingsDataMsg('var(--green)', '错题本和备课资料已清空。');
+      if (window.cloud && window.cloud.recordEvent) {
+        window.cloud.recordEvent({
+          event_type: 'learning_data_cleared',
+          severity: 'warning',
+          module: 'account-settings',
+          message: 'learning data cleared',
+          context: { scope: 'error_book,lesson_prep' }
+        }).catch(function(){});
+      }
+    } catch (e) {
+      settingsDataMsg('var(--red)', '清空失败：' + (e.message || e));
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function requestMyAccountDeletion() {
+    if (!confirm('提交账号删除申请？\n管理员处理前账号不会立即删除。')) return;
+    var btn = document.getElementById('settingsAccountDeleteBtn');
+    if (btn) btn.disabled = true;
+    settingsDataMsg('var(--text-2)', '正在提交删除申请…');
+    try {
+      if (!window.cloud || !window.cloud.submitFeedback) throw new Error('反馈系统未配置');
+      var user = getSafeUserExportInfo();
+      await window.cloud.submitFeedback({
+        category: 'feature',
+        severity: 'P1',
+        reproducible: 'yes',
+        affected_users_count: 1,
+        source: 'user',
+        module: 'account-settings',
+        message: '用户请求删除账号及相关云端数据。',
+        context: {
+          request_type: 'account_deletion',
+          user_id: user ? user.id : '',
+          email: user ? user.email : ''
+        }
+      });
+      settingsDataMsg('var(--green)', '账号删除申请已提交，管理员会按隐私说明处理。');
+      if (window.cloud && window.cloud.recordEvent) {
+        window.cloud.recordEvent({
+          event_type: 'account_deletion_requested',
+          severity: 'warning',
+          module: 'account-settings',
+          message: 'account deletion requested',
+          context: { request_type: 'account_deletion' }
+        }).catch(function(){});
+      }
+    } catch (e) {
+      settingsDataMsg('var(--red)', '提交失败：' + (e.message || e));
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   // ─── 退出登录 ─────────────────────────────────
   async function doLogout() {
     if (!confirm('确定要退出登录吗？\n（错题本和备课资料会从本地清空，下次登录会自动从云端拉回来）')) return;
@@ -252,5 +405,8 @@
   window.closeSettingsModal = closeSettingsModal;
   window.changeMyPassword = changeMyPassword;
   window.requestMyUsernameChange = requestMyUsernameChange;
+  window.exportMyLearningData = exportMyLearningData;
+  window.clearMyLearningData = clearMyLearningData;
+  window.requestMyAccountDeletion = requestMyAccountDeletion;
   window.doLogout = doLogout;
 })();

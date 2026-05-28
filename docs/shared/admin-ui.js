@@ -20,10 +20,98 @@
 
 /* eslint-disable */
 (function(){
+  var FEEDBACK_STATUS = {
+    new: '新反馈',
+    triaged: '已分诊',
+    in_progress: '处理中',
+    released: '已发布',
+    closed: '已关闭'
+  };
+
+  var FEEDBACK_CATEGORY = {
+    bug: 'Bug',
+    data: '内容',
+    ux: '体验',
+    ai: 'AI',
+    feature: '功能'
+  };
+
+  function escapeAdminHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  function renderFeedbackStatusButtons(report) {
+    var next = report.status === 'new' ? 'triaged'
+      : report.status === 'triaged' ? 'in_progress'
+      : report.status === 'in_progress' ? 'released'
+      : report.status === 'released' ? 'closed'
+      : '';
+    var html = '';
+    if (next) {
+      html += '<button onclick="event.stopPropagation();adminUpdateFeedbackStatus(\'' + escapeAdminHtml(report.id) + '\',\'' + next + '\')" '
+        + 'style="padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">'
+        + escapeAdminHtml(FEEDBACK_STATUS[next])
+        + '</button>';
+    }
+    if (report.status !== 'closed') {
+      html += '<button onclick="event.stopPropagation();adminUpdateFeedbackStatus(\'' + escapeAdminHtml(report.id) + '\',\'closed\')" '
+        + 'style="padding:4px 10px;background:var(--surface-3);color:var(--text-2);border:none;border-radius:4px;cursor:pointer;font-size:12px;margin-left:6px;">关闭</button>';
+    }
+    return html;
+  }
+
+  async function renderAdminFeedback() {
+    var stat = document.getElementById('adminFeedbackStat');
+    var listEl = document.getElementById('adminFeedbackList');
+    if (!stat || !listEl) return;
+    if (!window.cloud || !window.cloud.state.isAdmin || !window.cloud.listFeedbackReports) {
+      stat.textContent = '需要管理员权限。';
+      listEl.innerHTML = '<div class="error-empty">需要管理员权限</div>';
+      return;
+    }
+    var list;
+    try {
+      list = await window.cloud.listFeedbackReports(20);
+    } catch (e) {
+      stat.textContent = '加载失败。';
+      listEl.innerHTML = '<div class="error-empty">反馈加载失败：' + escapeAdminHtml(e.message || e) + '</div>';
+      return;
+    }
+    stat.textContent = '最近 ' + list.length + ' 条反馈。';
+    if (!list.length) {
+      listEl.innerHTML = '<div class="error-empty">还没有反馈</div>';
+      return;
+    }
+    var html = '<div style="display:grid;grid-template-columns:1fr;gap:8px;">';
+    list.forEach(function(r) {
+      var created = r.created_at ? new Date(r.created_at).toLocaleString('zh-CN') : '';
+      var category = FEEDBACK_CATEGORY[r.category] || r.category || '反馈';
+      var status = FEEDBACK_STATUS[r.status] || r.status || '新反馈';
+      var moduleName = r.module || 'unknown';
+      var message = String(r.message || '').slice(0, 180);
+      html += '<div class="prep-list-item">'
+        + '<div class="prep-list-title">' + escapeAdminHtml(category) + ' · ' + escapeAdminHtml(r.severity || 'P2') + ' · ' + escapeAdminHtml(status) + '</div>'
+        + '<div class="prep-list-preview">' + escapeAdminHtml(message) + '</div>'
+        + '<div class="prep-list-meta">'
+        + '<span>模块：' + escapeAdminHtml(moduleName) + '</span>'
+        + '<span>复现：' + escapeAdminHtml(r.reproducible || 'unknown') + '</span>'
+        + '<span>影响：' + escapeAdminHtml(r.affected_users_count || 0) + ' 人</span>'
+        + '<span>' + escapeAdminHtml(created) + '</span>'
+        + '</div>'
+        + '<div style="margin-top:8px;">' + renderFeedbackStatusButtons(r) + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+    listEl.innerHTML = html;
+  }
+
   async function renderAdminPage() {
     if (!window.cloud || !window.cloud.state.isAdmin) {
       document.getElementById('adminUserList').innerHTML =
         '<div class="error-empty">需要管理员权限</div>';
+      renderAdminFeedback();
       return;
     }
     var list;
@@ -31,12 +119,14 @@
     catch (e) {
       document.getElementById('adminUserList').innerHTML =
         '<div class="error-empty">加载失败：' + (e.message || e) + '</div>';
+      renderAdminFeedback();
       return;
     }
     document.getElementById('adminStat').textContent = '共 ' + list.length + ' 个用户。';
     if (list.length === 0) {
       document.getElementById('adminUserList').innerHTML =
         '<div class="error-empty">还没有用户注册</div>';
+      renderAdminFeedback();
       return;
     }
     var html = '<div style="display:grid;grid-template-columns:1fr;gap:8px;">';
@@ -80,6 +170,16 @@
     });
     html += '</div>';
     document.getElementById('adminUserList').innerHTML = html;
+    renderAdminFeedback();
+  }
+
+  async function adminUpdateFeedbackStatus(reportId, status) {
+    try {
+      await window.cloud.updateFeedbackStatus(reportId, status);
+      await renderAdminFeedback();
+    } catch (e) {
+      alert('反馈状态更新失败：' + (e.message || e));
+    }
   }
 
   async function adminViewUser(userId, email) {
@@ -153,6 +253,8 @@
 
   // 暴露到 window
   window.renderAdminPage = renderAdminPage;
+  window.renderAdminFeedback = renderAdminFeedback;
+  window.adminUpdateFeedbackStatus = adminUpdateFeedbackStatus;
   window.adminViewUser = adminViewUser;
   window.adminApproveUser = adminApproveUser;
   window.adminRejectUser = adminRejectUser;

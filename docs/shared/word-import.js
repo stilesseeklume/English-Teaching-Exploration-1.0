@@ -89,6 +89,14 @@
   }
   function cancelAiParse() {
     _abortAiParse = true;
+    if (window.seeklumeObservability) {
+      window.seeklumeObservability.recordEvent({
+        event_type: 'ai_parse_cancelled',
+        severity: 'warning',
+        module: 'word-import',
+        message: 'user cancelled AI parse'
+      });
+    }
     hideAiOverlay();
     stopAiDrift();
     var input = document.getElementById('docxFileInput');
@@ -435,6 +443,7 @@
   async function fetchDeepSeekParse(text, token) {
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 90000); // 90s 超时
+    var startedAt = Date.now();
 
     var res;
     try {
@@ -449,6 +458,13 @@
       });
     } catch (fetchErr) {
       clearTimeout(timeoutId);
+      if (window.seeklumeObservability) {
+        window.seeklumeObservability.recordError('ai_parse_network_failed', fetchErr.message || fetchErr, {
+          module: 'word-import',
+          duration_ms: Date.now() - startedAt,
+          text_length: text.length
+        });
+      }
       if (fetchErr.name === 'AbortError') {
         throw new Error('AI 解析超时（超过 90 秒）。\nDeepSeek 服务可能繁忙，请稍后重试，或将文档拆小后重传。');
       }
@@ -469,7 +485,24 @@
       }
       var error = new Error(msg);
       error.rawData = errData;
+      if (window.seeklumeObservability) {
+        window.seeklumeObservability.recordError('ai_parse_http_failed', msg, {
+          module: 'word-import',
+          status: res.status,
+          duration_ms: Date.now() - startedAt,
+          text_length: text.length
+        });
+      }
       throw error;
+    }
+    if (window.seeklumeObservability) {
+      window.seeklumeObservability.recordEvent({
+        event_type: 'ai_parse_chunk_success',
+        severity: 'info',
+        module: 'word-import',
+        message: 'AI parse chunk succeeded',
+        context: { duration_ms: Date.now() - startedAt, text_length: text.length }
+      });
     }
     return res.json();
   }
@@ -478,6 +511,15 @@
   async function processDocxFile(input) {
     var file = input.files[0];
     if (!file) { input.value = ''; return; }
+    if (window.seeklumeObservability) {
+      window.seeklumeObservability.recordEvent({
+        event_type: 'word_upload_started',
+        severity: 'info',
+        module: 'word-import',
+        message: 'Word upload started',
+        context: { file_name: file.name, file_size: file.size, target: _docxImportTarget }
+      });
+    }
 
     showAiOverlay('正在提取 Word 文本…', '');
     renderAiStages([
@@ -523,6 +565,12 @@
 
     } catch (err) {
       hideAiOverlay();
+      if (window.seeklumeObservability) {
+        window.seeklumeObservability.recordError('word_import_failed', err.message || err, {
+          module: 'word-import',
+          target: _docxImportTarget
+        });
+      }
       alert('Word 解析失败：' + (err.message || String(err)));
     } finally {
       input.value = '';
@@ -610,11 +658,32 @@
         console.warn('有 ' + fallbackCount + ' 篇使用了答案/空格降级导入，解析可稍后补全。');
       }
       setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, 200);
+      if (window.seeklumeObservability) {
+        window.seeklumeObservability.recordEvent({
+          event_type: 'ai_parse_completed',
+          severity: fallbackCount > 0 ? 'warning' : 'info',
+          module: 'word-import',
+          message: 'AI parse completed',
+          context: {
+            original_length: originalLength,
+            chunk_count: batchPlan.length,
+            passage_count: passagesArr.length,
+            fallback_count: fallbackCount
+          }
+        });
+      }
 
     } catch (err) {
       stopAiDrift();
       hideAiOverlay();
       console.error('AI 解析失败：', err);
+      if (window.seeklumeObservability) {
+        window.seeklumeObservability.recordError('ai_parse_failed', err.message || err, {
+          module: 'word-import',
+          original_length: originalLength,
+          chunk_count: batchPlan.length
+        });
+      }
 
       if (_abortAiParse) return;
 

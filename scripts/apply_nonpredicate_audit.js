@@ -401,7 +401,13 @@ function writeAudit(rows) {
 
 const bank = loadBank();
 const rows = applyAudit(bank);
-fs.writeFileSync(BANK_PATH, 'window.GRAMMAR_BANK = ' + JSON.stringify(bank, null, 2) + ';\n', 'utf8');
+fs.writeFileSync(BANK_PATH, [
+  '// 当前 canonical · 可手工编辑（历史过渡期）',
+  '// 页面实际读取：docs/data/grammar_bank.js',
+  '// 修改后必须运行：bash scripts/check_all.sh',
+  'window.GRAMMAR_BANK = ' + JSON.stringify(bank, null, 2) + ';',
+  ''
+].join('\n'), 'utf8');
 writeAudit(rows);
 console.log('Updated nonpredicate audit fields:', rows.length);
 console.log('Wrote', path.relative(ROOT, BANK_PATH));
