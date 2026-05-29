@@ -36,7 +36,8 @@ Success JSON:
           "answer": "answer",
           "category": "word",
           "fine_category": "word-adj-adv-choice",
-          "analysis": "Chinese explanation"
+          "analysis": "Chinese explanation",
+          "solve": "Chinese how-to-solve guidance (做题思路)"
         }
       ]
     }

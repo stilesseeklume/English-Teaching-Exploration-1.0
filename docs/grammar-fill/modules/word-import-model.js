@@ -318,6 +318,7 @@
           category: blank.category || 'word',
           fine_category: blank.fine_category || '',
           analysis: (blank.analysis || '').toString().trim(),
+          solve: (blank.solve || '').toString().trim(),
           nonp_function: blank.nonp_function || '',
           nonp_function_label: blank.nonp_function_label || '',
           nonp_form: blank.nonp_form || '',

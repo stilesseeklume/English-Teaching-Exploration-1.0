@@ -33,7 +33,8 @@ const SYSTEM_PROMPT = `你是一名专业的英语语法填空出题助手。你
           "answer": "正确英文单词或短语",
           "category": "粗考点分类代码（11 类之一）",
           "fine_category": "精细考点 tag id（从下方 ~100 个里选最匹配的 1 个）",
-          "analysis": "中文解析，30-60字"
+          "analysis": "中文解析，30-60字",
+          "solve": "做题思路（做题角度），40-70字"
         }
       ]
     }
@@ -212,7 +213,7 @@ special-substitution-ellipsis：替代 / 省略
    - **不要照搬试卷封面的口号或宣传语**（如 "决战高考2025" 这种），只保留考点信息。
 2. 【空格识别】空白处可能表现为：下划线___、方框□、括号中提示词如 (give)、题号标注如 56.______、或直接空白。识别所有空格，按在文中出现的先后顺序从 1 开始连续编号（每篇独立）。如果原题已有序号，优先使用原序号。
 3. 【答案推断】如果原文本在题号后附有答案（如"56. dating"），直接使用。如果给出了括号中的提示词原形（如 (date)），根据语法语境变形后作为答案。如果无任何提示，根据语法知识推断最合理的答案。
-4. 【passage 字段】将原文中的下划线/方框空格替换为 ___{题号}___ 格式。**如果该空格旁有括号提示词（如 (appear)），保留括号提示词，紧接在 ___{题号}___ 后面**，例如原文是 `___56___ (appear)` 则输出 `___56___(appear)`。如果没有提示词则直接写 `___56___`。保持原文其余部分不变（包括大小写、标点、换行）。
+4. 【passage 字段】将原文中的下划线/方框空格替换为 ___{题号}___ 格式。**如果该空格旁有括号提示词（如 (appear)），保留括号提示词，紧接在 ___{题号}___ 后面**，例如原文是 「___56___ (appear)」 则输出 「___56___(appear)」。如果没有提示词则直接写 「___56___」。保持原文其余部分不变（包括大小写、标点、换行）。
 5. 【category 字段】从 13 个粗类里必选 1 个。
 6. 【fine_category 字段】必填。从 ~100 个精细 tag 中选与本题最匹配的 1 个。例如：
    - "since 1990 ... has done" → pred-tense-perfect
@@ -222,7 +223,8 @@ special-substitution-ellipsis：替代 / 省略
    - 答案是副词派生（-ly）→ word-adj-adv-choice
    - 关系副词 where/when → attrib-adverb
 7. 【answer 字段】必须是确切的英文单词或短语，不含序号、中文、多余空格或标点。
-8. 【analysis 字段】用中文写 30-60 字的解析，说明：①空格在句中的成分 ②语法判断依据 ③为什么是这个答案。
+8. 【analysis 字段】用中文写 30-60 字的"考点式"解析：①空格在句中的成分 ②语法判断依据 ③为什么是这个答案。
+9. 【solve 字段】用中文写 40-70 字的"做题思路"（做题角度，不是语法术语堆砌）：教学生**这道题怎么自己做出来**。按"①先看哪里（空格位置／括号给词／左右邻词）→ ②抓什么信号 → ③怎么下手（变形／选词／判断）"写，像老师手把手带做题。例：括号给 taste、右邻是名词 soup → 缺修饰语 → 把 taste 变成形容词 tasty 作定语。
 
 ## 重要：只输出 JSON，不输出任何其他内容`;
 
@@ -299,7 +301,7 @@ const VALID_FINE_CATEGORIES = new Set([
 interface RawPassage {
   title?: string;
   passage?: string;
-  blanks?: Array<{ no?: number; answer?: string; category?: string; fine_category?: string; analysis?: string }>;
+  blanks?: Array<{ no?: number; answer?: string; category?: string; fine_category?: string; analysis?: string; solve?: string }>;
 }
 
 function normalizePassage(p: RawPassage, idx: number) {
@@ -312,6 +314,7 @@ function normalizePassage(p: RawPassage, idx: number) {
     // fine_category：AI 选错或没选时静默丢弃（前端 Task #8 已 fallback 到 trap/focus）
     fine_category: VALID_FINE_CATEGORIES.has(b.fine_category as string) ? (b.fine_category as string) : undefined,
     analysis: (b.analysis || "").toString().trim(),
+    solve: (b.solve || "").toString().trim(),
   }));
 
   // 兜底：如果 passage 没有任何 ___N___ 标记，但有 blanks，按顺序在末尾追加占位
