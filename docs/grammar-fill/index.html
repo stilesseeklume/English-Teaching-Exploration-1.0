@@ -7278,45 +7278,8 @@ function buildTeachingMigrationHtml(q) {
     pool_count: contentModel.poolCount || 0,
     shown_count: contentModel.shownCount || 0
   });
-  function sourceTab(item) {
-    return '<button class="' + (item.active ? 'active' : '') + '" onclick="setMigrationSource(\'' + item.key + '\')">'
-      + escapeHtml(item.label)
-      + '<span class="count">' + item.count + '</span>'
-      + '</button>';
-  }
-  var html = '<div class="teaching-migration-source-tabs">'
-    + contentModel.tabs.map(sourceTab).join('')
-    + '</div>'
-    + '<div class="teaching-tab-title">'
-    + '<div class="teaching-tab-kicker">迁移训练</div>'
-    + '<div class="teaching-tab-heading">' + escapeHtml(contentModel.heading) + '</div>'
-    + (contentModel.subline ? '<div class="teaching-tab-sub">' + escapeHtml(contentModel.subline) + '</div>' : '')
-    + '<div class="teaching-tab-sub">' + escapeHtml(contentModel.countText) + '</div>'
-    + '</div>';
-  if (contentModel.emptyHint) {
-    return html + renderMigrationEmptyHint(contentModel.emptyHint);
-  }
-  html += '<div class="teaching-migration-scroll">';
-  contentModel.entries.forEach(function(entryModel) {
-    var item = entryModel.item;
-    var rowModel = entryModel.row;
-    html += '<div class="teaching-migration-row' + rowModel.rowClass + '">'
-      + '<div class="teaching-migration-index">'
-      + '<strong>' + escapeHtml(rowModel.indexText) + '</strong>'
-      + '<span class="teaching-migration-type' + rowModel.typeClass + '">' + escapeHtml(rowModel.typeLabel) + '</span>'
-      + '<span class="teaching-migration-source">' + escapeHtml(rowModel.sourceText) + '</span>'
-      + '</div>'
-      + '<div class="teaching-migration-main">'
-      + '<div class="teaching-migration-sentence">' + renderTeachingMigrationSentence(item, entryModel.id) + '</div>'
-      + '<div class="teaching-migration-note">'
-      + '<strong>' + escapeHtml(rowModel.tagLabel) + '</strong>'
-      + (rowModel.teachingLine ? ' · ' + escapeHtml(rowModel.teachingLine) : '')
-      + '</div>'
-      + '</div>'
-      + '</div>';
-  });
-  html += '</div>';
-  return html;
+  contentModel.entries.forEach(function(e) { e.stageSentenceHtml = renderTeachingMigrationSentence(e.item, e.id); });
+  return window.GrammarTeachingRender.migrationStageHtml(contentModel);
 }
 
 function buildTeachingKnowledgeHtml(q) { return window.GrammarTeachingRender.teachingKnowledgeHtml(q, { teachingViewModelDeps: teachingViewModelDeps, getGraphNodeIndex: getGraphNodeIndex }); }

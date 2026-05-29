@@ -215,6 +215,47 @@
     return html;
   }
 
+  function migrationStageHtml(contentModel) {
+    function sourceTab(item) {
+      return '<button class="' + (item.active ? 'active' : '') + '" onclick="setMigrationSource(\'' + item.key + '\')">'
+        + window.escapeHtml(item.label)
+        + '<span class="count">' + item.count + '</span>'
+        + '</button>';
+    }
+    var html = '<div class="teaching-migration-source-tabs">'
+      + contentModel.tabs.map(sourceTab).join('')
+      + '</div>'
+      + '<div class="teaching-tab-title">'
+      + '<div class="teaching-tab-kicker">迁移训练</div>'
+      + '<div class="teaching-tab-heading">' + window.escapeHtml(contentModel.heading) + '</div>'
+      + (contentModel.subline ? '<div class="teaching-tab-sub">' + window.escapeHtml(contentModel.subline) + '</div>' : '')
+      + '<div class="teaching-tab-sub">' + window.escapeHtml(contentModel.countText) + '</div>'
+      + '</div>';
+    if (contentModel.emptyHint) {
+      return html + migrationEmptyHint(contentModel.emptyHint);
+    }
+    html += '<div class="teaching-migration-scroll">';
+    contentModel.entries.forEach(function(entryModel) {
+      var rowModel = entryModel.row;
+      html += '<div class="teaching-migration-row' + rowModel.rowClass + '">'
+        + '<div class="teaching-migration-index">'
+        + '<strong>' + window.escapeHtml(rowModel.indexText) + '</strong>'
+        + '<span class="teaching-migration-type' + rowModel.typeClass + '">' + window.escapeHtml(rowModel.typeLabel) + '</span>'
+        + '<span class="teaching-migration-source">' + window.escapeHtml(rowModel.sourceText) + '</span>'
+        + '</div>'
+        + '<div class="teaching-migration-main">'
+        + '<div class="teaching-migration-sentence">' + entryModel.stageSentenceHtml + '</div>'
+        + '<div class="teaching-migration-note">'
+        + '<strong>' + window.escapeHtml(rowModel.tagLabel) + '</strong>'
+        + (rowModel.teachingLine ? ' · ' + window.escapeHtml(rowModel.teachingLine) : '')
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
   window.GrammarTeachingRender = {
     practicalGuideHtml: practicalGuideHtml,
     solutionCard: solutionCard,
@@ -222,6 +263,7 @@
     theoryContent: theoryContent,
     teachingGuideHtml: teachingGuideHtml,
     teachingKnowledgeHtml: teachingKnowledgeHtml,
-    migrationDrawerHtml: migrationDrawerHtml
+    migrationDrawerHtml: migrationDrawerHtml,
+    migrationStageHtml: migrationStageHtml
   };
 })();

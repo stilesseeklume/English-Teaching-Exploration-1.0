@@ -3753,6 +3753,12 @@ test('teaching-render pure html output', async ({ page }) => {
       entries: [{ id: 'x1', sentenceHtml: '<i>句子</i>', card: { sourceLabel: '2024浙江', questionNo: '5', tagLabel: '时态', ctaText: '点开讲', sourceAccent: false, typeTag: null } }]
     });
     const migDrawerEmpty = R.migrationDrawerHtml({ tabs: [], emptyHint: { primaryText: '暂无' } });
+    const migStage = R.migrationStageHtml({
+      tabs: [{ key: 'bank', label: '真题', count: 2, active: true }],
+      heading: '迁移训练', subline: '同考点', countText: '共 1 题',
+      entries: [{ id: 's1', item: {}, stageSentenceHtml: '<i>句</i>', row: { rowClass: '', indexText: '1', typeClass: '', typeLabel: '真题', sourceText: '2024', tagLabel: '时态', teachingLine: '讲法' } }]
+    });
+    const migStageEmpty = R.migrationStageHtml({ tabs: [], emptyHint: { primaryText: '暂无' } });
     return {
       missing: false,
       practicalHasCard: practical.includes('teacher-quick-card'),
@@ -3764,7 +3770,9 @@ test('teaching-render pure html output', async ({ page }) => {
       emptyTheoryHint: emptyTheory.includes('empty-hint'),
       guideHasTitle: guideHtml.includes('teaching-tab-heading') && guideHtml.includes('teaching-tab-kicker'),
       migDrawerHasCard: migDrawer.includes('migration-card') && migDrawer.includes('teacher-quick-card'),
-      migDrawerEmpty: migDrawerEmpty.includes('empty-hint')
+      migDrawerEmpty: migDrawerEmpty.includes('empty-hint'),
+      migStageHasRow: migStage.includes('teaching-migration-row') && migStage.includes('teaching-migration-source-tabs'),
+      migStageEmpty: migStageEmpty.includes('empty-hint')
     };
   });
 
@@ -3779,4 +3787,6 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.guideHasTitle).toBe(true);
   expect(out.migDrawerHasCard).toBe(true);
   expect(out.migDrawerEmpty).toBe(true);
+  expect(out.migStageHasRow).toBe(true);
+  expect(out.migStageEmpty).toBe(true);
 });
