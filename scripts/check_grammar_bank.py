@@ -138,6 +138,43 @@ def check_bank_shape(bank: dict, source_name: str, fine_tag_ids: set[str], requi
     return errors
 
 
+def check_flat_questions_mirror(bank: dict, source_name: str) -> list[str]:
+    """The flat `questions` array must stay a faithful mirror of `exams[].questions`.
+
+    `docs/data/grammar_bank.js` is hand-editable; the app reads BOTH `exams`
+    (套卷视图) and the flat `questions` (按考点/统计 via buildAllQuestions). Editing
+    one copy without the other silently desyncs category/tag data. This guard
+    fails the build when they disagree.
+    """
+    errors: list[str] = []
+    flat = bank.get("questions")
+    if flat is None:
+        return errors
+    by_id: dict[str, dict] = {}
+    total = 0
+    for exam in bank.get("exams", []):
+        eid = exam.get("exam_id")
+        for q in exam.get("questions", []):
+            total += 1
+            by_id[f"{eid}-{q.get('no')}"] = q
+    if len(flat) != total:
+        errors.append(f"{source_name}: flat questions count {len(flat)} != exams questions {total}")
+    mirror_fields = ("category", "category_name", "fine_category", "answer", "grammar_point")
+    for fq in flat:
+        fid = fq.get("id") or f"{fq.get('exam_id')}-{fq.get('no')}"
+        exam_q = by_id.get(fid)
+        if exam_q is None:
+            errors.append(f"{source_name}: flat question {fid} has no matching exams question")
+            continue
+        for field in mirror_fields:
+            if fq.get(field) != exam_q.get(field):
+                errors.append(
+                    f"{source_name}: flat/exams desync at {fid}.{field}: "
+                    f"flat={fq.get(field)!r} exams={exam_q.get(field)!r}"
+                )
+    return errors
+
+
 def main() -> int:
     if not BANK_JSON.exists():
         fail(f"missing {BANK_JSON}")
@@ -154,6 +191,7 @@ def main() -> int:
     errors.extend(check_generated_bank_header())
     errors.extend(check_bank_shape(raw_bank, "data/grammar_bank.json", fine_tag_ids, require_fine=False))
     errors.extend(check_bank_shape(public_bank, "docs/data/grammar_bank.js", fine_tag_ids, require_fine=True))
+    errors.extend(check_flat_questions_mirror(public_bank, "docs/data/grammar_bank.js"))
 
     if raw_bank.get("generated_from") != public_bank.get("generated_from"):
         errors.append("generated_from differs between raw and public banks")

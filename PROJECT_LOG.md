@@ -424,4 +424,42 @@ d29c166 注册登录改为用户名+密码
 - `app-state.js` 仍保留兼容桥和旧全局缓存，这是渐进收敛的过渡状态，不是本地门禁阻塞；下一轮如继续工程化，可再拆剩余 DOM/浏览器副作用状态。
 - Playwright 当前仍是 smoke 级别；已覆盖模拟 Supabase 登录/退出、错题本/备课资料/投影、本地跨账号隔离、管理员只读边界，以及 Word 上传的模拟 AI 成功导入和 AI 解析失败降级路径，但还没覆盖真实 Supabase 账号、真实 Word 样本成功率、真实 AI/Edge Function 运行路径和真实管理员后端。
 
+## 2026-05-29 · 教研会前 Sprint（线 A：整卷上传硬化）
+
+> 起因：教研会下周二，现场要演示"上传整套卷 Word → AI 解析语法填空"。核实发现整卷上传是当前最脆弱路径。
+
+### 产出（线 A · 整卷精确抽取语法填空节）
+
+- 根因：`docs/grammar-fill/modules/word-import-model.js` 的 `buildDocxBatchPlan` 对单份整卷找不到 `isPassageTitle` 标题，落到段落启发式 `splitByParagraph`，把整卷（阅读+完形+写作范文+详解）碎切成十几个 chunk 逐个送 AI → 慢（串行、每 chunk 90s 超时）、乱、且可能把完形填空误当语法填空。
+- 新增纯函数 `isolateGrammarSections(text)`：用全国卷高度统一的语法填空指令行锚点 `在空白处填[入写]…单词` 定位该节，向后取到下一主区块（第四部分/写作/读后续写/下一篇语法填空）；完形（"从 A/B/C/D 选出"）天然被排除。命中即在 `buildDocxBatchPlan` 顶部只产出该节（单篇/合集），未命中回退原 `splitByTitle`/`splitByParagraph`，向后兼容。
+- 解析版【答案】优先：`mergeAnswersIntoPassage` 改为"原文自带答案权威，优先于 AI 自解；无官方答案才保留 AI 答案"（无答案卷如福州仍由 AI 自解）。
+- 导出 `isolateGrammarSections`；`scripts/check_grammar_modules.py` 加契约；`tests/smoke.spec.js` 加整卷 fixture 断言（完形+语法+写作合一 → 只出 1 个语法填空 chunk、排除完形、官方答案透传）。
+
+### 验证
+
+- 离线实测用户提供的 4 份真卷（福州无解析 19k / 宁波·枣庄·精诚解析版 33–37k）：每份均从整卷精确抽出 1 个语法填空 chunk（约 1.5k 字符），含 56–65，排除完形/阅读/写作；解析版 10 个官方答案全部正确提取，福州无答案卷交 AI 自解。
+- `python3 scripts/check_grammar_modules.py` 通过（17 模块契约，含 isolateGrammarSections）。
+- `npx playwright test tests/smoke.spec.js --project=chromium`：9 条 smoke 全过，含 grammar-fill core path 的整卷隔离断言。
+- `npm run check` 全绿（题库/模块/密钥/migration/Edge 合同/静态站/smoke）。
+- 线 A-3 实测（测试账号 + 已部署 `deepseek-parse`）：4 份卷各 1 次调用、9–11s、均 HTTP 200，返回 1 篇 / 10 空 / 含 `___N___` 标记。3 份解析版 AI 自解答案与官方【答案】**100% 一致（30/30）**；福州无答案卷 AI 自解 10 空语法合理。自动标题干净（如"24节气与农业"）。附带发现个别 category/fine_category 配对不一致（如枣庄 61 category=nonpredicate 但 fine=word-ed-ing）→ 归入线 C 校对。
+
+### 下一步
+
+- ✅ 线 A-3 已完成（见上"验证"）。线 A 全链路（隔离 + 真实 AI + 官方答案优先）验证通过。
+- 线 B：解析"可切换双视图"（考点式 + 做题思路），含 bank `solve` 字段 + 批量生成 + prompt + UI 切换。改 Edge Function 需用户授权重部署。
+- ✅ 线 C 已完成（见下）。线 D：演示卷/题/脚本/录屏 + 课前预导入保底。
+- 注：本轮改动尚未提交；按 AGENTS.md，commit/push 与生产部署需用户授权。
+
+### 线 C · 全量 190 题知识性校对 + 修复
+
+- 逐题核对 190 题（19 卷）answer/explanation/category/fine_category/grammar_point + fine tag 抽样。**答案全部正确**（抽查 ~15 道较难真题/模拟标准答案无误）；所有问题在标签字段，源于早期批量打 tag。清单见 `docs/planning/bank-correctness-audit.md`。
+- 已修 18 处（用户确认 Finding 1+2+3 后批量改 `docs/data/grammar_bank.js`）：
+  - Finding 1（14 题）：名词复数（interview→interviews 等）category 由 word 改为 number；其中 events 额外把 fine 由 word-adj-adv-other 改为 num-plural。
+  - Finding 2（1 题）：people's 由 pronoun/pron-personal-possessive 改为 number/num-possessive（名词所有格）。
+  - Finding 3（3 题）：visibility/recovery/criticism 的 fine 改为 word-noun-derivation；visibility 的 grammar_point 由"形容词"改为"名词"。
+- 同步对齐 number 类显示名为"名词/数词"（与 `grammar_fine_tags.js` 规范一致，该类含名词复数/所有格/可数性 + 数词）：改 `grammar_bank.js` category_names + `category-rules.js` 的 DEFAULT_CATEGORY_NAMES / CATEGORY_TIPS / 首页按考点入口卡片。修复前该类 0 题（名词题全被误归 word），现含 15 题。讲题台徽标本就优先 fine 名称（num-plural→"名词复数形式"），显示正确。
+- Finding 4（个别 fine 精度、tag 与解析口径、grammar_point 留空）留待会后。
+- 验证：`check_grammar_bank.py`（19/190）+ `check_grammar_modules.py`（17 模块）+ `npm run check`（9/9 smoke）全绿；git diff 仅 18 题字段 + number 标签。
+- 补充修复（另一会话发现并修复）：`docs/data/grammar_bank.js` 把数据存成 `exams[]` 与扁平 `questions[]` 两份拷贝；上述 18 处只改了 `exams`，而 `buildAllQuestions`（按考点练习/统计）读的是扁平拷贝 → 修复会漏一半。已从修正后的 `exams` 重建扁平 `questions[]`（镜像全部字段含 `nonp_*`，0 字段丢失、desync 0），并在 `check_grammar_bank.py` 新增 `check_flat_questions_mirror` 门禁防再发生（已单元测试：好数据过、坏数据报错）。`npm run check` 全绿。
+
 *此日志随项目推进持续更新。最后更新：2026-05-29*

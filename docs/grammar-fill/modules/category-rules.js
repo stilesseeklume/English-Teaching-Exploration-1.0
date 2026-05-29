@@ -8,7 +8,7 @@
     predicate: '谓语动词',
     nonpredicate: '非谓语动词',
     word: '词性转换',
-    number: '数词',
+    number: '名词/数词',
     article: '冠词',
     pronoun: '代词',
     preposition: '介词',
@@ -29,7 +29,7 @@
     attrib: '定语从句：①找先行词 ②判断从句成分（主/宾/状）③选关系词',
     nounclause: '名词性从句：①判断从句类型（主/宾/表/同位）②缺什么选什么',
     advclause: '状语从句：①判断主从句关系（时间/原因/条件/让步/目的/结果）②选连词',
-    number: '数词：①基数↔序数 ②分数表达 ③固定搭配'
+    number: '名词/数词：①名词复数 ②名词所有格 ③可数性 ④基数↔序数'
   };
 
   var HOME_CATEGORY_SECTIONS = [
@@ -44,7 +44,7 @@
       titleText: '二、词性转换',
       items: [
         { category: 'word', tagText: '词性', tagClass: 'blue', titleText: '名词 · 形容词 · 副词', descriptionText: '词性转换（给词为名/形/副）' },
-        { category: 'number', tagText: '数词', tagClass: 'purple', titleText: '数词', descriptionText: '基数词 · 序数词' }
+        { category: 'number', tagText: '名词/数词', tagClass: 'purple', titleText: '名词 · 数词', descriptionText: '名词复数 / 所有格 · 数词' }
       ]
     },
     {
