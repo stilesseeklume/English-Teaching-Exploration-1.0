@@ -2971,29 +2971,16 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && snapshot.knowledgeSearchIndex.length === state.knowledgeSearchIndex.length);
   })).toBe(true);
   await page.locator('#knowledgeSystemBtn').click();
-  await expect(page.locator('#globalGraphSvg')).toBeVisible();
-  await expect(await page.evaluate(() => {
-    var state = window.GrammarAppState && window.GrammarAppState.state;
-    var snapshot = window.getGlobalGraphStateSnapshot && window.getGlobalGraphStateSnapshot();
-    return !!(state
-      && state.currentKnowledgeView === 'system'
-      && state.globalGraphState
-      && state.globalGraphState.selectedId
-      && state.globalGraphState.focusIds
-      && state.globalGraphState.focusIds.length
-      && snapshot
-      && snapshot.selectedId === state.globalGraphState.selectedId
-      && snapshot.focusIds.length === state.globalGraphState.focusIds.length);
-  })).toBe(true);
-  const graphScaleBeforeZoom = await page.evaluate(() => window.GrammarAppState.state.globalGraphState.scale);
-  await page.evaluate(() => window.zoomGlobalGraph && window.zoomGlobalGraph(1.18));
-  await expect(await page.evaluate(() => window.GrammarAppState.state.globalGraphState.scale)).toBeGreaterThan(graphScaleBeforeZoom);
-  await expect(await page.evaluate(() => {
-    var snapshot = window.getGlobalGraphStateSnapshot && window.getGlobalGraphStateSnapshot();
-    return !!(snapshot
-      && window.GrammarAppState
-      && snapshot.scale === window.GrammarAppState.state.globalGraphState.scale);
-  })).toBe(true);
+  await expect(page.locator('.decision-map')).toBeVisible();
+  await expect(page.locator('.dm-card')).toBeVisible();
+  await expect(await page.evaluate(() => window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.currentKnowledgeView === 'system')).toBe(true);
+  // 引导走一步：点第一个选项 → 面包屑长出第二级
+  await page.locator('.dm-option').first().click();
+  await expect(page.locator('.dm-crumbs .dm-crumb')).toHaveCount(2);
+  // 切到全貌 → 缩进大纲出现，状态切到 overview
+  await page.locator('.dm-mode', { hasText: '全貌' }).click();
+  await expect(page.locator('.dm-outline .dm-row').first()).toBeVisible();
+  await expect(await page.evaluate(() => window.decisionMapState && window.decisionMapState.mode)).toBe('overview');
 
   await page.locator('[data-dock-key="categories"]').click();
   await expect(page.locator('#homeCategories')).toHaveClass(/active/);

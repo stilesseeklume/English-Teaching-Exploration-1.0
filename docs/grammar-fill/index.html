@@ -1401,6 +1401,36 @@
   .error-cat-chip:hover { border-color: var(--accent); color: var(--accent); }
   .error-cat-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
   .error-list-source { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+  .decision-map { max-width: 760px; margin: 0 auto; }
+  .dm-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .dm-title h2 { margin: 0; font-size: 22px; }
+  .dm-title p { margin: 4px 0 0; font-size: 13px; color: var(--text-3); }
+  .dm-modes { display: flex; gap: 8px; }
+  .dm-mode { font-size: 14px; padding: 6px 14px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); border-radius: 18px; cursor: pointer; }
+  .dm-mode.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  .dm-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 12px; font-size: 13px; }
+  .dm-crumb { background: none; border: none; color: var(--accent); cursor: pointer; padding: 2px 4px; }
+  .dm-crumb.current { color: var(--text); font-weight: 700; }
+  .dm-crumb-sep { color: var(--text-3); }
+  .dm-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .dm-card-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .dm-card-sub { font-size: 14px; color: var(--text-3); font-weight: 400; margin-left: 8px; }
+  .dm-card-tip { margin: 12px 0 18px; font-size: 15px; line-height: 1.7; color: var(--text-2); background: var(--accent-bg); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 14px; }
+  .dm-card-desc { font-size: 14px; line-height: 1.7; color: var(--text-2); margin-bottom: 10px; }
+  .dm-options { display: flex; flex-direction: column; gap: 10px; }
+  .dm-option { text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: border-color .12s, background .12s; }
+  .dm-option:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .dm-option-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .dm-option-sub { font-size: 13px; color: var(--text-3); }
+  .dm-leaf-btn { margin-top: 8px; background: var(--accent); color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .dm-back { margin-top: 16px; background: none; border: 1px solid var(--border); color: var(--text-2); border-radius: 18px; padding: 6px 16px; cursor: pointer; font-size: 14px; }
+  .dm-outline { display: flex; flex-direction: column; gap: 4px; }
+  .dm-row { text-align: left; background: var(--surface-2); border: 1px solid transparent; border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; align-items: baseline; gap: 8px; }
+  .dm-row:hover { border-color: var(--accent); }
+  .dm-row.on-path { background: var(--accent-bg); border-color: var(--accent); }
+  .dm-row.leaf .dm-row-title { color: var(--accent); }
+  .dm-row-title { font-size: 15px; color: var(--text); }
+  .dm-row-sub { font-size: 12px; color: var(--text-3); }
   .analysis-sentence-lg {
     font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
     padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
@@ -8976,7 +9006,84 @@ function buildGraphSvg() {
   return svg;
 }
 
+var decisionMapState = { mode: 'guided', currentId: '' };
+function decisionMapGo(id) { decisionMapState.currentId = id; renderSystemView(); }
+function setDecisionMapMode(mode) { decisionMapState.mode = (mode === 'overview') ? 'overview' : 'guided'; renderSystemView(); }
+
 function renderSystemView(focusNodeId) {
+  var kvs = getKnowledgeViewSnapshot();
+  applyKnowledgeViewState({
+    currentKnowledgeView: kvs.currentKnowledgeView === 'system-node' ? 'system-node' : 'system',
+    currentKnowledgeNodeId: focusNodeId || ''
+  });
+  var content = document.getElementById('knowledgeContent');
+  if (!content) return;
+  var graph = getTeachingGraph();
+  if (!graph.nodes || !graph.nodes.length) {
+    content.innerHTML = '<div class="empty-hint">决策地图整理中。当前可以切换到“知识地图”或“书本速查”。</div>';
+    updateDockBackButton();
+    return;
+  }
+  var kvm = window.GrammarKnowledgeViewModel;
+  var tree = kvm.buildDecisionTree(graph.nodes);
+  if (focusNodeId && tree.byId[focusNodeId]) { decisionMapState.mode = 'guided'; decisionMapState.currentId = focusNodeId; }
+  if (!decisionMapState.currentId || !tree.byId[decisionMapState.currentId]) decisionMapState.currentId = tree.rootId;
+
+  var step = kvm.buildGuidedStepModel(tree, decisionMapState.currentId);
+  var pathIds = step.breadcrumb.map(function(b) { return b.id; });
+
+  var html = '<div class="decision-map">';
+  html += '<div class="dm-head"><div class="dm-title"><h2>做题决策地图</h2>'
+    + '<p>遇到一个空，跟着判断一步步走；也可切到全貌看整体框架。</p></div>'
+    + '<div class="dm-modes">'
+    + '<button class="dm-mode' + (decisionMapState.mode === 'guided' ? ' active' : '') + '" onclick="setDecisionMapMode(\'guided\')">🧭 引导走一遍</button>'
+    + '<button class="dm-mode' + (decisionMapState.mode === 'overview' ? ' active' : '') + '" onclick="setDecisionMapMode(\'overview\')">🗺 看全貌</button>'
+    + '</div></div>';
+
+  if (decisionMapState.mode === 'overview') {
+    var outline = kvm.buildDecisionOutlineModel(tree, pathIds);
+    html += '<div class="dm-outline">';
+    outline.rows.forEach(function(r) {
+      html += '<button class="dm-row' + (r.onPath ? ' on-path' : '') + (r.isLeaf ? ' leaf' : '') + '" style="margin-left:' + (r.depth * 22) + 'px;" onclick="decisionMapGo(\'' + graphEscapeAttr(r.id) + '\')">'
+        + '<span class="dm-row-title">' + escapeHtml(r.title) + '</span>'
+        + (r.subtitle ? '<span class="dm-row-sub">' + escapeHtml(r.subtitle) + '</span>' : '')
+        + '</button>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="dm-crumbs">';
+    step.breadcrumb.forEach(function(b, i) {
+      html += (i > 0 ? '<span class="dm-crumb-sep">›</span>' : '')
+        + '<button class="dm-crumb' + (b.id === step.id ? ' current' : '') + '" onclick="decisionMapGo(\'' + graphEscapeAttr(b.id) + '\')">' + escapeHtml(b.title) + '</button>';
+    });
+    html += '</div>';
+    html += '<div class="dm-card">';
+    html += '<div class="dm-card-title">' + escapeHtml(step.title)
+      + (step.subtitle ? '<span class="dm-card-sub">' + escapeHtml(step.subtitle) + '</span>' : '') + '</div>';
+    if (step.tip) html += '<div class="dm-card-tip">' + escapeHtml(step.tip) + '</div>';
+    if (step.isLeaf) {
+      if (step.desc) html += '<div class="dm-card-desc">' + escapeHtml(step.desc) + '</div>';
+      var cat = step.categoryRefs[0] || '';
+      if (cat) html += '<button class="dm-leaf-btn" onclick="startByCategory(\'' + graphEscapeAttr(cat) + '\')">看这类真题 →</button>';
+    } else {
+      html += '<div class="dm-options">';
+      step.options.forEach(function(o) {
+        html += '<button class="dm-option" onclick="decisionMapGo(\'' + graphEscapeAttr(o.id) + '\')">'
+          + '<span class="dm-option-title">' + escapeHtml(o.title) + '</span>'
+          + (o.subtitle ? '<span class="dm-option-sub">' + escapeHtml(o.subtitle) + '</span>' : '')
+          + '</button>';
+      });
+      html += '</div>';
+    }
+    if (step.parentId) html += '<button class="dm-back" onclick="decisionMapGo(\'' + graphEscapeAttr(step.parentId) + '\')">← 上一步</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  content.innerHTML = html;
+  updateDockBackButton();
+}
+
+function _legacyRenderGlobalGraphSvg(focusNodeId) {
   var knowledgeViewState = getKnowledgeViewSnapshot();
   var targetKnowledgeView = knowledgeViewState.currentKnowledgeView === 'system-node' ? 'system-node' : 'system';
   applyKnowledgeViewState({
