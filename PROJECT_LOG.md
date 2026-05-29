@@ -414,11 +414,12 @@ d29c166 注册登录改为用户名+密码
 - 收尾验证：讲题返回/退出决策、课堂切换条导航、模块页问候、主页行动计划、考点练习入口、练习页内部导航、知识库搜索跳转、折叠交互状态规则、云生命周期兼容桥、教材/Unit 题单兼容桥、保存资料批量模式兼容桥、练习显示/字号、选中题/讲题 session、讲题返回栈/基准上下文/跨页保留和练习上下文快照桥收敛后，`python3 scripts/check_grammar_modules.py`、`git diff --check`、`npx playwright test tests/smoke.spec.js --project=chromium -g "grammar-fill core path"` 与 `npm run check` 均已通过。
 - 本地静态服务器打开 `http://localhost:8787/docs/grammar-fill/`，页面正常加载。
 - 浏览器验证反馈按钮唯一，反馈弹窗可打开/关闭，控制台无错误。
+- 发布状态：`codex/engineering-hardening` 已 fast-forward 合并到 `main`，并推送到 `origin/main`；当前线上发布源能拿到提交 `2f93b98 Refactor grammar fill state modules`。
+- 同步顶层文档：重写 `README.md` 为当前 GitHub 入口说明，修正 `PROJECT_CHARTER.md` 的题库数量、当前工程焦点、验证边界和 agent 入口，并在 `CLAUDE.md` 顶部标注工程协作以 `AGENTS.md`、`PROJECT_LOG.md`、`docs/planning/*.md` 为准。
 
 ### 风险与下一步
 
-- 本地基础工程收尾已到可交接状态：纯模块拆分、状态快照桥、契约脚本、smoke 覆盖和 `npm run check` 均已同步；当前工作区尚未 commit/push。
-- `docs/grammar-fill/modules/word-import-model.js` 是本轮新增纯模块，当前仍显示为未跟踪文件；后续如做 checkpoint commit，需要随其它改动一起纳入。
+- 基础工程收尾已合并到 `main`：纯模块拆分、状态快照桥、契约脚本、smoke 覆盖和 `npm run check` 均已同步；新 agent 可从 `AGENTS.md`、`PROJECT_LOG.md` 和 `docs/planning/*.md` 接手。
 - `feedback_reports` / `app_events` 需要在生产 Supabase 执行 migration 后才会真正落库；执行前不影响主功能，执行生产 migration 仍需用户明确授权。
 - `app-state.js` 仍保留兼容桥和旧全局缓存，这是渐进收敛的过渡状态，不是本地门禁阻塞；下一轮如继续工程化，可再拆剩余 DOM/浏览器副作用状态。
 - Playwright 当前仍是 smoke 级别；已覆盖模拟 Supabase 登录/退出、错题本/备课资料/投影、本地跨账号隔离、管理员只读边界，以及 Word 上传的模拟 AI 成功导入和 AI 解析失败降级路径，但还没覆盖真实 Supabase 账号、真实 Word 样本成功率、真实 AI/Edge Function 运行路径和真实管理员后端。
