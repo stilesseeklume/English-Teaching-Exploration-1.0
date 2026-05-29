@@ -1162,6 +1162,16 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       knowledgeModelDeps
     );
     var emptyGlobalGraphInspectorModel = knowledgeModel && knowledgeModel.buildGlobalGraphInspectorModel(null, knowledgeModelDeps);
+    var dmNodes = [
+      { id: 'root', type: 'diagnosis', title: '入口', decision_tip: '先看空格' },
+      { id: 'a', parent: 'root', title: '有提示词', decision_tip: '看词性', category_refs: ['word'] },
+      { id: 'b', parent: 'root', title: '无提示词' },
+      { id: 'a1', parent: 'a', title: '动词' }
+    ];
+    var dmTree = knowledgeModel && knowledgeModel.buildDecisionTree(dmNodes);
+    var dmStep = dmTree && knowledgeModel.buildGuidedStepModel(dmTree, 'a');
+    var dmLeaf = dmTree && knowledgeModel.buildGuidedStepModel(dmTree, 'a1');
+    var dmOutline = dmTree && knowledgeModel.buildDecisionOutlineModel(dmTree, ['root', 'a']);
     var globalGraphSearchModel = knowledgeModel && knowledgeModel.buildGlobalGraphSearchModel(
       '谓语',
       graphIndex,
@@ -1928,6 +1938,12 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && globalGraphPageModel.focusButtons.some(function(item) { return item.id === 'verb' && item.active; })
       && globalGraphInspectorModel && globalGraphInspectorModel.titleText
       && globalGraphInspectorModel.resourceSection && globalGraphInspectorModel.resourceSection.viewButtons.length === 2
+      && dmTree && dmTree.rootId === 'root' && dmTree.childrenOf['root'].length === 2
+      && dmStep && dmStep.title === '有提示词' && dmStep.options.length === 1 && dmStep.options[0].id === 'a1'
+      && dmStep.breadcrumb.length === 2 && dmStep.breadcrumb[0].id === 'root' && dmStep.isLeaf === false
+      && dmStep.categoryRefs.length === 1 && dmStep.categoryRefs[0] === 'word'
+      && dmLeaf && dmLeaf.isLeaf === true && dmLeaf.options.length === 0
+      && dmOutline && dmOutline.rows.length === 4 && dmOutline.rows.some(function(r) { return r.id === 'a' && r.onPath; })
       && emptyGlobalGraphInspectorModel && emptyGlobalGraphInspectorModel.empty === true
       && globalGraphSearchModel && globalGraphSearchModel.results && globalGraphSearchModel.results.length
       && globalGraphSearchModel.results[0].subtitleText.indexOf(' · ') !== -1

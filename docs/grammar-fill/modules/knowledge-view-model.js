@@ -1348,7 +1348,69 @@
     };
   }
 
+  // ── 做题决策地图（重做版：引导 + 全貌；复用 teaching_graph 节点 + parent + decision_tip，丢弃手写 x/y）──
+  function buildDecisionTree(coreNodes) {
+    var list = Array.isArray(coreNodes) ? coreNodes : [];
+    var byId = {}, childrenOf = {}, rootId = '';
+    list.forEach(function(n) { if (n && n.id) { byId[n.id] = n; childrenOf[n.id] = []; } });
+    list.forEach(function(n) {
+      if (!n || !n.id) return;
+      if (n.parent && byId[n.parent]) childrenOf[n.parent].push(n.id);
+      else if (!rootId) rootId = n.id;
+    });
+    return { rootId: rootId, byId: byId, childrenOf: childrenOf };
+  }
+
+  function buildGuidedStepModel(tree, currentId) {
+    tree = tree || { byId: {}, childrenOf: {}, rootId: '' };
+    var cur = tree.byId[currentId] || tree.byId[tree.rootId] || null;
+    var id = cur ? cur.id : '';
+    var childIds = (tree.childrenOf[id]) || [];
+    var options = childIds.map(function(cid) {
+      var c = tree.byId[cid] || {};
+      return { id: cid, title: c.title || cid, subtitle: c.subtitle || '', tip: c.decision_tip || '' };
+    });
+    var path = [], p = cur, guard = 0;
+    while (p && guard++ < 50) {
+      path.unshift({ id: p.id, title: p.title || p.id });
+      p = (p.parent && tree.byId[p.parent]) ? tree.byId[p.parent] : null;
+    }
+    return {
+      id: id,
+      title: cur ? (cur.title || '') : '',
+      subtitle: cur ? (cur.subtitle || '') : '',
+      tip: cur ? (cur.decision_tip || '') : '',
+      desc: cur ? (cur.desc || '') : '',
+      teacherMove: cur ? (cur.teacher_move || '') : '',
+      isLeaf: options.length === 0,
+      options: options,
+      breadcrumb: path,
+      parentId: (cur && cur.parent) ? cur.parent : '',
+      categoryRefs: (cur && Array.isArray(cur.category_refs)) ? cur.category_refs : [],
+      fineRefs: (cur && Array.isArray(cur.fine_refs)) ? cur.fine_refs : []
+    };
+  }
+
+  function buildDecisionOutlineModel(tree, currentPathIds) {
+    tree = tree || { byId: {}, childrenOf: {}, rootId: '' };
+    var onPath = {};
+    (Array.isArray(currentPathIds) ? currentPathIds : []).forEach(function(i) { onPath[i] = true; });
+    var rows = [];
+    function walk(id, depth) {
+      var n = tree.byId[id];
+      if (!n) return;
+      var kids = (tree.childrenOf[id]) || [];
+      rows.push({ id: id, depth: depth, title: n.title || id, subtitle: n.subtitle || '', onPath: !!onPath[id], isLeaf: kids.length === 0 });
+      kids.forEach(function(c) { walk(c, depth + 1); });
+    }
+    if (tree.rootId) walk(tree.rootId, 0);
+    return { rows: rows };
+  }
+
   window.GrammarKnowledgeViewModel = {
+    buildDecisionTree: buildDecisionTree,
+    buildGuidedStepModel: buildGuidedStepModel,
+    buildDecisionOutlineModel: buildDecisionOutlineModel,
     BOOK_ORDER: BOOK_ORDER,
     COVER_MAP: COVER_MAP,
     CATEGORY_STAT_COLORS: CATEGORY_STAT_COLORS,
