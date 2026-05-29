@@ -329,7 +329,7 @@
       var completed = 0;
 
       setAiProgress(30);
-      startAiDrift(30, 85, Math.max(25000, batchPlan.length * 8000));
+      startAiDrift(30, 90, Math.max(60000, batchPlan.length * 12000));
 
       async function runOneChunk(i) {
         if (_abortAiParse) return;

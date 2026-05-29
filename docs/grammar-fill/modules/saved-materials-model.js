@@ -634,6 +634,8 @@
 
   function buildWordImportSplitProgressModel(textLength, batchCount, usedFallback) {
     return {
+      titleText: 'AI 正在解析…',
+      descriptionText: '正在逐空生成答案、考点和做题思路；通常十几秒，网络慢时可能要 1 分钟，请耐心等待。',
       progress: 15,
       stages: [
         { label: '提取 Word 文本（' + (Number(textLength) || 0) + ' 字）', status: 'done' },

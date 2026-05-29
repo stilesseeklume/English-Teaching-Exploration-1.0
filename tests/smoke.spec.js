@@ -2738,6 +2738,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && wordLargeConfirm.indexOf('点确定继续') !== -1
       && wordSplitProgress && wordSplitProgress.progress === 15
       && wordSplitProgress.stages[1].label.indexOf('启发式') !== -1
+      && wordSplitProgress.titleText === 'AI 正在解析…'
+      && wordSplitProgress.descriptionText.indexOf('请耐心等待') !== -1
       && wordChunkProgress && wordChunkProgress.stages[2].label === 'AI 分批解析（2/3）'
       && wordCompleteProgress && wordCompleteProgress.progress === 100
       && wordCompleteProgress.hideDelayMs === 400
