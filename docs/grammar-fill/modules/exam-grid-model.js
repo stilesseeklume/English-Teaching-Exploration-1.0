@@ -26,6 +26,13 @@
     return asCount(exam.blank_count) || asArray(exam.questions).length;
   }
 
+  function buildAction(fn, value) {
+    return {
+      fn: fn,
+      value: value == null ? '' : String(value)
+    };
+  }
+
   function normalizeYear(year) {
     if (year === null || year === undefined || year === '') return '未知';
     return String(year);
@@ -44,11 +51,15 @@
 
   function buildExamCardModel(exam) {
     exam = exam || {};
+    var id = exam.exam_id || '';
+    var blankCount = getExamBlankCount(exam);
     return {
-      id: exam.exam_id || '',
+      id: id,
       type: exam.type || '真题',
       tagClass: getExamTagClass(exam.type),
-      blankCount: getExamBlankCount(exam)
+      blankCount: blankCount,
+      descriptionText: '语法填空 · ' + blankCount + ' 题',
+      action: buildAction('startByExam', id)
     };
   }
 
@@ -59,9 +70,11 @@
       (byYear[year] = byYear[year] || []).push(exam);
     });
     return Object.keys(byYear).sort(compareYearDesc).map(function(year) {
+      var count = byYear[year].length;
       return {
         year: year,
-        count: byYear[year].length,
+        count: count,
+        titleText: year + ' 年 · ' + count + ' 套',
         items: byYear[year].map(buildExamCardModel)
       };
     });
@@ -70,6 +83,15 @@
   function buildExamGridModel(exams) {
     return {
       groups: groupExamsByYear(exams)
+    };
+  }
+
+  function buildExamYearTogglePlan(currentDisplay) {
+    var shouldExpand = currentDisplay === 'none';
+    return {
+      expanded: shouldExpand,
+      bodyDisplay: shouldExpand ? 'block' : 'none',
+      arrowTransform: shouldExpand ? 'rotate(0deg)' : 'rotate(-90deg)'
     };
   }
 
@@ -82,6 +104,7 @@
     compareYearDesc: compareYearDesc,
     buildExamCardModel: buildExamCardModel,
     groupExamsByYear: groupExamsByYear,
-    buildExamGridModel: buildExamGridModel
+    buildExamGridModel: buildExamGridModel,
+    buildExamYearTogglePlan: buildExamYearTogglePlan
   };
 })();

@@ -35,6 +35,18 @@
     };
   }
 
+  function buildPracticeShellModel(currentExam, questions, showAnswers, showChinese) {
+    var bodyKind = getPracticeBodyKind(currentExam, showChinese);
+    var toggle = buildToggleModel(showAnswers, showChinese);
+    return {
+      bodyKind: bodyKind,
+      header: buildPracticeHeaderModel(currentExam, questions),
+      toggle: toggle,
+      hintText: '💡 点击文中空白处，弹出解析与迁移训练',
+      answerToggleVisible: toggle.answerVisible && bodyKind !== 'chinese'
+    };
+  }
+
   function getStoredChineseText(currentExam, questions, examsById) {
     currentExam = currentExam || {};
     questions = asArray(questions);
@@ -183,6 +195,87 @@
     };
   }
 
+  function getPracticeBodyKind(currentExam, showChinese) {
+    currentExam = currentExam || {};
+    if (showChinese) return 'chinese';
+    if (currentExam.mode === 'error') return 'error';
+    if (currentExam.mode === 'category') return 'category';
+    if (currentExam.mode === 'prep' || currentExam.mode === 'exam') return 'sequential';
+    return 'empty';
+  }
+
+  function normalizeIndex(value) {
+    var index = Number(value);
+    return isFinite(index) ? index : 0;
+  }
+
+  function buildBlankSlotModel(question, index, fallbackNo, showAnswers) {
+    question = question || {};
+    var no = asText(fallbackNo) || asText(question.no);
+    var answer = asText(question.answer);
+    if (showAnswers) {
+      return {
+        kind: 'answer',
+        index: normalizeIndex(index),
+        no: no,
+        text: answer,
+        answer: answer,
+        clickable: false
+      };
+    }
+    return {
+      kind: 'blank',
+      index: normalizeIndex(index),
+      no: no,
+      text: no,
+      answer: answer,
+      clickable: true
+    };
+  }
+
+  function buildUnmatchedBlankWarningModel(unmatchedItems) {
+    var items = asArray(unmatchedItems).map(function(item) {
+      item = item || {};
+      var question = item.question || {};
+      return {
+        question: question,
+        index: normalizeIndex(item.index),
+        no: asText(question.no)
+      };
+    });
+    return {
+      visible: items.length > 0,
+      title: '以下空格在原文中未找到位置标记，请手动核对：',
+      items: items
+    };
+  }
+
+  function buildQuestionNoNavigationPlan(questions, no) {
+    questions = asArray(questions);
+    var normalizedNo = asText(no);
+    var index = questions.findIndex(function(question) {
+      return asText(question && question.no) === normalizedNo;
+    });
+    return {
+      action: index >= 0 ? 'show-analysis' : 'none',
+      index: index,
+      no: normalizedNo
+    };
+  }
+
+  function buildCategoryJumpPlan(questions, category) {
+    questions = asArray(questions);
+    var normalizedCategory = asText(category);
+    var index = questions.findIndex(function(question) {
+      return question && question.category === normalizedCategory;
+    });
+    return {
+      action: index >= 0 ? 'show-analysis' : 'none',
+      index: index,
+      category: normalizedCategory
+    };
+  }
+
   function applySequentialBlankReplacements(currentExam, questions, replacer) {
     questions = asArray(questions);
     replacer = replacer || function() { return ''; };
@@ -208,6 +301,7 @@
     escapeRegExpText: escapeRegExpText,
     buildPracticeHeaderModel: buildPracticeHeaderModel,
     buildToggleModel: buildToggleModel,
+    buildPracticeShellModel: buildPracticeShellModel,
     getStoredChineseText: getStoredChineseText,
     splitTranslationParagraphs: splitTranslationParagraphs,
     buildChinesePassageModel: buildChinesePassageModel,
@@ -220,6 +314,11 @@
     splitPassageParagraphs: splitPassageParagraphs,
     getUnmatchedQuestions: getUnmatchedQuestions,
     buildSequentialPassageModel: buildSequentialPassageModel,
+    getPracticeBodyKind: getPracticeBodyKind,
+    buildBlankSlotModel: buildBlankSlotModel,
+    buildUnmatchedBlankWarningModel: buildUnmatchedBlankWarningModel,
+    buildQuestionNoNavigationPlan: buildQuestionNoNavigationPlan,
+    buildCategoryJumpPlan: buildCategoryJumpPlan,
     applySequentialBlankReplacements: applySequentialBlankReplacements
   };
 })();

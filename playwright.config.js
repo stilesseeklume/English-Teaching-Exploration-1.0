@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const externalBaseURL = process.env.SEEKLUME_BASE_URL;
-const smokePort = process.env.SEEKLUME_SMOKE_PORT || '8797';
-const localBaseURL = `http://127.0.0.1:${smokePort}`;
+const smokePort = process.env.SEEKLUME_SMOKE_PORT || '8931';
+const localBaseURL = `http://localhost:${smokePort}`;
 
 export default defineConfig({
   testDir: './tests',

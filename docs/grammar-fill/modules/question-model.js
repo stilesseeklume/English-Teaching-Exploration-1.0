@@ -123,6 +123,10 @@
     };
   }
 
+  function getMissingExamMessage(examId) {
+    return '未找到该套卷：' + (examId == null ? '' : String(examId));
+  }
+
   function createErrorStateForQuestion(q, categoryMap) {
     categoryMap = categoryMap || {};
     if (!q) return null;
@@ -159,6 +163,7 @@
     createExamQuestionFromRaw: createExamQuestionFromRaw,
     buildExamQuestions: buildExamQuestions,
     createExamStateFromId: createExamStateFromId,
+    getMissingExamMessage: getMissingExamMessage,
     createErrorStateForQuestion: createErrorStateForQuestion,
     countByFineTag: countByFineTag,
     getFrequencyStyle: getFrequencyStyle

@@ -26,6 +26,13 @@
     return isGreenExamType(type) ? ' green' : '';
   }
 
+  function buildAction(fn, value) {
+    return {
+      fn: fn,
+      value: value == null ? '' : String(value)
+    };
+  }
+
   function groupExamsByYear(exams, activeExamId) {
     var byYear = {};
     asArray(exams).forEach(function(exam) {
@@ -42,11 +49,15 @@
         count: byYear[year].length,
         items: byYear[year].map(function(exam) {
           exam = exam || {};
+          var id = exam.exam_id || '';
+          var blankCount = exam.blank_count || ((exam.questions || []).length);
           return {
-            id: exam.exam_id || '',
+            id: id,
             type: exam.type || '真题',
             tagClass: getExamTagClass(exam.type),
-            blankCount: exam.blank_count || ((exam.questions || []).length),
+            blankCount: blankCount,
+            countText: blankCount + '题',
+            action: buildAction('startByExam', id),
             active: !!activeExamId && activeExamId === exam.exam_id
           };
         })
@@ -58,10 +69,13 @@
     categoryMap = categoryMap || {};
     questions = asArray(questions);
     return Object.keys(categoryMap).map(function(category) {
+      var count = questions.filter(function(q) { return q && q.category === category; }).length;
       return {
         category: category,
         label: getCategoryLabel(category, categoryMap),
-        count: questions.filter(function(q) { return q && q.category === category; }).length,
+        count: count,
+        countText: count + ' 题',
+        action: buildAction('startByCategory', category),
         active: activeCategory === category
       };
     });
@@ -80,11 +94,15 @@
         label: getCategoryLabel(category, categoryMap),
         items: byCategory[category].map(function(question) {
           question = question || {};
+          var id = question.id || '';
+          var no = question.no || '';
           return {
-            id: question.id || '',
-            no: question.no || '',
+            id: id,
+            no: no,
+            noText: '第' + no + '题',
             answer: question.answer || '',
             categoryLabel: getCategoryLabel(question.category, categoryMap),
+            action: buildAction('viewErrorQuestion', id),
             active: !!activeQuestionId && activeQuestionId === question.id
           };
         })
@@ -96,11 +114,15 @@
     categoryMap = categoryMap || {};
     return asArray(errorQuestions).map(function(question) {
       question = question || {};
+      var id = question.id || '';
+      var no = question.no || '';
       return {
-        id: question.id || '',
-        no: question.no || '',
+        id: id,
+        no: no,
+        noText: '第' + no + '题',
         answer: question.answer || '',
         categoryLabel: getCategoryLabel(question.category, categoryMap),
+        action: buildAction('viewErrorQuestion', id),
         active: !!activeQuestionId && activeQuestionId === question.id
       };
     });
@@ -109,10 +131,14 @@
   function buildPrepItems(prepPassages, activePrepId) {
     return asArray(prepPassages).map(function(passage) {
       passage = passage || {};
+      var id = passage.id || '';
+      var blankCount = (passage.blanks || []).length;
       return {
-        id: passage.id || '',
+        id: id,
         title: passage.title || '未命名备课',
-        blankCount: (passage.blanks || []).length,
+        blankCount: blankCount,
+        countText: blankCount + '题',
+        action: buildAction('viewPrepPassage', id),
         active: !!activePrepId && activePrepId === passage.id
       };
     });
@@ -214,6 +240,7 @@
     getCategoryLabel: getCategoryLabel,
     isGreenExamType: isGreenExamType,
     getExamTagClass: getExamTagClass,
+    buildAction: buildAction,
     groupExamsByYear: groupExamsByYear,
     buildCategoryItems: buildCategoryItems,
     buildErrorCategoryGroups: buildErrorCategoryGroups,

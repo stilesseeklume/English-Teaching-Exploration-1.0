@@ -29,6 +29,22 @@
     return '晚上好';
   }
 
+  function getModulesGreeting(hour) {
+    hour = typeof hour === 'number' ? hour : new Date().getHours();
+    if (hour < 6) return '夜深辛苦了';
+    if (hour < 11) return '上午好';
+    if (hour < 13) return '中午好';
+    if (hour < 18) return '下午好';
+    if (hour < 22) return '晚上好';
+    return '今天也辛苦了';
+  }
+
+  function buildModulesGreetingText(displayName, hour) {
+    var greeting = getModulesGreeting(hour);
+    displayName = displayName || '';
+    return displayName ? (greeting + '，' + displayName) : greeting;
+  }
+
   function getUserActivityState(values) {
     values = values || {};
     var prepCount = asCount(values.prepCount);
@@ -46,29 +62,204 @@
     };
   }
 
+  function buildHomeSummaryModel(values) {
+    values = values || {};
+    var examCount = asCount(values.examCount);
+    var questionCount = asCount(values.questionCount);
+    var errorCount = asCount(values.errorCount);
+    var prepCount = asCount(values.prepCount);
+    return {
+      examCount: examCount,
+      questionCount: questionCount,
+      errorCount: errorCount,
+      prepCount: prepCount,
+      bankStatText: '题库：' + examCount + ' 套卷 · ' + questionCount + ' 题（数据源：data/语法填空库）。',
+      errorCountText: errorCount + ' 道错题',
+      prepCountText: prepCount + ' 份资料'
+    };
+  }
+
+  function buildAction(type, value) {
+    return {
+      type: type || '',
+      value: value == null ? '' : String(value)
+    };
+  }
+
+  function normalizeDashboardAction(action) {
+    action = action || {};
+    return buildAction(action.type, action.value);
+  }
+
+  function buildDashboardActionExecutionPlan(action) {
+    action = normalizeDashboardAction(action);
+    if (action.type === 'upload-word') {
+      return {
+        action: action,
+        immediateSteps: [
+          { kind: 'switch-page', page: action.value || 'lesson-prep' }
+        ],
+        delayedSteps: [
+          { kind: 'click-upload-button', selector: '#page-lesson-prep .docx-upload-btn', delayMs: 120 }
+        ]
+      };
+    }
+    if (action.type === 'switch-page') {
+      return {
+        action: action,
+        immediateSteps: [
+          { kind: 'switch-page', page: action.value || 'home' }
+        ],
+        delayedSteps: []
+      };
+    }
+    if (action.type === 'open-textbook') {
+      return {
+        action: action,
+        immediateSteps: [
+          { kind: 'switch-page', page: 'knowledge' }
+        ],
+        delayedSteps: [
+          { kind: 'set-knowledge-view', view: 'textbook', delayMs: 80 },
+          { kind: 'open-textbook-modal', book: action.value || '', delayMs: 130 }
+        ]
+      };
+    }
+    return {
+      action: action,
+      immediateSteps: [],
+      delayedSteps: []
+    };
+  }
+
+  function getHeroModel(activity) {
+    activity = activity || getUserActivityState({});
+    if (activity.isNewUser) {
+      return {
+        kickerText: '👋 欢迎来到 Seeklume',
+        titleText: '高中英语 · 语法填空讲评工作台',
+        bodyParts: [
+          { text: '第一步：上传一份你最近讲的卷子，AI 自动解析每道题并按考点分类，下次讲新题时跨卷迁移自动联动。' }
+        ]
+      };
+    }
+    return {
+      kickerText: '👋 ' + activity.greeting,
+      titleText: '今天讲哪份卷子？',
+      bodyParts: [
+        { text: '你已积累 ' },
+        { text: activity.statusText, strong: true },
+        { text: '。继续上次的备课，或者上传一份新卷子。' }
+      ]
+    };
+  }
+
+  function getDashboardActions(activity) {
+    activity = activity || getUserActivityState({});
+    return [
+      {
+        key: 'upload-word',
+        icon: '📤',
+        label: '上传新 Word',
+        subtitleText: 'AI 自动解析 + 入库',
+        tone: 'primary',
+        count: null,
+        action: buildAction('upload-word', 'lesson-prep')
+      },
+      {
+        key: 'lesson-prep',
+        icon: '📖',
+        label: '继续备课讲题',
+        subtitleText: activity.prepCount + ' 份备课资料',
+        tone: 'accent',
+        count: activity.prepCount,
+        action: buildAction('switch-page', 'lesson-prep')
+      },
+      {
+        key: 'error-book',
+        icon: '🎯',
+        label: '复习错题',
+        subtitleText: activity.errorCount + ' 道待复习',
+        tone: 'red',
+        count: activity.errorCount,
+        action: buildAction('switch-page', 'error-book')
+      },
+      {
+        key: 'knowledge',
+        icon: '📚',
+        label: '知识库',
+        subtitleText: '教材 + 102 精细考点',
+        tone: 'purple',
+        count: null,
+        action: buildAction('switch-page', 'knowledge')
+      }
+    ];
+  }
+
+  function getActionButtonChrome(tone) {
+    var base = 'padding:14px 16px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:4px;transition:all .18s;';
+    if (tone === 'primary') {
+      return {
+        style: 'background:var(--accent);color:#fff;border:none;' + base + 'box-shadow:0 4px 14px rgba(0,113,227,0.2);',
+        mouseover: "this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 22px rgba(0,113,227,0.3)'",
+        mouseout: "this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,113,227,0.2)'"
+      };
+    }
+    var hover = {
+      accent: { border: 'var(--accent)', background: 'var(--accent-bg)' },
+      red: { border: 'var(--red)', background: 'var(--red-bg)' },
+      purple: { border: 'var(--purple, #af52de)', background: 'var(--purple-bg, #f6edfb)' }
+    }[tone] || { border: 'var(--accent)', background: 'var(--accent-bg)' };
+    return {
+      style: 'background:var(--surface);color:var(--text);border:1px solid var(--border);' + base,
+      mouseover: "this.style.borderColor='" + hover.border + "';this.style.background='" + hover.background + "'",
+      mouseout: "this.style.borderColor='var(--border)';this.style.background='var(--surface)'"
+    };
+  }
+
+  function buildDashboardActionButtonModel(item) {
+    item = item || {};
+    return Object.assign({}, item, {
+      chrome: getActionButtonChrome(item.tone || ''),
+      subtitleStyle: item.tone === 'primary'
+        ? 'opacity:0.85;'
+        : 'color:var(--text-3);'
+    });
+  }
+
   function getTextbookGallery(textbookUnits) {
     if (!Array.isArray(textbookUnits) || !textbookUnits.length) return [];
     return BOOK_ORDER.map(function(book, idx) {
       return {
         book: book,
         cover: COVER_MAP[book],
-        animationDelayMs: idx * 40
+        labelText: book,
+        animationDelayMs: idx * 40,
+        action: buildAction('open-textbook', book)
       };
     });
+  }
+
+  function getTextbookSectionModel(books) {
+    books = Array.isArray(books) ? books : [];
+    return {
+      visible: books.length > 0,
+      titleText: '📚 教材速览',
+      actionLabel: '展开全部 →',
+      action: buildAction('switch-page', 'knowledge')
+    };
   }
 
   function buildDashboardModel(values) {
     values = values || {};
     var activity = getUserActivityState(values);
+    var books = getTextbookGallery(values.textbookUnits);
     return {
       activity: activity,
-      books: getTextbookGallery(values.textbookUnits),
-      actions: [
-        { key: 'upload-word', label: '上传新 Word', count: null },
-        { key: 'lesson-prep', label: '继续备课讲题', count: activity.prepCount },
-        { key: 'error-book', label: '复习错题', count: activity.errorCount },
-        { key: 'knowledge', label: '知识库', count: null }
-      ]
+      hero: getHeroModel(activity),
+      books: books,
+      textbookSection: getTextbookSectionModel(books),
+      actions: getDashboardActions(activity).map(buildDashboardActionButtonModel)
     };
   }
 
@@ -76,7 +267,14 @@
     BOOK_ORDER: BOOK_ORDER,
     COVER_MAP: COVER_MAP,
     getGreeting: getGreeting,
+    getModulesGreeting: getModulesGreeting,
+    buildModulesGreetingText: buildModulesGreetingText,
     getUserActivityState: getUserActivityState,
+    buildHomeSummaryModel: buildHomeSummaryModel,
+    normalizeDashboardAction: normalizeDashboardAction,
+    buildDashboardActionExecutionPlan: buildDashboardActionExecutionPlan,
+    getActionButtonChrome: getActionButtonChrome,
+    buildDashboardActionButtonModel: buildDashboardActionButtonModel,
     getTextbookGallery: getTextbookGallery,
     buildDashboardModel: buildDashboardModel
   };

@@ -42,6 +42,17 @@
   var MAX_BATCH_CHUNKS = 80;
   var PARSE_CONCURRENCY = 3;
 
+  function escapeImportText(value) {
+    if (typeof window.escapeHtml === 'function') return window.escapeHtml(value);
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+      return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+    });
+  }
+
+  function getSavedMaterialsModel() {
+    return window.GrammarSavedMaterialsModel || null;
+  }
+
   // ─── Hover 演示（可选）─────────────────────────
   function showImportDemo(e) {
     clearTimeout(_demoTimer);
@@ -118,6 +129,19 @@
       return '<div style="color:' + color + ';">' + icon + ' ' + s.label + '</div>';
     }).join('');
   }
+  function applyAiProgressModel(model) {
+    if (!model) return;
+    if (Object.prototype.hasOwnProperty.call(model, 'titleText')) {
+      showAiOverlay(model.titleText, model.descriptionText || '');
+    }
+    if (typeof model.progress === 'number') setAiProgress(model.progress);
+    if (Array.isArray(model.stages)) renderAiStages(model.stages);
+  }
+  function callSavedMaterialsModel(fnName, args) {
+    var savedModel = getSavedMaterialsModel();
+    if (!savedModel || typeof savedModel[fnName] !== 'function') return null;
+    return savedModel[fnName].apply(savedModel, args || []);
+  }
   function startAiDrift(from, to, durationMs) {
     stopAiDrift();
     _aiDriftTarget = to;
@@ -137,307 +161,32 @@
     if (_aiDriftTimer) { clearInterval(_aiDriftTimer); _aiDriftTimer = null; }
   }
 
-  // ─── Word 预处理：先把大合集拆成小篇章 ───────────────
+  function getWordImportModel() {
+    if (!window.GrammarWordImportModel) {
+      throw new Error(callSavedMaterialsModel('getWordImportModuleMissingMessage')
+        || 'Word 导入模块尚未加载，请刷新后重试。');
+    }
+    return window.GrammarWordImportModel;
+  }
+
   function normalizeImportText(text) {
-    return String(text || '')
-      .replace(/\u200e|\u200f/g, '')
-      .replace(/\r\n?/g, '\n')
-      .replace(/\u00a0/g, ' ')
-      .trim();
-  }
-
-  function isPassageTitle(line) {
-    var s = String(line || '').trim();
-    if (!s) return false;
-    if (/^【/.test(s)) return false;
-    if (/^[一二三四五六七八九十]+[、.]/.test(s) && /语法填空|英语试题|英语试卷/.test(s)) return true;
-    if (/^\d{1,3}[.、．]\s*\S/.test(s) && /语法填空|英语试题|英语试卷|质量|检测|联考|模拟|期末|月考|一模|二模|高考|届|省|市|区|中学/.test(s)) return true;
-    if (/^(Passage|Text|Article)\s*\d+/i.test(s)) return true;
-    // 合集序号：（1）（2）... 单独成行（精练系列/专题合集格式）
-    if (/^[（(]\d{1,2}[）)]\s*$/.test(s)) return true;
-    // 两位数序号 + 省市（39套卷格式：01  浙江省... / 02  广东省...）
-    if (/^\d{1,2}\s+.{0,30}[省市区县]/.test(s)) return true;
-    // 第N套/篇/段（其他合集格式）
-    if (/^第\s*\d+\s*[套篇段卷]/.test(s)) return true;
-    return false;
-  }
-
-  function titleKey(title) {
-    return String(title || '')
-      .replace(/^\s*\d{1,3}[.、．]\s*/, '')
-      .replace(/\s+/g, '')
-      .replace(/[（）()·\-—_]/g, '')
-      .trim();
-  }
-
-  function countBlankMarkers(text) {
-    var m = String(text || '').match(/_{2,}\s*\d{1,3}\s*_{2,}/g);
-    return m ? m.length : 0;
-  }
-
-  function normalizeBlankMarkers(text) {
-    return String(text || '').replace(/_{2,}\s*(\d{1,3})\s*_{2,}/g, function(_m, no) {
-      return '___' + String(parseInt(no, 10)) + '___';
-    });
-  }
-
-  function extractBlankNos(text) {
-    var out = [];
-    var seen = {};
-    String(text || '').replace(/_{2,}\s*(\d{1,3})\s*_{2,}/g, function(_m, no) {
-      var n = parseInt(no, 10);
-      if (!seen[n]) { seen[n] = true; out.push(n); }
-      return _m;
-    });
-    return out;
-  }
-
-  function splitByTitle(text) {
-    var lines = normalizeImportText(text).split('\n');
-    var chunks = [];
-    var cur = null;
-    lines.forEach(function(line) {
-      if (isPassageTitle(line)) {
-        if (cur) chunks.push(cur);
-        cur = { title: line.trim(), lines: [line] };
-      } else if (cur) {
-        cur.lines.push(line);
-      }
-    });
-    if (cur) chunks.push(cur);
-    return chunks;
-  }
-
-  // 启发式兜底：按"中文短行+英文内容块"切割，用于 isPassageTitle 完全无法识别格式的文档
-  function splitByParagraph(text) {
-    var paras = text.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean);
-    var chunks = [];
-    var curLines = [];
-    var pendingTitle = null;
-    var idx = 0;
-
-    function flushChunk() {
-      var content = curLines.join('\n');
-      if (content.length >= 300 && /[a-zA-Z]{3,}/.test(content)) {
-        idx++;
-        chunks.push({ title: pendingTitle || ('篇章 ' + idx), lines: curLines.slice() });
-      }
-      curLines = [];
-      pendingTitle = null;
-    }
-
-    paras.forEach(function(para) {
-      var hasEnglish = /[a-zA-Z]{3,}/.test(para);
-      var isShortChinese = !hasEnglish && para.length < 60 && /[一-鿿]/.test(para);
-      if (isShortChinese) {
-        // 短中文行可能是篇章分隔标题：先把前一段英文内容 flush 掉
-        if (curLines.join('\n').length > 500) flushChunk();
-        pendingTitle = para;
-      } else {
-        curLines.push(para);
-      }
-    });
-    flushChunk();
-    return chunks;
-  }
-
-  function extractAnswersFromChunk(text) {
-    var s = normalizeImportText(text);
-    var ansPos = s.indexOf('【答案】');
-    if (ansPos === -1) return {};
-    var end = s.indexOf('【解析】', ansPos);
-    var block = (end === -1 ? s.slice(ansPos) : s.slice(ansPos, end))
-      .replace(/【答案】/g, ' ')
-      .replace(/\r?\n/g, ' ');
-    var answers = {};
-    var re = /(\d{1,3})[.．、]\s*([^\d]+?)(?=\s+\d{1,3}[.．、]|$)/g;
-    var m;
-    while ((m = re.exec(block))) {
-      var no = parseInt(m[1], 10);
-      var ans = String(m[2] || '')
-        .replace(/^[：:\s]+/, '')
-        .replace(/[；;，,。]+$/g, '')
-        .trim();
-      if (ans) answers[no] = ans;
-    }
-    return answers;
-  }
-
-  function buildFallbackBlanks(passage, answers) {
-    var nos = extractBlankNos(passage);
-    return nos.map(function(no) {
-      var answer = (answers && answers[no]) || '?';
-      return {
-        no: no,
-        answer: answer,
-        category: 'word',
-        analysis: answer === '?' ? '暂未识别到答案，可在导入后手动修正。' : ('答案：' + answer + '。')
-      };
-    });
+    return getWordImportModel().normalizeImportText(text);
   }
 
   function splitDocxText(text) {
-    _splitUsedFallback = false;
-    var normalized = normalizeImportText(text);
-    var rawChunks = splitByTitle(normalized);
-
-    // 大文档且完全识别不到标题时，启用启发式段落切割兜底
-    if (rawChunks.length === 0 && normalized.length > 15000) {
-      rawChunks = splitByParagraph(normalized);
-      if (rawChunks.length > 0) _splitUsedFallback = true;
-    }
-
-    if (rawChunks.length === 0) {
-      return [{
-        title: '未命名 1',
-        text: normalized,
-        answers: {},
-        fallback: {
-          title: '未命名 1',
-          passage: normalizeBlankMarkers(normalized),
-          blanks: buildFallbackBlanks(normalized, {})
-        }
-      }];
-    }
-
-    var answerByKey = {};
-    rawChunks.forEach(function(c) {
-      var block = c.lines.join('\n');
-      var answers = extractAnswersFromChunk(block);
-      if (Object.keys(answers).length > 0) answerByKey[titleKey(c.title)] = answers;
+    var plan = getWordImportModel().buildDocxBatchPlan(text, {
+      maxBatchChunks: MAX_BATCH_CHUNKS
     });
-
-    var out = [];
-    rawChunks.forEach(function(c) {
-      var block = c.lines.join('\n');
-      // 跳过目录行、纯中文标题行（太短 或 没有连续英文字母）
-      // 注意：不再用 countBlankMarkers，因为很多文档的空格是"  56  (appear)"格式，不是___N___
-      if (block.length < 200 || !/[a-zA-Z]{3,}/.test(block)) return;
-      var cut = block;
-      var ansPos = cut.indexOf('【答案】');
-      if (ansPos !== -1) cut = cut.slice(0, ansPos);
-      var parseText = normalizeBlankMarkers(cut);
-      var answers = answerByKey[titleKey(c.title)] || extractAnswersFromChunk(block) || {};
-      out.push({
-        title: c.title.trim(),
-        text: parseText,
-        answers: answers,
-        fallback: {
-          title: c.title.trim(),
-          passage: parseText,
-          blanks: buildFallbackBlanks(parseText, answers)
-        }
-      });
-    });
-
-    if (out.length === 0) {
-      out.push({
-        title: '未命名 1',
-        text: normalized,
-        answers: {},
-        fallback: {
-          title: '未命名 1',
-          passage: normalizeBlankMarkers(normalized),
-          blanks: buildFallbackBlanks(normalized, {})
-        }
-      });
-    }
-    return out.slice(0, MAX_BATCH_CHUNKS);
-  }
-
-  function mergeAnswersIntoPassage(passage, answers) {
-    if (!answers) return passage;
-    passage.blanks = (passage.blanks || []).map(function(b) {
-      var no = parseInt(b.no, 10);
-      if ((!b.answer || b.answer === '?') && answers[no]) b.answer = answers[no];
-      return b;
-    });
-    return passage;
+    _splitUsedFallback = !!plan.usedFallback;
+    return plan.chunks || [];
   }
 
   function normalizeParsedPassages(parsed, fallbackTitle, fallbackAnswers) {
-    var passagesArr = [];
-    if (Array.isArray(parsed)) {
-      passagesArr = parsed;
-    } else if (parsed && Array.isArray(parsed.passages)) {
-      passagesArr = parsed.passages;
-    } else if (parsed && parsed.passage && Array.isArray(parsed.blanks)) {
-      passagesArr = [parsed];
-    } else {
-      throw new Error('AI 返回的数据格式不正确：\n' + JSON.stringify(parsed).substring(0, 300));
-    }
-
-    return passagesArr.filter(function(p) {
-      return p && (p.passage || (Array.isArray(p.blanks) && p.blanks.length));
-    }).map(function(p, i) {
-      var item = {
-        title: (p.title && String(p.title).trim()) || fallbackTitle || ('未命名 ' + (i + 1)),
-        passage: normalizeBlankMarkers(p.passage || ''),
-        blanks: Array.isArray(p.blanks) ? p.blanks : []
-      };
-      item.blanks = item.blanks.map(function(b, bi) {
-        var no = parseInt(b.no, 10);
-        return {
-          no: isNaN(no) ? (bi + 1) : no,
-          answer: (b.answer || '?').toString().trim(),
-          category: b.category || 'word',
-          fine_category: b.fine_category || '',
-          analysis: (b.analysis || '').toString().trim(),
-          nonp_function: b.nonp_function || '',
-          nonp_function_label: b.nonp_function_label || '',
-          nonp_form: b.nonp_form || '',
-          nonp_form_label: b.nonp_form_label || '',
-          nonp_rule: b.nonp_rule || '',
-          nonp_needs_review: b.nonp_needs_review || false
-        };
-      });
-      return mergeAnswersIntoPassage(item, fallbackAnswers);
-    });
-  }
-
-  function repairPassageMarkers(p) {
-    p.passage = normalizeBlankMarkers(p.passage || '');
-    var markerNos = extractBlankNos(p.passage);
-    var markerSet = {};
-    markerNos.forEach(function(no) { markerSet[no] = true; });
-    if (markerNos.length === 0 && p.blanks.length > 0) {
-      p.passage += '\n\n' + p.blanks.map(function(b) { return '___' + b.no + '___'; }).join(' ');
-      return p;
-    }
-    var missing = (p.blanks || []).filter(function(b) { return !markerSet[parseInt(b.no, 10)]; });
-    if (missing.length > 0) {
-      p.passage += '\n\n未定位空格：' + missing.map(function(b) { return '___' + b.no + '___'; }).join(' ');
-    }
-    return p;
+    return getWordImportModel().normalizeParsedPassages(parsed, fallbackTitle, fallbackAnswers);
   }
 
   function finalizePassages(passagesArr) {
-    passagesArr = passagesArr.map(repairPassageMarkers);
-    var seenSigs = {};
-    passagesArr = passagesArr.filter(function(p) {
-      var sig = (p.blanks || []).map(function(b) {
-        return (b.no || '') + '=' + (b.answer || '').trim();
-      }).sort(function(a, b) { return a < b ? -1 : a > b ? 1 : 0; }).join('|');
-      if (!sig) return true;
-      if (seenSigs[sig]) return false;
-      seenSigs[sig] = p;
-      return true;
-    });
-    passagesArr = passagesArr.filter(function(p) { return p.blanks && p.blanks.length > 0; });
-
-    // 同名标题去重：加"第N篇"后缀，让同一批导入的多篇可区分
-    var titleCount = {};
-    passagesArr.forEach(function(p) { titleCount[p.title] = (titleCount[p.title] || 0) + 1; });
-    var titleIdx = {};
-    passagesArr = passagesArr.map(function(p) {
-      if (titleCount[p.title] > 1) {
-        titleIdx[p.title] = (titleIdx[p.title] || 0) + 1;
-        p.title = p.title + ' · 第' + titleIdx[p.title] + '篇';
-      }
-      return p;
-    });
-
-    return passagesArr;
+    return getWordImportModel().finalizePassages(passagesArr);
   }
 
   async function fetchDeepSeekParse(text, token) {
@@ -465,26 +214,18 @@
           text_length: text.length
         });
       }
-      if (fetchErr.name === 'AbortError') {
-        throw new Error('AI 解析超时（超过 90 秒）。\nDeepSeek 服务可能繁忙，请稍后重试，或将文档拆小后重传。');
-      }
-      throw new Error('网络请求失败：' + (fetchErr.message || String(fetchErr)));
+      throw new Error(callSavedMaterialsModel('buildAiParseNetworkErrorMessage', [fetchErr])
+        || ('网络请求失败：' + (fetchErr.message || String(fetchErr))));
     }
     clearTimeout(timeoutId);
 
     if (!res.ok) {
       var errData;
       try { errData = await res.json(); } catch (e) { errData = {}; }
-      var msg;
-      if (errData.error && /无法解析为 JSON|JSON\s*parse|JSON\.parse/i.test(errData.error)) {
-        msg = 'AI 输出被截断，已尝试降级处理。';
-      } else if (errData.error && /AI 返回的数据格式不正确|格式不正确/i.test(errData.error)) {
-        msg = 'AI 没识别出题目。';
-      } else {
-        msg = errData.error || ('服务端错误 HTTP ' + res.status);
-      }
+      var errorModel = callSavedMaterialsModel('buildAiParseHttpErrorModel', [errData, res.status]) || {};
+      var msg = errorModel.message || errData.error || ('服务端错误 HTTP ' + res.status);
       var error = new Error(msg);
-      error.rawData = errData;
+      error.rawData = errorModel.rawData || errData;
       if (window.seeklumeObservability) {
         window.seeklumeObservability.recordError('ai_parse_http_failed', msg, {
           module: 'word-import',
@@ -521,14 +262,7 @@
       });
     }
 
-    showAiOverlay('正在提取 Word 文本…', '');
-    renderAiStages([
-      { label: '提取 Word 文本', status: 'doing' },
-      { label: '自动拆分篇章', status: 'todo' },
-      { label: 'AI 分批解析', status: 'todo' },
-      { label: '整理结果并入库', status: 'todo' },
-    ]);
-    setAiProgress(5);
+    applyAiProgressModel(callSavedMaterialsModel('buildWordImportInitialProgressModel'));
 
     try {
       var arrayBuffer = await file.arrayBuffer();
@@ -536,30 +270,29 @@
       var text = normalizeImportText(result.value || '');
 
       if (!text || text.length < 20) {
-        throw new Error('Word 文档内容太短或无法识别（仅支持 .docx 格式）。\n请确保文档包含完整的英文段落。');
+        throw new Error(callSavedMaterialsModel('getWordImportTooShortMessage')
+          || 'Word 文档内容太短或无法识别（仅支持 .docx 格式）。\n请确保文档包含完整的英文段落。');
       }
 
       if (text.length > BATCH_PARSE_CHAR_LIMIT) {
         hideAiOverlay();
-        var msg = '这份 Word 比较大（' + text.length.toLocaleString() + ' 字符）。\n\n'
-          + '系统会自动拆篇分批解析，不需要先手动裁剪。\n'
-          + '如果文档里混有答案区、解析区或多套卷，解析会慢一些，但不会一篇失败就整份失败。\n\n'
-          + '点确定继续；点取消稍后再传。';
+        var msg = callSavedMaterialsModel('buildWordImportLargeFileConfirmMessage', [text.length])
+          || ('这份 Word 比较大（' + text.length.toLocaleString() + ' 字符）。');
         if (!confirm(msg)) return;
-        showAiOverlay('正在提取 Word 文本…', '');
+        applyAiProgressModel(callSavedMaterialsModel('buildWordImportInitialProgressModel'));
       }
 
       var batchPlan = splitDocxText(text);
-      if (!batchPlan.length) throw new Error('没有识别到可解析的题目段落。');
+      if (!batchPlan.length) {
+        throw new Error(callSavedMaterialsModel('getWordImportNoSegmentsMessage')
+          || '没有识别到可解析的题目段落。');
+      }
 
-      setAiProgress(15);
-      var splitLabel = '自动拆分篇章（' + batchPlan.length + ' 篇' + (_splitUsedFallback ? '，启发式' : '') + '）';
-      renderAiStages([
-        { label: '提取 Word 文本（' + text.length + ' 字）', status: 'done' },
-        { label: splitLabel, status: 'done' },
-        { label: 'AI 分批解析', status: 'doing' },
-        { label: '整理结果并入库', status: 'todo' },
-      ]);
+      applyAiProgressModel(callSavedMaterialsModel('buildWordImportSplitProgressModel', [
+        text.length,
+        batchPlan.length,
+        _splitUsedFallback
+      ]));
 
       await parseWithDeepSeek(batchPlan, text.length);
 
@@ -571,7 +304,8 @@
           target: _docxImportTarget
         });
       }
-      alert('Word 解析失败：' + (err.message || String(err)));
+      alert(callSavedMaterialsModel('buildWordImportFailedAlertMessage', [err])
+        || ('Word 解析失败：' + (err.message || String(err))));
     } finally {
       input.value = '';
     }
@@ -584,7 +318,8 @@
       var session = window._sb ? await window._sb.auth.getSession() : null;
       if (!session || !session.data.session) {
         hideAiOverlay();
-        alert('请先登录后再使用 AI 解析功能。');
+        alert(callSavedMaterialsModel('getAiParseLoginRequiredMessage')
+          || '请先登录后再使用 AI 解析功能。');
         return;
       }
       var token = session.data.session.access_token;
@@ -599,12 +334,11 @@
       async function runOneChunk(i) {
         if (_abortAiParse) return;
         var chunk = batchPlan[i];
-        renderAiStages([
-          { label: '提取 Word 文本（' + originalLength + ' 字）', status: 'done' },
-          { label: '自动拆分篇章（' + batchPlan.length + ' 篇）', status: 'done' },
-          { label: 'AI 分批解析（' + completed + '/' + batchPlan.length + '）', status: 'doing' },
-          { label: '整理结果并入库', status: 'todo' },
-        ]);
+        applyAiProgressModel(callSavedMaterialsModel('buildWordImportChunkProgressModel', [
+          originalLength,
+          batchPlan.length,
+          completed
+        ]));
 
         try {
           var parsed = await fetchDeepSeekParse(chunk.text, token);
@@ -643,21 +377,23 @@
       if (_abortAiParse) { hideAiOverlay(); return; }
 
       passagesArr = finalizePassages(passagesArr);
-      if (passagesArr.length === 0) throw new Error('AI 没有识别出任何题目');
+      if (passagesArr.length === 0) {
+        throw new Error(callSavedMaterialsModel('getAiParseNoPassagesMessage')
+          || 'AI 没有识别出任何题目');
+      }
 
-      setAiProgress(100);
-      renderAiStages([
-        { label: '提取 Word 文本（' + originalLength + ' 字）', status: 'done' },
-        { label: '自动拆分篇章（' + batchPlan.length + ' 篇）', status: 'done' },
-        { label: 'AI 分批解析完成', status: 'done' },
-        { label: '整理结果（共 ' + passagesArr.length + ' 篇 · ' + passagesArr.reduce(function(s,p){return s + p.blanks.length;},0) + ' 题）', status: 'done' },
+      var completeModel = callSavedMaterialsModel('buildWordImportCompletionProgressModel', [
+        originalLength,
+        batchPlan.length,
+        passagesArr
       ]);
-      setTimeout(hideAiOverlay, 400);
+      applyAiProgressModel(completeModel);
+      setTimeout(hideAiOverlay, completeModel && completeModel.hideDelayMs || 400);
 
       if (fallbackCount > 0) {
         console.warn('有 ' + fallbackCount + ' 篇使用了答案/空格降级导入，解析可稍后补全。');
       }
-      setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, 200);
+      setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, completeModel && completeModel.openPanelDelayMs || 200);
       if (window.seeklumeObservability) {
         window.seeklumeObservability.recordEvent({
           event_type: 'ai_parse_completed',
@@ -687,10 +423,9 @@
 
       if (_abortAiParse) return;
 
-      if (confirm(
-        'AI 解析失败：' + (err.message || String(err)) + '\n\n' +
-        '是否将提取的原始文本放入批量导入框，方便手动整理？'
-      )) {
+      var confirmMessage = callSavedMaterialsModel('buildAiParseFailedFallbackConfirmMessage', [err])
+        || ('AI 解析失败：' + (err.message || String(err)));
+      if (confirm(confirmMessage)) {
         var rawText = Array.isArray(batchPlan) ? batchPlan.map(function(item) { return item.text; }).join('\n\n') : '';
         showRawTextFallback(rawText);
       }
@@ -699,67 +434,64 @@
 
   // ─── 统一导入面板 ─────────────────────────────
   // 行为根据 _docxImportTarget 分流：
-  //   'error' = 错题模式：只挑题进错题本，整篇绝不进备课资料；默认全选
+  //   'error' = 错题模式：只挑题进错题本，整篇绝不进备课资料
   //   'prep'  = 备课模式：整篇进备课资料，勾选的题额外进错题本（可选）
-  function openUnifiedImportPanel(passagesArr) {
-    _unifiedImportData = { passages: passagesArr };
-    var isErrorMode = (_docxImportTarget === 'error');
-
-    // 标题：明确告诉老师这次上传去哪
-    var titleEl = document.getElementById('unifiedImportTitle');
-    if (isErrorMode) {
-      titleEl.textContent = (passagesArr.length === 1 ? passagesArr[0].title : passagesArr.length + ' 篇') + ' · 挑题进错题本';
-    } else {
-      titleEl.textContent = (passagesArr.length === 1 ? passagesArr[0].title : passagesArr.length + ' 篇') + ' · 进备课资料（可选挑题）';
-    }
-
-    // 顶部精简提示
-    var modeBanner = isErrorMode
-      ? '<div style="color:var(--text-3);padding:4px 0 12px;font-size:13px;">勾选要加入错题本的题</div>'
-      : '<div style="color:var(--text-3);padding:4px 0 12px;font-size:13px;">整篇进备课资料；可选勾几道题进错题本</div>';
-
-    // 合集文档提示：篇数多时提醒老师可能有漏识别
-    if (passagesArr.length > 8) {
-      modeBanner += '<div style="background:var(--accent-bg);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--accent);line-height:1.6;">'
-        + '识别到 <b>' + passagesArr.length + ' 篇</b>。合集文档因格式各异可能有少量漏识别，单套试卷上传识别最准确。'
+  function renderUnifiedImportBody(model) {
+    var html = '<div style="color:var(--text-3);padding:4px 0 12px;font-size:13px;">'
+      + escapeImportText(model.modeHintText)
+      + '</div>';
+    var warning = model.collectionWarning || {};
+    if (warning.visible) {
+      html += '<div style="background:var(--accent-bg);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--accent);line-height:1.6;">'
+        + escapeImportText(warning.leadText)
+        + '<b>' + escapeImportText(warning.countText) + '</b>'
+        + escapeImportText(warning.tailText)
         + '</div>';
     }
 
-    var html = modeBanner;
-    passagesArr.forEach(function(p, pi) {
+    (model.passages || []).forEach(function(p) {
       html += '<div style="margin-bottom:18px;padding-bottom:18px;'
-           + (pi < passagesArr.length - 1 ? 'border-bottom:1px dashed var(--border);' : '')
+           + (!p.isLast ? 'border-bottom:1px dashed var(--border);' : '')
            + '">';
-      if (passagesArr.length > 1) {
-        html += '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">📄 ' + p.title + '</div>';
+      if (p.showTitle) {
+        html += '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">📄 '
+          + escapeImportText(p.titleText)
+          + '</div>';
       }
-      p.blanks.forEach(function(b, bi) {
-        var catName = (window.CATEGORY_MAP && window.CATEGORY_MAP[b.category]) || b.category || '未分类';
-        var ans = b.answer || '?';
-        var prev = (b.analysis || '').substring(0, 60);
-        // 两种模式都默认不选，让老师主动挑题（错题本应该是高频精选）
-        var checkedAttr = '';
+      (p.blanks || []).forEach(function(b) {
         html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .12s;" '
              +  'onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'\'">'
-             +    '<input type="checkbox" class="unified-blank-check" data-passage="' + pi + '" data-blank="' + bi + '"' + checkedAttr + ' '
+             +    '<input type="checkbox" class="unified-blank-check" data-passage="' + Number(b.passageIndex || 0) + '" data-blank="' + Number(b.blankIndex || 0) + '"' + (b.checked ? ' checked' : '') + ' '
              +      'onchange="updateUnifiedSelectedCount()" style="margin-top:3px;width:16px;height:16px;cursor:pointer;flex-shrink:0;">'
              +    '<div style="flex:1;font-size:13px;line-height:1.55;">'
-             +      '<div><span style="color:var(--accent);font-weight:600;">第 ' + (b.no || (bi + 1)) + ' 题</span>'
-             +        ' · <b style="color:var(--text);">' + ans + '</b>'
-             +        ' <span style="font-size:11px;background:var(--accent-bg);color:var(--accent);padding:1px 7px;border-radius:10px;margin-left:4px;">' + catName + '</span>'
+             +      '<div><span style="color:var(--accent);font-weight:600;">' + escapeImportText(b.noText) + '</span>'
+             +        ' · <b style="color:var(--text);">' + escapeImportText(b.answerText) + '</b>'
+             +        ' <span style="font-size:11px;background:var(--accent-bg);color:var(--accent);padding:1px 7px;border-radius:10px;margin-left:4px;">' + escapeImportText(b.categoryLabel) + '</span>'
              +      '</div>'
-             + (prev ? '<div style="font-size:12px;color:var(--text-3);margin-top:2px;">' + prev + (b.analysis && b.analysis.length > 60 ? '…' : '') + '</div>' : '')
+             + (b.analysisPreview ? '<div style="font-size:12px;color:var(--text-3);margin-top:2px;">' + escapeImportText(b.analysisPreview) + (b.analysisTruncated ? '…' : '') + '</div>' : '')
              +    '</div>'
              +  '</label>';
       });
       html += '</div>';
     });
-    document.getElementById('unifiedImportBody').innerHTML = html;
+    return html;
+  }
 
-    var totalBlanks = passagesArr.reduce(function(s, p){ return s + p.blanks.length; }, 0);
-    document.getElementById('unifiedImportSummary').textContent =
-      passagesArr.length + ' 篇 · 共 ' + totalBlanks + ' 题';
-    document.getElementById('unifiedSelectedCount').textContent = '已勾选 0 题进错题本';
+  function openUnifiedImportPanel(passagesArr) {
+    passagesArr = Array.isArray(passagesArr) ? passagesArr : [];
+    var savedModel = getSavedMaterialsModel();
+    if (!savedModel || typeof savedModel.buildUnifiedImportPanelModel !== 'function') {
+      alert(callSavedMaterialsModel('getImportModuleMissingMessage')
+        || '导入模块尚未加载，请刷新后重试。');
+      return;
+    }
+    var model = savedModel.buildUnifiedImportPanelModel(passagesArr, _docxImportTarget, window.CATEGORY_MAP || {});
+    _unifiedImportData = { passages: passagesArr, panelModel: model };
+
+    document.getElementById('unifiedImportTitle').textContent = model.titleText;
+    document.getElementById('unifiedImportBody').innerHTML = renderUnifiedImportBody(model);
+    document.getElementById('unifiedImportSummary').textContent = model.summaryText;
+    document.getElementById('unifiedSelectedCount').textContent = model.selectedCountText;
     document.getElementById('unifiedImportOverlay').style.display = 'flex';
   }
 
@@ -775,34 +507,40 @@
 
   function updateUnifiedSelectedCount() {
     var n = document.querySelectorAll('.unified-blank-check:checked').length;
-    document.getElementById('unifiedSelectedCount').textContent = '已勾选 ' + n + ' 题进错题本';
+    var savedModel = getSavedMaterialsModel();
+    var text = savedModel && typeof savedModel.buildUnifiedSelectedCountText === 'function'
+      ? savedModel.buildUnifiedSelectedCountText(n)
+      : ('已勾选 ' + n + ' 题进错题本');
+    document.getElementById('unifiedSelectedCount').textContent = text;
   }
 
   function confirmUnifiedImport() {
     if (!_unifiedImportData) return;
     var passages = _unifiedImportData.passages;
-    var isErrorMode = (_docxImportTarget === 'error');
-
-    // 备课模式：整篇进备课资料；错题模式：跳过备课写入
-    var prepCount = 0, prepSkip = 0;
-    if (!isErrorMode) {
-      passages.forEach(function(p){
-        if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
-      });
+    var savedModel = getSavedMaterialsModel();
+    if (!savedModel || typeof savedModel.buildUnifiedImportConfirmPlan !== 'function') {
+      alert(callSavedMaterialsModel('getImportModuleMissingMessage')
+        || '导入模块尚未加载，请刷新后重试。');
+      return;
     }
 
-    // 错题本：勾选的题进（两种模式都执行，但错题模式默认全选了）
+    var selections = [];
+    document.querySelectorAll('.unified-blank-check:checked').forEach(function(cb){
+      selections.push({
+        passageIndex: cb.dataset.passage,
+        blankIndex: cb.dataset.blank
+      });
+    });
+    var plan = savedModel.buildUnifiedImportConfirmPlan(passages, _docxImportTarget, selections);
+
+    var prepCount = 0, prepSkip = 0;
+    plan.prepPassages.forEach(function(p){
+        if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
+    });
+
     var errorCount = 0, errorSkip = 0;
-    var checks = document.querySelectorAll('.unified-blank-check:checked');
-    checks.forEach(function(cb){
-      var pi = parseInt(cb.dataset.passage, 10);
-      var bi = parseInt(cb.dataset.blank, 10);
-      var p = passages[pi];
-      if (!p) return;
-      var b = p.blanks[bi];
-      if (!b) return;
-      var oneBlank = { title: p.title, passage: p.passage, blanks: [b] };
-      var r = importDeepSeekResultToErrorBook(oneBlank, true);
+    plan.errorPassages.forEach(function(item){
+      var r = importDeepSeekResultToErrorBook(item, true);
       if (r && r.count > 0) errorCount += r.count;
       if (r && r.skipCount > 0) errorSkip += r.skipCount;
     });
@@ -813,68 +551,40 @@
 
     closeUnifiedImport();
 
-    // 反馈消息：简短直接，不暴露开发者思路
-    var msg;
-    if (isErrorMode) {
-      msg = '已加入错题本 ' + errorCount + ' 道';
-      if (errorSkip > 0) msg += '（跳过 ' + errorSkip + ' 道重复）';
-    } else {
-      msg = '已导入备课资料 ' + prepCount + ' 篇';
-      if (prepSkip > 0) msg += '（跳过 ' + prepSkip + ' 篇重复）';
-      if (errorCount > 0) msg += '；错题本 +' + errorCount + ' 道';
-    }
+    var msg = savedModel && typeof savedModel.buildUnifiedImportCompleteMessage === 'function'
+      ? savedModel.buildUnifiedImportCompleteMessage({
+          prepCount: prepCount,
+          prepSkip: prepSkip,
+          errorCount: errorCount,
+          errorSkip: errorSkip
+        }, _docxImportTarget)
+      : '导入完成';
     alert(msg);
   }
 
   // ─── 导入数据层（题型 specific 字段写在这里）──
   function importDeepSeekResult(result, silent) {
-    var blanks = (result.blanks || []).map(function(b) {
-      return {
-        no: b.no,
-        answer: b.answer || '?',
-        category: b.category || 'word',
-        fine_category: b.fine_category || '',
-        analysis: b.analysis || '',
-        nonp_function: b.nonp_function || '',
-        nonp_function_label: b.nonp_function_label || '',
-        nonp_form: b.nonp_form || '',
-        nonp_form_label: b.nonp_form_label || '',
-        nonp_rule: b.nonp_rule || '',
-        nonp_needs_review: b.nonp_needs_review || false
-      };
+    var savedModel = getSavedMaterialsModel();
+    if (!savedModel || typeof savedModel.buildDeepSeekPrepImportPlan !== 'function') {
+      if (!silent) alert(callSavedMaterialsModel('getImportModuleMissingMessage')
+        || '导入模块尚未加载，请刷新后重试。');
+      return false;
+    }
+    var plan = savedModel.buildDeepSeekPrepImportPlan(result, window.prepPassages, {
+      createdAt: new Date().toISOString()
     });
-
-    var temp = {
-      title: result.title || '无标题',
-      passage: result.passage || '',
-      blanks: blanks
-    };
-    var fp = window.getPrepFingerprint(temp);
-    var hash = 0;
-    for (var i = 0; i < fp.length; i++) { hash = ((hash << 5) - hash) + fp.charCodeAt(i); hash |= 0; }
-    var fpId = 'prep_' + Math.abs(hash).toString(36);
-
-    var isDup = window.prepPassages.some(function(existing) { return window.getPrepFingerprint(existing) === fp; });
-    if (isDup) {
-      if (!silent) alert('这篇备课资料已存在，跳过：' + (result.title || '无标题'));
+    if (plan.skippedDuplicate > 0) {
+      if (!silent) alert(plan.duplicateMessage);
       return false;
     }
 
-    var p = {
-      id: fpId,
-      title: result.title || '无标题',
-      passage: result.passage,
-      blanks: blanks,
-      created_at: new Date().toISOString()
-    };
-
-    window.prepPassages.unshift(p);
+    window.prepPassages = plan.nextItems;
     window.savePrepPassages();
     if (silent) return true;
 
     if (typeof window.renderPrepList === 'function') window.renderPrepList();
     if (typeof window.renderBankStat === 'function') window.renderBankStat();
-    alert('成功导入：' + result.title + '\n共 ' + (result.blanks || []).length + ' 个空格');
+    alert(plan.successMessage);
 
     if (typeof window.uploadLocalToCloud === 'function') {
       window.uploadLocalToCloud().catch(function(e) {
@@ -885,66 +595,34 @@
   }
 
   function importDeepSeekResultToErrorBook(result, silent) {
-    var CATEGORY_MAP = window.CATEGORY_MAP || {};
-    var CATEGORY_TIPS = window.CATEGORY_TIPS || {};
-    var existingFps = new Set();
-    window.errorBookQuestions.forEach(function(q) { existingFps.add(window.getErrorFingerprint(q)); });
-    var count = 0, skipCount = 0;
-    (result.blanks || []).forEach(function(b) {
-      var no = b.no || (count + 1);
-      var sent = (typeof window.extractSentence === 'function' ? window.extractSentence(result.passage, no) : null)
-              || (typeof window.extractContextWindow === 'function' ? window.extractContextWindow(result.passage, no) : null)
-              || result.passage;
-      var answer = b.answer || '?';
-      var cat = b.category || 'word';
-      var fineCategory = b.fine_category || '';
-      var errFp = answer.trim() + '|||' + cat.trim() + '|||' + no;
-      var errHash = 0;
-      for (var hi = 0; hi < errFp.length; hi++) { errHash = ((errHash << 5) - errHash) + errFp.charCodeAt(hi); errHash |= 0; }
-      var q = {
-        id: 'err_' + Math.abs(errHash).toString(36),
-        passage: sent,
-        answer: answer,
-        category: cat,
-        fine_category: fineCategory,
-        nonp_function: b.nonp_function || '',
-        nonp_function_label: b.nonp_function_label || '',
-        nonp_form: b.nonp_form || '',
-        nonp_form_label: b.nonp_form_label || '',
-        nonp_rule: b.nonp_rule || '',
-        nonp_needs_review: b.nonp_needs_review || false,
-        category_name: CATEGORY_MAP[b.category] || b.category,
-        grammar_point: '',
-        analysis: b.analysis || ('答案：' + answer + '。'),
-        technique: '考点：' + (CATEGORY_MAP[b.category] || b.category) +
-                   '。' + (CATEGORY_TIPS[b.category] || '先判空格成分，再确定词形。'),
-        exam: '错题本',
-        exam_id: '错题本',
-        no: no,
-        created_at: new Date().toISOString()
-      };
-      var fp = window.getErrorFingerprint(q);
-      if (existingFps.has(fp)) { skipCount++; return; }
-      existingFps.add(fp);
-      window.errorBookQuestions.unshift(q);
-      count++;
+    var savedModel = getSavedMaterialsModel();
+    if (!savedModel || typeof savedModel.buildDeepSeekErrorImportPlan !== 'function') {
+      if (!silent) alert(callSavedMaterialsModel('getImportModuleMissingMessage')
+        || '导入模块尚未加载，请刷新后重试。');
+      return { count: 0, skipCount: 0 };
+    }
+    var plan = savedModel.buildDeepSeekErrorImportPlan(result, window.errorBookQuestions, {
+      categoryMap: window.CATEGORY_MAP || {},
+      categoryTips: window.CATEGORY_TIPS || {},
+      extractSentence: typeof window.extractSentence === 'function' ? window.extractSentence : null,
+      extractContextWindow: typeof window.extractContextWindow === 'function' ? window.extractContextWindow : null,
+      createdAt: new Date().toISOString()
     });
 
+    window.errorBookQuestions = plan.nextItems;
     window.saveErrorBook();
-    if (silent) return { count: count, skipCount: skipCount };
+    if (silent) return { count: plan.count, skipCount: plan.skipCount };
 
     if (typeof window.renderErrorBook === 'function') window.renderErrorBook();
     if (typeof window.renderBankStat === 'function') window.renderBankStat();
-    var msg = '成功导入 ' + count + ' 道错题到错题本';
-    if (skipCount > 0) msg += '\n跳过 ' + skipCount + ' 道重复题';
-    alert(msg);
+    alert(plan.successMessage);
 
     if (typeof window.uploadLocalToCloud === 'function') {
       window.uploadLocalToCloud().catch(function(e) {
         console.warn('云端同步失败，已保存到本地：', e);
       });
     }
-    return { count: count, skipCount: skipCount };
+    return { count: plan.count, skipCount: plan.skipCount };
   }
 
   function showRawTextFallback(text) {
@@ -954,7 +632,8 @@
       blanks: []
     }], null, 2);
     document.getElementById('prepBatchForm').classList.add('show');
-    alert('原始文本已放入批量导入框（备课资料页），请手动整理后导入。');
+    alert(callSavedMaterialsModel('getRawTextFallbackInsertedMessage')
+      || '原始文本已放入批量导入框（备课资料页），请手动整理后导入。');
   }
 
   function setupDocxDrop() {
@@ -968,7 +647,8 @@
       if (!file) return;
       if (!file.name.toLowerCase().endsWith('.docx')) {
         if (file.name.toLowerCase().endsWith('.json')) return;
-        alert('请上传 .docx 格式的 Word 文档。');
+        alert(callSavedMaterialsModel('getDocxOnlyMessage')
+          || '请上传 .docx 格式的 Word 文档。');
         return;
       }
       var input = document.getElementById('docxFileInput');

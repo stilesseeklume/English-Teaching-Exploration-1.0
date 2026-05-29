@@ -178,6 +178,197 @@
     return label;
   }
 
+  function getMigrationEntryTypeMeta(entry) {
+    entry = entry || {};
+    var item = entry.item || {};
+    if (entry.isError) {
+      return {
+        typeLabel: '错题',
+        typeClass: '',
+        rowClass: ' is-error'
+      };
+    }
+    if (item.type === '真题') {
+      return {
+        typeLabel: '真题',
+        typeClass: ' is-real',
+        rowClass: ''
+      };
+    }
+    if (item.type === '模拟卷' || item.type === '模拟题') {
+      return {
+        typeLabel: '模拟',
+        typeClass: ' is-mock',
+        rowClass: ''
+      };
+    }
+    return {
+      typeLabel: '题库',
+      typeClass: '',
+      rowClass: ''
+    };
+  }
+
+  function buildMigrationEntryViewModel(entry, index) {
+    entry = entry || {};
+    var item = entry.item || {};
+    var typeMeta = getMigrationEntryTypeMeta(entry);
+    return {
+      indexText: String((Number(index) || 0) + 1).padStart(2, '0'),
+      rowClass: typeMeta.rowClass,
+      typeLabel: typeMeta.typeLabel,
+      typeClass: typeMeta.typeClass,
+      sourceText: (entry.srcLabel || '题库') + ' · 第' + (item.no || '') + '题',
+      tagLabel: entry.tagLabel || '同类迁移',
+      teachingLine: entry.teachingLine || ''
+    };
+  }
+
+  function buildMigrationCardViewModel(entry) {
+    entry = entry || {};
+    var item = entry.item || {};
+    var typeMeta = getMigrationEntryTypeMeta(entry);
+    var typeTag = null;
+    if (!entry.isError && typeMeta.typeLabel === '真题') {
+      typeTag = {
+        label: '真题',
+        bg: 'var(--green-bg)',
+        color: 'var(--green)'
+      };
+    } else if (!entry.isError && typeMeta.typeLabel === '模拟') {
+      typeTag = {
+        label: '模拟',
+        bg: 'var(--orange-bg)',
+        color: 'var(--orange)'
+      };
+    }
+    return {
+      sourceLabel: entry.srcLabel || '题库',
+      sourceAccent: !!entry.isError,
+      questionNo: item.no || '',
+      typeTag: typeTag,
+      tagLabel: entry.tagLabel || '',
+      teachingLine: entry.teachingLine || '',
+      ctaText: '点击进入完整讲解'
+    };
+  }
+
+  function buildMigrationEmptyHintModel(emptyState) {
+    if (!emptyState) return null;
+    var focusLabel = emptyState.focusLabel || '当前考点';
+    var primaryText = '';
+    var secondaryText = '';
+    if (emptyState.source === 'errors') {
+      primaryText = '错题本里还没有同类判断「' + focusLabel + '」的题。';
+      secondaryText = '上传 Word 文档时勾选"高频错题"，多积累几道再来。';
+    } else if (emptyState.source === 'all') {
+      primaryText = '题库和错题本里都没有同类判断「' + focusLabel + '」的题。';
+    } else {
+      primaryText = '真题库里暂无同类判断「' + focusLabel + '」的其他题目。';
+    }
+    return {
+      primaryText: primaryText,
+      secondaryText: secondaryText,
+      fallbackText: emptyState.fallbackCount > 0
+        ? '可切回粗分类「' + (emptyState.fallbackCategoryLabel || '语法填空') + '」，但课堂复习会更泛。'
+        : ''
+    };
+  }
+
+  function buildMigrationPanelViewModel(data, source) {
+    data = data || {};
+    source = source || 'bank';
+    var migration = asArray(data.migration);
+    var poolCount = Number(data.poolCount) || 0;
+    var shownCount = migration.length;
+    return {
+      tabs: asArray(data.tabs).map(function(item) {
+        item = item || {};
+        return {
+          key: item.key || '',
+          label: item.label || '',
+          count: Number(item.count) || 0,
+          active: item.key === source
+        };
+      }),
+      heading: data.headerLabel || '同类迁移',
+      subline: data.headerSubLabel || '',
+      poolCount: poolCount,
+      shownCount: shownCount,
+      countText: '共 ' + poolCount + ' 题，展示 ' + shownCount + ' 题。',
+      emptyHint: buildMigrationEmptyHintModel(data.emptyState),
+      hasItems: shownCount > 0
+    };
+  }
+
+  function buildMigrationContentViewModel(data, source) {
+    data = data || {};
+    var panel = buildMigrationPanelViewModel(data, source);
+    return {
+      tabs: panel.tabs,
+      heading: panel.heading,
+      subline: panel.subline,
+      poolCount: panel.poolCount,
+      shownCount: panel.shownCount,
+      countText: panel.countText,
+      emptyHint: panel.emptyHint,
+      hasItems: panel.hasItems,
+      entries: asArray(data.migration).map(function(entry, index) {
+        entry = entry || {};
+        return {
+          id: entry.id || '',
+          index: index,
+          entry: entry,
+          item: entry.item || {},
+          sentenceHtml: entry.sentenceHtml || '',
+          row: buildMigrationEntryViewModel(entry, index),
+          card: buildMigrationCardViewModel(entry)
+        };
+      })
+    };
+  }
+
+  function countAnalysisMigrationCandidates(q, options) {
+    q = q || {};
+    options = options || {};
+    var bankQuestions = options.bankQuestions || [];
+    var nonpAxis = options.nonpAxis || (options.getNonpAxis ? options.getNonpAxis(q) : null);
+    if (nonpAxis) {
+      var exactCount = bankQuestions.filter(function(item) {
+        return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
+      }).length;
+      var formCount = bankQuestions.filter(function(item) {
+        return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
+      }).length;
+      return exactCount + formCount;
+    }
+
+    var focus = options.focus || (options.safeQuestionFocus ? options.safeQuestionFocus(q) : fallbackFocus(q));
+    var safeQuestionFocusKey = options.safeQuestionFocusKey || function(item) {
+      var itemFocus = options.safeQuestionFocus ? options.safeQuestionFocus(item) : fallbackFocus(item);
+      return itemFocus ? itemFocus.key : '';
+    };
+    var deps = {
+      safeQuestionFocus: options.safeQuestionFocus || fallbackFocus,
+      getNonpAxis: options.getNonpAxis || function() { return null; },
+      getQuestionPracticalGuide: options.getQuestionPracticalGuide || function() { return null; }
+    };
+    var practicalGuide = options.practicalGuide || (options.getQuestionPracticalGuide
+      ? options.getQuestionPracticalGuide(q, focus, nonpAxis)
+      : null);
+    var qMigrationKeys = practicalGuide ? asArray(practicalGuide.migrationKeys) : [];
+    var guideCount = qMigrationKeys.length ? bankQuestions.filter(function(item) {
+      return hasTeachingMigrationOverlap(item, q, qMigrationKeys, deps);
+    }).length : 0;
+    if (guideCount) return guideCount;
+    return bankQuestions.filter(function(item) {
+      if (sameQuestion(item, q)) return false;
+      return q.fine_category
+        ? item.fine_category === q.fine_category
+        : safeQuestionFocusKey(item) === (focus && focus.key);
+    }).length;
+  }
+
   function buildMigrationData(q, options) {
     q = q || {};
     options = options || {};
@@ -361,6 +552,13 @@
     buildDisplayPools: buildDisplayPools,
     getTeachingMigrationKeys: getTeachingMigrationKeys,
     hasTeachingMigrationOverlap: hasTeachingMigrationOverlap,
+    getMigrationEntryTypeMeta: getMigrationEntryTypeMeta,
+    buildMigrationEntryViewModel: buildMigrationEntryViewModel,
+    buildMigrationCardViewModel: buildMigrationCardViewModel,
+    buildMigrationEmptyHintModel: buildMigrationEmptyHintModel,
+    buildMigrationPanelViewModel: buildMigrationPanelViewModel,
+    buildMigrationContentViewModel: buildMigrationContentViewModel,
+    countAnalysisMigrationCandidates: countAnalysisMigrationCandidates,
     buildMigrationData: buildMigrationData
   };
 })();

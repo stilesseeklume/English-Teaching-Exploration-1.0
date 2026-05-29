@@ -378,6 +378,108 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     };
   }
 
+  function buildTeachingStageShellModel(q, exam, session, deps) {
+    var hasQuestion = !!q;
+    q = q || {};
+    exam = exam || {};
+    session = session || {};
+    deps = deps || {};
+    var tab = normalizeTab(session.tab);
+    var header = buildHeaderInfo(q, deps);
+    return {
+      visible: hasQuestion,
+      tab: tab,
+      focusContent: tab === 'migration' || tab === 'knowledge',
+      sourceLabel: exam.source || q.exam || '当前资料',
+      questionNo: q.no || '',
+      questionLabel: '第' + (q.no || '') + '题',
+      categoryLabel: header.categoryLabel,
+      header: header,
+      practicalGuide: header.practicalGuide,
+      zhSentence: deps.getQuestionChineseSentence ? (deps.getQuestionChineseSentence(q) || '') : ''
+    };
+  }
+
+  function buildTeachingKnowledgePanelModel(q, deps) {
+    q = q || {};
+    deps = deps || {};
+    var map = getMindmapDefinition(q) || getMindmapFallback(q, deps);
+    var active = getMindmapActiveKeys(q, deps);
+    var header = buildHeaderInfo(q, deps);
+    var graphNodeId = getGraphNodeIdForQuestion(q, deps);
+    var graphNodeIndex = deps.graphNodeIndex || {};
+    if (!deps.graphNodeIndex && deps.knowledgeCore && deps.knowledgeCore.teaching_graph) {
+      graphNodeIndex = buildGraphNodeIndex(deps.knowledgeCore.teaching_graph, deps.knowledgeCore.nodes || {});
+    }
+    var graphNode = graphNodeIndex[graphNodeId] || null;
+    var parentTitle = (map.parent && map.parent.title) || '当前系统';
+    var parentNote = (map.parent && map.parent.note) || '';
+    var centerTitle = (map.center && map.center.title) || header.categoryLabel || '当前考点';
+    var centerNote = (map.center && map.center.note) || header.subline || '';
+    var focusTitle = header.headline || header.categoryLabel || '当前题';
+    return {
+      kicker: '知识思维导图',
+      heading: centerTitle || '当前语法框架',
+      subline: '把这道题放回语法框架里：看上级系统、当前考点和下级分支，学生先建立树，再记规则。',
+      graphNodeId: graphNodeId,
+      locatorLabel: '全图定位：' + ((graphNode && graphNode.title) || '当前节点'),
+      path: [
+        { label: map.root || '语法体系', current: false },
+        { label: parentTitle, current: false },
+        { label: centerTitle, current: true }
+      ],
+      parent: {
+        title: parentTitle,
+        note: parentNote
+      },
+      siblings: asArray(map.siblings),
+      center: {
+        title: centerTitle,
+        note: centerNote,
+        focusText: '本题落点：' + focusTitle + (header.subline ? '。' + header.subline : '')
+      },
+      branches: asArray(map.branches).map(function(branch) {
+        branch = branch || {};
+        return {
+          title: branch.title || '',
+          note: branch.note || '',
+          leaves: asArray(branch.leaves),
+          active: isMindmapBranchActive(branch, active)
+        };
+      }),
+      rules: asArray(map.rules).map(function(rule, idx) {
+        return {
+          no: idx + 1,
+          text: rule
+        };
+      })
+    };
+  }
+
+  function buildTeachingGlobalGraphOpenPlan(q, deps, options) {
+    options = options || {};
+    if (!q) {
+      return {
+        action: 'none',
+        active: false,
+        nodeId: '',
+        page: '',
+        knowledgeView: '',
+        shouldCloseTeachingStage: false,
+        selectDelayMs: 0
+      };
+    }
+    return {
+      action: 'open-global-graph',
+      active: true,
+      nodeId: getGraphNodeIdForQuestion(q, deps),
+      page: options.page || 'knowledge',
+      knowledgeView: options.knowledgeView || 'system',
+      shouldCloseTeachingStage: true,
+      selectDelayMs: typeof options.selectDelayMs === 'number' ? options.selectDelayMs : 80
+    };
+  }
+
   function buildGraphNodeIndex(graph, knowledgeNodes) {
     graph = graph || {};
     knowledgeNodes = knowledgeNodes || {};
@@ -450,6 +552,61 @@ var TEACHING_GRAMMAR_MINDMAPS = {
       if (presets[i].id === id) return presets[i];
     }
     return presets[0];
+  }
+
+  function buildGlobalGraphPresetFocusPlan(presetId, graph, nodes) {
+    var preset = getGlobalGraphFocusPreset(presetId);
+    var nodeId = preset.nodeId || 'teach_start';
+    var focusIds = getGraphRelevantIds(nodeId, graph, nodes);
+    var bounds = preset.bounds || getGraphBoundsForNodes(focusIds, nodes);
+    return {
+      action: 'focus-preset',
+      preset: preset,
+      presetId: preset.id,
+      nodeId: nodeId,
+      focusIds: focusIds,
+      focusMode: preset.id,
+      bounds: bounds,
+      shouldRepaint: true,
+      shouldRenderInspector: true,
+      shouldFitBounds: !!bounds,
+      shouldCenterNode: false,
+      knowledgeState: {
+        currentKnowledgeNodeId: nodeId
+      },
+      graphFocusState: {
+        selectedId: nodeId,
+        focusIds: focusIds,
+        focusMode: preset.id
+      }
+    };
+  }
+
+  function buildGlobalGraphNodeSelectionPlan(nodeId, graph, nodes) {
+    nodes = nodes || {};
+    var normalizedNodeId = String(nodeId || '');
+    var node = nodes[normalizedNodeId] || null;
+    var focusIds = getGraphRelevantIds(normalizedNodeId, graph, nodes);
+    return {
+      action: 'select-node',
+      nodeId: normalizedNodeId,
+      node: node,
+      focusIds: focusIds,
+      focusMode: (node && node.focus_group) || 'overview',
+      bounds: null,
+      shouldRepaint: true,
+      shouldRenderInspector: true,
+      shouldFitBounds: false,
+      shouldCenterNode: !!node,
+      knowledgeState: {
+        currentKnowledgeNodeId: normalizedNodeId
+      },
+      graphFocusState: {
+        selectedId: normalizedNodeId,
+        focusIds: focusIds,
+        focusMode: (node && node.focus_group) || 'overview'
+      }
+    };
   }
 
   function getGraphBoundsForNodes(ids, nodes) {
@@ -608,6 +765,7 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     normalizeTab: normalizeTab,
     getTabLabel: getTabLabel,
     buildHeaderInfo: buildHeaderInfo,
+    buildTeachingStageShellModel: buildTeachingStageShellModel,
     getKnowledgeNodeIds: getKnowledgeNodeIds,
     getGraphNodeIdForQuestion: getGraphNodeIdForQuestion,
     getMindmapActiveKeys: getMindmapActiveKeys,
@@ -615,6 +773,8 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     isMindmapBranchActive: isMindmapBranchActive,
     getMindmapDefinition: getMindmapDefinition,
     getMindmapFallback: getMindmapFallback,
+    buildTeachingKnowledgePanelModel: buildTeachingKnowledgePanelModel,
+    buildTeachingGlobalGraphOpenPlan: buildTeachingGlobalGraphOpenPlan,
     buildGraphNodeIndex: buildGraphNodeIndex,
     getGraphNodeTypeLabel: getGraphNodeTypeLabel,
     getGraphTypeColor: getGraphTypeColor,
@@ -624,6 +784,8 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     graphEdgeActive: graphEdgeActive,
     getGlobalGraphFocusPresets: getGlobalGraphFocusPresets,
     getGlobalGraphFocusPreset: getGlobalGraphFocusPreset,
+    buildGlobalGraphPresetFocusPlan: buildGlobalGraphPresetFocusPlan,
+    buildGlobalGraphNodeSelectionPlan: buildGlobalGraphNodeSelectionPlan,
     getGraphBoundsForNodes: getGraphBoundsForNodes,
     renderGraphTextLines: renderGraphTextLines,
     getGraphNodeLabelGroups: getGraphNodeLabelGroups,

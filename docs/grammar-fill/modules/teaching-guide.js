@@ -330,6 +330,141 @@
     };
   }
 
+  function buildPracticalGuideCardModel(guide) {
+    if (!guide) {
+      return {
+        visible: false,
+        kicker: '讲题卡',
+        title: '讲题卡',
+        titleLine: '考点：讲题卡',
+        trigger: '',
+        steps: [],
+        mistake: ''
+      };
+    }
+    var title = String(guide.title || '讲题卡');
+    return {
+      visible: true,
+      kicker: '讲题卡',
+      title: title,
+      titleLine: '考点：' + title.replace(/^考点[:：]\s*/, ''),
+      trigger: guide.trigger || '',
+      steps: asArray(guide.steps).filter(Boolean).slice(0, 3),
+      mistake: String(guide.commonMistake || '').replace(/^常错[:：]\s*/, '')
+    };
+  }
+
+  function buildGuidePanelModel(header, guide) {
+    header = header || {};
+    return {
+      kicker: '讲题',
+      heading: header.headline || '讲题卡',
+      subline: header.subline || '',
+      practicalGuide: guide || header.practicalGuide || null
+    };
+  }
+
+  function buildAnalysisPanelModel(q, values) {
+    q = q || {};
+    values = values || {};
+    var practicalGuide = values.practicalGuide || null;
+    return {
+      answer: q.answer || '',
+      zhSentence: values.zhSentence || '',
+      practicalGuide: practicalGuide,
+      guideCard: buildPracticalGuideCardModel(practicalGuide),
+      solution: buildSolutionPanelModel(q),
+      showNavigation: !values.teachingSession,
+      migrationCount: Number(values.migrationCount || 0) || 0,
+      floatButtons: [
+        { key: 'guide', label: '讲题卡', title: '讲题卡' },
+        { key: 'solution', label: '解题', title: '解题' }
+      ]
+    };
+  }
+
+  function buildSolutionPanelModel(q) {
+    q = q || {};
+    return {
+      text: q.analysis || ('答案：' + (q.answer || '') + '。')
+    };
+  }
+
+  function normalizeAnalysisFloatKind(kind) {
+    kind = String(kind || '');
+    return (kind === 'guide' || kind === 'solution') ? kind : '';
+  }
+
+  function buildAnalysisFloatClosePlan() {
+    return {
+      panelSelector: '.analysis-float-panel.show, .teaching-float-panel.show',
+      activeButtonSelector: '.analysis-tool-btn.active',
+      panelClass: 'show',
+      buttonClass: 'active'
+    };
+  }
+
+  function buildAnalysisFloatTogglePlan(kind, isOpen) {
+    var normalizedKind = normalizeAnalysisFloatKind(kind);
+    if (!normalizedKind) {
+      return {
+        active: false,
+        kind: '',
+        panelSelector: '',
+        shouldCloseExisting: false,
+        shouldOpen: false,
+        panelClass: 'show',
+        buttonClass: 'active'
+      };
+    }
+    return {
+      active: true,
+      kind: normalizedKind,
+      panelSelector: '[data-analysis-float="' + normalizedKind + '"]',
+      shouldCloseExisting: true,
+      shouldOpen: !isOpen,
+      panelClass: 'show',
+      buttonClass: 'active'
+    };
+  }
+
+  function buildTheoryPanelModel(q, deps) {
+    q = q || {};
+    deps = deps || {};
+    var categoryMap = deps.categoryMap || {};
+    var theory = (deps.knowledgeData || {})[q.category];
+    if (!theory) {
+      return {
+        hasTheory: false,
+        emptyText: '「' + (categoryMap[q.category] || q.category || '语法填空') + '」考点理论资料整理中，敬请期待。',
+        title: '',
+        path: [],
+        overviewHtml: '',
+        sections: []
+      };
+    }
+    var focus = deps.focus || (deps.safeQuestionFocus ? deps.safeQuestionFocus(q) : null);
+    var fineInfo = deps.getFineTagInfo ? deps.getFineTagInfo(q.fine_category) : null;
+    var tagLabel = (fineInfo && fineInfo.name) || (focus && focus.label) || categoryMap[q.category] || q.category || '语法填空';
+    var sub = theory.sub || {};
+    return {
+      hasTheory: true,
+      emptyText: '',
+      title: tagLabel,
+      path: getQuestionLessonPath(q, focus, null, { categoryMap: categoryMap }),
+      overviewHtml: theory.overview || '',
+      sections: Object.keys(sub).map(function(subKey) {
+        var item = sub[subKey] || {};
+        return {
+          key: subKey,
+          title: item.title || subKey,
+          desc: item.desc || '',
+          contentHtml: item.content || ''
+        };
+      })
+    };
+  }
+
   const FOCUS_GUIDES = {
     'nonpredicate-infinitive': {
       headline: '这题先判断：为什么要用 to do？',
@@ -884,6 +1019,14 @@
     getFocusGuide: getFocusGuide,
     getQuestionTeachingGuide: getQuestionTeachingGuide,
     getQuestionLessonPath: getQuestionLessonPath,
-    getQuestionPracticalGuide: getQuestionPracticalGuide
+    getQuestionPracticalGuide: getQuestionPracticalGuide,
+    buildPracticalGuideCardModel: buildPracticalGuideCardModel,
+    buildGuidePanelModel: buildGuidePanelModel,
+    buildAnalysisPanelModel: buildAnalysisPanelModel,
+    buildSolutionPanelModel: buildSolutionPanelModel,
+    normalizeAnalysisFloatKind: normalizeAnalysisFloatKind,
+    buildAnalysisFloatClosePlan: buildAnalysisFloatClosePlan,
+    buildAnalysisFloatTogglePlan: buildAnalysisFloatTogglePlan,
+    buildTheoryPanelModel: buildTheoryPanelModel
   };
 })();

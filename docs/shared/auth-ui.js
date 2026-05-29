@@ -21,7 +21,7 @@
 // 题型侧（index.html）必须提供的全局符号：
 //   - switchPage(name)
 //   - getUserDisplayName(user)
-//   - 状态变量：window._loggingOut / _lastCloudUser / _migrationPromptShown（var 声明）
+//   - 状态变量/桥：setCloudLoggingOutState()，clearCloudLifecycleState()
 
 /* eslint-disable */
 (function(){
@@ -371,7 +371,8 @@
   // ─── 退出登录 ─────────────────────────────────
   async function doLogout() {
     if (!confirm('确定要退出登录吗？\n（错题本和备课资料会从本地清空，下次登录会自动从云端拉回来）')) return;
-    window._loggingOut = true;
+    if (window.setCloudLoggingOutState) window.setCloudLoggingOutState(true);
+    else window._loggingOut = true;
     try {
       await window.cloud.signOut();
     } catch (e) {
@@ -382,8 +383,11 @@
     window.errorBookQuestions = [];
     window.prepPassages = [];
     window.saveErrorBook(); window.savePrepPassages();
-    window._lastCloudUser = null;
-    window._migrationPromptShown = false;
+    if (window.clearCloudLifecycleState) window.clearCloudLifecycleState();
+    else {
+      window._lastCloudUser = null;
+      window._migrationPromptShown = false;
+    }
     document.body.classList.remove('pending');
     document.documentElement.classList.remove('has-session');
     window.cloud.state.user = null;

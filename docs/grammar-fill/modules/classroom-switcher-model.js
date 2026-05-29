@@ -72,6 +72,81 @@
     };
   }
 
+  function getCurrentExamIndex(currentExam, orderedExams) {
+    currentExam = currentExam || {};
+    if (currentExam.mode !== 'exam') return -1;
+    var currentExamId = currentExam.examId || currentExam.exam_id || currentExam.exam || '';
+    return asArray(orderedExams).findIndex(function(exam) {
+      return String(exam && exam.exam_id || '') === String(currentExamId);
+    });
+  }
+
+  function buildExamNavigationPlan(currentExam, orderedExams, delta) {
+    currentExam = currentExam || {};
+    var exams = asArray(orderedExams);
+    if (currentExam.mode !== 'exam' || !exams.length) {
+      return {
+        action: 'none',
+        examId: '',
+        index: -1
+      };
+    }
+    var idx = getCurrentExamIndex(currentExam, exams);
+    if (idx === -1) idx = 0;
+    var nextIdx = (idx + (Number(delta) || 0) + exams.length) % exams.length;
+    return {
+      action: 'start-exam',
+      examId: exams[nextIdx] && exams[nextIdx].exam_id || '',
+      index: nextIdx
+    };
+  }
+
+  function buildExamSelectPlan(currentExam, examId) {
+    currentExam = currentExam || {};
+    if (!examId || currentExam.mode !== 'exam' || String(examId) === String(currentExam.examId || '')) {
+      return {
+        action: 'none',
+        examId: ''
+      };
+    }
+    return {
+      action: 'start-exam',
+      examId: String(examId)
+    };
+  }
+
+  function buildQuestionSelectPlan(questions, value) {
+    questions = asArray(questions);
+    var idx = parseInt(value, 10);
+    if (isNaN(idx) || idx < 0 || idx >= questions.length) {
+      return {
+        action: 'none',
+        index: -1
+      };
+    }
+    return {
+      action: 'show-analysis',
+      index: idx
+    };
+  }
+
+  function buildQuestionNavigationPlan(questions, currentIndex, delta) {
+    questions = asArray(questions);
+    if (!questions.length) {
+      return {
+        action: 'none',
+        index: -1
+      };
+    }
+    var idx = Number(currentIndex);
+    if (!isFinite(idx) || idx < 0) idx = 0;
+    var nextIdx = (idx + (Number(delta) || 0) + questions.length) % questions.length;
+    return {
+      action: 'show-analysis',
+      index: nextIdx
+    };
+  }
+
   function buildClassroomSwitcherModel(values) {
     values = values || {};
     var currentExam = values.currentExam || null;
@@ -105,6 +180,11 @@
     buildQuestionOptions: buildQuestionOptions,
     getProgressText: getProgressText,
     buildAnswerButtonModel: buildAnswerButtonModel,
+    getCurrentExamIndex: getCurrentExamIndex,
+    buildExamNavigationPlan: buildExamNavigationPlan,
+    buildExamSelectPlan: buildExamSelectPlan,
+    buildQuestionSelectPlan: buildQuestionSelectPlan,
+    buildQuestionNavigationPlan: buildQuestionNavigationPlan,
     buildClassroomSwitcherModel: buildClassroomSwitcherModel
   };
 })();
