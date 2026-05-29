@@ -2563,6 +2563,11 @@
     padding: 2px 8px; border-radius: 4px;
   }
   .prep-list-delete:hover { background: var(--red-bg); }
+  .prep-list-rename {
+    font-size: 12px; color: var(--text-3); cursor: pointer; background: none; border: none;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .prep-list-rename:hover { background: var(--surface-3); color: var(--accent); }
   .bulk-select-bar {
     display: none;
     align-items: center;
@@ -5129,13 +5134,28 @@ function renderPrepList() {
           + '<div class="prep-list-preview">' + escapeHtml(p.preview) + '</div>'
           + '<div class="prep-list-meta">'
           + '<span>' + escapeHtml(p.metaText) + '</span>'
+          + '<span style="display:flex;gap:6px;">'
+          + '<button class="prep-list-rename" onclick="event.stopPropagation();renamePrepPassage(\'' + escapeHtml(p.id) + '\')" title="改名">✎ 改名</button>'
           + '<button class="prep-list-delete" onclick="event.stopPropagation();deletePrepPassage(\'' + escapeHtml(p.id) + '\')">删除</button>'
+          + '</span>'
           + '</div>'
           + '</div>';
   });
   el.innerHTML = html;
   renderPageSidebar('lesson-prep');
   syncPrepBulkInfo();
+}
+
+function renamePrepPassage(id) {
+  var item = (prepPassages || []).filter(function(p) { return String(p.id) === String(id); })[0];
+  if (!item) return;
+  var next = prompt('改名（建议：年份+考试名称+主题）：', item.title || '');
+  if (next === null) return;
+  next = String(next).trim();
+  if (!next || next === item.title) return;
+  item.title = next;
+  savePrepPassages();
+  renderPrepList();
 }
 
 
