@@ -423,12 +423,8 @@
 
       if (_abortAiParse) return;
 
-      var confirmMessage = callSavedMaterialsModel('buildAiParseFailedFallbackConfirmMessage', [err])
-        || ('AI 解析失败：' + (err.message || String(err)));
-      if (confirm(confirmMessage)) {
-        var rawText = Array.isArray(batchPlan) ? batchPlan.map(function(item) { return item.text; }).join('\n\n') : '';
-        showRawTextFallback(rawText);
-      }
+      alert(callSavedMaterialsModel('buildWordImportFailedAlertMessage', [err])
+        || ('AI 没能解析这份文档：' + (err.message || String(err)) + '\n请重试，或把文档拆小后再传。'));
     }
   }
 
@@ -625,38 +621,87 @@
     return { count: plan.count, skipCount: plan.skipCount };
   }
 
-  function showRawTextFallback(text) {
-    document.getElementById('prepBatchJson').value = JSON.stringify([{
-      title: '请修改标题',
-      passage: text,
-      blanks: []
-    }], null, 2);
-    document.getElementById('prepBatchForm').classList.add('show');
-    alert(callSavedMaterialsModel('getRawTextFallbackInsertedMessage')
-      || '原始文本已放入批量导入框（备课资料页），请手动整理后导入。');
+  function showRawTextFallback() {
+    alert('AI 没能解析这份文档。请重试，或把文档拆小后再传。');
+  }
+
+  // 把拖入的文件按目标（备课/错题）走统一上传流程
+  function handleDroppedFile(file, target) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+      alert(callSavedMaterialsModel('getDocxOnlyMessage') || '请上传 .docx 格式的 Word 文档。');
+      return;
+    }
+    if (typeof window.requireAuth === 'function' && !window.requireAuth('上传 Word')) return;
+    _docxImportTarget = target;
+    var input = document.getElementById('docxFileInput');
+    if (!input) return;
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    processDocxFile(input);
+  }
+
+  // 拖拽卡片（每页一个，决定进备课还是错题）
+  function wireDropZone(id, target) {
+    var zone = document.getElementById(id);
+    if (!zone) return;
+    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function() { zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      handleDroppedFile(e.dataTransfer.files[0], target);
+    });
+  }
+
+  function isUploadPageActive() {
+    var prep = document.getElementById('page-lesson-prep');
+    var err = document.getElementById('page-error-book');
+    return (prep && prep.classList.contains('active')) || (err && err.classList.contains('active'));
+  }
+  function activeUploadTarget() {
+    var err = document.getElementById('page-error-book');
+    return (err && err.classList.contains('active')) ? 'error' : 'prep';
+  }
+  function dragHasFiles(e) {
+    var t = e.dataTransfer && e.dataTransfer.types;
+    return !!t && Array.prototype.indexOf.call(t, 'Files') !== -1;
+  }
+
+  // 整页拖拽浮层（像 Claude：从任何软件拖文件到页面上，松手即传）
+  function setupPageDropOverlay() {
+    var overlay = document.getElementById('dropOverlay');
+    if (!overlay) return;
+    var depth = 0;
+    document.addEventListener('dragenter', function(e) {
+      if (!dragHasFiles(e) || !isUploadPageActive()) return;
+      depth++;
+      var label = document.getElementById('dropOverlayTarget');
+      if (label) label.textContent = activeUploadTarget() === 'error' ? '到错题本' : '到备课资料';
+      overlay.classList.add('show');
+    });
+    document.addEventListener('dragover', function(e) {
+      if (overlay.classList.contains('show')) e.preventDefault();
+    });
+    document.addEventListener('dragleave', function() {
+      depth--;
+      if (depth <= 0) { depth = 0; overlay.classList.remove('show'); }
+    });
+    document.addEventListener('drop', function(e) {
+      if (!overlay.classList.contains('show')) return;
+      e.preventDefault();
+      depth = 0;
+      overlay.classList.remove('show');
+      if (!isUploadPageActive()) return;
+      handleDroppedFile(e.dataTransfer.files[0], activeUploadTarget());
+    });
   }
 
   function setupDocxDrop() {
-    var form = document.getElementById('prepBatchForm');
-    if (!form) return;
-    form.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); });
-    form.addEventListener('drop', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var file = e.dataTransfer.files[0];
-      if (!file) return;
-      if (!file.name.toLowerCase().endsWith('.docx')) {
-        if (file.name.toLowerCase().endsWith('.json')) return;
-        alert(callSavedMaterialsModel('getDocxOnlyMessage')
-          || '请上传 .docx 格式的 Word 文档。');
-        return;
-      }
-      var input = document.getElementById('docxFileInput');
-      var dt = new DataTransfer();
-      dt.items.add(file);
-      input.files = dt.files;
-      processDocxFile(input);
-    });
+    wireDropZone('prepDropZone', 'prep');
+    wireDropZone('errorDropZone', 'error');
+    setupPageDropOverlay();
   }
 
   // ─── 暴露到 window ────────────────────────────

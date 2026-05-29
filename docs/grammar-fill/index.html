@@ -1375,6 +1375,24 @@
   .analysis-solution-card .sol-point { display: none; }
   body.solution-view-point .analysis-solution-card .sol-solve { display: none; }
   body.solution-view-point .analysis-solution-card .sol-point { display: block; }
+  .docx-dropzone {
+    flex: 1; min-width: 240px; display: flex; align-items: center; gap: 10px;
+    padding: 16px 18px; border: 2px dashed var(--accent); border-radius: 10px;
+    background: var(--accent-bg); color: var(--accent); cursor: pointer; font-weight: 600;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .docx-dropzone:hover, .docx-dropzone.dragover { background: var(--accent); color: #fff; }
+  .docx-dropzone-icon { font-size: 22px; }
+  .drop-overlay {
+    position: fixed; inset: 0; z-index: 99999; display: none;
+    align-items: center; justify-content: center; background: rgba(0,0,0,.45);
+  }
+  .drop-overlay.show { display: flex; }
+  .drop-overlay-inner {
+    background: var(--surface); border: 3px dashed var(--accent); border-radius: 16px;
+    padding: 44px 64px; font-size: 40px; color: var(--accent); text-align: center; font-weight: 800;
+  }
+  .drop-overlay-text { font-size: 24px; margin-top: 10px; }
   .analysis-sentence-lg {
     font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
     padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
@@ -3803,9 +3821,11 @@
     <div class="page" id="page-error-book">
       <h1 class="page-title">错题本</h1>
       <p class="page-desc"><span id="errorBookStat">加载中…</span></p>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUploadForError()">📄 上传 Word</button>
-        <button class="error-import-toggle" style="background:var(--blue);" onclick="toggleBatchImport()">📥 批量导入 JSON</button>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch;">
+        <div class="docx-dropzone" id="errorDropZone" onclick="handleDocxUploadForError()" title="拖入 Word 或点击上传">
+          <span class="docx-dropzone-icon">📄</span>
+          <span>把 Word 卷子拖进来，或<b>点击上传</b></span>
+        </div>
         <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="toggleErrorBulkMode()">批量删除</button>
       </div>
       <div class="bulk-select-bar" id="errorBulkBar">
@@ -3817,21 +3837,8 @@
           <button onclick="toggleErrorBulkMode(false)">取消</button>
         </div>
       </div>
-      <div class="error-import-form" id="batchImportForm">
-        <label>粘贴 JSON 或直接上传文件</label>
-        <textarea id="batchJson" placeholder='[{"passage":"...","answer":"...","category":"...","analysis":"..."}, ...]' style="min-height:120px;"></textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <label style="margin-bottom:0;cursor:pointer;padding:6px 14px;border:1px dashed var(--border);border-radius:6px;font-size:13px;color:var(--text-2);background:var(--surface-2);">
-            📁 选择 JSON 文件
-            <input type="file" accept=".json,.txt" onchange="handleFileImport(this)" style="display:none;">
-          </label>
-          <span style="font-size:12px;color:var(--text-3);">或拖拽文件到此处</span>
-        </div>
-        <div class="error-import-btns">
-          <button onclick="toggleBatchImport()">取消</button>
-          <button class="primary" onclick="batchImportJson()">批量导入</button>
-        </div>
-      </div>
+      <!-- JSON 批量导入入口已移除：上传统一走拖拽/点击 Word -->
+
       <div id="errorBookList"></div>
     </div>
 
@@ -3839,9 +3846,11 @@
       <h1 class="page-title">备课资料</h1>
       <p class="page-desc"><span id="prepStat">加载中…</span></p>
       <input type="file" id="docxFileInput" accept=".docx" onchange="processDocxFile(this)" style="display:none;">
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <button class="error-import-toggle docx-upload-btn" onclick="handleDocxUpload()">📄 上传 Word</button>
-        <button class="error-import-toggle" style="background:var(--blue);" onclick="togglePrepBatchImport()">📥 批量导入 JSON</button>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch;">
+        <div class="docx-dropzone" id="prepDropZone" onclick="handleDocxUpload()" title="拖入 Word 或点击上传">
+          <span class="docx-dropzone-icon">📄</span>
+          <span>把 Word 卷子拖进来，或<b>点击上传</b></span>
+        </div>
         <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="togglePrepBulkMode()">批量删除</button>
       </div>
       <div class="bulk-select-bar" id="prepBulkBar">
@@ -3853,22 +3862,13 @@
           <button onclick="togglePrepBulkMode(false)">取消</button>
         </div>
       </div>
-      <div class="error-import-form" id="prepBatchForm">
-        <label>粘贴 JSON 或直接上传文件（自动导入）</label>
-        <textarea id="prepBatchJson" placeholder='[{"title":"...","passage":"...","blanks":[{"no":36,"answer":"...","category":"...","analysis":"..."}]}]' style="min-height:120px;"></textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <label style="margin-bottom:0;cursor:pointer;padding:6px 14px;border:1px dashed var(--border);border-radius:6px;font-size:13px;color:var(--text-2);background:var(--surface-2);">
-            📁 选择 JSON 文件
-            <input type="file" accept=".json,.txt" onchange="handlePrepFileImport(this)" style="display:none;">
-          </label>
-          <span style="font-size:12px;color:var(--text-3);">或拖拽文件到此处</span>
-        </div>
-        <div class="error-import-btns">
-          <button onclick="togglePrepBatchImport()">取消</button>
-          <button class="primary" onclick="batchImportPrepJson()">批量导入</button>
-        </div>
-      </div>
+      <!-- JSON 批量导入入口已移除：上传统一走拖拽/点击 Word -->
+
       <div id="prepList"></div>
+    </div>
+
+    <div id="dropOverlay" class="drop-overlay" aria-hidden="true">
+      <div class="drop-overlay-inner">📄⬇<div class="drop-overlay-text">松开上传<span id="dropOverlayTarget"></span></div></div>
     </div>
 
     <!-- ============== 管理员页（仅管理员可见） ============== -->
