@@ -461,5 +461,7 @@ d29c166 注册登录改为用户名+密码
 - Finding 4（个别 fine 精度、tag 与解析口径、grammar_point 留空）留待会后。
 - 验证：`check_grammar_bank.py`（19/190）+ `check_grammar_modules.py`（17 模块）+ `npm run check`（9/9 smoke）全绿；git diff 仅 18 题字段 + number 标签。
 - 补充修复（另一会话发现并修复）：`docs/data/grammar_bank.js` 把数据存成 `exams[]` 与扁平 `questions[]` 两份拷贝；上述 18 处只改了 `exams`，而 `buildAllQuestions`（按考点练习/统计）读的是扁平拷贝 → 修复会漏一半。已从修正后的 `exams` 重建扁平 `questions[]`（镜像全部字段含 `nonp_*`，0 字段丢失、desync 0），并在 `check_grammar_bank.py` 新增 `check_flat_questions_mirror` 门禁防再发生（已单元测试：好数据过、坏数据报错）。`npm run check` 全绿。
+- 新增新用户手册：`docs/help/new-user-manual.md`，面向首次试用老师，覆盖打开网站、注册登录、10 分钟上手路线、Word 上传、AI 解析、备课资料、错题本、课堂投影、知识库、反馈、账号数据和常见问题；对应 `PROJECT_CHARTER.md` 中“老师不需要找你才能学会用（有手册）”的 v1 补强项。
+- 下线练习页 header 的手动投影按钮：当前点击空格/题号打开讲题台会自动请求全屏，旧投影按钮与主流程重复，容易让新老师困惑；保留底层 `projection-mode` / fullscreen 状态逻辑供讲题台自动全屏、退出和尺寸状态复用。同步更新 Playwright smoke，从点击 `#btnProjection` 改为断言按钮不存在，并验证点击空格后自动进入讲题台与全屏状态。
 
 *此日志随项目推进持续更新。最后更新：2026-05-29*

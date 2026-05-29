@@ -3165,7 +3165,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
   expect(errors).toEqual([]);
 });
 
-test('signed-in saved materials and projection paths render', async ({ page }) => {
+test('signed-in saved materials and auto fullscreen paths render', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
 
@@ -3237,7 +3237,8 @@ test('signed-in saved materials and projection paths render', async ({ page }) =
   await expect(page.locator('#sourceName')).toContainText('Smoke Test Lesson');
   await expect(page.locator('#passageBox .blank-inline')).toHaveCount(1);
 
-  await page.locator('#btnProjection').click();
+  await expect(page.locator('#btnProjection')).toHaveCount(0);
+  await page.locator('#passageBox .blank-inline').first().click();
   await expect(page.locator('body')).toHaveClass(/projection-mode/);
   await expect(await page.evaluate(() => {
     var state = window.GrammarAppState && window.GrammarAppState.state;
@@ -3255,8 +3256,8 @@ test('signed-in saved materials and projection paths render', async ({ page }) =
     return (window.__supabaseInserts || []).some(function(item) {
       return item.table === 'app_events'
         && item.rows
-        && item.rows.event_type === 'projection_mode_entered'
-        && item.rows.module === 'projection';
+        && item.rows.event_type === 'teaching_stage_opened'
+        && item.rows.module === 'teaching-stage';
     });
   })).toBe(true);
 
