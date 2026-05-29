@@ -294,7 +294,7 @@
         _splitUsedFallback
       ]));
 
-      await parseWithDeepSeek(batchPlan, text.length);
+      await parseWithDeepSeek(batchPlan, text.length, getWordImportModel().extractExamInfoFromFilename(file.name));
 
     } catch (err) {
       hideAiOverlay();
@@ -311,7 +311,7 @@
     }
   }
 
-  async function parseWithDeepSeek(batchPlan, originalLength) {
+  async function parseWithDeepSeek(batchPlan, originalLength, examInfo) {
     _abortAiParse = false;
 
     try {
@@ -377,6 +377,10 @@
       if (_abortAiParse) { hideAiOverlay(); return; }
 
       passagesArr = finalizePassages(passagesArr);
+      if (examInfo) {
+        var importModel = getWordImportModel();
+        passagesArr.forEach(function(p) { p.title = importModel.composePassageTitle(examInfo, p.title); });
+      }
       if (passagesArr.length === 0) {
         throw new Error(callSavedMaterialsModel('getAiParseNoPassagesMessage')
           || 'AI 没有识别出任何题目');

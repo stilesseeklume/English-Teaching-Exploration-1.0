@@ -387,8 +387,33 @@
     });
   }
 
+  // 从上传文件名提取「年份 + 考试名称」（整卷上传时卷头被隔离切掉，文件名最可靠）
+  function extractExamInfoFromFilename(name) {
+    var s = String(name || '').replace(/\.(docx|doc)$/i, '');
+    s = s.replace(/精品解析[:：]?/g, '').replace(/[（(]\s*解析版\s*[)）]/g, '').replace(/英语(试题|试卷|卷)?/g, '');
+    var year = '';
+    var mJie = s.match(/20(\d{2})\s*届/), mDelta = s.match(/-20(\d{2})/), mAny = s.match(/20\d{2}/);
+    if (mJie) year = '20' + mJie[1]; else if (mDelta) year = '20' + mDelta[1]; else year = mAny ? mAny[0] : '';
+    var place = (s.match(/[一-龥]{2,4}市/) || s.match(/[一-龥]{2,6}(?:联盟|附中|中学|学校|教育集团)/) || [''])[0]
+      .replace(/^(浙江省|江苏省|山东省|广东省|福建省|河南省|河北省|湖南省|湖北省|四川省|安徽省|江西省)/, '');
+    var kind = (s.match(/[一二三四五]模/) || s.match(/(质量检测|质检|联考|调研|诊断|期中|期末|月考|周考|开学考|模拟|高考真题)/) || [''])[0];
+    return [year, place, kind].filter(Boolean).join(' ');
+  }
+
+  // 拼出最终标题：年份+考试名称 · AI主题（缺谁跳谁，避免重复）
+  function composePassageTitle(examInfo, aiTitle) {
+    examInfo = String(examInfo || '').trim();
+    aiTitle = String(aiTitle || '').trim();
+    if (!examInfo) return aiTitle || '未命名';
+    if (!aiTitle || aiTitle.indexOf('未命名') === 0) return examInfo;
+    if (aiTitle.indexOf(examInfo) !== -1) return aiTitle;
+    return examInfo + ' · ' + aiTitle;
+  }
+
   window.GrammarWordImportModel = {
     asArray: asArray,
+    extractExamInfoFromFilename: extractExamInfoFromFilename,
+    composePassageTitle: composePassageTitle,
     normalizeImportText: normalizeImportText,
     isPassageTitle: isPassageTitle,
     titleKey: titleKey,

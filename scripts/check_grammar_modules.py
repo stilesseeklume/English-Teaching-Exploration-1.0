@@ -454,6 +454,8 @@ EXPECTED_MODULES = [
         "namespace": "GrammarWordImportModel",
         "exports": [
             "asArray",
+            "extractExamInfoFromFilename",
+            "composePassageTitle",
             "normalizeImportText",
             "isPassageTitle",
             "titleKey",

@@ -1821,6 +1821,9 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var grammarSections = wordImportModel && wordImportModel.isolateGrammarSections(fullPaperFixture);
     var grammarSectionText = grammarSections && grammarSections.length ? grammarSections[0].lines.join('\n') : '';
     var grammarPlanFull = wordImportModel && wordImportModel.buildDocxBatchPlan(fullPaperFixture, { maxBatchChunks: 80 });
+    var examInfoFromName = wordImportModel && wordImportModel.extractExamInfoFromFilename('精品解析：山东枣庄市2026届高三下学期5月模拟考试英语试题（解析版）.docx');
+    var composedTitle = wordImportModel && wordImportModel.composePassageTitle('2026 山东枣庄市 模拟', '俄罗斯男孩与普洱茶');
+    var composedNoExam = wordImportModel && wordImportModel.composePassageTitle('', '只有主题');
     var parsedPassages = wordImportModel && wordImportModel.normalizeParsedPassages({
       passage: 'Students __1__ grammar.',
       blanks: [{ no: '1', answer: '?', category: 'predicate' }]
@@ -2776,6 +2779,9 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && grammarPlanFull.chunks[0].text.indexOf('Tea') !== -1
       && grammarPlanFull.chunks[0].text.indexOf('My friend') === -1
       && grammarPlanFull.chunks[0].answers && grammarPlanFull.chunks[0].answers[56] === 'is'
+      && examInfoFromName === '2026 山东枣庄市 模拟'
+      && composedTitle === '2026 山东枣庄市 模拟 · 俄罗斯男孩与普洱茶'
+      && composedNoExam === '只有主题'
       && parsedPassages && parsedPassages[0].title === 'Parsed Fallback'
       && parsedPassages[0].passage.indexOf('___1___') !== -1
       && parsedPassages[0].blanks[0].answer === 'learn'
