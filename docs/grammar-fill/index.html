@@ -1393,6 +1393,14 @@
     padding: 44px 64px; font-size: 40px; color: var(--accent); text-align: center; font-weight: 800;
   }
   .drop-overlay-text { font-size: 24px; margin-top: 10px; }
+  .error-cat-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .error-cat-chip {
+    font-size: 13px; padding: 5px 14px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text-2); border-radius: 16px; cursor: pointer;
+  }
+  .error-cat-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .error-cat-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  .error-list-source { font-size: 12px; color: var(--text-3); margin-top: 3px; }
   .analysis-sentence-lg {
     font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
     padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
@@ -4959,6 +4967,12 @@ function viewErrorQuestion(id, preserveDrawerReturn) {
   if (plan.shouldRenderExam) renderExam();
 }
 
+var _errorCatFilter = '';
+function setErrorCategoryFilter(cat) {
+  _errorCatFilter = (_errorCatFilter === cat) ? '' : cat;
+  renderErrorBook();
+}
+
 function renderErrorBook() {
   var el = document.getElementById('errorBookList');
   if (!el) return;
@@ -4973,8 +4987,19 @@ function renderErrorBook() {
     return;
   }
 
-  var html = '';
+  // 按考点筛选 chip：点一个考点只看该题型，方便按题型连着练
+  var cats = model.categories || [];
+  if (_errorCatFilter && !cats.some(function(c) { return c.category === _errorCatFilter; })) _errorCatFilter = '';
+  var html = '<div class="error-cat-chips">'
+    + '<button class="error-cat-chip' + (_errorCatFilter === '' ? ' active' : '') + '" onclick="setErrorCategoryFilter(\'\')">全部 ' + model.count + '</button>';
+  cats.forEach(function(c) {
+    html += '<button class="error-cat-chip' + (_errorCatFilter === c.category ? ' active' : '') + '" onclick="setErrorCategoryFilter(\'' + escapeHtml(c.category) + '\')">'
+      + escapeHtml(c.label) + ' ' + c.count + '</button>';
+  });
+  html += '</div>';
+
   model.groups.forEach(function(group) {
+    if (_errorCatFilter && group.category !== _errorCatFilter) return;
     html += '<div class="category-section">'
           + '<div class="category-section-title">' + escapeHtml(group.titleText) + '</div>';
     (group.items || []).forEach(function(item) {
@@ -4985,6 +5010,7 @@ function renderErrorBook() {
             + '<div class="error-list-left">'
             + (item.showBulkCheck ? '<label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;"><input type="checkbox" class="bulk-item-check error-bulk-check" data-id="' + escapeHtml(item.id) + '" onchange="syncErrorBulkInfo()" onclick="event.stopPropagation()"></label>' : '')
             + '<div class="error-list-sentence' + truncateCls + '">' + sent + '</div>'
+            + (item.source ? '<div class="error-list-source">📄 ' + escapeHtml(item.source) + '</div>' : '')
             + '<div class="error-list-meta">答案：' + escapeHtml(item.answer) + ' · ' + escapeHtml(item.analysisPreview) + '</div>'
             + '</div>'
             + '<button class="error-list-delete" onclick="event.stopPropagation();deleteErrorQuestion(\'' + escapeHtml(item.id) + '\')" title="删除">✕</button>'

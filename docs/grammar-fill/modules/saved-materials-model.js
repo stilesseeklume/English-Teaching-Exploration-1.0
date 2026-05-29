@@ -202,6 +202,7 @@
       passage: passage,
       blankMarker: '___' + no + '___',
       answer: asText(question.answer),
+      source: asText(question.source),
       analysisPreview: asText(question.analysis).substring(0, 40),
       sentenceTruncated: passage.length > 160,
       showBulkCheck: !!options.bulkMode
@@ -211,13 +212,15 @@
   function buildErrorListModel(errorQuestions, categoryMap, options) {
     options = options || {};
     var items = asArray(errorQuestions);
+    var rawGroups = groupErrorsByCategory(items, categoryMap);
     return {
       count: items.length,
       statText: '共 ' + items.length + ' 道',
       empty: items.length === 0,
       emptyText: '还没有错题，点击上方按钮导入第一道题目。',
       bulkMode: !!options.bulkMode,
-      groups: groupErrorsByCategory(items, categoryMap).map(function(group) {
+      categories: rawGroups.map(function(g) { return { category: g.category, label: g.label, count: asArray(g.items).length }; }),
+      groups: rawGroups.map(function(group) {
         var list = asArray(group.items);
         return {
           category: group.category,
@@ -575,6 +578,7 @@
       analysis: blank.analysis || ('答案：' + (blank.answer || '?') + '。'),
       solve: blank.solve || '',
       technique: '考点：' + categoryLabel + '。' + getCategoryTip(blank.category, options.categoryTips),
+      source: result.title || '',
       exam: '错题本',
       exam_id: '错题本',
       no: no,
