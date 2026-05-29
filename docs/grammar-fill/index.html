@@ -1363,6 +1363,18 @@
     font-size: var(--drawer-font-size-sm, 23px);
     line-height: 1.75;
   }
+  .analysis-solution-card .sol-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+  .analysis-solution-card .sol-chip {
+    font-size: 12px; padding: 3px 12px; border: 1px solid var(--border);
+    background: var(--surface-3); color: var(--text-3); border-radius: 14px; cursor: pointer;
+  }
+  body:not(.solution-view-point) .analysis-solution-card .sol-chip-solve,
+  body.solution-view-point .analysis-solution-card .sol-chip-point {
+    background: var(--accent-bg); color: var(--accent); border-color: var(--accent); font-weight: 700;
+  }
+  .analysis-solution-card .sol-point { display: none; }
+  body.solution-view-point .analysis-solution-card .sol-solve { display: none; }
+  body.solution-view-point .analysis-solution-card .sol-point { display: block; }
   .analysis-sentence-lg {
     font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
     padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
@@ -6738,11 +6750,32 @@ function buildPracticalGuideHtml(guide) {
     + '</section>';
 }
 
+function renderSolutionCard(model) {
+  model = model || {};
+  if (model.hasSolve) {
+    return '<div class="analysis-solution-card sol-dual">'
+      + '<div class="sol-toggle">'
+      +   '<button type="button" class="sol-chip sol-chip-solve" onclick="setSolutionView(\'solve\')">做题思路</button>'
+      +   '<button type="button" class="sol-chip sol-chip-point" onclick="setSolutionView(\'point\')">考点</button>'
+      + '</div>'
+      + '<div class="sol-text sol-solve"><strong>做题思路：</strong>' + escapeHtml(model.solveText) + '</div>'
+      + '<div class="sol-text sol-point"><strong>考点：</strong>' + escapeHtml(model.pointText) + '</div>'
+      + '</div>';
+  }
+  return '<div class="analysis-solution-card"><strong>解题：</strong>' + escapeHtml(model.pointText || model.text || '') + '</div>';
+}
+
+function setSolutionView(mode) {
+  var point = mode === 'point';
+  if (document.body) document.body.classList.toggle('solution-view-point', point);
+  try { localStorage.setItem('grammar-solution-view', point ? 'point' : 'solve'); } catch (e) {}
+}
+(function () {
+  try { if (localStorage.getItem('grammar-solution-view') === 'point' && document.body) document.body.classList.add('solution-view-point'); } catch (e) {}
+})();
+
 function buildSolutionPanelHtml(q) {
-  var model = window.GrammarTeachingGuide.buildSolutionPanelModel(q);
-  return '<div class="analysis-solution-card">'
-    + '<strong>解题：</strong>' + escapeHtml(model.text)
-    + '</div>';
+  return renderSolutionCard(window.GrammarTeachingGuide.buildSolutionPanelModel(q));
 }
 
 function closeAnalysisFloat() {
@@ -6806,9 +6839,7 @@ function buildAnalysisContent(q) {
     migrationCount: migrationCount
   });
   var guideHtml = buildPracticalGuideHtml(model.practicalGuide);
-  var solutionHtml = '<div class="analysis-solution-card">'
-    + '<strong>解题：</strong>' + escapeHtml(model.solution.text)
-    + '</div>';
+  var solutionHtml = renderSolutionCard(model.solution);
 
   var navHtml = !model.showNavigation ? '' : ('<div style="display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;">'
     + '<button onclick="navigateBlank(-1)" style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">◀ 上一题</button>'

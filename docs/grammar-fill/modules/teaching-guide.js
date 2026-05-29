@@ -385,8 +385,13 @@
 
   function buildSolutionPanelModel(q) {
     q = q || {};
+    var pointText = q.analysis || q.explanation || ('答案：' + (q.answer || '') + '。');
+    var solveText = (q.solve || '').toString().trim();
     return {
-      text: q.analysis || ('答案：' + (q.answer || '') + '。')
+      text: pointText,        // 兼容旧渲染
+      pointText: pointText,   // 考点式（语法书口径）
+      solveText: solveText,   // 做题思路（做题角度）
+      hasSolve: !!solveText   // 有做题思路才显示「做题思路/考点」切换
     };
   }
 

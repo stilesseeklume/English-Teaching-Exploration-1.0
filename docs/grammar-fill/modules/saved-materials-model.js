@@ -248,6 +248,7 @@
           category: blank.category,
           fine_category: blank.fine_category || '',
           analysis: blank.analysis || '',
+          solve: blank.solve || '',
           nonp_function: blank.nonp_function || '',
           nonp_function_label: blank.nonp_function_label || '',
           nonp_form: blank.nonp_form || '',
@@ -502,6 +503,7 @@
       category: blank.category || 'word',
       fine_category: blank.fine_category || '',
       analysis: blank.analysis || '',
+      solve: blank.solve || '',
       nonp_function: blank.nonp_function || '',
       nonp_function_label: blank.nonp_function_label || '',
       nonp_form: blank.nonp_form || '',
@@ -571,6 +573,7 @@
       category_name: categoryLabel,
       grammar_point: '',
       analysis: blank.analysis || ('答案：' + (blank.answer || '?') + '。'),
+      solve: blank.solve || '',
       technique: '考点：' + categoryLabel + '。' + getCategoryTip(blank.category, options.categoryTips),
       exam: '错题本',
       exam_id: '错题本',
@@ -1272,6 +1275,7 @@
         passage: passage.passage,
         sentence: '',
         analysis: blank.analysis || ('答案：' + blank.answer + '。'),
+        solve: blank.solve || '',
         technique: '考点：' + categoryLabel + '。' + getCategoryTip(blank.category, categoryTips)
       };
     });

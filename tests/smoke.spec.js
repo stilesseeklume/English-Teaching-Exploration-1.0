@@ -889,6 +889,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       migrationCount: 2
     });
     var solutionPanelModel = guideModel && guideModel.buildSolutionPanelModel({ answer: 'learn' });
+    var solveDualModel = guideModel && guideModel.buildSolutionPanelModel({ answer: 'x', solve: '先看括号再下手', explanation: '考查动词' });
     var analysisFloatClosePlan = guideModel && guideModel.buildAnalysisFloatClosePlan();
     var analysisFloatOpenPlan = guideModel && guideModel.buildAnalysisFloatTogglePlan('guide', false);
     var analysisFloatCloseOnlyPlan = guideModel && guideModel.buildAnalysisFloatTogglePlan('solution', true);
@@ -1952,6 +1953,9 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && teachingAnalysisPanelModel && teachingAnalysisPanelModel.showNavigation === false
       && emptyGuideCardModel && emptyGuideCardModel.visible === false
       && solutionPanelModel && solutionPanelModel.text === '答案：learn。'
+      && solutionPanelModel.hasSolve === false
+      && solveDualModel && solveDualModel.hasSolve === true
+      && solveDualModel.solveText === '先看括号再下手' && solveDualModel.pointText === '考查动词'
       && analysisFloatClosePlan && analysisFloatClosePlan.panelSelector.indexOf('.analysis-float-panel') === 0
       && analysisFloatOpenPlan && analysisFloatOpenPlan.active === true
       && analysisFloatOpenPlan.panelSelector === '[data-analysis-float="guide"]'
