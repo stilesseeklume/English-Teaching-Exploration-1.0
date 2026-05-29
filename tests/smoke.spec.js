@@ -3759,6 +3759,10 @@ test('teaching-render pure html output', async ({ page }) => {
       entries: [{ id: 's1', item: {}, stageSentenceHtml: '<i>句</i>', row: { rowClass: '', indexText: '1', typeClass: '', typeLabel: '真题', sourceText: '2024', tagLabel: '时态', teachingLine: '讲法' } }]
     });
     const migStageEmpty = R.migrationStageHtml({ tabs: [], emptyHint: { primaryText: '暂无' } });
+    const analysis = R.analysisHtml(
+      { answer: 'learning', floatButtons: [{ key: 'guide', label: '讲题卡' }], zhSentence: '中文句', showNavigation: true, migrationCount: 2 },
+      { sentHtml: '<span>SENT</span>', guideHtml: '<div>G</div>', solutionHtml: '<div>S</div>' }
+    );
     return {
       missing: false,
       practicalHasCard: practical.includes('teacher-quick-card'),
@@ -3772,7 +3776,9 @@ test('teaching-render pure html output', async ({ page }) => {
       migDrawerHasCard: migDrawer.includes('migration-card') && migDrawer.includes('teacher-quick-card'),
       migDrawerEmpty: migDrawerEmpty.includes('empty-hint'),
       migStageHasRow: migStage.includes('teaching-migration-row') && migStage.includes('teaching-migration-source-tabs'),
-      migStageEmpty: migStageEmpty.includes('empty-hint')
+      migStageEmpty: migStageEmpty.includes('empty-hint'),
+      analysisHasRow: analysis.includes('analysis-answer-row-lg') && analysis.includes('SENT') && analysis.includes('analysis-answer-tools'),
+      analysisHasNav: analysis.includes('navigateBlank') && analysis.includes('switchDrawerTab')
     };
   });
 
@@ -3789,4 +3795,6 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.migDrawerEmpty).toBe(true);
   expect(out.migStageHasRow).toBe(true);
   expect(out.migStageEmpty).toBe(true);
+  expect(out.analysisHasRow).toBe(true);
+  expect(out.analysisHasNav).toBe(true);
 });

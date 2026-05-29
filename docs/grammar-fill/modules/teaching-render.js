@@ -256,6 +256,37 @@
     return html;
   }
 
+  function analysisHtml(model, parts) {
+    parts = parts || {};
+    var navHtml = !model.showNavigation ? '' : ('<div style="display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;">'
+      + '<button onclick="navigateBlank(-1)" style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">◀ 上一题</button>'
+      + '<button onclick="navigateBlank(1)"  style="flex:0;padding:8px 18px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);">下一题 ▶</button>'
+      + (model.migrationCount > 0
+          ? '<button onclick="switchDrawerTab(\'migration\')" style="flex:0;padding:8px 18px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);border-radius:20px;cursor:pointer;font-size:var(--drawer-font-size-sm,23px);font-weight:700;">'
+            + '迁移 ' + model.migrationCount + ' 题 →</button>'
+          : '')
+      + '</div>');
+    return '<div class="analysis-answer-row-lg">'
+      + '<div class="analysis-answer-lg">' + window.escapeHtml(model.answer) + '</div>'
+      + '<div class="analysis-answer-tools">'
+      + model.floatButtons.map(function(btn) {
+        return '<button type="button" class="analysis-tool-btn" onclick="toggleAnalysisFloat(\'' + btn.key + '\', this)">' + window.escapeHtml(btn.label) + '</button>';
+      }).join('')
+      + '</div>'
+      + '<div class="analysis-float-panel" data-analysis-float="guide">'
+      + '<div class="analysis-float-head"><div class="analysis-float-title">讲题卡</div><button type="button" class="analysis-float-close" onclick="closeAnalysisFloat()">×</button></div>'
+      + parts.guideHtml
+      + '</div>'
+      + '<div class="analysis-float-panel" data-analysis-float="solution">'
+      + '<div class="analysis-float-head"><div class="analysis-float-title">解题</div><button type="button" class="analysis-float-close" onclick="closeAnalysisFloat()">×</button></div>'
+      + parts.solutionHtml
+      + '</div>'
+      + '</div>'
+      + '<div class="analysis-sentence-lg">' + parts.sentHtml + '</div>'
+      + (model.zhSentence ? '<div class="analysis-sentence-zh">' + window.escapeHtml(model.zhSentence) + '</div>' : '')
+      + navHtml;
+  }
+
   window.GrammarTeachingRender = {
     practicalGuideHtml: practicalGuideHtml,
     solutionCard: solutionCard,
@@ -264,6 +295,7 @@
     teachingGuideHtml: teachingGuideHtml,
     teachingKnowledgeHtml: teachingKnowledgeHtml,
     migrationDrawerHtml: migrationDrawerHtml,
-    migrationStageHtml: migrationStageHtml
+    migrationStageHtml: migrationStageHtml,
+    analysisHtml: analysisHtml
   };
 })();
