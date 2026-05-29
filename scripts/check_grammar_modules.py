@@ -464,6 +464,7 @@ EXPECTED_MODULES = [
             "splitByParagraph",
             "extractAnswersFromChunk",
             "buildFallbackBlanks",
+            "isolateGrammarSections",
             "buildDocxBatchPlan",
             "mergeAnswersIntoPassage",
             "normalizeParsedPassages",

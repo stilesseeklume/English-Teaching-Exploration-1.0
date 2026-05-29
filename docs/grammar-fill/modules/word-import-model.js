@@ -161,17 +161,76 @@
     };
   }
 
+  // 语法填空指令行锚点（全国/各省卷高度统一）：
+  //   "阅读下面短文，在空白处填入1个适当的单词或括号内单词的正确形式。"
+  //   "阅读下面材料，在空白处填入适当的内容(1个单词)或括号内单词的正确形式。"
+  var GRAMMAR_INSTRUCTION_RE = /在空白处填[入写][^。\n]*单词/;
+  // 下一主区块标记（语法填空段在此结束）。完形是"从 A/B/C/D 选出"，不会匹配上面的锚点。
+  var NEXT_SECTION_RE = /^\s*(第[一二三四五六七八九十]+部分|第[一二三四五六七八九十]+\s*节|写作|读后续写|应用文|书面表达|短文改错|Section\b|Part\b|参考答案)/;
+
+  function looksLikeExamTitle(line) {
+    var s = String(line || '');
+    return /(\d{4}|高[一二三]|届)/.test(s)
+      && /(质量检测|质检|模拟|联考|月考|期中|期末|一模|二模|三模|高考|试题|试卷)/.test(s)
+      && !/\d{8,}/.test(s);
+  }
+
+  // 从整卷里精确抽出"语法填空"那一节（可能多篇=合集）。命中返回 [{title, lines}]，
+  // 未命中返回 null（调用方回退到 splitByTitle / splitByParagraph）。
+  function isolateGrammarSections(text) {
+    var lines = normalizeImportText(text).split('\n');
+    var anchors = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (GRAMMAR_INSTRUCTION_RE.test(lines[i])) anchors.push(i);
+    }
+    if (anchors.length === 0) return null;
+
+    var docTitle = '';
+    for (var t = 0; t < Math.min(lines.length, 12); t++) {
+      if (looksLikeExamTitle(lines[t])) { docTitle = lines[t].trim(); break; }
+    }
+
+    var sections = [];
+    for (var a = 0; a < anchors.length; a++) {
+      var startLine = anchors[a];
+      // 起点回退：纳入紧邻的"第二节…"小节头或标题行（只看最近一非空行）
+      for (var b = 1; b <= 3; b++) {
+        var prev = lines[startLine - b];
+        if (prev == null) break;
+        var pt = String(prev).trim();
+        if (!pt) continue;
+        if (/第[一二三四五六七八九十]+\s*节/.test(pt) || isPassageTitle(pt) || looksLikeExamTitle(pt)) {
+          startLine = startLine - b;
+        }
+        break;
+      }
+      // 终点：下一主区块 / 下一篇语法填空 / 文末
+      var nextAnchor = (a + 1 < anchors.length) ? anchors[a + 1] : lines.length;
+      var end = nextAnchor;
+      for (var e = anchors[a] + 1; e < nextAnchor; e++) {
+        if (NEXT_SECTION_RE.test(lines[e])) { end = e; break; }
+      }
+      sections.push({ title: docTitle, lines: lines.slice(startLine, end) });
+    }
+    return sections;
+  }
+
   function buildDocxBatchPlan(text, options) {
     options = options || {};
     var maxBatchChunks = Number(options.maxBatchChunks) || 80;
     var fallbackLengthThreshold = Number(options.fallbackLengthThreshold) || 15000;
     var normalized = normalizeImportText(text);
-    var rawChunks = splitByTitle(normalized);
+
+    // 优先精确抽取语法填空节；命中即只产出该节（单篇/合集），避免整卷被启发式碎切。
+    var rawChunks = isolateGrammarSections(normalized);
     var usedFallback = false;
 
-    if (rawChunks.length === 0 && normalized.length > fallbackLengthThreshold) {
-      rawChunks = splitByParagraph(normalized);
-      usedFallback = rawChunks.length > 0;
+    if (!rawChunks || rawChunks.length === 0) {
+      rawChunks = splitByTitle(normalized);
+      if (rawChunks.length === 0 && normalized.length > fallbackLengthThreshold) {
+        rawChunks = splitByParagraph(normalized);
+        usedFallback = rawChunks.length > 0;
+      }
     }
 
     if (rawChunks.length === 0) {
@@ -222,7 +281,9 @@
     if (!answers) return passage;
     passage.blanks = asArray(passage.blanks).map(function(blank) {
       var no = parseInt(blank.no, 10);
-      if ((!blank.answer || blank.answer === '?') && answers[no]) blank.answer = answers[no];
+      // 原文自带答案（解析版【答案】块）权威，优先于 AI 自解；无官方答案时才保留 AI 答案
+      if (answers[no]) blank.answer = answers[no];
+      else if (!blank.answer) blank.answer = '?';
       return blank;
     });
     return passage;
@@ -337,6 +398,7 @@
     splitByParagraph: splitByParagraph,
     extractAnswersFromChunk: extractAnswersFromChunk,
     buildFallbackBlanks: buildFallbackBlanks,
+    isolateGrammarSections: isolateGrammarSections,
     buildDocxBatchPlan: buildDocxBatchPlan,
     mergeAnswersIntoPassage: mergeAnswersIntoPassage,
     normalizeParsedPassages: normalizeParsedPassages,

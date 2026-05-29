@@ -1802,6 +1802,24 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       '01 浙江省语法填空\\n' + 'Students ___1___ grammar. '.repeat(20) + '\\n【答案】1. learn\\n【解析】',
       { maxBatchChunks: 5 }
     );
+    var fullPaperFixture = [
+      '2026 高三模拟英语试题',
+      '第三部分 语言运用（共两节，满分30分）',
+      '第一节（完形填空）阅读下面短文，从A、B、C、D四个选项中选出最佳选项。',
+      'My friend ___41___ a teacher. ' + 'cloze filler text '.repeat(20),
+      '41. A. is    B. was    C. are    D. were',
+      '第二节（共10小题；每小题1.5分，满分15分）',
+      '阅读下面短文，在空白处填入1个适当的单词或括号内单词的正确形式。',
+      'Tea ___56___ (be) popular in China. ' + 'grammar passage filler '.repeat(20),
+      '【答案】56. is    57. to learn',
+      '【解析】',
+      '【56题详解】考查动词时态。',
+      '第四部分 写作（共两节，满分40分）',
+      '第一节 假定你是李华，' + 'writing prompt filler '.repeat(10)
+    ].join('\n');
+    var grammarSections = wordImportModel && wordImportModel.isolateGrammarSections(fullPaperFixture);
+    var grammarSectionText = grammarSections && grammarSections.length ? grammarSections[0].lines.join('\n') : '';
+    var grammarPlanFull = wordImportModel && wordImportModel.buildDocxBatchPlan(fullPaperFixture, { maxBatchChunks: 80 });
     var parsedPassages = wordImportModel && wordImportModel.normalizeParsedPassages({
       passage: 'Students __1__ grammar.',
       blanks: [{ no: '1', answer: '?', category: 'predicate' }]
@@ -2745,6 +2763,13 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && fallbackBlanks[0].analysis.indexOf('答案：learn') === 0
       && docxBatchPlan && docxBatchPlan.chunks.length === 1
       && docxBatchPlan.chunks[0].fallback.blanks[0].answer === 'learn'
+      && grammarSections && grammarSections.length === 1
+      && grammarSectionText.indexOf('在空白处填入') !== -1
+      && grammarSectionText.indexOf('从A、B、C、D') === -1
+      && grammarPlanFull && grammarPlanFull.chunks.length === 1
+      && grammarPlanFull.chunks[0].text.indexOf('Tea') !== -1
+      && grammarPlanFull.chunks[0].text.indexOf('My friend') === -1
+      && grammarPlanFull.chunks[0].answers && grammarPlanFull.chunks[0].answers[56] === 'is'
       && parsedPassages && parsedPassages[0].title === 'Parsed Fallback'
       && parsedPassages[0].passage.indexOf('___1___') !== -1
       && parsedPassages[0].blanks[0].answer === 'learn'
