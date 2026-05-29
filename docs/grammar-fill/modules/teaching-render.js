@@ -149,12 +149,79 @@
     return html;
   }
 
+  function migrationEmptyHint(hint) {
+    if (!hint) return '';
+    var html = '<div class="empty-hint">' + window.escapeHtml(hint.primaryText || '');
+    if (hint.secondaryText) html += '<br><span style="color:var(--text-3);">' + window.escapeHtml(hint.secondaryText) + '</span>';
+    if (hint.fallbackText) html += '<br><span style="color:var(--text-3);">' + window.escapeHtml(hint.fallbackText) + '</span>';
+    html += '</div>';
+    return html;
+  }
+
+  function migrationDrawerHtml(contentModel) {
+    function tab(item) {
+      return '<button onclick="setMigrationSource(\'' + item.key + '\')" '
+        + 'style="flex:1;padding:7px 10px;border:none;background:' + (item.active ? 'var(--surface)' : 'transparent')
+        + ';color:' + (item.active ? 'var(--text)' : 'var(--text-2)')
+        + ';font-size:calc(var(--drawer-font-size-sm,23px) - 5px);font-weight:' + (item.active ? '700' : '600')
+        + ';border-radius:6px;cursor:pointer;transition:all .15s;font-family:inherit;'
+        + (item.active ? 'box-shadow:0 1px 3px rgba(0,0,0,0.08);' : '')
+        + '">'
+        + window.escapeHtml(item.label) + ' <span style="color:var(--text-3);font-weight:400;">' + item.count + '</span>'
+        + '</button>';
+    }
+    var tabsHtml = '<div style="display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:8px;margin-bottom:12px;">'
+      + contentModel.tabs.map(tab).join('')
+      + '</div>';
+    if (contentModel.emptyHint) {
+      return tabsHtml + migrationEmptyHint(contentModel.emptyHint);
+    }
+    var html = tabsHtml
+      + '<div class="teacher-quick-card" style="margin-top:0;">'
+      + '<div class="teacher-quick-head" style="margin-bottom:6px;">'
+      + '<div class="teacher-quick-kicker">迁移练习</div>'
+      + '<div class="teacher-quick-title-line">'
+      + window.escapeHtml(contentModel.heading)
+      + '</div>'
+      + '</div>'
+      + (contentModel.subline ? '<div style="font-size:var(--drawer-font-size-sm,23px);color:var(--text-2);line-height:1.5;">' + window.escapeHtml(contentModel.subline) + '</div>' : '')
+      + '<div style="font-size:calc(var(--drawer-font-size-sm,23px) - 2px);color:var(--text-3);line-height:1.5;margin-top:4px;">'
+      + window.escapeHtml(contentModel.countText)
+      + '</div>'
+      + '</div>'
+      + '<div class="migration-list">';
+    contentModel.entries.forEach(function(entryModel) {
+      var cardModel = entryModel.card;
+      var typeTagHtml = '';
+      if (cardModel.typeTag) {
+        typeTagHtml = '<span style="background:' + cardModel.typeTag.bg + ';color:' + cardModel.typeTag.color + ';padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:1px;">'
+          + window.escapeHtml(cardModel.typeTag.label)
+          + '</span>';
+      }
+      html += '<div class="migration-card" onclick="jumpToMigrationQuestionById(\'' + entryModel.id + '\')">'
+        + '<div class="migration-card-head">'
+        + '<span class="migration-card-source"' + (cardModel.sourceAccent ? ' style="color:var(--accent);"' : '') + '>'
+        +    window.escapeHtml(cardModel.sourceLabel) + typeTagHtml + ' · 第' + window.escapeHtml(cardModel.questionNo) + '题</span>'
+        + '<span class="migration-card-tag">' + window.escapeHtml(cardModel.tagLabel) + '</span>'
+        + '</div>'
+        + '<div class="migration-card-sentence">' + entryModel.sentenceHtml + '</div>'
+        + '<div class="migration-card-body" style="display:block;">'
+        + (cardModel.teachingLine ? '<p><strong>讲法：</strong>' + window.escapeHtml(cardModel.teachingLine) + '</p>' : '')
+        + '<p style="font-weight:700;color:var(--accent);margin-bottom:0;">' + window.escapeHtml(cardModel.ctaText) + '</p>'
+        + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
   window.GrammarTeachingRender = {
     practicalGuideHtml: practicalGuideHtml,
     solutionCard: solutionCard,
     solutionPanelHtml: solutionPanelHtml,
     theoryContent: theoryContent,
     teachingGuideHtml: teachingGuideHtml,
-    teachingKnowledgeHtml: teachingKnowledgeHtml
+    teachingKnowledgeHtml: teachingKnowledgeHtml,
+    migrationDrawerHtml: migrationDrawerHtml
   };
 })();

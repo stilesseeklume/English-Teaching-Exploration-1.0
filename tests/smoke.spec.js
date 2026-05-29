@@ -2975,16 +2975,15 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && snapshot.knowledgeSearchIndex.length === state.knowledgeSearchIndex.length);
   })).toBe(true);
   await page.locator('#knowledgeSystemBtn').click();
-  await expect(page.locator('.decision-map')).toBeVisible();
-  await expect(page.locator('.dm-card')).toBeVisible();
+  await expect(page.locator('.dm-wrap')).toBeVisible();
+  await expect(page.locator('.dm-cv .dm-node').first()).toBeVisible();
   await expect(await page.evaluate(() => window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.currentKnowledgeView === 'system')).toBe(true);
-  // 引导走一步：点第一个选项 → 面包屑长出第二级
-  await page.locator('.dm-option').first().click();
-  await expect(page.locator('.dm-crumbs .dm-crumb')).toHaveCount(2);
-  // 切到全貌 → 缩进大纲出现，状态切到 overview
-  await page.locator('.dm-mode', { hasText: '全貌' }).click();
-  await expect(page.locator('.dm-outline .dm-row').first()).toBeVisible();
-  await expect(await page.evaluate(() => window.decisionMapState && window.decisionMapState.mode)).toBe('overview');
+  // 点一个节点 → 相机聚焦它（focusId 记下该节点）
+  await page.locator('.dm-cv .dm-node').nth(1).click();
+  await expect(await page.evaluate(() => !!(window.dmCam && typeof window.dmCam.focusId === 'string' && window.dmCam.focusId.length))).toBe(true);
+  // 按 ⤢ 全局 → 取消聚焦，回到整图
+  await page.locator('.dm-hud-wide').click();
+  await expect(await page.evaluate(() => window.dmCam && window.dmCam.focusId === '')).toBe(true);
 
   await page.locator('[data-dock-key="categories"]').click();
   await expect(page.locator('#homeCategories')).toHaveClass(/active/);
@@ -3748,6 +3747,12 @@ test('teaching-render pure html output', async ({ page }) => {
     const guideHtml = R.teachingGuideHtml({ category: '谓语动词', answer: 'learn' }, null, {
       getTeachingHeaderInfo: function() { return { headline: 'G', subline: 'S', practicalGuide: null }; }
     });
+    const migDrawer = R.migrationDrawerHtml({
+      tabs: [{ key: 'bank', label: '真题', count: 3, active: true }],
+      heading: '迁移练习', subline: '', countText: '共 1 题',
+      entries: [{ id: 'x1', sentenceHtml: '<i>句子</i>', card: { sourceLabel: '2024浙江', questionNo: '5', tagLabel: '时态', ctaText: '点开讲', sourceAccent: false, typeTag: null } }]
+    });
+    const migDrawerEmpty = R.migrationDrawerHtml({ tabs: [], emptyHint: { primaryText: '暂无' } });
     return {
       missing: false,
       practicalHasCard: practical.includes('teacher-quick-card'),
@@ -3757,7 +3762,9 @@ test('teaching-render pure html output', async ({ page }) => {
       solutionPanelHasCard: solutionPanel.includes('analysis-solution-card'),
       theoryHasNowCard: theory.includes('theory-now-card') && theory.includes('lesson-path-chip'),
       emptyTheoryHint: emptyTheory.includes('empty-hint'),
-      guideHasTitle: guideHtml.includes('teaching-tab-heading') && guideHtml.includes('teaching-tab-kicker')
+      guideHasTitle: guideHtml.includes('teaching-tab-heading') && guideHtml.includes('teaching-tab-kicker'),
+      migDrawerHasCard: migDrawer.includes('migration-card') && migDrawer.includes('teacher-quick-card'),
+      migDrawerEmpty: migDrawerEmpty.includes('empty-hint')
     };
   });
 
@@ -3770,4 +3777,6 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.theoryHasNowCard).toBe(true);
   expect(out.emptyTheoryHint).toBe(true);
   expect(out.guideHasTitle).toBe(true);
+  expect(out.migDrawerHasCard).toBe(true);
+  expect(out.migDrawerEmpty).toBe(true);
 });
