@@ -1172,6 +1172,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var dmStep = dmTree && knowledgeModel.buildGuidedStepModel(dmTree, 'a');
     var dmLeaf = dmTree && knowledgeModel.buildGuidedStepModel(dmTree, 'a1');
     var dmOutline = dmTree && knowledgeModel.buildDecisionOutlineModel(dmTree, ['root', 'a']);
+    var dmLayout = dmTree && knowledgeModel.layoutDecisionTree(dmTree);
     var globalGraphSearchModel = knowledgeModel && knowledgeModel.buildGlobalGraphSearchModel(
       '谓语',
       graphIndex,
@@ -1944,6 +1945,9 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && dmStep.categoryRefs.length === 1 && dmStep.categoryRefs[0] === 'word'
       && dmLeaf && dmLeaf.isLeaf === true && dmLeaf.options.length === 0
       && dmOutline && dmOutline.rows.length === 4 && dmOutline.rows.some(function(r) { return r.id === 'a' && r.onPath; })
+      && dmLayout && dmLayout.pos.root && dmLayout.pos.a1 && dmLayout.width > 0 && dmLayout.height > 0
+      && dmLayout.pos.root.y < dmLayout.pos.a.y && dmLayout.pos.a.y < dmLayout.pos.a1.y
+      && dmLayout.pos.root.x > dmLayout.pos.a.x && dmLayout.pos.root.x < dmLayout.pos.b.x
       && emptyGlobalGraphInspectorModel && emptyGlobalGraphInspectorModel.empty === true
       && globalGraphSearchModel && globalGraphSearchModel.results && globalGraphSearchModel.results.length
       && globalGraphSearchModel.results[0].subtitleText.indexOf(' · ') !== -1
@@ -3713,4 +3717,57 @@ test('Word upload records AI parse failures and opens fallback import', async ({
   })).toBe(true);
 
   expect(errors.filter(error => !error.includes('502 (Bad Gateway)'))).toEqual([]);
+});
+
+test('teaching-render pure html output', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.waitForFunction(() => !!window.GrammarTeachingGuide);
+
+  const out = await page.evaluate(() => {
+    const R = window.GrammarTeachingRender;
+    if (!R) return { missing: true };
+    const practical = R.practicalGuideHtml({
+      title: '考点：谓语动词', trigger: '抓主语和时间线索。',
+      steps: ['第一步', '第二步'], commonMistake: '只看最近名词。'
+    });
+    const solveDual = R.solutionCard({ hasSolve: true, solveText: '先看括号', pointText: '考查动词' });
+    const solvePoint = R.solutionCard({ pointText: '考查时态' });
+    const solutionPanel = R.solutionPanelHtml({ answer: 'learn', solve: '先看括号', explanation: '考查动词' });
+    const theoryCategory = Object.keys(window.KNOWLEDGE_DATA || {})[0] || '谓语动词';
+    const theory = R.theoryContent({ category: theoryCategory, fine_category: '', answer: 'learn' }, {
+      knowledgeData: window.KNOWLEDGE_DATA || {}, categoryMap: window.CATEGORY_MAP || {},
+      safeQuestionFocus: function() { return { key: theoryCategory, label: theoryCategory, note: '' }; },
+      getFineTagInfo: function() { return null; }
+    });
+    const emptyTheory = R.theoryContent({ category: 'missing-smoke' }, {
+      knowledgeData: {}, categoryMap: { 'missing-smoke': '缺失考点' },
+      safeQuestionFocus: function() { return { key: 'missing-smoke', label: '缺失考点', note: '' }; },
+      getFineTagInfo: function() { return null; }
+    });
+    const guideHtml = R.teachingGuideHtml({ category: '谓语动词', answer: 'learn' }, null, {
+      getTeachingHeaderInfo: function() { return { headline: 'G', subline: 'S', practicalGuide: null }; }
+    });
+    return {
+      missing: false,
+      practicalHasCard: practical.includes('teacher-quick-card'),
+      practicalHasStepNo: practical.includes('teacher-quick-step-no'),
+      solveDualHasToggle: solveDual.includes('analysis-solution-card sol-dual') && solveDual.includes('做题思路'),
+      solvePointPlain: solvePoint.includes('analysis-solution-card') && !solvePoint.includes('sol-dual'),
+      solutionPanelHasCard: solutionPanel.includes('analysis-solution-card'),
+      theoryHasNowCard: theory.includes('theory-now-card') && theory.includes('lesson-path-chip'),
+      emptyTheoryHint: emptyTheory.includes('empty-hint'),
+      guideHasTitle: guideHtml.includes('teaching-tab-heading') && guideHtml.includes('teaching-tab-kicker')
+    };
+  });
+
+  expect(out.missing).toBe(false);
+  expect(out.practicalHasCard).toBe(true);
+  expect(out.practicalHasStepNo).toBe(true);
+  expect(out.solveDualHasToggle).toBe(true);
+  expect(out.solvePointPlain).toBe(true);
+  expect(out.solutionPanelHasCard).toBe(true);
+  expect(out.theoryHasNowCard).toBe(true);
+  expect(out.emptyTheoryHint).toBe(true);
+  expect(out.guideHasTitle).toBe(true);
 });

@@ -3959,6 +3959,7 @@
 <script src="./modules/saved-materials-model.js"></script>
 <script src="./modules/word-import-model.js"></script>
 <script src="./modules/app-state.js"></script>
+<script src="./modules/teaching-render.js"></script>
 
 <script>
 
@@ -6805,40 +6806,9 @@ function getQuestionPracticalGuide(q, focus, nonpAxis) {
   return window.GrammarTeachingGuide.getQuestionPracticalGuide(q, teachingGuideDeps(focus, nonpAxis));
 }
 
-function buildPracticalGuideHtml(guide) {
-  var model = window.GrammarTeachingGuide.buildPracticalGuideCardModel(guide);
-  if (!model.visible) return '';
-  var steps = model.steps.map(function(step, idx) {
-    return '<div class="teacher-quick-step">'
-      + '<span class="teacher-quick-step-no">' + (idx + 1) + '</span>'
-      + '<span>' + escapeHtml(step) + '</span>'
-      + '</div>';
-  }).join('');
-  return '<section class="teacher-quick-card">'
-    + '<div class="teacher-quick-head">'
-    + '<div class="teacher-quick-kicker">' + escapeHtml(model.kicker) + '</div>'
-    + '<div class="teacher-quick-title-line">' + escapeHtml(model.titleLine) + '</div>'
-    + '</div>'
-    + (model.trigger ? '<div class="teacher-quick-lead">' + escapeHtml(model.trigger) + '</div>' : '')
-    + (steps ? '<div class="teacher-quick-steps">' + steps + '</div>' : '')
-    + (model.mistake ? '<div class="teacher-quick-warn">常错：' + escapeHtml(model.mistake) + '</div>' : '')
-    + '</section>';
-}
+function buildPracticalGuideHtml(guide) { return window.GrammarTeachingRender.practicalGuideHtml(guide); }
 
-function renderSolutionCard(model) {
-  model = model || {};
-  if (model.hasSolve) {
-    return '<div class="analysis-solution-card sol-dual">'
-      + '<div class="sol-toggle">'
-      +   '<button type="button" class="sol-chip sol-chip-solve" onclick="setSolutionView(\'solve\')">做题思路</button>'
-      +   '<button type="button" class="sol-chip sol-chip-point" onclick="setSolutionView(\'point\')">考点</button>'
-      + '</div>'
-      + '<div class="sol-text sol-solve"><strong>做题思路：</strong>' + escapeHtml(model.solveText) + '</div>'
-      + '<div class="sol-text sol-point"><strong>考点：</strong>' + escapeHtml(model.pointText) + '</div>'
-      + '</div>';
-  }
-  return '<div class="analysis-solution-card"><strong>解题：</strong>' + escapeHtml(model.pointText || model.text || '') + '</div>';
-}
+function renderSolutionCard(model) { return window.GrammarTeachingRender.solutionCard(model); }
 
 function setSolutionView(mode) {
   var point = mode === 'point';
@@ -6849,9 +6819,7 @@ function setSolutionView(mode) {
   try { if (localStorage.getItem('grammar-solution-view') === 'point' && document.body) document.body.classList.add('solution-view-point'); } catch (e) {}
 })();
 
-function buildSolutionPanelHtml(q) {
-  return renderSolutionCard(window.GrammarTeachingGuide.buildSolutionPanelModel(q));
-}
+function buildSolutionPanelHtml(q) { return window.GrammarTeachingRender.solutionPanelHtml(q); }
 
 function closeAnalysisFloat() {
   var plan = window.GrammarTeachingGuide.buildAnalysisFloatClosePlan();
@@ -7301,16 +7269,7 @@ function renderTeachingStage() {
   });
 }
 
-function buildTeachingGuideHtml(q, practicalGuide) {
-  var header = getTeachingHeaderInfo(q);
-  var model = window.GrammarTeachingGuide.buildGuidePanelModel(header, practicalGuide);
-  return '<div class="teaching-tab-title">'
-    + '<div class="teaching-tab-kicker">' + escapeHtml(model.kicker) + '</div>'
-    + '<div class="teaching-tab-heading">' + escapeHtml(model.heading) + '</div>'
-    + (model.subline ? '<div class="teaching-tab-sub">' + escapeHtml(model.subline) + '</div>' : '')
-    + '</div>'
-    + buildPracticalGuideHtml(model.practicalGuide);
-}
+function buildTeachingGuideHtml(q, practicalGuide) { return window.GrammarTeachingRender.teachingGuideHtml(q, practicalGuide, { getTeachingHeaderInfo: getTeachingHeaderInfo }); }
 
 function buildTeachingMigrationHtml(q) {
   var data = getMigrationData(q);
@@ -7365,63 +7324,7 @@ function buildTeachingMigrationHtml(q) {
   return html;
 }
 
-function buildTeachingKnowledgeHtml(q) {
-  var deps = teachingViewModelDeps();
-  deps.graphNodeIndex = getGraphNodeIndex();
-  var model = window.GrammarTeachingViewModel.buildTeachingKnowledgePanelModel(q, deps);
-  var html = '<div class="teaching-tab-title">'
-    + '<div class="teaching-tab-kicker">' + escapeHtml(model.kicker) + '</div>'
-    + '<div class="teaching-tab-heading">' + escapeHtml(model.heading) + '</div>'
-    + '<div class="teaching-tab-sub">' + escapeHtml(model.subline) + '</div>'
-    + '</div>';
-  html += '<div class="teaching-global-locator">'
-    + '<button class="node-link-chip" onclick="openGlobalGraphForTeachingQuestion()">' + escapeHtml(model.locatorLabel) + '</button>'
-    + '</div>';
-  html += '<div class="teaching-mindmap">';
-  html += '<div class="teaching-mindmap-path">';
-  model.path.forEach(function(item, idx) {
-    if (idx > 0) html += '<span class="arrow">›</span>';
-    html += '<span' + (item.current ? ' class="current"' : '') + '>' + escapeHtml(item.label) + '</span>';
-  });
-  html += '</div>';
-  html += '<div class="teaching-mindmap-board">';
-  html += '<div class="teaching-mindmap-column">';
-  html += '<div class="mindmap-label">上级</div>';
-  html += '<div class="mindmap-up-node"><b>' + escapeHtml(model.parent.title) + '</b><span>' + escapeHtml(model.parent.note) + '</span></div>';
-  if (model.siblings && model.siblings.length) {
-    html += '<div class="mindmap-label">同级分支</div><div class="mindmap-siblings">';
-    model.siblings.forEach(function(label) {
-      html += '<div class="mindmap-sibling">' + escapeHtml(label) + '</div>';
-    });
-    html += '</div>';
-  }
-  html += '</div>';
-  html += '<div class="teaching-mindmap-center">';
-  html += '<div class="mindmap-label">当前考点</div>';
-  html += '<div class="mindmap-center-node"><b>' + escapeHtml(model.center.title) + '</b><span>' + escapeHtml(model.center.note) + '</span></div>';
-  html += '<div class="mindmap-current-focus">' + escapeHtml(model.center.focusText) + '</div>';
-  html += '</div>';
-  html += '<div class="teaching-mindmap-branches">';
-  model.branches.forEach(function(branch) {
-    html += '<div class="mindmap-branch' + (branch.active ? ' active' : '') + '">';
-    html += '<div class="mindmap-branch-node"><b>' + escapeHtml(branch.title || '') + '</b><span>' + escapeHtml(branch.note || '') + '</span></div>';
-    html += '<div class="mindmap-leaves">';
-    (branch.leaves || []).forEach(function(leaf) {
-      html += '<div class="mindmap-leaf' + (branch.active ? ' active' : '') + '">' + escapeHtml(leaf) + '</div>';
-    });
-    html += '</div></div>';
-  });
-  html += '</div></div>';
-  if (model.rules && model.rules.length) {
-    html += '<div class="teaching-mindmap-rules">';
-    model.rules.forEach(function(rule) {
-      html += '<div class="mindmap-rule"><span>' + rule.no + '</span><div>' + escapeHtml(rule.text) + '</div></div>';
-    });
-    html += '</div>';
-  }
-  html += '</div>';
-  return html;
-}
+function buildTeachingKnowledgeHtml(q) { return window.GrammarTeachingRender.teachingKnowledgeHtml(q, { teachingViewModelDeps: teachingViewModelDeps, getGraphNodeIndex: getGraphNodeIndex }); }
 
 function renderTeachingDock() {
   var practiceContext = getPracticeContextSnapshot();
@@ -7767,38 +7670,7 @@ function buildMigrationContent(q) {
   return html;
 }
 
-function buildTheoryContent(q) {
-  var model = window.GrammarTeachingGuide.buildTheoryPanelModel(q, {
-    knowledgeData: KNOWLEDGE_DATA,
-    categoryMap: CATEGORY_MAP,
-    safeQuestionFocus: safeQuestionFocus,
-    getFineTagInfo: getFineTagInfo
-  });
-  if (!model.hasTheory) {
-    return '<div class="empty-hint">' + escapeHtml(model.emptyText) + '</div>';
-  }
-  var html = '<div class="theory-now-card">'
-    + '<div class="lesson-card-kicker">当前考点</div>'
-    + '<div class="theory-now-title">' + escapeHtml(model.title) + '</div>'
-    + '<div class="lesson-path">'
-    + model.path.map(function(item, idx) { return '<span class="lesson-path-chip' + (idx === model.path.length - 1 ? ' current' : '') + '">' + escapeHtml(item) + '</span>'; }).join('')
-    + '</div>'
-    + '</div>';
-  if (model.overviewHtml) {
-    html += '<div style="margin-bottom:16px;">' + model.overviewHtml + '</div>';
-  }
-  if (model.sections.length) {
-    html += '<div class="drawer-fold-list">';
-    model.sections.forEach(function(section) {
-      html += '<details class="drawer-fold">';
-      html += '<summary class="drawer-fold-summary">' + escapeHtml(section.title) + ' · ' + escapeHtml(section.desc) + '</summary>';
-      html += '<div class="drawer-fold-body">' + section.contentHtml + '</div>';
-      html += '</details>';
-    });
-    html += '</div>';
-  }
-  return html;
-}
+function buildTheoryContent(q) { return window.GrammarTeachingRender.theoryContent(q, { knowledgeData: KNOWLEDGE_DATA, categoryMap: CATEGORY_MAP, safeQuestionFocus: safeQuestionFocus, getFineTagInfo: getFineTagInfo }); }
 
 function showAnalysis(no) {
   var practiceContext = getPracticeContextSnapshot();

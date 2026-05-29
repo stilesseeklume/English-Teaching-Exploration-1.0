@@ -313,6 +313,7 @@ EXPECTED_MODULES = [
             "buildDecisionTree",
             "buildGuidedStepModel",
             "buildDecisionOutlineModel",
+            "layoutDecisionTree",
             "stripHtml",
             "normalizeTagId",
             "countByFineTag",
@@ -619,6 +620,18 @@ EXPECTED_MODULES = [
             "buildFontScaleSnapshotState",
             "buildFontCssVarMap",
             "buildFontScaleViewModel",
+        ],
+    },
+    {
+        "path": "teaching-render.js",
+        "namespace": "GrammarTeachingRender",
+        "exports": [
+            "practicalGuideHtml",
+            "solutionCard",
+            "solutionPanelHtml",
+            "theoryContent",
+            "teachingGuideHtml",
+            "teachingKnowledgeHtml",
         ],
     },
 ]
