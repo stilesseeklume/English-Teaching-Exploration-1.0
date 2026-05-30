@@ -7488,19 +7488,6 @@ function getMigrationData(q) {
   return data;
 }
 
-function renderMigrationEmptyHint(hint) {
-  if (!hint) return '';
-  var html = '<div class="empty-hint">' + escapeHtml(hint.primaryText || '');
-  if (hint.secondaryText) {
-    html += '<br><span style="color:var(--text-3);">' + escapeHtml(hint.secondaryText) + '</span>';
-  }
-  if (hint.fallbackText) {
-    html += '<br><span style="color:var(--text-3);">' + escapeHtml(hint.fallbackText) + '</span>';
-  }
-  html += '</div>';
-  return html;
-}
-
 function buildMigrationContent(q) {
   clearTeachingMigrationRegistry();
   var data = getMigrationData(q);

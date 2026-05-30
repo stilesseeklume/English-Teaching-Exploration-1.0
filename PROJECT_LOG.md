@@ -465,4 +465,11 @@ d29c166 注册登录改为用户名+密码
 - 下线练习页 header 的手动投影按钮：当前点击空格/题号打开讲题台会自动请求全屏，旧投影按钮与主流程重复，容易让新老师困惑；保留底层 `projection-mode` / fullscreen 状态逻辑供讲题台自动全屏、退出和尺寸状态复用。同步更新 Playwright smoke，从点击 `#btnProjection` 改为断言按钮不存在，并验证点击空格后自动进入讲题台与全屏状态。
 - 重写新用户手册为“试用老师快速上手”短版，并新增 Word 版 `docs/help/Seeklume试用老师快速上手手册.docx`，用于提前发给 1-2 位老师做小范围真实试用；手册从完整说明改为 15 分钟试用路线 + 具体反馈页，降低首次试用门槛。
 
-*此日志随项目推进持续更新。最后更新：2026-05-29*
+## 2026-05-30 · 讲题台渲染抽离 batch 3
+
+- `renderTeachingStage` 讲题台外壳、`renderTeachingDock` 的 dock 纯 HTML 装配抽入 `docs/grammar-fill/modules/teaching-render.js`（新增 `teachingStageHtml(model, parts)` / `teachingDockHtml(model)`，导出 9→11）；`index.html` 两函数改为 inline 副作用编排 + 调模块，埋点/快照/DOM 写入原位保留。
+- 删除零调用死代码 `renderMigrationEmptyHint`（batch 1/2 把 empty-hint 搬进模块内部 helper 后的残留）。
+- `scripts/check_grammar_modules.py` 加 2 个 `GrammarTeachingRender` export 契约；`tests/smoke.spec.js` 加 4 条 render 断言（讲题台外壳含内容、空内容不出 content-panel、dock 含按钮、dock 不可见返回空串）。
+- 验证：`python3 scripts/check_grammar_modules.py`（18 模块）+ `npm run check`（全绿，含 grammar-fill core path 真实渲染讲题台/dock）。主文件再瘦约 40-50 行。
+
+*此日志随项目推进持续更新。最后更新：2026-05-30*
