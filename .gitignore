@@ -42,3 +42,4 @@ private/
 # Supabase CLI 本地缓存
 supabase/.temp/
 supabase/supabase/
+.superpowers/
