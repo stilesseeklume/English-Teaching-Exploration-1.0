@@ -3961,6 +3961,7 @@
 <script src="./modules/word-import-model.js"></script>
 <script src="./modules/app-state.js"></script>
 <script src="./modules/teaching-render.js"></script>
+<script src="./modules/sidebar-render.js"></script>
 
 <script>
 
@@ -5980,64 +5981,6 @@ function inlineSidebarAction(action, fallbackFn, fallbackValue) {
   return inlineSidebarCall(action.fn || fallbackFn, action.value == null ? fallbackValue : action.value);
 }
 
-function renderSidebarModel(model) {
-  if (!model || model.hidden) return '';
-  var html = '<div class="context-sidebar-title">' + escapeHtml(model.title || '') + '</div>';
-  if (model.emptyText) {
-    return html + '<div class="context-sidebar-empty">' + escapeHtml(model.emptyText) + '</div>';
-  }
-
-  if (model.kind === 'exam-groups') {
-    (model.groups || []).forEach(function(group) {
-      html += '<div class="context-sidebar-year">' + escapeHtml(group.year) + ' 年</div>';
-      (group.items || []).forEach(function(item) {
-        var activeCls = item.active ? ' active' : '';
-        html += '<div class="context-sidebar-item' + activeCls + '" onclick="' + inlineSidebarAction(item.action, 'startByExam', item.id) + '">'
-              + '<span class="cs-tag' + (item.tagClass || '') + '">' + escapeHtml(item.type || '真题') + '</span>'
-              + escapeHtml(item.id)
-              + '<span class="cs-num">' + escapeHtml(item.countText || ((item.blankCount || 0) + '题')) + '</span>'
-              + '</div>';
-      });
-    });
-  } else if (model.kind === 'categories') {
-    (model.items || []).forEach(function(item) {
-      var activeCls = item.active ? ' active' : '';
-      html += '<div class="context-sidebar-item' + activeCls + '" onclick="' + inlineSidebarAction(item.action, 'startByCategory', item.category) + '">'
-            + '<span class="cs-tag">' + escapeHtml(item.label || item.category || '') + '</span>'
-            + escapeHtml(item.countText || ((item.count || 0) + ' 题'))
-            + '</div>';
-    });
-  } else if (model.kind === 'error-groups') {
-    (model.groups || []).forEach(function(group) {
-      html += '<div class="context-sidebar-year">' + escapeHtml(group.label || group.category || '') + '</div>';
-      (group.items || []).forEach(function(item) {
-        html += '<div class="context-sidebar-item" onclick="' + inlineSidebarAction(item.action, 'viewErrorQuestion', item.id) + '">'
-              + '<span class="cs-tag">' + escapeHtml(item.answer || '') + '</span>'
-              + escapeHtml(item.noText || ('第' + (item.no || '') + '题'))
-              + '</div>';
-      });
-    });
-  } else if (model.kind === 'error-items') {
-    (model.items || []).forEach(function(item) {
-      var activeCls = item.active ? ' active' : '';
-      html += '<div class="context-sidebar-item' + activeCls + '" onclick="' + inlineSidebarAction(item.action, 'viewErrorQuestion', item.id) + '">'
-            + '<span class="cs-tag">' + escapeHtml(item.categoryLabel || '') + '</span>'
-            + escapeHtml(item.noText || ('第' + (item.no || '') + '题'))
-            + '<span class="cs-cat">' + escapeHtml(item.answer || '') + '</span>'
-            + '</div>';
-    });
-  } else if (model.kind === 'prep-items') {
-    (model.items || []).forEach(function(item) {
-      var activeCls = item.active ? ' active' : '';
-      html += '<div class="context-sidebar-item' + activeCls + '" onclick="' + inlineSidebarAction(item.action, 'viewPrepPassage', item.id) + '">'
-            + escapeHtml(item.title || '未命名备课')
-            + '<span class="cs-num">' + escapeHtml(item.countText || ((item.blankCount || 0) + '题')) + '</span>'
-            + '</div>';
-    });
-  }
-  return html;
-}
-
 // ────────── 页面侧边栏：home / 错题本 / 备课资料 / 练习通用 ──────────
 function renderPageSidebar(page) {
   var el = document.getElementById('contextSidebar');
@@ -6068,7 +6011,7 @@ function renderPageSidebar(page) {
     return;
   }
 
-  document.getElementById('contextSidebarContent').innerHTML = renderSidebarModel(model);
+  document.getElementById('contextSidebarContent').innerHTML = window.GrammarSidebarRender.sidebarHtml(model, { inlineSidebarAction: inlineSidebarAction });
   el.style.display = '';
 }
 
@@ -6088,7 +6031,7 @@ function renderContextSidebar() {
     return;
   }
 
-  document.getElementById('contextSidebarContent').innerHTML = renderSidebarModel(model);
+  document.getElementById('contextSidebarContent').innerHTML = window.GrammarSidebarRender.sidebarHtml(model, { inlineSidebarAction: inlineSidebarAction });
   el.style.display = '';
 }
 

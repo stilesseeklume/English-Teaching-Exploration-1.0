@@ -3823,3 +3823,27 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.dockHasBtns).toBe(true);
   expect(out.dockHidden).toBe(true);
 });
+
+test('sidebar-render pure html output', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.waitForFunction(() => !!window.GrammarSidebarRender);
+
+  const out = await page.evaluate(() => {
+    const R = window.GrammarSidebarRender;
+    if (!R) return { missing: true };
+    const examGroups = R.sidebarHtml(
+      { kind: 'exam-groups', title: '套卷', groups: [{ year: '2024', items: [{ id: '2024A', type: '真题', active: true, action: {}, blankCount: 10 }] }] },
+      { inlineSidebarAction: function(a, fn, v) { return fn + ':' + v; } }
+    );
+    const hidden = R.sidebarHtml({ hidden: true }, {});
+    return {
+      missing: false,
+      examGroupsHasItem: examGroups.includes('context-sidebar-year') && examGroups.includes('context-sidebar-item') && examGroups.includes('startByExam:2024A'),
+      hiddenEmpty: hidden === ''
+    };
+  });
+  expect(out.missing).toBe(false);
+  expect(out.examGroupsHasItem).toBe(true);
+  expect(out.hiddenEmpty).toBe(true);
+});

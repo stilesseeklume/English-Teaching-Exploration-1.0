@@ -639,6 +639,13 @@ EXPECTED_MODULES = [
             "teachingDockHtml",
         ],
     },
+    {
+        "path": "sidebar-render.js",
+        "namespace": "GrammarSidebarRender",
+        "exports": [
+            "sidebarHtml",
+        ],
+    },
 ]
 
 FORBIDDEN_IN_PURE_MODULES = [
