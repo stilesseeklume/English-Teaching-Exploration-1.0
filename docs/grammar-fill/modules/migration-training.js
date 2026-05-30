@@ -96,12 +96,8 @@
     var bankDisplayPool = nonpAxis
       ? dedupe([].concat(
           options.nonpExactBankPool || [],
-          options.nonpFormBankPool || [],
-          options.teachingBankPool || [],
-          options.fineBankPool || [],
-          options.trapBankPool || [],
-          options.bankPool || []
-        ))
+          options.nonpFormBankPool || []
+        ))   // 非谓语迁移只取同形式(doing/done/to_do)，不灌粗类避免 doing 题混进一堆 todo
       : (focusFirst
           ? dedupe([].concat(options.teachingBankPool || [], options.bankPool || [], options.trapBankPool || [], options.fineBankPool || []))
           : dedupe([].concat(options.teachingBankPool || [], options.fineBankPool || [], options.trapBankPool || [], options.bankPool || [])));
@@ -109,11 +105,7 @@
     var errorDisplayPool = nonpAxis
       ? dedupe([].concat(
           options.nonpExactErrorPool || [],
-          options.nonpFormErrorPool || [],
-          options.teachingErrorPool || [],
-          options.fineErrorPool || [],
-          options.trapErrorPool || [],
-          options.errorPool || []
+          options.nonpFormErrorPool || []
         ))
       : (focusFirst
           ? dedupe([].concat(options.teachingErrorPool || [], options.errorPool || [], options.trapErrorPool || [], options.fineErrorPool || []))

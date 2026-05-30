@@ -301,7 +301,9 @@
       + '<section class="teaching-question-panel">'
       + '<div class="teaching-question-line">' + parts.questionSentenceHtml + '</div>'
       + '<div class="teaching-question-folds">'
-      + (model.zhSentence ? '<details class="teaching-fold"><summary>中文翻译</summary><div class="teaching-fold-body">' + window.escapeHtml(model.zhSentence) + '</div></details>' : '')
+      + '<details class="teaching-fold"><summary>中文翻译</summary><div class="teaching-fold-body" id="stageZhBody">'
+      + (model.zhSentence ? window.escapeHtml(model.zhSentence) : '<button type="button" onclick="translateStageSentence()" style="font-size:13px;border:1px solid var(--border);background:var(--surface-2);color:var(--accent);border-radius:12px;padding:4px 12px;cursor:pointer;font-family:inherit;">AI 翻译这句 →</button>')
+      + '</div></details>'
       + '</div>'
       + '</section>'
       + (parts.contentHtml ? '<section class="teaching-content-panel">' + parts.contentHtml + '</section>' : '')

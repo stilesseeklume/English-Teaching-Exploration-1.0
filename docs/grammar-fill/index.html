@@ -6490,6 +6490,40 @@ function getPassageText(fillAnswers) {
   return window.GrammarPracticeViewModel.getPracticePassageText(practiceContext.currentExam, practiceContext.currentQuestions, fillAnswers);
 }
 
+// 讲题舞台：翻译当前题所在句子（优先预存中文，否则 AI 翻译并缓存）
+async function translateStageSentence() {
+  var ctx = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var q = (session && ctx.currentQuestions) ? ctx.currentQuestions[session.idx] : null;
+  var body = document.getElementById('stageZhBody');
+  if (!q || !body) return;
+  var zh = getQuestionChineseSentence(q);
+  if (zh) { body.textContent = zh; return; }
+  var sent = '';
+  try { sent = String(window.GrammarPassageUtils.getQuestionSentence(q) || '').replace(/<[^>]+>/g, '').replace(/_{2,}\s*\d*\s*_{2,}/g, ' ____ ').trim(); } catch (e) {}
+  if (!sent) { body.textContent = '没有可翻译的句子。'; return; }
+  var hash = hashPassage(sent);
+  var cache = getTranslationCache();
+  if (cache[hash]) { body.textContent = cache[hash]; return; }
+  body.textContent = '翻译中…';
+  try {
+    var session2 = window._sb ? (await window._sb.auth.getSession()).data.session : null;
+    var token = session2 ? session2.access_token : null;
+    if (!token) { body.textContent = '请先登录以使用翻译。'; return; }
+    var res = await fetch('https://zwbvcqkfbndgmyfxtkyl.supabase.co/functions/v1/translate-passage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ text: sent })
+    });
+    var data = await res.json();
+    if (data.error || !data.chinese) { body.textContent = '翻译失败，请稍后再试。'; return; }
+    setTranslationCache(hash, data.chinese);
+    body.textContent = data.chinese;
+  } catch (e) {
+    body.textContent = '翻译请求失败，请检查网络后重试。';
+  }
+}
+
 // 按考点模式：根据题在 currentQuestions 数组中的下标取题
 function showAnalysisByIdx(idx) {
   var practiceContext = getPracticeContextSnapshot();
