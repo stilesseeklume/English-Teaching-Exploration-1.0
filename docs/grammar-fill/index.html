@@ -7256,32 +7256,7 @@ function renderTeachingDock() {
   var model = window.GrammarAppState.buildTeachingDockModel(session, practiceContext.currentQuestions, returnStackState.teachingReturnStack, {
     normalizeTab: normalizeTeachingTab
   });
-  if (!model.visible) {
-    dock.innerHTML = '';
-    return;
-  }
-  var qBtns = model.questionButtons.map(function(item) {
-    return '<button class="teaching-q-btn' + (item.active ? ' active' : '') + '" onclick="jumpTeachingQuestion(' + item.index + ')" title="' + escapeHtml(item.title) + '">'
-      + escapeHtml(item.no)
-      + '</button>';
-  }).join('');
-  var tabBtns = model.tabButtons.map(function(item) {
-    return '<button class="' + (item.active ? 'active' : '') + '" onclick="setTeachingTab(\'' + item.key + '\')">' + escapeHtml(item.label) + '</button>';
-  }).join('');
-  var returnBtn = model.returnButton
-    ? '<button class="return" onclick="returnTeachingQuestion()" title="' + escapeHtml(model.returnButton.label) + '" aria-label="' + escapeHtml(model.returnButton.label) + '">↩</button>'
-    : '';
-  dock.innerHTML = ''
-    + '<div class="teaching-dock-group">'
-    + '<button onclick="jumpTeachingQuestion(-1, true)" title="' + escapeHtml(model.navButtons[0].title) + '">' + escapeHtml(model.navButtons[0].label) + '</button>'
-    + '<button onclick="jumpTeachingQuestion(1, true)" title="' + escapeHtml(model.navButtons[1].title) + '">' + escapeHtml(model.navButtons[1].label) + '</button>'
-    + '</div>'
-    + '<div class="teaching-question-rail"><div class="teaching-dock-group">' + qBtns + '</div></div>'
-    + '<div class="teaching-dock-group">'
-    + tabBtns
-    + returnBtn
-    + '<button class="danger" onclick="closeTeachingStage()">' + escapeHtml(model.exitButton.label) + '</button>'
-    + '</div>';
+  dock.innerHTML = window.GrammarTeachingRender.teachingDockHtml(model);
 }
 
 function setTeachingTab(tab) {

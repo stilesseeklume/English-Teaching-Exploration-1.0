@@ -3771,6 +3771,15 @@ test('teaching-render pure html output', async ({ page }) => {
       { sourceLabel: 'S', questionLabel: 'Q', categoryLabel: 'C', focusContent: true, zhSentence: '' },
       { questionSentenceHtml: '<span>QLINE2</span>', contentHtml: '' }
     );
+    const dock = R.teachingDockHtml({
+      visible: true,
+      navButtons: [{ title: '上一题', label: '◀' }, { title: '下一题', label: '▶' }],
+      questionButtons: [{ index: 0, active: true, no: '1', title: '第1题' }],
+      tabButtons: [{ key: 'guide', active: true, label: '讲题' }],
+      returnButton: null,
+      exitButton: { label: '退出' }
+    });
+    const dockHidden = R.teachingDockHtml({ visible: false });
     return {
       missing: false,
       practicalHasCard: practical.includes('teacher-quick-card'),
@@ -3788,7 +3797,9 @@ test('teaching-render pure html output', async ({ page }) => {
       analysisHasRow: analysis.includes('analysis-answer-row-lg') && analysis.includes('SENT') && analysis.includes('analysis-answer-tools'),
       analysisHasNav: analysis.includes('navigateBlank') && analysis.includes('switchDrawerTab'),
       stageHasShell: stage.includes('teaching-stage-shell') && stage.includes('STAGECONTENT') && stage.includes('QLINE'),
-      stageNoContent: !stageNoContent.includes('teaching-content-panel') && stageNoContent.includes('QLINE2')
+      stageNoContent: !stageNoContent.includes('teaching-content-panel') && stageNoContent.includes('QLINE2'),
+      dockHasBtns: dock.includes('teaching-q-btn') && dock.includes('teaching-question-rail'),
+      dockHidden: dockHidden === ''
     };
   });
 
@@ -3809,4 +3820,6 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.analysisHasNav).toBe(true);
   expect(out.stageHasShell).toBe(true);
   expect(out.stageNoContent).toBe(true);
+  expect(out.dockHasBtns).toBe(true);
+  expect(out.dockHidden).toBe(true);
 });

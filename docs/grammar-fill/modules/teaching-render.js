@@ -309,6 +309,32 @@
       + '</div>';
   }
 
+  function teachingDockHtml(model) {
+    if (!model || !model.visible) return '';
+    var qBtns = model.questionButtons.map(function(item) {
+      return '<button class="teaching-q-btn' + (item.active ? ' active' : '') + '" onclick="jumpTeachingQuestion(' + item.index + ')" title="' + window.escapeHtml(item.title) + '">'
+        + window.escapeHtml(item.no)
+        + '</button>';
+    }).join('');
+    var tabBtns = model.tabButtons.map(function(item) {
+      return '<button class="' + (item.active ? 'active' : '') + '" onclick="setTeachingTab(\'' + item.key + '\')">' + window.escapeHtml(item.label) + '</button>';
+    }).join('');
+    var returnBtn = model.returnButton
+      ? '<button class="return" onclick="returnTeachingQuestion()" title="' + window.escapeHtml(model.returnButton.label) + '" aria-label="' + window.escapeHtml(model.returnButton.label) + '">↩</button>'
+      : '';
+    return ''
+      + '<div class="teaching-dock-group">'
+      + '<button onclick="jumpTeachingQuestion(-1, true)" title="' + window.escapeHtml(model.navButtons[0].title) + '">' + window.escapeHtml(model.navButtons[0].label) + '</button>'
+      + '<button onclick="jumpTeachingQuestion(1, true)" title="' + window.escapeHtml(model.navButtons[1].title) + '">' + window.escapeHtml(model.navButtons[1].label) + '</button>'
+      + '</div>'
+      + '<div class="teaching-question-rail"><div class="teaching-dock-group">' + qBtns + '</div></div>'
+      + '<div class="teaching-dock-group">'
+      + tabBtns
+      + returnBtn
+      + '<button class="danger" onclick="closeTeachingStage()">' + window.escapeHtml(model.exitButton.label) + '</button>'
+      + '</div>';
+  }
+
   window.GrammarTeachingRender = {
     practicalGuideHtml: practicalGuideHtml,
     solutionCard: solutionCard,
@@ -319,6 +345,7 @@
     migrationDrawerHtml: migrationDrawerHtml,
     migrationStageHtml: migrationStageHtml,
     analysisHtml: analysisHtml,
-    teachingStageHtml: teachingStageHtml
+    teachingStageHtml: teachingStageHtml,
+    teachingDockHtml: teachingDockHtml
   };
 })();
