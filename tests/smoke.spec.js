@@ -3763,6 +3763,14 @@ test('teaching-render pure html output', async ({ page }) => {
       { answer: 'learning', floatButtons: [{ key: 'guide', label: '讲题卡' }], zhSentence: '中文句', showNavigation: true, migrationCount: 2 },
       { sentHtml: '<span>SENT</span>', guideHtml: '<div>G</div>', solutionHtml: '<div>S</div>' }
     );
+    const stage = R.teachingStageHtml(
+      { sourceLabel: '2024浙江', questionLabel: '第5题', categoryLabel: '时态', focusContent: false, zhSentence: '中文句' },
+      { questionSentenceHtml: '<span>QLINE</span>', contentHtml: '<div>STAGECONTENT</div>' }
+    );
+    const stageNoContent = R.teachingStageHtml(
+      { sourceLabel: 'S', questionLabel: 'Q', categoryLabel: 'C', focusContent: true, zhSentence: '' },
+      { questionSentenceHtml: '<span>QLINE2</span>', contentHtml: '' }
+    );
     return {
       missing: false,
       practicalHasCard: practical.includes('teacher-quick-card'),
@@ -3778,7 +3786,9 @@ test('teaching-render pure html output', async ({ page }) => {
       migStageHasRow: migStage.includes('teaching-migration-row') && migStage.includes('teaching-migration-source-tabs'),
       migStageEmpty: migStageEmpty.includes('empty-hint'),
       analysisHasRow: analysis.includes('analysis-answer-row-lg') && analysis.includes('SENT') && analysis.includes('analysis-answer-tools'),
-      analysisHasNav: analysis.includes('navigateBlank') && analysis.includes('switchDrawerTab')
+      analysisHasNav: analysis.includes('navigateBlank') && analysis.includes('switchDrawerTab'),
+      stageHasShell: stage.includes('teaching-stage-shell') && stage.includes('STAGECONTENT') && stage.includes('QLINE'),
+      stageNoContent: !stageNoContent.includes('teaching-content-panel') && stageNoContent.includes('QLINE2')
     };
   });
 
@@ -3797,4 +3807,6 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.migStageEmpty).toBe(true);
   expect(out.analysisHasRow).toBe(true);
   expect(out.analysisHasNav).toBe(true);
+  expect(out.stageHasShell).toBe(true);
+  expect(out.stageNoContent).toBe(true);
 });

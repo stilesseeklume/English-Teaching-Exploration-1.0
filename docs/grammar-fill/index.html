@@ -7212,24 +7212,10 @@ function renderTeachingStage() {
     console.error('演示台渲染失败：', e);
     contentHtml = '<div class="empty-hint">当前题内容加载失败，请退出后重新进入。</div>';
   }
-  main.innerHTML = '<div class="teaching-stage-shell">'
-    + '<div class="teaching-stage-topbar">'
-    + '<div class="teaching-stage-meta">'
-    + '<span class="source">' + escapeHtml(stageModel.sourceLabel) + '</span>'
-    + '<span>' + escapeHtml(stageModel.questionLabel) + '</span>'
-    + '<span>' + escapeHtml(stageModel.categoryLabel) + '</span>'
-    + '</div>'
-    + '</div>'
-    + '<div class="teaching-stage-grid' + (stageModel.focusContent ? ' focus-content' : '') + '">'
-    + '<section class="teaching-question-panel">'
-    + '<div class="teaching-question-line">' + renderTeachingQuestionSentence(q) + '</div>'
-    + '<div class="teaching-question-folds">'
-    + (stageModel.zhSentence ? '<details class="teaching-fold"><summary>中文翻译</summary><div class="teaching-fold-body">' + escapeHtml(stageModel.zhSentence) + '</div></details>' : '')
-    + '</div>'
-    + '</section>'
-    + (contentHtml ? '<section class="teaching-content-panel">' + contentHtml + '</section>' : '')
-    + '</div>'
-    + '</div>';
+  main.innerHTML = window.GrammarTeachingRender.teachingStageHtml(stageModel, {
+    questionSentenceHtml: renderTeachingQuestionSentence(q),
+    contentHtml: contentHtml
+  });
   main.scrollTop = 0;
   renderTeachingDock();
   requestAnimationFrame(function() {

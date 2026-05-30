@@ -635,6 +635,7 @@ EXPECTED_MODULES = [
             "migrationDrawerHtml",
             "migrationStageHtml",
             "analysisHtml",
+            "teachingStageHtml",
         ],
     },
 ]

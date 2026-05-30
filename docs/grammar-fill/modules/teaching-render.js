@@ -287,6 +287,28 @@
       + navHtml;
   }
 
+  function teachingStageHtml(model, parts) {
+    parts = parts || {};
+    return '<div class="teaching-stage-shell">'
+      + '<div class="teaching-stage-topbar">'
+      + '<div class="teaching-stage-meta">'
+      + '<span class="source">' + window.escapeHtml(model.sourceLabel) + '</span>'
+      + '<span>' + window.escapeHtml(model.questionLabel) + '</span>'
+      + '<span>' + window.escapeHtml(model.categoryLabel) + '</span>'
+      + '</div>'
+      + '</div>'
+      + '<div class="teaching-stage-grid' + (model.focusContent ? ' focus-content' : '') + '">'
+      + '<section class="teaching-question-panel">'
+      + '<div class="teaching-question-line">' + parts.questionSentenceHtml + '</div>'
+      + '<div class="teaching-question-folds">'
+      + (model.zhSentence ? '<details class="teaching-fold"><summary>中文翻译</summary><div class="teaching-fold-body">' + window.escapeHtml(model.zhSentence) + '</div></details>' : '')
+      + '</div>'
+      + '</section>'
+      + (parts.contentHtml ? '<section class="teaching-content-panel">' + parts.contentHtml + '</section>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
   window.GrammarTeachingRender = {
     practicalGuideHtml: practicalGuideHtml,
     solutionCard: solutionCard,
@@ -296,6 +318,7 @@
     teachingKnowledgeHtml: teachingKnowledgeHtml,
     migrationDrawerHtml: migrationDrawerHtml,
     migrationStageHtml: migrationStageHtml,
-    analysisHtml: analysisHtml
+    analysisHtml: analysisHtml,
+    teachingStageHtml: teachingStageHtml
   };
 })();
