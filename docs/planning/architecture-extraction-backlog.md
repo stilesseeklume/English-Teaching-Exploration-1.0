@@ -1,7 +1,7 @@
 # index.html 模块化抽离 · 架构现状与 backlog
 
 > 活文档。记录把 `docs/grammar-fill/index.html` 单体渐进拆成纯模块的进度与待办。每批做完回来勾一勾。
-> 最后更新:2026-05-30(teaching-render batch 3 完成并上线)。
+> 最后更新:2026-05-30(sidebar-render 完成 `dfcce00`;teaching-render batch 1/2/3 已上线)。
 
 ## 总览
 
@@ -39,7 +39,7 @@
 
 | 优先级 | 域 | 仍内联的主函数(毛体量) | 目标模块 | 状态 |
 |---|---|---|---|---|
-| 1 | **sidebar** | `renderSidebarModel`(59)、`renderPageSidebar`(34)、`renderContextSidebar` | `sidebar-render` | 待办(最干净) |
+| ✅ | **sidebar** | ~~`renderSidebarModel`~~ → `sidebarHtml` | `sidebar-render` | **完成 `dfcce00`**(注入式;onclick helper 留 inline 共享 home) |
 | 2 | **home/首页** | `renderHomeDashboard`(55)、`renderClassroomSwitcher`(49)、`renderExamGrid`、`renderHomeCategories` | `home-render` | 待办 |
 | 3 | **practice/exam 正文** | `renderExam`(80)、`renderPracticeBlankSlot` | `practice-render` | 待办 |
 | 4 | **错题本/备课** | `renderErrorBook`(51)、`renderPrepList`(34) | 并入 saved-materials render | 待办 |
@@ -54,7 +54,7 @@
 
 ## 推荐顺序
 
-`sidebar-render` → `home-render` → `practice-render` → 错题本/备课 render → `knowledge-render`(最后)。决策地图相关全程 **HOLD** 到用户那边定型。
+~~`sidebar-render`~~ ✅ → **`home-render`(下一批)** → `practice-render` → 错题本/备课 render → `knowledge-render`(最后)。决策地图相关全程 **HOLD** 到用户那边定型。
 
 ## 每批做法(沿用 teaching-render)
 
