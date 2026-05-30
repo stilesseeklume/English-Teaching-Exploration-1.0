@@ -1401,31 +1401,33 @@
   .error-cat-chip:hover { border-color: var(--accent); color: var(--accent); }
   .error-cat-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
   .error-list-source { font-size: 12px; color: var(--text-3); margin-top: 3px; }
-  /* 做题决策地图 · 可缩放定位的流程图画布 */
+  /* 做题决策地图 · 苹果风思维导图画布 */
   .dm-wrap { position: relative; width: 100%; }
-  .dm-caption { font-size: 13px; color: var(--text-3); margin-bottom: 10px; }
-  .dm-vp { position: relative; width: 100%; height: 68vh; min-height: 400px; max-height: 720px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; cursor: grab; }
+  .dm-caption { font-size: 13px; color: var(--text-3); margin-bottom: 12px; letter-spacing: -0.01em; }
+  .dm-vp { position: relative; width: 100%; height: 70vh; min-height: 420px; max-height: 760px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--border); border-radius: 18px; cursor: grab; }
   .dm-vp.drag { cursor: grabbing; }
-  .dm-cv { position: absolute; top: 0; left: 0; transform-origin: 0 0; transition: transform .5s cubic-bezier(.22,.61,.36,1); }
+  .dm-cv { position: absolute; top: 0; left: 0; transform-origin: 0 0; transition: transform .55s cubic-bezier(.22,.61,.36,1); }
   .dm-edges { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
-  .dm-node { position: absolute; transform: translate(-50%, -50%); width: 150px; border: 1.5px solid transparent; border-radius: 14px; padding: 10px 13px; color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.16); transition: opacity .35s, box-shadow .2s; }
-  .dm-node:hover { box-shadow: 0 6px 18px rgba(0,0,0,.26); }
-  .dm-node-t { font-size: 14px; font-weight: 700; line-height: 1.25; }
-  .dm-node-s { font-size: 11px; opacity: .85; margin-top: 2px; }
-  .dm-node.leaf { background: var(--surface); color: var(--text); border-color: var(--border); width: 132px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
-  .dm-node.focus { outline: 3px solid var(--accent); outline-offset: 3px; z-index: 6; }
+  .dm-node { position: absolute; transform: translate(-50%, -50%); width: 150px; border: 0.5px solid var(--border); border-radius: 16px; padding: 12px 15px; background: var(--surface); color: var(--text); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.05); transition: opacity .35s, box-shadow .25s; }
+  .dm-node:hover { box-shadow: 0 2px 4px rgba(0,0,0,.05), 0 12px 30px rgba(0,0,0,.10); }
+  .dm-node-t { font-size: 15px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
+  .dm-node-s { font-size: 12px; color: var(--text-3); margin-top: 3px; font-weight: 400; }
+  .dm-node.entry { background: #1d1d1f; border-color: #1d1d1f; }
+  .dm-node.entry .dm-node-t { color: #fff; }
+  .dm-node.entry .dm-node-s { color: rgba(255,255,255,.6); }
+  .dm-node.leaf { width: 128px; padding: 9px 13px; background: var(--surface-2); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .dm-node.leaf .dm-node-t { font-size: 13px; font-weight: 500; }
+  .dm-node.focus { box-shadow: 0 0 0 3px rgba(10,113,227,.22), 0 16px 42px rgba(0,0,0,.13); z-index: 6; }
+  .dm-node.focus .dm-node-t { color: var(--accent); }
   .dm-node.dim { opacity: .3; }
-  .dm-tip { display: none; margin-top: 8px; font-size: 11.5px; line-height: 1.55; background: rgba(255,255,255,.95); color: #2a2f37; border-radius: 8px; padding: 7px 9px; }
+  .dm-tip { display: none; margin-top: 10px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
   .dm-node.focus .dm-tip { display: block; }
-  .dm-node.leaf .dm-tip { background: var(--accent-bg); color: var(--text-2); }
-  .dm-see { margin-top: 6px; }
-  .dm-see button { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 4px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
-  .dm-exp { display: inline-block; margin-top: 7px; background: rgba(255,255,255,.92); color: var(--accent); border: 1px solid var(--accent); border-radius: 10px; padding: 2px 9px; font-size: 11px; font-weight: 700; cursor: pointer; }
-  .dm-exp.open { color: var(--text-3); border-color: var(--border); background: var(--surface); }
-  .dm-elabel { position: absolute; transform: translate(-50%, -50%); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1px 7px; font-size: 11px; color: var(--text-2); white-space: nowrap; pointer-events: none; }
-  .dm-hud { position: absolute; right: 16px; bottom: 16px; display: flex; gap: 6px; z-index: 8; }
-  .dm-hud button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 18px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.16); }
-  .dm-hud .dm-hud-wide { width: auto; border-radius: 22px; padding: 0 16px; font-size: 14px; font-weight: 600; }
+  .dm-see { margin-top: 12px; }
+  .dm-see button { font-size: 12.5px; font-weight: 500; border-radius: 980px; padding: 7px 16px; cursor: pointer; border: none; background: var(--accent); color: #fff; }
+  .dm-elabel { position: absolute; transform: translate(-50%, -50%); background: var(--surface); border: 0.5px solid var(--border); border-radius: 980px; padding: 2px 9px; font-size: 11px; color: var(--text-3); white-space: nowrap; pointer-events: none; }
+  .dm-hud { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 8px; z-index: 8; }
+  .dm-hud button { width: 38px; height: 38px; border-radius: 50%; border: 0.5px solid var(--border); background: rgba(250,250,252,.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--text); font-size: 17px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+  .dm-hud .dm-hud-wide { width: auto; border-radius: 980px; padding: 0 18px; font-size: 14px; font-weight: 500; }
   .analysis-sentence-lg {
     font-size: calc(var(--drawer-font-size-lg, 25px) - 2px); line-height: 1.85; color: var(--text); margin-bottom: 12px;
     padding: 12px 14px; background: var(--surface-3); border-radius: 6px;
@@ -8761,6 +8763,7 @@ var dmDrag = { on: false, sx: 0, sy: 0, stx: 0, sty: 0 };
 var dmWindowWired = false;
 var dmExpanded = {};      // 用户点开了哪些末端考点（展开其细考点）
 var dmExpandable = {};    // 本次渲染：哪些末端考点挂着细考点、可展开（id -> 细考点数）
+var dmHoriz = false;      // 布局方向：false=竖版(自上而下)，true=横版(自左向右)
 function applyDmCamera(anim) {
   var cv = document.getElementById('dmCanvas');
   if (!cv) return;
@@ -8793,6 +8796,29 @@ function dmFit(anim) {
   dmCam.s = s;
   dmCam.tx = (vw - dmCtx.width * s) / 2;
   dmCam.ty = (vh - dmCtx.height * s) / 2;
+  applyDmCamera(anim);
+  dmPaintFocus();
+}
+function dmHome(anim) {
+  // 默认开屏：只框住顶部前几层（入口 + 有/无提示词 + 下一层），放到「读得清」的尺寸，往下钻再逐层展开
+  var vp = document.getElementById('dmViewport');
+  if (!vp || !dmCtx) return;
+  dmCam.focusId = '';
+  var pos = dmCtx.layout.pos, byId = dmCtx.tree.byId;
+  function depthOf(id) { var d = 0, n = byId[id]; while (n && n.parent && byId[n.parent]) { d++; n = byId[n.parent]; } return d; }
+  var xs = [], ys = [];
+  Object.keys(pos).forEach(function(id) { if (depthOf(id) <= 2) { xs.push(pos[id].x); ys.push(pos[id].y); } });
+  if (!xs.length) { dmFit(anim); return; }
+  var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  var bw = (maxX - minX) + 320, bh = (maxY - minY) + 240;
+  var vw = vp.clientWidth || 800, vh = vp.clientHeight || 460;
+  var s = Math.min(vw / bw, vh / bh) * 0.95;
+  if (!isFinite(s) || s <= 0) s = 0.8;
+  s = Math.min(s, 1.1);
+  dmCam.s = s;
+  dmCam.tx = vw / 2 - ((minX + maxX) / 2) * s;
+  dmCam.ty = vh * 0.32 - ((minY + maxY) / 2) * s;
   applyDmCamera(anim);
   dmPaintFocus();
 }
@@ -8830,8 +8856,10 @@ function dmNodeTap(id) {
   dmFocus(id, true);
 }
 function dmResetView() {
-  if (Object.keys(dmExpanded).length) { dmExpanded = {}; dmCam.focusId = ''; renderSystemView(); }
-  else dmFit();
+  dmExpanded = {};
+  dmCam.focusId = '';
+  dmCam._wantFit = true;
+  renderSystemView();
 }
 function ensureDmWindowListeners() {
   if (dmWindowWired) return;
@@ -8869,26 +8897,22 @@ function renderSystemView(focusNodeId) {
   var nodes = graph.nodes.slice();
   var hasChild = {};
   graph.nodes.forEach(function(n) { if (n.parent) hasChild[n.parent] = true; });
-  dmExpandable = {};
   graph.nodes.forEach(function(n) {
-    if (hasChild[n.id]) return;            // 末端考点：若挂着细考点(fine_refs)，标记为「可展开」
-    var fids = (n.fine_refs || []).filter(function(f) { return fineById[f]; });
-    if (!fids.length) return;
-    dmExpandable[n.id] = fids.length;
-    if (!dmExpanded[n.id]) return;         // 仅当用户点开后，才把细考点作为子节点延伸出来
-    fids.forEach(function(fid) {
+    if (hasChild[n.id]) return;            // 末端考点：把挂的细考点(fine_refs)全部展开为子节点 —— 全图·详细
+    (n.fine_refs || []).forEach(function(fid) {
       var t = fineById[fid];
+      if (!t) return;
       nodes.push({ id: 'fine__' + fid, parent: n.id, cluster: n.cluster, title: t.name, subtitle: '', fine_refs: [fid], category_refs: n.category_refs });
     });
   });
   var tree = kvm.buildDecisionTree(nodes);
-  var layout = kvm.layoutDecisionTree(tree);
+  var layout = kvm.layoutDecisionTree(tree, { horizontal: dmHoriz });
   var pos = layout.pos;
   var clusterColor = {};
   (graph.clusters || []).forEach(function(c) { clusterColor[c.id] = c.color; });
 
   var html = '<div class="dm-wrap">';
-  html += '<div class="dm-caption">做题决策地图 · 点节点放大看「怎么判断」，按 ⤢ 看全局</div>';
+  html += '<div class="dm-caption">做题决策地图 · 点节点逐层往下钻、看「怎么判断」 · 拖动浏览 · ⤢ 看全局</div>';
   html += '<div class="dm-vp" id="dmViewport"><div class="dm-cv" id="dmCanvas" style="width:' + layout.width + 'px;height:' + layout.height + 'px;">';
   var edgeLabel = {};
   (graph.edges || []).forEach(function(e) { if (e.label) edgeLabel[e.from + '>' + e.to] = e.label; });
@@ -8896,10 +8920,17 @@ function renderSystemView(focusNodeId) {
   html += '<svg class="dm-edges" width="' + layout.width + '" height="' + layout.height + '">';
   nodes.forEach(function(n) {
     if (!n.parent || !pos[n.parent] || !pos[n.id]) return;
-    var a = pos[n.parent], b = pos[n.id], my = (a.y + b.y) / 2;
-    html += '<path d="M' + a.x + ' ' + (a.y + 20) + ' C ' + a.x + ' ' + my + ', ' + b.x + ' ' + my + ', ' + b.x + ' ' + (b.y - 20) + '" fill="none" stroke="var(--border)" stroke-width="2.5"/>';
+    var a = pos[n.parent], b = pos[n.id], path;
+    if (dmHoriz) {
+      var mx = (a.x + b.x) / 2;
+      path = 'M' + (a.x + 76) + ' ' + a.y + ' C ' + mx + ' ' + a.y + ', ' + mx + ' ' + b.y + ', ' + (b.x - 74) + ' ' + b.y;
+    } else {
+      var my = (a.y + b.y) / 2;
+      path = 'M' + a.x + ' ' + (a.y + 20) + ' C ' + a.x + ' ' + my + ', ' + b.x + ' ' + my + ', ' + b.x + ' ' + (b.y - 20);
+    }
+    html += '<path d="' + path + '" fill="none" stroke="var(--border)" stroke-width="2.5"/>';
     var lab = edgeLabel[n.parent + '>' + n.id];
-    if (lab) labelHtml += '<div class="dm-elabel" style="left:' + ((a.x + b.x) / 2) + 'px;top:' + my + 'px;">' + escapeHtml(lab) + '</div>';
+    if (lab) labelHtml += '<div class="dm-elabel" style="left:' + ((a.x + b.x) / 2) + 'px;top:' + ((a.y + b.y) / 2) + 'px;">' + escapeHtml(lab) + '</div>';
   });
   html += '</svg>';
   html += labelHtml;
@@ -8907,23 +8938,15 @@ function renderSystemView(focusNodeId) {
     var p = pos[n.id];
     if (!p) return;
     var isLeaf = !(tree.childrenOf[n.id] && tree.childrenOf[n.id].length);
-    var color = clusterColor[n.cluster] || '#1f2733';
-    var style = 'left:' + p.x + 'px;top:' + p.y + 'px;' + (isLeaf ? '' : 'background:' + color + ';border-color:' + color + ';');
+    var isEntry = (n.id === tree.rootId);
+    var style = 'left:' + p.x + 'px;top:' + p.y + 'px;';
     var cat = (n.category_refs && n.category_refs[0]) || '';
     var nid = graphEscapeAttr(n.id);
-    var canExp = dmExpandable[n.id];
     var tipInner = (n.decision_tip ? escapeHtml(n.decision_tip) : '');
-    if (isLeaf && cat) tipInner += '<div class="dm-see"><button type="button" onclick="event.stopPropagation();startByCategory(\'' + graphEscapeAttr(cat) + '\')">看这类真题 →</button></div>';
-    var badge = '';
-    if (canExp) {
-      badge = dmExpanded[n.id]
-        ? '<button type="button" class="dm-exp open" onclick="event.stopPropagation();dmToggleExpand(\'' + nid + '\')">▾ 收起</button>'
-        : '<span class="dm-exp">▸ ' + canExp + ' 细考点</span>';
-    }
-    html += '<div class="dm-node' + (isLeaf ? ' leaf' : '') + (canExp ? ' has-exp' : '') + '" id="dmn_' + nid + '" style="' + style + '" onclick="dmNodeTap(\'' + nid + '\')">'
+    if (cat) tipInner += '<div class="dm-see"><button type="button" onclick="event.stopPropagation();startByCategory(\'' + graphEscapeAttr(cat) + '\')">看真题 →</button></div>';
+    html += '<div class="dm-node' + (isLeaf ? ' leaf' : '') + (isEntry ? ' entry' : '') + '" id="dmn_' + nid + '" style="' + style + '" onclick="dmNodeTap(\'' + nid + '\')">'
       + '<div class="dm-node-t">' + escapeHtml(n.title || '') + '</div>'
       + (n.subtitle ? '<div class="dm-node-s">' + escapeHtml(n.subtitle) + '</div>' : '')
-      + badge
       + (tipInner ? '<div class="dm-tip">' + tipInner + '</div>' : '')
       + '</div>';
   });
@@ -8945,8 +8968,9 @@ function renderSystemView(focusNodeId) {
     });
     vp.addEventListener('wheel', function(e) { e.preventDefault(); dmZoom(e.deltaY < 0 ? 1.12 : 0.9, false); }, { passive: false });
   }
-  var initId = (focusNodeId && tree.byId[focusNodeId]) ? focusNodeId : (dmCam.focusId && tree.byId[dmCam.focusId] ? dmCam.focusId : '');
-  if (initId) dmFocus(initId, false); else dmFit(false);
+  if (dmCam._wantFit) { dmCam._wantFit = false; dmFit(false); }
+  else if (focusNodeId && tree.byId[focusNodeId]) dmFocus(focusNodeId, false);
+  else dmHome(false);
   updateDockBackButton();
 }
 

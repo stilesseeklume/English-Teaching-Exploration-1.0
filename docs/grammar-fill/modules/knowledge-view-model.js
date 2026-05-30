@@ -1407,10 +1407,37 @@
     return { rows: rows };
   }
 
+  // 自动算坐标（叶子横向铺开、父节点居中、深度决定纵向），供"图片缩放定位"画布用——不再手摆 x/y
+  function layoutDecisionTree(tree, opts) {
+    tree = tree || { byId: {}, childrenOf: {}, rootId: '' };
+    opts = opts || {};
+    var horiz = !!opts.horizontal;
+    var mainStep = horiz ? (opts.colW || 250) : (opts.rowH || 150);   // 按深度推进：竖版=行高，横版=列宽
+    var crossStep = horiz ? (opts.rowH || 94) : (opts.colW || 180);   // 叶子在交叉轴铺开
+    var padMain = horiz ? (opts.padX || 130) : (opts.padY || 70);
+    var padCross = horiz ? (opts.padY || 70) : (opts.padX || 110);
+    var pos = {}, leaf = 0;
+    function depthOf(id) { var d = 0, n = tree.byId[id]; while (n && n.parent && tree.byId[n.parent]) { d++; n = tree.byId[n.parent]; } return d; }
+    function setPos(id, mainV, crossV) { pos[id] = horiz ? { x: mainV, y: crossV } : { x: crossV, y: mainV }; }
+    function crossOf(id) { return horiz ? pos[id].y : pos[id].x; }
+    function place(id) {
+      var ks = tree.childrenOf[id] || [];
+      var mainV = depthOf(id) * mainStep + padMain;
+      if (!ks.length) { setPos(id, mainV, leaf * crossStep + padCross); leaf++; return; }
+      ks.forEach(place);
+      setPos(id, mainV, (crossOf(ks[0]) + crossOf(ks[ks.length - 1])) / 2);
+    }
+    if (tree.rootId && tree.byId[tree.rootId]) place(tree.rootId);
+    var maxX = 0, maxY = 0;
+    Object.keys(pos).forEach(function (k) { if (pos[k].x > maxX) maxX = pos[k].x; if (pos[k].y > maxY) maxY = pos[k].y; });
+    return { pos: pos, width: maxX + 140, height: maxY + 100 };
+  }
+
   window.GrammarKnowledgeViewModel = {
     buildDecisionTree: buildDecisionTree,
     buildGuidedStepModel: buildGuidedStepModel,
     buildDecisionOutlineModel: buildDecisionOutlineModel,
+    layoutDecisionTree: layoutDecisionTree,
     BOOK_ORDER: BOOK_ORDER,
     COVER_MAP: COVER_MAP,
     CATEGORY_STAT_COLORS: CATEGORY_STAT_COLORS,
