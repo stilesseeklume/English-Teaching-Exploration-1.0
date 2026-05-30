@@ -1422,8 +1422,11 @@
   .dm-node.dim { opacity: .3; }
   .dm-tip { display: none; margin-top: 10px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
   .dm-node.focus .dm-tip { display: block; }
-  .dm-see { margin-top: 12px; }
+  .dm-see { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
   .dm-see button { font-size: 12.5px; font-weight: 500; border-radius: 980px; padding: 7px 16px; cursor: pointer; border: none; background: var(--accent); color: #fff; }
+  .dm-see .ghost { background: var(--surface-2); color: var(--accent); }
+  .dm-cue { display: inline-block; margin-top: 8px; font-size: 11.5px; color: var(--accent); font-weight: 500; }
+  .dm-node.entry .dm-cue { color: rgba(255,255,255,.7); }
   .dm-elabel { position: absolute; transform: translate(-50%, -50%); background: var(--surface); border: 0.5px solid var(--border); border-radius: 980px; padding: 2px 9px; font-size: 11px; color: var(--text-3); white-space: nowrap; pointer-events: none; }
   .dm-hud { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 8px; z-index: 8; }
   .dm-hud button { width: 38px; height: 38px; border-radius: 50%; border: 0.5px solid var(--border); background: rgba(250,250,252,.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--text); font-size: 17px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
@@ -3541,6 +3544,7 @@
 <script src="../data/grammar_knowledge.js"></script>
 <script src="../data/grammar_knowledge_traps.js"></script>
 <script src="../data/grammar_fine_tags.js"></script>
+<script src="../data/decision_map.js"></script>
 
 <!-- ============== Supabase 云同步 · 配置 + 客户端 ============== -->
 <!-- 部署前请把下面两行换成你 Supabase 项目的真实值（Settings → API） -->
@@ -8720,18 +8724,12 @@ function applyDmCamera(anim) {
 }
 function dmPaintFocus() {
   if (!dmCtx) return;
-  var id = dmCam.focusId, byId = dmCtx.tree.byId, fnode = byId[id];
+  var id = dmCam.focusId, byId = dmCtx.tree.byId;
   Object.keys(byId).forEach(function(nid) {
     var el = document.getElementById('dmn_' + nid);
     if (!el) return;
-    if (!id) { el.classList.remove('focus'); el.classList.remove('dim'); return; }
-    var node = byId[nid];
-    var near = nid === id
-      || node.parent === id
-      || (fnode && fnode.parent === nid)
-      || (fnode && fnode.parent && node.parent === fnode.parent);
-    el.classList.toggle('focus', nid === id);
-    el.classList.toggle('dim', !near);
+    el.classList.toggle('focus', !!id && nid === id);  // 只高亮当前，不再压暗其它（保证字始终看得清）
+    el.classList.remove('dim');
   });
 }
 function dmFit(anim) {
@@ -8799,15 +8797,19 @@ function dmToggleExpand(id) {
   renderSystemView(id);
 }
 function dmNodeTap(id) {
-  // 直观：点节点本身就往下钻；末端考点首次点击=展开细考点+推近，其余=推近聚焦
-  if (dmExpandable[id] && !dmExpanded[id]) { dmExpanded[id] = true; renderSystemView(id); return; }
+  // 点节点：有子节点→逐层展开/收起；到底层(叶子)→聚焦并显示 讲解/真题 链接
+  var full = dmCtx && dmCtx.full;
+  if (full && full.childrenOf[id] && full.childrenOf[id].length) { dmExpanded[id] = !dmExpanded[id]; renderSystemView(id); return; }
   dmFocus(id, true);
 }
 function dmResetView() {
   dmExpanded = {};
   dmCam.focusId = '';
-  dmCam._wantFit = true;
   renderSystemView();
+}
+function openKnowledgePoint(fine) {
+  // 看讲解：进知识讲解区（考点视图）；后续可定位到具体细考点 tag
+  if (typeof setKnowledgeView === 'function') setKnowledgeView('fine-cat');
 }
 function ensureDmWindowListeners() {
   if (dmWindowWired) return;
@@ -8834,39 +8836,31 @@ function renderSystemView(focusNodeId) {
   });
   var content = document.getElementById('knowledgeContent');
   if (!content) return;
-  var graph = getTeachingGraph();
-  if (!graph.nodes || !graph.nodes.length) {
-    content.innerHTML = '<div class="empty-hint">决策地图整理中。当前可以切换到“知识地图”或“书本速查”。</div>';
+  var DM = window.GRAMMAR_DECISION_MAP;
+  if (!DM || !DM.nodes || !DM.nodes.length) {
+    content.innerHTML = '<div class="empty-hint">做题决策地图整理中。当前可以切换到“知识地图”或“书本速查”。</div>';
     updateDockBackButton();
     return;
   }
   var kvm = window.GrammarKnowledgeViewModel;
-  var fineById = (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.tags_by_id) || {};
-  var nodes = graph.nodes.slice();
-  var hasChild = {};
-  graph.nodes.forEach(function(n) { if (n.parent) hasChild[n.parent] = true; });
-  graph.nodes.forEach(function(n) {
-    if (hasChild[n.id]) return;            // 末端考点：把挂的细考点(fine_refs)全部展开为子节点 —— 全图·详细
-    (n.fine_refs || []).forEach(function(fid) {
-      var t = fineById[fid];
-      if (!t) return;
-      nodes.push({ id: 'fine__' + fid, parent: n.id, cluster: n.cluster, title: t.name, subtitle: '', fine_refs: [fid], category_refs: n.category_refs });
-    });
-  });
-  var tree = kvm.buildDecisionTree(nodes);
+  var full = kvm.buildDecisionTree(DM.nodes);
+  // 逐层下钻：默认只显示 入口 + 有/无提示词；只有点开过的节点才展开它的子节点
+  var visibleNodes = [];
+  (function walk(id, depth) {
+    var node = full.byId[id];
+    if (!node) return;
+    visibleNodes.push(node);
+    if (depth < 1 || dmExpanded[id]) (full.childrenOf[id] || []).forEach(function(k) { walk(k, depth + 1); });
+  })(full.rootId, 0);
+  var tree = kvm.buildDecisionTree(visibleNodes);
   var layout = kvm.layoutDecisionTree(tree, { horizontal: dmHoriz });
   var pos = layout.pos;
-  var clusterColor = {};
-  (graph.clusters || []).forEach(function(c) { clusterColor[c.id] = c.color; });
 
   var html = '<div class="dm-wrap">';
-  html += '<div class="dm-caption">做题决策地图 · 点节点逐层往下钻、看「怎么判断」 · 拖动浏览 · ⤢ 看全局</div>';
+  html += '<div class="dm-caption">做题决策地图 · 点节点逐层往下钻；到底层看 讲解 / 真题 · 拖动浏览 · ⤢ 收起回顶</div>';
   html += '<div class="dm-vp" id="dmViewport"><div class="dm-cv" id="dmCanvas" style="width:' + layout.width + 'px;height:' + layout.height + 'px;">';
-  var edgeLabel = {};
-  (graph.edges || []).forEach(function(e) { if (e.label) edgeLabel[e.from + '>' + e.to] = e.label; });
-  var labelHtml = '';
   html += '<svg class="dm-edges" width="' + layout.width + '" height="' + layout.height + '">';
-  nodes.forEach(function(n) {
+  visibleNodes.forEach(function(n) {
     if (!n.parent || !pos[n.parent] || !pos[n.id]) return;
     var a = pos[n.parent], b = pos[n.id], path;
     if (dmHoriz) {
@@ -8874,38 +8868,43 @@ function renderSystemView(focusNodeId) {
       path = 'M' + (a.x + 76) + ' ' + a.y + ' C ' + mx + ' ' + a.y + ', ' + mx + ' ' + b.y + ', ' + (b.x - 74) + ' ' + b.y;
     } else {
       var my = (a.y + b.y) / 2;
-      path = 'M' + a.x + ' ' + (a.y + 20) + ' C ' + a.x + ' ' + my + ', ' + b.x + ' ' + my + ', ' + b.x + ' ' + (b.y - 20);
+      path = 'M' + a.x + ' ' + (a.y + 22) + ' C ' + a.x + ' ' + my + ', ' + b.x + ' ' + my + ', ' + b.x + ' ' + (b.y - 22);
     }
-    html += '<path d="' + path + '" fill="none" stroke="var(--border)" stroke-width="2.5"/>';
-    var lab = edgeLabel[n.parent + '>' + n.id];
-    if (lab) labelHtml += '<div class="dm-elabel" style="left:' + ((a.x + b.x) / 2) + 'px;top:' + ((a.y + b.y) / 2) + 'px;">' + escapeHtml(lab) + '</div>';
+    html += '<path d="' + path + '" fill="none" stroke="var(--border)" stroke-width="2"/>';
   });
   html += '</svg>';
-  html += labelHtml;
-  nodes.forEach(function(n) {
+  visibleNodes.forEach(function(n) {
     var p = pos[n.id];
     if (!p) return;
-    var isLeaf = !(tree.childrenOf[n.id] && tree.childrenOf[n.id].length);
-    var isEntry = (n.id === tree.rootId);
-    var style = 'left:' + p.x + 'px;top:' + p.y + 'px;';
-    var cat = (n.category_refs && n.category_refs[0]) || '';
     var nid = graphEscapeAttr(n.id);
-    var tipInner = (n.decision_tip ? escapeHtml(n.decision_tip) : '');
-    if (cat) tipInner += '<div class="dm-see"><button type="button" onclick="event.stopPropagation();startByCategory(\'' + graphEscapeAttr(cat) + '\')">看真题 →</button></div>';
-    html += '<div class="dm-node' + (isLeaf ? ' leaf' : '') + (isEntry ? ' entry' : '') + '" id="dmn_' + nid + '" style="' + style + '" onclick="dmNodeTap(\'' + nid + '\')">'
+    var isEntry = (n.id === full.rootId);
+    var kids = full.childrenOf[n.id] || [];
+    var canExpand = kids.length > 0;
+    var isLeaf = !canExpand;
+    var open = !!dmExpanded[n.id];
+    var cue = (canExpand && !isEntry) ? '<div class="dm-cue">' + (open ? '收起 ▴' : '展开 ' + kids.length + ' 项 ▾') + '</div>' : '';
+    var tip = '';
+    if (isLeaf) {
+      var cat = n.cat || '';
+      var acts = '';
+      if (cat) acts += '<button type="button" onclick="event.stopPropagation();startByCategory(\'' + graphEscapeAttr(cat) + '\')">🔁 迁移训练</button>';
+      acts += '<button type="button" class="ghost" onclick="event.stopPropagation();openKnowledgePoint(\'' + (n.fine ? graphEscapeAttr(n.fine) : '') + '\')">📖 看讲解</button>';
+      tip = '<div class="dm-see">' + acts + '</div>';
+    }
+    html += '<div class="dm-node' + (isLeaf ? ' leaf' : '') + (isEntry ? ' entry' : '') + (open ? ' open' : '') + '" id="dmn_' + nid + '" style="left:' + p.x + 'px;top:' + p.y + 'px;" onclick="dmNodeTap(\'' + nid + '\')">'
       + '<div class="dm-node-t">' + escapeHtml(n.title || '') + '</div>'
-      + (n.subtitle ? '<div class="dm-node-s">' + escapeHtml(n.subtitle) + '</div>' : '')
-      + (tipInner ? '<div class="dm-tip">' + tipInner + '</div>' : '')
+      + cue
+      + (tip ? '<div class="dm-tip">' + tip + '</div>' : '')
       + '</div>';
   });
   html += '</div></div>';
-  html += '<div class="dm-hud"><button type="button" class="dm-hud-wide" onclick="dmResetView()">⤢ 全局</button>'
+  html += '<div class="dm-hud"><button type="button" class="dm-hud-wide" onclick="dmResetView()">⤢ 收起</button>'
     + '<button type="button" onclick="dmZoom(1.25)">＋</button>'
     + '<button type="button" onclick="dmZoom(0.8)">－</button></div>';
   html += '</div>';
   content.innerHTML = html;
 
-  dmCtx = { tree: tree, layout: layout, width: layout.width, height: layout.height };
+  dmCtx = { full: full, tree: tree, layout: layout, width: layout.width, height: layout.height };
   ensureDmWindowListeners();
   var vp = document.getElementById('dmViewport');
   if (vp) {
@@ -8916,9 +8915,8 @@ function renderSystemView(focusNodeId) {
     });
     vp.addEventListener('wheel', function(e) { e.preventDefault(); dmZoom(e.deltaY < 0 ? 1.12 : 0.9, false); }, { passive: false });
   }
-  if (dmCam._wantFit) { dmCam._wantFit = false; dmFit(false); }
-  else if (focusNodeId && tree.byId[focusNodeId]) dmFocus(focusNodeId, false);
-  else dmHome(false);
+  if (focusNodeId && tree.byId[focusNodeId]) dmFocus(focusNodeId, false);
+  else dmFit(false);
   updateDockBackButton();
 }
 
