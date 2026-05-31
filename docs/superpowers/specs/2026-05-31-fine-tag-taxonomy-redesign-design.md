@@ -121,7 +121,7 @@
 
 | 旧 fine_category | 题数 | 重标方法 |
 |---|---|---|
-| **所有 nonp-\*（按功能）** nonp-subject-predicative / nonp-object / nonp-attribute / nonp-adverbial-1 / nonp-complement / nonp-perfect-passive-neg / nonp-absolute-with | 4+14+28+16+4+2+2 = **70** | 按**答案的形式**重标：答案是 to do→`nonpred-to-do`；doing/动名词→`nonpred-doing`；done→`nonpred-done`。复合式（having done/being done）按主形式并入（having done→doing；being done/to be done→done）。独立主格按其分词形式归 doing/done。 |
+| **所有 nonp-\*（按功能）** nonp-subject-predicative / nonp-object / nonp-attribute / nonp-adverbial-1 / nonp-complement / nonp-perfect-passive-neg / nonp-absolute-with | 4+14+28+16+4+2+2 = **70** | **先按 §2.4 判大类，再按形式定 tag**：① 作非谓语成分（状/补/定/宾的分词、不定式）→ `nonpred-to-do`/`nonpred-doing`/`nonpred-done`（按答案形式；复合式 having done→doing、being done/to be done→done；独立主格按分词形式）。② **动名词作主/宾/表/介宾（名词用法）→ `word-noun`**（移出非谓语）。③ **-ed/-ing 作定语/表语表词义性质（公认的/令人兴奋的）→ `word-adj`**（移出非谓语）。**不能只看答案形式一刀切，须逐题看功能/词义**。 |
 | **prep-common** | 24 | 按介词**语义**拆：时间→`prep-time`；地点→`prep-place`；方式→`prep-manner`；原因→`prep-reason`；固定搭配→`prep-collocation`。 |
 | **attrib-restrictive-non** | 8 | 按所填**关系词**重标：关系代词→`attrib-pronoun`；关系副词→`attrib-adverb`。 |
 | **nounc-wh-words** | 12 | 按所填**引导词**拆：what/who/which→`nounc-wh-pronoun`；when/where/how/why→`nounc-wh-adverb`。 |
@@ -131,6 +131,26 @@
 ### 2.3 校验
 - 重标后每题恰好一个新 `fine_category`，且属于上面 13 类之一（写校验脚本断言：无空、无旧 tag 残留、无未知 tag）。
 - 更新 `scripts/check_grammar_bank.py` 的合法 tag 白名单为新体系。
+
+### 2.4 归类判定规则（word ↔ nonpredicate 边界）
+
+> 用户审定。**两个层级**：大类边界（词转 vs 非谓语）看**功能/词义**；非谓语**内部** tag 才按形式（to-do/doing/done）。两者不矛盾。
+
+| 词形 & 用法 | 归属 | tag |
+|---|---|---|
+| -ed/-ing 作定语/表语，**表词义性质**（a recognized expert / the news is exciting） | 词性转换 | `word-adj` |
+| 过去分词 done 作状语/补语，**表动作/被动**（Recognized by all, he…） | 非谓语 | `nonpred-done` |
+| 现在分词 doing 作状语/补语，**表主动动作**（Recognizing the danger, he stopped） | 非谓语 | `nonpred-doing` |
+| 不定式 to do 作非谓语成分（主/宾/状/定/补） | 非谓语 | `nonpred-to-do` |
+| **动名词 doing 作主/宾/表/介宾（名词用法）**（Swimming is good / enjoy doing） | 词性转换 | `word-noun` |
+
+**口诀**：考**词义/词性**（公认的、令人兴奋的、动名词作名词）→ **词转**；考**句法成分**（分词/不定式作非谓语）→ **非谓语**。
+
+**同形不同功能分两类**：同一词形按句中功能判不同 tag。例 `recognized`：表"公认的"→`word-adj`；表"被认出"（状语）→`nonpred-done`。
+
+**重标含义**：-ed/-ing/动名词这类边界题**必须逐题读"表词义还是作句法成分"**，不能按答案形式自动判；这是重标需人工/AI 逐题 + 用户把关、不能一刀切的根本原因。
+
+**注**：`word-noun` 将同时含**派生名词**（recovery/solution）与**动名词**（swimming）两种题；迁移时可用筛选键（动名词答案为 -ing、派生名词为 -tion/-ity 等后缀）自然区分，必要时后续再拆子 tag。
 
 ## 三、三套尺子对齐
 
