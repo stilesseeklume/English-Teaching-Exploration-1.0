@@ -28,6 +28,45 @@
     return [value];
   }
 
+  // T4：facets 可缩放范围（由细到粗）。一把尺子：
+  //   word     级 ← facets.word || facets.form     （最细：具体引导词/形式，如 which / doing）
+  //   type     级 ← facets.type || facets.subtype  （中：结构子类，如 relative-pronoun / derivation）
+  //   category 级 ← item.category 大类             （最粗：13 大类，如 attrib / nonpredicate）
+  // 谓语 {tense,voice,agreement} 无 word/type 键 → 仅 category 一级（时态轴以后再增强）。
+  function facetWordValue(facets) {
+    facets = facets || {};
+    if (facets.word) return String(facets.word);
+    if (facets.form) return String(facets.form);
+    return '';
+  }
+
+  function facetTypeValue(facets) {
+    facets = facets || {};
+    if (facets.type) return String(facets.type);
+    if (facets.subtype) return String(facets.subtype);
+    return '';
+  }
+
+  function buildMigrationScopes(facets, fineCategory, category) {
+    facets = facets || {};
+    var scopes = [];
+    var wordVal = facetWordValue(facets);
+    if (wordVal) scopes.push({ level: 'word', value: wordVal });
+    var typeVal = facetTypeValue(facets);
+    if (typeVal) scopes.push({ level: 'type', value: typeVal });
+    if (category) scopes.push({ level: 'category', value: String(category) });
+    return scopes;
+  }
+
+  function migrationMatchesScope(item, scope) {
+    if (!item || !scope) return false;
+    var facets = item.facets || {};
+    if (scope.level === 'word') return facetWordValue(facets) === scope.value;
+    if (scope.level === 'type') return facetTypeValue(facets) === scope.value;
+    if (scope.level === 'category') return String(item.category || '') === scope.value;
+    return false;
+  }
+
   function sameQuestion(a, b) {
     return a && b && (
       (a.exam === b.exam && String(a.no) === String(b.no)) ||
@@ -577,6 +616,8 @@
     isErrorQuestionItem: isErrorQuestionItem,
     isMockQuestion: isMockQuestion,
     isRealQuestion: isRealQuestion,
+    buildMigrationScopes: buildMigrationScopes,
+    migrationMatchesScope: migrationMatchesScope,
     asArray: asArray,
     sameQuestion: sameQuestion,
     nonpAxisExactMatch: nonpAxisExactMatch,

@@ -3203,6 +3203,38 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       : 'bad:' + closed.length + '/' + open.length + '/' + singletons.length + '/' + formKey + '/' + wordKey + '/' + phraseKey;
   })).toBe('ok');
 
+  // T4：facets 可缩放范围（word↔type↔category）—— 纯逻辑
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    if (!mt.buildMigrationScopes || !mt.migrationMatchesScope) return 'no-fn';
+    // 非谓语 {form} → word + category 两级（无 type）
+    var nonp = mt.buildMigrationScopes({ form: 'doing' }, 'nonpred-doing', 'nonpredicate');
+    var nonpLevels = nonp.map(function(s){ return s.level; }).join(',');
+    // 定从 {type,word,restrictive} → word + type + category 三级
+    var attrib = mt.buildMigrationScopes(
+      { type: 'relative-pronoun', word: 'which', restrictive: true }, 'attrib-pronoun', 'attrib');
+    var attribLevels = attrib.map(function(s){ return s.level; }).join(',');
+    var attribWord = attrib[0] && attrib[0].value;
+    var attribCat = attrib[attrib.length - 1] && attrib[attrib.length - 1].value;
+    // 谓语 {tense,voice,agreement} → 仅 category 一级
+    var pred = mt.buildMigrationScopes(
+      { tense: 'past', voice: 'passive', agreement: false }, 'pred-passive', 'predicate');
+    var predLevels = pred.map(function(s){ return s.level; }).join(',');
+    // 匹配：word 级用 form/word；type 级用 type/subtype；category 级用 item.category
+    var mWordForm = mt.migrationMatchesScope({ facets: { form: 'doing' } }, { level: 'word', value: 'doing' });
+    var mWordNo = mt.migrationMatchesScope({ facets: { form: 'done' } }, { level: 'word', value: 'doing' });
+    var mTypeSub = mt.migrationMatchesScope({ facets: { subtype: 'derivation' } }, { level: 'type', value: 'derivation' });
+    var mCat = mt.migrationMatchesScope({ category: 'attrib', facets: {} }, { level: 'category', value: 'attrib' });
+    var mCatNo = mt.migrationMatchesScope({ category: 'word', facets: {} }, { level: 'category', value: 'attrib' });
+    return (nonpLevels === 'word,category'
+      && attribLevels === 'word,type,category' && attribWord === 'which' && attribCat === 'attrib'
+      && predLevels === 'category'
+      && mWordForm === true && mWordNo === false && mTypeSub === true
+      && mCat === true && mCatNo === false) ? 'ok'
+      : 'bad:' + nonpLevels + '|' + attribLevels + '/' + attribWord + '/' + attribCat + '|' + predLevels
+        + '|' + mWordForm + mWordNo + mTypeSub + mCat + mCatNo;
+  })).toBe('ok');
+
   // 需求3：看讲解跳到指定 section 并展开
   expect(await page.evaluate(() => {
     window.openKnowledgePoint('predicate', 'predicate-tense');
