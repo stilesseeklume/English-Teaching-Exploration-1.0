@@ -91,6 +91,36 @@
 - `special-tag-question` 反意疑问句
 - `special-ellipsis` 省略与替代
 
+## 一之二、facets 多维模型（精简版 · 用户审定）
+
+**主从架构**：每题保留 `fine_category`（主标，人类决策/决策地图/讲解/校验用）+ 新增 `facets` 对象（多维属性，机器筛选/迁移用）。**加法式，不推翻 `fine_category` 现有管线。**
+
+**可缩放筛选**：迁移/筛选范围在 `word`（最细）→ `type`（中）→ `fine_category`/category（粗）之间任意缩放，默认落最细。
+
+**精简 facets schema（按类别，砍掉纯分析字段，开放对象以后可加）**：
+
+| 类别 | facets | 来源 |
+|---|---|---|
+| nonpredicate | `{ form: to-do/doing/done }` | 答案派生 |
+| word | `{ subtype: derivation/gerund/participle-adj/comparative/superlative/selection }` | AI 判（target 由 fine_category 带） |
+| number | `{ type: plural/possessive/numeral }` | AI 判 |
+| article | `{ word: a-an/the }` | 答案派生 |
+| pronoun | `{ type: personal/indefinite/it }` | AI 判 |
+| preposition | `{ word: <答案介词>, sense?: time/place/manner/reason/collocation }` | word 派生；sense 选填 |
+| logic | `{ word: <答案>, kind: coordinating/correlative }` | word 派生；kind AI 判 |
+| attrib | `{ type: relative-pronoun/relative-adverb/prep-relative/as-relative, word: <答案>, restrictive: bool }` | word 派生；type/restrictive AI 判 |
+| nounclause | `{ type: that/whether-if/wh-pronoun/wh-adverb/wh-ever, word: <答案> }` | word 派生；type AI 判 |
+| advclause | `{ type: time/cause/condition/concession/purpose-result/manner-place }` | AI 判 |
+| modal | `{ type: speculation/ability-permission/advice-obligation/other }` | AI 判 |
+| special | `{ type: subjunctive/emphasis/inversion/tag-question/ellipsis }` | AI 判 |
+| **predicate（最后做）** | `{ tense, voice: active/passive, agreement: bool }` | AI 读题判 |
+
+**已砍（欠着，等数据+功能再加，开放对象零成本补）**：`nonpredicate.function`、`word.source`、`logic.sense`、`number.subtype`、`attrib.preposition`、`predicate.subject_type`。
+
+**导入一致性**：老师上传 Word → AI 解析，**也走同一份 facets schema** 吐出多维。重标老题 与 解析新题 共用同一套"AI 读题 → facets"逻辑（同一 schema 契约），建一次两处用。`deepseek-parse` Edge Function 的输出 schema 需升级为含 facets。
+
+**执行顺序（用户）**：① 非谓语（验证全流程）→ ② 高频易填（词性/介词/冠词/逻辑连词）→ ③ 从句（定/名/状）→ ④ 剩余（代词/名词数词/情态/特殊）→ ⑤ **谓语压轴**（最复杂，最后验证）。避免开会前卡在最难处。
+
 ## 二、旧→新 映射（重打 190 题标注）
 
 ### 2.1 干净映射（重命名/合并，无需逐题判断）
@@ -186,9 +216,9 @@ section key 与新 tag 口径对齐（讲解多数已按引导词，微调）。
 2. **从答案派生（非谓语形式）**：to do/doing/done 由答案串派生；边界情况（不规则分词、复合式、短语答案）可后续存一个轻量 `form` 字段保准（暂不强制）。
 3. **答案读不出、必须靠 tag/标注（介词语义等）**：这类本就由 tag 区分，无需额外筛选键。
 
-**UI**：迁移抽屉/讲题台在同 fine_category 池上方，按池内题的答案派生出筛选片 `[全部][word1][word2]…`；池内若只有一种值则不显示筛选片。默认 `全部`（默认行为可后续按需调）。
+**UI（已实现原型 f016965 + 噪音抑制 f016965）**：迁移抽屉/讲题台在池上方按答案派生出筛选片 `[全部][word1]…`；池内单值或清一色 count=1 不显示。默认 `全部`。
 
-**原型先行**：先在**当前数据**上做最小筛选原型（纯 UI，不动 tag/数据），让用户先"试一下"手感，再随地基重订推进。
+**升级为 facets 可缩放（地基落地后）**：筛选片不再只按答案派生，而是读 `facets`——提供 `word`（最细）/`type`（中）/`category`（粗）三级范围选择器，迁移池按选中级别动态取（同 word → 同 type → 同大类 → 兄弟 type）。这才是用户要的"既能筛 which、也能筛关系代词、也能筛整个定语从句"。
 
 ## 五、迁移取句修复（A3，随手带上）
 深圳卷"迁移第6题句子残缺/变 bridges"：排查迁移卡片取句（`renderSentenceWithBlank` / 迁移 item 的 sentence 切分），定位根因后修。实现时具体定位。
