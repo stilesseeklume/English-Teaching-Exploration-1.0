@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "date": "2026-05-31",
+    "description": "从句类 fine_category 重分类映射（定语/名词性/状语）",
+    "scope": "attrib-*, nounc-*, advc-*",
+    "total_confirmed": 19,
+    "total_ambiguous": 1
+  },
+  "confirmed": [
+    {
+      "exam_id": "2023全国二卷",
+      "no": 62,
+      "new_fine_category": "nounc-wh-adverb",
+      "facets": { "type": "wh-adverb", "word": "why" }
+    },
+    {
+      "exam_id": "2024广州一模",
+      "no": 44,
+      "new_fine_category": "nounc-wh-adverb",
+      "facets": { "type": "wh-adverb", "word": "how" }
+    },
+    {
+      "exam_id": "2025广州二模",
+      "no": 56,
+      "new_fine_category": "nounc-wh-adverb",
+      "facets": { "type": "wh-adverb", "word": "how" }
+    },
+    {
+      "exam_id": "2024浙江首考",
+      "no": 59,
+      "new_fine_category": "nounc-wh-pronoun",
+      "facets": { "type": "wh-pronoun", "word": "what" }
+    },
+    {
+      "exam_id": "2024深圳一模",
+      "no": 43,
+      "new_fine_category": "nounc-wh-pronoun",
+      "facets": { "type": "wh-pronoun", "word": "what" }
+    },
+    {
+      "exam_id": "2025深圳一模",
+      "no": 36,
+      "new_fine_category": "nounc-wh-pronoun",
+      "facets": { "type": "wh-pronoun", "word": "what" }
+    },
+    {
+      "exam_id": "2024全国一卷",
+      "no": 64,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "that", "restrictive": true }
+    },
+    {
+      "exam_id": "2024广州一模",
+      "no": 42,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "which", "restrictive": true }
+    },
+    {
+      "exam_id": "2024广州二模",
+      "no": 36,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "which", "restrictive": true }
+    },
+    {
+      "exam_id": "2024浙江首考",
+      "no": 58,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "that", "restrictive": true }
+    },
+    {
+      "exam_id": "2025广州二模",
+      "no": 62,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "that", "restrictive": true }
+    },
+    {
+      "exam_id": "2025浙江首考",
+      "no": 63,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "which", "restrictive": false }
+    },
+    {
+      "exam_id": "2024全国二卷",
+      "no": 36,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "who", "restrictive": false }
+    },
+    {
+      "exam_id": "2025全国一卷",
+      "no": 56,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "which", "restrictive": false }
+    },
+    {
+      "exam_id": "2025深圳二模",
+      "no": 41,
+      "new_fine_category": "attrib-pronoun",
+      "facets": { "type": "relative-pronoun", "word": "whose", "restrictive": false }
+    },
+    {
+      "exam_id": "2025全国二卷",
+      "no": 36,
+      "new_fine_category": "attrib-adverb",
+      "facets": { "type": "relative-adverb", "word": "where", "restrictive": false }
+    },
+    {
+      "exam_id": "2024深圳二模",
+      "no": 37,
+      "new_fine_category": "attrib-adverb",
+      "facets": { "type": "relative-adverb", "word": "when", "restrictive": true }
+    },
+    {
+      "exam_id": "2025广州一模",
+      "no": 42,
+      "new_fine_category": "attrib-adverb",
+      "facets": { "type": "relative-adverb", "word": "when", "restrictive": true }
+    },
+    {
+      "exam_id": "2026深圳一模",
+      "no": 36,
+      "new_fine_category": "attrib-adverb",
+      "facets": { "type": "relative-adverb", "word": "where", "restrictive": true }
+    }
+  ],
+  "ambiguous": [
+    {
+      "exam_id": "2026广州一模",
+      "no": 41,
+      "answer": "when",
+      "old_fine_category": "attrib-adverb",
+      "issue": "题目解析同时标注「定语从句/连词」和「时间状语从句」，句型「The most moving moment came when...」存在双解：先行词 moment 的定语从句(attrib-adverb) vs. 时间状语从句(advc-time)。需用户确认应归哪类。"
+    }
+  ]
+}

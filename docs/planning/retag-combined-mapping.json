@@ -1,0 +1,840 @@
+{
+  "2023全国一卷-56": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国一卷-58": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "or",
+      "kind": "correlative"
+    }
+  },
+  "2023全国一卷-59": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国一卷-63": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2023全国一卷-64": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国二卷-56": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国二卷-57": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国二卷-59": {
+    "fine_category": "art-the",
+    "facets": {
+      "word": "the"
+    }
+  },
+  "2023全国二卷-60": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国二卷-63": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023全国二卷-64": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2023浙江首考-56": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2023浙江首考-57": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023浙江首考-61": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2023浙江首考-62": {
+    "fine_category": "word-comparative",
+    "facets": {
+      "subtype": "comparative"
+    }
+  },
+  "2023浙江首考-65": {
+    "fine_category": "art-the",
+    "facets": {
+      "word": "the"
+    }
+  },
+  "2024全国一卷-56": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024全国一卷-57": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024全国一卷-59": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024全国一卷-61": {
+    "fine_category": "art-the",
+    "facets": {
+      "word": "the"
+    }
+  },
+  "2024全国一卷-65": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024全国二卷-42": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024全国二卷-45": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2024广州一模-38": {
+    "fine_category": "art-the",
+    "facets": {
+      "word": "the"
+    }
+  },
+  "2024广州一模-43": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024广州二模-37": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024广州二模-40": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "so",
+      "kind": "coordinating"
+    }
+  },
+  "2024广州二模-42": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024广州二模-45": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024浙江首考-57": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "or",
+      "kind": "correlative"
+    }
+  },
+  "2024浙江首考-60": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024浙江首考-64": {
+    "fine_category": "art-the",
+    "facets": {
+      "word": "the"
+    }
+  },
+  "2024深圳一模-36": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024深圳一模-37": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2024深圳一模-41": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024深圳一模-45": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2024深圳二模-38": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024深圳二模-41": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024深圳二模-42": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2024深圳二模-45": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "but",
+      "kind": "correlative"
+    }
+  },
+  "2025全国一卷-57": {
+    "fine_category": "art-the",
+    "facets": {
+      "word": "the"
+    }
+  },
+  "2025全国一卷-59": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025全国一卷-63": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025全国一卷-64": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2025全国一卷-65": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025全国二卷-37": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025全国二卷-39": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2025全国二卷-43": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025广州一模-36": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2025广州一模-40": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025广州一模-41": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025广州一模-44": {
+    "fine_category": "word-comparative",
+    "facets": {
+      "subtype": "comparative"
+    }
+  },
+  "2025广州二模-60": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025浙江首考-56": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2025浙江首考-59": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "and",
+      "kind": "coordinating"
+    }
+  },
+  "2025浙江首考-61": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025浙江首考-65": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025深圳一模-39": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025深圳一模-41": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025深圳一模-43": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025深圳一模-44": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2025深圳二模-36": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2025深圳二模-42": {
+    "fine_category": "logic-coordinating",
+    "facets": {
+      "word": "or",
+      "kind": "correlative"
+    }
+  },
+  "2025深圳二模-43": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025深圳二模-44": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2025深圳二模-45": {
+    "fine_category": "word-comparative",
+    "facets": {
+      "subtype": "comparative"
+    }
+  },
+  "2026广州一模-38": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2026广州一模-39": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2026广州一模-40": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2026广州一模-45": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2026深圳一模-38": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2026深圳一模-40": {
+    "fine_category": "word-adv",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2026深圳一模-44": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "derivation"
+    }
+  },
+  "2026深圳一模-45": {
+    "fine_category": "art-a-an",
+    "facets": {
+      "word": "a-an"
+    }
+  },
+  "2023全国一卷-60": {
+    "fine_category": "prep-other",
+    "facets": {
+      "word": "by"
+    }
+  },
+  "2023全国二卷-58": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "with"
+    }
+  },
+  "2023浙江首考-63": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "as"
+    }
+  },
+  "2024全国一卷-63": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "as"
+    }
+  },
+  "2024全国二卷-39": {
+    "fine_category": "prep-other",
+    "facets": {
+      "word": "to"
+    }
+  },
+  "2024广州一模-40": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "for"
+    }
+  },
+  "2024广州二模-41": {
+    "fine_category": "prep-other",
+    "facets": {
+      "word": "for"
+    }
+  },
+  "2024深圳二模-40": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "to"
+    }
+  },
+  "2025全国一卷-62": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "by"
+    }
+  },
+  "2025全国二卷-38": {
+    "fine_category": "prep-collocation",
+    "facets": {
+      "word": "for"
+    }
+  },
+  "2025广州一模-43": {
+    "fine_category": "prep-collocation",
+    "facets": {
+      "word": "for"
+    }
+  },
+  "2025广州二模-59": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "before"
+    }
+  },
+  "2025浙江首考-58": {
+    "fine_category": "prep-collocation",
+    "facets": {
+      "word": "on"
+    }
+  },
+  "2025深圳一模-42": {
+    "fine_category": "prep-collocation",
+    "facets": {
+      "word": "for"
+    }
+  },
+  "2025深圳二模-38": {
+    "fine_category": "prep-collocation",
+    "facets": {
+      "word": "from"
+    }
+  },
+  "2026广州一模-36": {
+    "fine_category": "prep-common",
+    "facets": {
+      "word": "from"
+    }
+  },
+  "2026深圳一模-43": {
+    "fine_category": "prep-collocation",
+    "facets": {
+      "word": "into"
+    }
+  },
+  "2023全国一卷-62": {
+    "fine_category": "pron-personal",
+    "facets": {
+      "type": "personal"
+    }
+  },
+  "2024广州二模-38": {
+    "fine_category": "pron-personal",
+    "facets": {
+      "type": "personal"
+    }
+  },
+  "2025全国二卷-40": {
+    "fine_category": "pron-personal",
+    "facets": {
+      "type": "personal"
+    }
+  },
+  "2026广州一模-42": {
+    "fine_category": "pron-personal",
+    "facets": {
+      "type": "personal"
+    }
+  },
+  "2023全国二卷-61": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2023浙江首考-64": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2024全国一卷-62": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2024全国二卷-37": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2024广州一模-45": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2024广州二模-43": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2024深圳一模-44": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2024深圳二模-44": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2025全国二卷-44": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2025广州一模-39": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2025广州二模-57": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2025浙江首考-57": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2026广州一模-37": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2026深圳一模-42": {
+    "fine_category": "num-plural",
+    "facets": {
+      "type": "plural"
+    }
+  },
+  "2025浙江首考-64": {
+    "fine_category": "num-possessive",
+    "facets": {
+      "type": "possessive"
+    }
+  },
+  "2023全国二卷-62": {
+    "fine_category": "nounc-wh-adverb",
+    "facets": {
+      "type": "wh-adverb",
+      "word": "why"
+    }
+  },
+  "2024广州一模-44": {
+    "fine_category": "nounc-wh-adverb",
+    "facets": {
+      "type": "wh-adverb",
+      "word": "how"
+    }
+  },
+  "2025广州二模-56": {
+    "fine_category": "nounc-wh-adverb",
+    "facets": {
+      "type": "wh-adverb",
+      "word": "how"
+    }
+  },
+  "2024浙江首考-59": {
+    "fine_category": "nounc-wh-pronoun",
+    "facets": {
+      "type": "wh-pronoun",
+      "word": "what"
+    }
+  },
+  "2024深圳一模-43": {
+    "fine_category": "nounc-wh-pronoun",
+    "facets": {
+      "type": "wh-pronoun",
+      "word": "what"
+    }
+  },
+  "2025深圳一模-36": {
+    "fine_category": "nounc-wh-pronoun",
+    "facets": {
+      "type": "wh-pronoun",
+      "word": "what"
+    }
+  },
+  "2024全国一卷-64": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "that",
+      "restrictive": true
+    }
+  },
+  "2024广州一模-42": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "which",
+      "restrictive": true
+    }
+  },
+  "2024广州二模-36": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "which",
+      "restrictive": true
+    }
+  },
+  "2024浙江首考-58": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "that",
+      "restrictive": true
+    }
+  },
+  "2025广州二模-62": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "that",
+      "restrictive": true
+    }
+  },
+  "2025浙江首考-63": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "which",
+      "restrictive": false
+    }
+  },
+  "2024全国二卷-36": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "who",
+      "restrictive": false
+    }
+  },
+  "2025全国一卷-56": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "which",
+      "restrictive": false
+    }
+  },
+  "2025深圳二模-41": {
+    "fine_category": "attrib-pronoun",
+    "facets": {
+      "type": "relative-pronoun",
+      "word": "whose",
+      "restrictive": false
+    }
+  },
+  "2025全国二卷-36": {
+    "fine_category": "attrib-adverb",
+    "facets": {
+      "type": "relative-adverb",
+      "word": "where",
+      "restrictive": false
+    }
+  },
+  "2024深圳二模-37": {
+    "fine_category": "attrib-adverb",
+    "facets": {
+      "type": "relative-adverb",
+      "word": "when",
+      "restrictive": true
+    }
+  },
+  "2025广州一模-42": {
+    "fine_category": "attrib-adverb",
+    "facets": {
+      "type": "relative-adverb",
+      "word": "when",
+      "restrictive": true
+    }
+  },
+  "2026深圳一模-36": {
+    "fine_category": "attrib-adverb",
+    "facets": {
+      "type": "relative-adverb",
+      "word": "where",
+      "restrictive": true
+    }
+  },
+  "2026广州一模-41": {
+    "fine_category": "attrib-adverb",
+    "facets": {
+      "type": "relative-adverb",
+      "word": "when",
+      "restrictive": true
+    }
+  },
+  "2024浙江首考-65": {
+    "fine_category": "pron-indefinite",
+    "facets": {
+      "type": "indefinite"
+    }
+  },
+  "2025广州二模-58": {
+    "fine_category": "pron-personal",
+    "facets": {
+      "type": "personal"
+    }
+  }
+}
