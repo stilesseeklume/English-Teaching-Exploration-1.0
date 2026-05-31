@@ -297,7 +297,7 @@ d29c166 注册登录改为用户名+密码
 - Playwright smoke 已断言 `GrammarQuestionModel` 能生成按年份倒序的套卷列表，`GrammarAppState` 能计算当前题号、上一视图返回文案和 dock 返回文案。
 - Playwright smoke 已断言 `GrammarSidebarViewModel` 能生成侧边栏套卷分组、考点列表、错题分组、备课列表和当前项高亮数据，防止侧边栏规则从 HTML 迁出后静默失效。
 - Playwright smoke 已断言 `GrammarCategoryRules` 能生成首页考点分类分组、卡片标签/标题/描述、题量文案、入口 action 元数据、按考点练习入口状态和空分类提示，防止按考点入口展示规则继续散落在大 HTML 中。
-- Playwright smoke 已断言 `GrammarHomeDashboardModel` 能生成首页题库/错题/备课统计文案、新/活跃用户状态、hero 文案、教材封面画廊、教材速览入口、行动入口副文案和 action 元数据，防止主页 Dashboard 规则从 HTML 迁出后静默失效。
+- Playwright smoke 已断言 `GrammarHomeDashboardModel` 能生成首页题库/错题/备课统计文案、新/活跃用户状态、hero 文案、教材封面画廊的装饰状态、行动入口副文案和 action 元数据，防止主页 Dashboard 规则从 HTML 迁出后静默失效。
 - Playwright smoke 已断言 `GrammarHomeDashboardModel` 能生成主页 Dashboard 行动按钮 chrome，覆盖主按钮阴影、红色 hover 和副文案样式，防止按钮显示规则回流到大 HTML。
 - Playwright smoke 已断言 `GrammarExamGridModel` 能生成首页套卷卡片分组、分组标题文案、卡片描述文案、入口 action 元数据、模拟卷标签样式、未知年份兜底和题量统计，防止套卷入口规则从 HTML 迁出后静默失效。
 - Playwright smoke 已断言 `GrammarClassroomSwitcherModel` 能生成课堂顶部切换条选项、禁用状态、答案按钮文案和进度文案，防止课堂导航规则从 HTML 迁出后静默失效。
@@ -472,4 +472,10 @@ d29c166 注册登录改为用户名+密码
 - `scripts/check_grammar_modules.py` 加 2 个 `GrammarTeachingRender` export 契约；`tests/smoke.spec.js` 加 4 条 render 断言（讲题台外壳含内容、空内容不出 content-panel、dock 含按钮、dock 不可见返回空串）。
 - 验证：`python3 scripts/check_grammar_modules.py`（18 模块）+ `npm run check`（全绿，含 grammar-fill core path 真实渲染讲题台/dock）。主文件再瘦约 40-50 行。
 
-*此日志随项目推进持续更新。最后更新：2026-05-30*
+## 2026-05-31 · 首页教材封面降级为装饰
+
+- 教材视图功能已暂停，首页 Dashboard 的教材封面区从“教材速览入口”改为“教材覆盖范围”装饰区：保留 7 本教材封面，右侧显示“教材映射重做中”状态标签，并补充当前仅作封面展示的说明。
+- 首页教材封面和右侧状态不再生成点击入口，封面下方册名条也移除，仅保留封面图，避免老师误以为教材视图仍可用；原知识库入口仍保留在首页行动按钮中，继续指向可用的知识库页面。
+- 同步更新 Playwright smoke：断言首页教材封面模型不再带 `open-textbook` action，渲染输出只保留封面和状态标签，不再输出“展开全部/更多”类入口。
+
+*此日志随项目推进持续更新。最后更新：2026-05-31*

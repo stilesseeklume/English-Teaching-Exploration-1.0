@@ -234,8 +234,7 @@
         book: book,
         cover: COVER_MAP[book],
         labelText: book,
-        animationDelayMs: idx * 40,
-        action: buildAction('open-textbook', book)
+        animationDelayMs: idx * 40
       };
     });
   }
@@ -244,9 +243,9 @@
     books = Array.isArray(books) ? books : [];
     return {
       visible: books.length > 0,
-      titleText: '📚 教材速览',
-      actionLabel: '展开全部 →',
-      action: buildAction('switch-page', 'knowledge')
+      titleText: '📚 教材覆盖范围',
+      statusText: '教材映射重做中',
+      descriptionText: '当前仅作封面展示，教材单元映射暂不开放。'
     };
   }
 

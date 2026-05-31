@@ -2424,8 +2424,9 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && newUserDashboard.actions[0].subtitleStyle.indexOf('opacity') !== -1
       && newUserDashboard.books && newUserDashboard.books.length === 7
       && newUserDashboard.books[0].cover.indexOf('bixiu-1.jpg') !== -1
-      && newUserDashboard.books[0].action && newUserDashboard.books[0].action.type === 'open-textbook'
-      && newUserDashboard.textbookSection && newUserDashboard.textbookSection.actionLabel === '展开全部 →'
+      && !newUserDashboard.books[0].action
+      && newUserDashboard.textbookSection && newUserDashboard.textbookSection.titleText === '📚 教材覆盖范围'
+      && newUserDashboard.textbookSection.statusText === '教材映射重做中'
       && activeDashboard && activeDashboard.activity.isNewUser === false
       && activeDashboard.activity.greeting === '晚上好'
       && activeDashboard.activity.statusText === '2 份备课 · 3 道错题'
@@ -3918,7 +3919,7 @@ test('home-render pure html output', async ({ page }) => {
     const dash = R.homeDashboardHtml(
       { hero: { kickerText: 'K', titleText: 'T', bodyParts: [{ text: '正文', strong: true }] },
         actions: [{ action: { type: 'switch-page', value: 'home' }, icon: '📘', label: '按钮', subtitleText: '副', chrome: { style: '', mouseover: '', mouseout: '' } }],
-        textbookSection: { visible: true, titleText: '教材', actionLabel: '更多', action: {} },
+        textbookSection: { visible: true, titleText: '教材', statusText: '映射中', actionLabel: '更多', action: {} },
         books: [{ action: {}, cover: 'x.png', labelText: '必修一', animationDelayMs: 0 }] },
       { inlineHomeDashboardAction: function(a) { return 'DASH:' + (a && a.type || ''); } }
     );
@@ -3933,7 +3934,7 @@ test('home-render pure html output', async ({ page }) => {
     return {
       missing: false,
       dashHasHero: dash.includes('正文') && dash.includes('按钮') && dash.includes('DASH:switch-page'),
-      dashHasBooks: dash.includes('必修一') && dash.includes('x.png'),
+      dashHasBooks: dash.includes('x.png') && dash.includes('映射中') && !dash.includes('必修一') && !dash.includes('更多') && (dash.match(/DASH:/g) || []).length === 1,
       examGridHasCard: grid.includes('category-section') && grid.includes('grid-11') && grid.includes('startByExam:2024A'),
       catsHasCard: cats.includes('category-section') && cats.includes('count-predicate') && cats.includes('startByCategory:predicate')
     };

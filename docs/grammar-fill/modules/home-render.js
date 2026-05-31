@@ -48,16 +48,16 @@
       html += '<section>';
       html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">';
       html += '<h3 style="margin:0;font-size:16px;color:var(--text);">' + window.escapeHtml(textbookSection.titleText || '') + '</h3>';
-      html += '<a onclick="' + inlineHomeDashboardAction(textbookSection.action) + '" style="font-size:13px;color:var(--accent);cursor:pointer;">' + window.escapeHtml(textbookSection.actionLabel || '') + '</a>';
+      html += '<span style="font-size:12px;color:var(--text-3);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 9px;">' + window.escapeHtml(textbookSection.statusText || '') + '</span>';
       html += '</div>';
+      if (textbookSection.descriptionText) {
+        html += '<div style="font-size:12px;color:var(--text-3);margin:-4px 0 12px;line-height:1.6;">' + window.escapeHtml(textbookSection.descriptionText) + '</div>';
+      }
       html += '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;">';
       (model.books || []).forEach(function(item) {
-        html += '<div onclick="' + inlineHomeDashboardAction(item.action) + '" '
-             + 'style="cursor:pointer;border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:all .2s;animation:fadeInUp .4s ease-out ' + (Number(item.animationDelayMs) || 0) + 'ms both;" '
-             + 'onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 20px rgba(0,0,0,0.15)\'" '
-             + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 1px 4px rgba(0,0,0,0.06)\'">';
+        html += '<div '
+             + 'style="border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,0.06);animation:fadeInUp .4s ease-out ' + (Number(item.animationDelayMs) || 0) + 'ms both;">';
         html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + window.escapeHtml(item.cover || '') + '\') no-repeat center/cover;"></div>';
-        html += '<div style="padding:5px;text-align:center;font-size:11px;font-weight:600;color:var(--text-2);">' + window.escapeHtml(item.labelText || item.book || '') + '</div>';
         html += '</div>';
       });
       html += '</div>';
