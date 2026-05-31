@@ -66,7 +66,30 @@
     return html;
   }
 
+  function examGridHtml(model, deps) {
+    deps = deps || {};
+    var inlineSidebarAction = deps.inlineSidebarAction;
+    model = model || {};
+    var html = '';
+    (model.groups || []).forEach(function(group) {
+      html += `<div class="category-section">`
+           + `<div class="category-section-title" style="cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none;" onclick="toggleExamYear(this)"><span class="year-arrow" style="display:inline-block;transition:transform .2s;font-size:11px;">▼</span>${window.escapeHtml(group.titleText || ((group.year || '') + ' 年 · ' + (group.count || 0) + ' 套'))}</div>`
+           + `<div class="exam-year-body"><div class="grid-11">`;
+      (group.items || []).forEach(function(item) {
+        var tagCls = item.tagClass ? `card-tag ${item.tagClass}` : 'card-tag';
+        html += `<div class="card" onclick="${inlineSidebarAction(item.action, 'startByExam', item.id)}">`
+              + `<span class="${tagCls}">${window.escapeHtml(item.type)}</span>`
+              + `<div class="card-title">${window.escapeHtml(item.id)}</div>`
+              + `<div class="card-desc">${window.escapeHtml(item.descriptionText || ('语法填空 · ' + item.blankCount + ' 题'))}</div>`
+              + `</div>`;
+      });
+      html += `</div></div></div>`;
+    });
+    return html;
+  }
+
   window.GrammarHomeRender = {
-    homeDashboardHtml: homeDashboardHtml
+    homeDashboardHtml: homeDashboardHtml,
+    examGridHtml: examGridHtml
   };
 })();

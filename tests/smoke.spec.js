@@ -3863,13 +3863,19 @@ test('home-render pure html output', async ({ page }) => {
         books: [{ action: {}, cover: 'x.png', labelText: '必修一', animationDelayMs: 0 }] },
       { inlineHomeDashboardAction: function(a) { return 'DASH:' + (a && a.type || ''); } }
     );
+    const grid = R.examGridHtml(
+      { groups: [{ year: '2024', count: 1, titleText: '', items: [{ action: {}, id: '2024A', type: '真题', tagClass: '', blankCount: 10, descriptionText: '' }] }] },
+      { inlineSidebarAction: function(a, fn, v) { return fn + ':' + v; } }
+    );
     return {
       missing: false,
       dashHasHero: dash.includes('正文') && dash.includes('按钮') && dash.includes('DASH:switch-page'),
-      dashHasBooks: dash.includes('必修一') && dash.includes('x.png')
+      dashHasBooks: dash.includes('必修一') && dash.includes('x.png'),
+      examGridHasCard: grid.includes('category-section') && grid.includes('grid-11') && grid.includes('startByExam:2024A')
     };
   });
   expect(out.missing).toBe(false);
   expect(out.dashHasHero).toBe(true);
   expect(out.dashHasBooks).toBe(true);
+  expect(out.examGridHasCard).toBe(true);
 });

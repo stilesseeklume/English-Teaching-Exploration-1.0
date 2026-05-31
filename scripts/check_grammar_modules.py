@@ -651,6 +651,7 @@ EXPECTED_MODULES = [
         "namespace": "GrammarHomeRender",
         "exports": [
             "homeDashboardHtml",
+            "examGridHtml",
         ],
     },
 ]
