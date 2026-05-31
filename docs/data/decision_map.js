@@ -41,7 +41,7 @@
     { id: 'l_sva_collective', parent: 'pred_sva', title: '集合 / 复数名词作主语', cat: 'predicate', fine: 'pred-sva-collective' },
     { id: 'l_sva_quantity', parent: 'pred_sva', title: '数量短语作主语', cat: 'predicate', fine: 'pred-sva-quantity' },
 
-    { id: 'nonp', parent: 'verb', title: '非谓语', sub: '已有谓语 → 选形式（具体成分到题里判断）', cat: 'nonpredicate' },
+    { id: 'nonp', parent: 'verb', title: '非谓语', sub: '已有谓语 → 选形式（具体成分到题里判断）', cat: 'nonpredicate' },  // kd: 待补（nonpredicate/preposition/article/pronoun/attrib/nounclause/advclause 等父节点的 KNOWLEDGE_DATA section key 待核对；缺失时看讲解退到类别顶部）
     { id: 'l_nonp_todo', parent: 'nonp', title: 'to do', cat: 'nonpredicate', fine: 'nonp-basic' },
     { id: 'l_nonp_doing', parent: 'nonp', title: 'doing', cat: 'nonpredicate', fine: 'nonp-attribute' },
     { id: 'l_nonp_done', parent: 'nonp', title: 'done', cat: 'nonpredicate', fine: 'nonp-perfect-passive-neg' },
