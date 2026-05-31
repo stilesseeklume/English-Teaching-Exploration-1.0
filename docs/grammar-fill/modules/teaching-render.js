@@ -172,6 +172,24 @@
     return html;
   }
 
+  // T4：facets 范围选择器（本词 → 本类型 → 整个大类）。点击调 setMigrationScope 重渲染。
+  function migrationScopeSelectorHtml(selector) {
+    if (!selector || !selector.visible || !selector.buttons || !selector.buttons.length) return '';
+    var html = '<div class="migration-scope-row" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center;">';
+    html += '<span style="font-size:calc(var(--drawer-font-size-sm,23px) - 6px);color:var(--text-3);margin-right:2px;">范围</span>';
+    selector.buttons.forEach(function(b) {
+      html += '<button type="button" class="mig-scope-chip' + (b.active ? ' active' : '') + '" '
+        + 'onclick="setMigrationScope(\'' + window.escapeHtml(b.level) + '\',\'' + window.escapeHtml(String(b.value)) + '\')" '
+        + 'style="border:1px solid ' + (b.active ? 'var(--accent)' : 'var(--border)') + ';'
+        + 'background:' + (b.active ? 'var(--accent)' : 'var(--surface)') + ';'
+        + 'color:' + (b.active ? '#fff' : 'var(--text-2)') + ';'
+        + 'padding:4px 12px;border-radius:14px;font-size:calc(var(--drawer-font-size-sm,23px) - 6px);cursor:pointer;font-family:inherit;font-weight:' + (b.active ? '600' : '400') + ';">'
+        + window.escapeHtml(b.label) + ' <span style="opacity:.6;">' + b.count + '</span></button>';
+    });
+    html += '</div>';
+    return html;
+  }
+
   function migrationDrawerHtml(contentModel) {
     function tab(item) {
       return '<button onclick="setMigrationSource(\'' + item.key + '\')" '
@@ -203,7 +221,9 @@
       + window.escapeHtml(contentModel.countText)
       + '</div>'
       + '</div>'
-      + migrationFilterChipsHtml(contentModel.filterChips)
+      + (contentModel.scopeSelector && contentModel.scopeSelector.visible
+          ? migrationScopeSelectorHtml(contentModel.scopeSelector)
+          : migrationFilterChipsHtml(contentModel.filterChips))
       + '<div class="migration-list">';
     contentModel.entries.forEach(function(entryModel) {
       var cardModel = entryModel.card;
@@ -254,7 +274,9 @@
     if (contentModel.emptyHint) {
       return html + migrationEmptyHint(contentModel.emptyHint);
     }
-    html += migrationFilterChipsHtml(contentModel.filterChips);
+    html += (contentModel.scopeSelector && contentModel.scopeSelector.visible
+      ? migrationScopeSelectorHtml(contentModel.scopeSelector)
+      : migrationFilterChipsHtml(contentModel.filterChips));
     html += '<div class="teaching-migration-scroll">';
     contentModel.entries.forEach(function(entryModel) {
       var rowModel = entryModel.row;

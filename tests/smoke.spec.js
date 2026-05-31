@@ -3248,20 +3248,27 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       { exam: 'e', no: 5, category: 'word', fine_category: 'word-noun', facets: { subtype: 'derivation' }, type: '真题' }
     ];
     function build(scope) {
-      return mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [], scope: scope, limit: 99 });
+      return mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [],
+        categoryMap: { attrib: '定语从句' }, scope: scope, limit: 99 });
     }
     var def = build(null);          // 默认最细 = word:which → 仅 no2
     var byType = build({ level: 'type', value: 'relative-pronoun' });  // which+that → no2,no3
     var byCat = build({ level: 'category', value: 'attrib' });          // 整个定语从句 → no2,no3,no4
     var scopes = def.scopes || [];
     var levels = scopes.map(function(s){ return s.level; }).join(',');
+    // 渲染模型：内容视图应吐出可见的 3 按钮范围选择器，激活档=最细
+    var sel = mt.buildMigrationContentViewModel(def, 'bank', false).scopeSelector;
+    var selOk = sel && sel.visible && sel.buttons.length === 3
+      && sel.buttons[0].active === true && sel.buttons[2].active === false
+      && sel.buttons[2].label === '整个定语从句' && sel.buttons[2].count === 3;
     return (def.poolCount === 1 && byType.poolCount === 2 && byCat.poolCount === 3
       && levels === 'word,type,category'
       && def.activeScope && def.activeScope.level === 'word' && def.activeScope.value === 'which'
-      && scopes[0].count === 1 && scopes[1].count === 2 && scopes[2].count === 3) ? 'ok'
+      && scopes[0].count === 1 && scopes[1].count === 2 && scopes[2].count === 3
+      && selOk) ? 'ok'
       : 'bad:' + def.poolCount + '/' + byType.poolCount + '/' + byCat.poolCount + '|' + levels
         + '|' + (def.activeScope && def.activeScope.level) + (def.activeScope && def.activeScope.value)
-        + '|' + scopes.map(function(s){ return s.count; }).join(',');
+        + '|' + scopes.map(function(s){ return s.count; }).join(',') + '|sel:' + (sel && sel.visible) + '/' + (sel && sel.buttons.length);
   })).toBe('ok');
 
   // 需求3：看讲解跳到指定 section 并展开

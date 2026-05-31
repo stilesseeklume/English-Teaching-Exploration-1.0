@@ -67,6 +67,49 @@
     return false;
   }
 
+  // 范围选择器友好标签（未覆盖的值回退原串，标签非硬约束，可后续细化）
+  var SCOPE_VALUE_LABELS = {
+    'to-do': '不定式', 'doing': '分词/动名词', 'done': '过去分词',
+    'derivation': '派生词', 'comparative': '比较级', 'superlative': '最高级',
+    'gerund': '动名词', 'participle-adj': '分词形容词', 'selection': '形/副选用',
+    'personal': '人称代词', 'indefinite': '不定代词', 'it': '形式 it',
+    'plural': '名词复数', 'possessive': '名词所有格', 'numeral': '数词',
+    'relative-pronoun': '关系代词', 'relative-adverb': '关系副词',
+    'prep-relative': '介词+关系词', 'as-relative': 'as 关系词',
+    'that': 'that 引导', 'whether-if': 'whether/if', 'wh-pronoun': '连接代词',
+    'wh-adverb': '连接副词', 'wh-ever': 'wh-ever',
+    'time': '时间', 'cause': '原因', 'place': '地点', 'condition': '条件',
+    'manner': '方式', 'concession': '让步', 'comparison': '比较',
+    'purpose': '目的', 'result': '结果',
+    'coordinating': '并列', 'correlative': '关联'
+  };
+
+  function scopeButtonLabel(scope, categoryName) {
+    if (!scope) return '';
+    if (scope.level === 'category') return '整个' + (categoryName || scope.value);
+    return SCOPE_VALUE_LABELS[scope.value] || scope.value;
+  }
+
+  function sameScope(a, b) {
+    return !!(a && b && a.level === b.level && a.value === b.value);
+  }
+
+  // 范围选择器视图模型：由细到粗的按钮，标注当前激活档。
+  function buildMigrationScopeSelectorModel(scopes, activeScope, categoryName) {
+    scopes = asArray(scopes);
+    if (scopes.length < 2) return { visible: false, buttons: [] };
+    var buttons = scopes.map(function(s) {
+      return {
+        level: s.level,
+        value: s.value,
+        count: Number(s.count) || 0,
+        label: scopeButtonLabel(s, categoryName),
+        active: sameScope(s, activeScope)
+      };
+    });
+    return { visible: true, buttons: buttons };
+  }
+
   function sameQuestion(a, b) {
     return a && b && (
       (a.exam === b.exam && String(a.no) === String(b.no)) ||
@@ -380,6 +423,7 @@
     });
     return {
       filterChips: buildMigrationFilterChips(entries),
+      scopeSelector: buildMigrationScopeSelectorModel(data.scopes, data.activeScope, data.categoryName),
       tabs: panel.tabs,
       heading: panel.heading,
       subline: panel.subline,
@@ -629,6 +673,7 @@
       tabs: tabs,
       scopes: scopes,
       activeScope: activeScope,
+      categoryName: categoryMap[q.category] || q.category || '',
       emptyState: emptyState,
       migration: migration
     };
@@ -641,6 +686,7 @@
     isRealQuestion: isRealQuestion,
     buildMigrationScopes: buildMigrationScopes,
     migrationMatchesScope: migrationMatchesScope,
+    buildMigrationScopeSelectorModel: buildMigrationScopeSelectorModel,
     asArray: asArray,
     sameQuestion: sameQuestion,
     nonpAxisExactMatch: nonpAxisExactMatch,
