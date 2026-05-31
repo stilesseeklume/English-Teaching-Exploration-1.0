@@ -928,208 +928,13 @@
         <div class="cta fade-up delay-4">
           <button class="btn primary" onclick="location.href='./grammar-fill/'">进入语法填空讲评</button>
           <button class="btn" onclick="openModal('signup')">注册系统账号</button>
+          <button class="btn" onclick="location.href='./score-analysis/'">🧪 成绩单转换（测试）</button>
         </div>
         <div class="hero-note fade-up delay-5">当前开放入口是「语法填空讲评」。进入后可以按套卷讲题、查看考点、做迁移训练，也可以积累错题和备课资料。</div>
-      </div>
-      <div class="scroll-hint"><span>SCROLL</span><div class="arrow"></div></div>
-    </section>
-
-    <!-- Scene 1 · AI 自动处理 + 错题归档 -->
-    <section class="scene scene-ai" data-scene="1">
-      <div class="section-eyebrow fade-up" style="text-align:center;">System Vision</div>
-      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">不是一个语法网页<br>而是一套英语教学工作台</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">它从语法填空开始，但目标不是做一个孤立的小工具，而是把讲题、复习、错题和备课逐步接到同一套教学流程里。</p>
-
-      <div class="ai-split fade-up delay-3">
-        <div class="ai-panel before">
-          <div class="panel-label">教师每天遇到的材料</div>
-          <div class="doc-line">一批学生的作答和课堂反馈</div>
-          <div class="doc-line">一套需要讲评的英语试卷</div>
-          <div class="doc-line">几篇适合拓展阅读的文本</div>
-          <div class="doc-line">学生反复出错的 <span class="hl">题型短板</span></div>
-          <div class="doc-line">课堂上来不及整理的 <span class="hl">讲解线索</span></div>
-          <div class="doc-line">下一节课到底先讲什么？</div>
-        </div>
-        <div class="ai-panel after" id="aiAfterPanel">
-          <div class="scan-line"></div>
-          <div class="panel-label">系统逐步沉淀的能力</div>
-          <div class="result-line"><span class="check">&#10003;</span> 语法填空：空格解析、考点统计、迁移训练</div>
-          <div class="result-line"><span class="check">&#10003;</span> 错题与备课：老师导入材料，学生按同点复习</div>
-          <div class="result-line"><span class="check">&#10003;</span> 课堂讲课：从一道题讲到一类题</div>
-          <div class="result-line"><span class="check">&#10003;</span> 阅读写作：后续逐步接入</div>
-          <div class="result-line"><span class="check">&#10003;</span> 资源库：真题、方法论、课堂材料持续积累</div>
-          <div class="result-line ap-highlight"><span class="check">&#10003;</span> 目标：让讲评课更清楚，复习路径更具体</div>
-        </div>
+        <div class="fade-up delay-5" style="margin-top:18px;font-size:12px;"><a href="./privacy.html" style="color:var(--text-3);text-decoration:none;">隐私说明</a></div>
       </div>
     </section>
 
-    <!-- Scene 2 · 产品实操 Demo -->
-    <section class="scene scene-demo" data-scene="2">
-      <div class="section-eyebrow fade-up" style="text-align:center;">Grammar Prototype</div>
-      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">从一道空格，讲到一类考点</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 36px;">课堂上点开题目后，系统会把答案、句子结构、考点提示和同类迁移题放在一起，方便老师顺着一个点讲下去。</p>
-
-      <div class="screen-mock fade-up delay-3" id="screenMock">
-        <div class="screen-chrome">
-          <div class="chrome-dots">
-            <div class="chrome-dot r"></div>
-            <div class="chrome-dot y"></div>
-            <div class="chrome-dot g"></div>
-          </div>
-          <div class="chrome-url">app.lessonsnippets.com / 语法填空 / 2025全国一卷</div>
-        </div>
-        <div class="screen-body" id="screenBody">
-          <div class="fake-cursor" id="fakeCursor">
-            <div class="cursor-arrow"></div>
-          </div>
-          <div class="passage-pane">
-            <div class="passage-title">2025年全国一卷 · 语法填空</div>
-            <div class="passage-text">
-              An exhibition at the Jiushi Art Museum in Shanghai is featuring artwork inspired by Go, or weiqi in Chinese, <span class="blank-word" data-q="56">which</span> originated in China more than 4,000 years ago.<br><br>
-              "We hope <span class="blank-word" data-q="58">to present</span> (present) the rather abstract Go game and AI in a visual context, and initiate dialogues with minimalist art, conceptual art and expressionism," says Tu Ningning, who is in charge of the exhibition.<br><br>
-              "You try to lead the opponent into your trap and force them to follow your <span class="blank-word" data-q="59">guidance</span> (guide) till they lose," explains Wang Wei, a Go player. "The players' personalities <span class="blank-word" data-q="60">are revealed</span> (reveal) during the game, and one's weaknesses are exposed to the opponent."
-            </div>
-          </div>
-          <div class="answer-pane" id="answerPane">
-            <div class="ap-title">题目解析</div>
-            <div class="ap-empty" id="apEmpty">← 点击左侧空格查看解析</div>
-            <div class="ap-content" id="apContent">
-              <div class="ap-qno" id="apQno">第 56 题</div>
-              <div class="ap-answer" id="apAnswer">which</div>
-              <div class="ap-reason" id="apReason"></div>
-              <div class="ap-cross" id="apCross">
-                <div class="ap-cross-label">同考点题目 · 跨卷迁移</div>
-                <div class="ap-cross-item" id="apCross1"><span class="cross-dot"></span></div>
-                <div class="ap-cross-item" id="apCross2"><span class="cross-dot"></span></div>
-                <div class="ap-cross-item" id="apCross3"><span class="cross-dot"></span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Scene 3 · Features -->
-    <section class="scene scene-features" data-scene="3">
-      <div class="section-eyebrow fade-up" style="text-align:center;">Features</div>
-      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">现在可以这样使用</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 24px;">如果你是第一次打开，可以先从「语法填空讲评」进入。</p>
-      <div class="use-guide fade-up delay-3">
-        <div class="use-guide-card"><b>老师讲课</b><span>按套卷打开文章，点题号或空格，直接进入讲解抽屉。</span></div>
-        <div class="use-guide-card"><b>学生复习</b><span>跟着老师指定的题目看解析，再用迁移训练练同类题。</span></div>
-        <div class="use-guide-card"><b>备课积累</b><span>把讲过的题和错题逐步沉淀下来，形成自己的题库。</span></div>
-      </div>
-      <div class="features">
-        <div class="feature fade-up delay-1">
-          <div class="feature-icon">01</div>
-          <h3>语法填空讲评</h3>
-          <p>按套卷打开文章，点空格或题号，就能看到解析、考点和迁移训练。</p>
-        </div>
-        <div class="feature fade-up delay-2">
-          <div class="feature-icon">02</div>
-          <h3>系统账号</h3>
-          <p>注册一次就是整个 Seeklume 账号；以后错题、备课资料和新模块都会接在同一套账号下。</p>
-        </div>
-        <div class="feature fade-up delay-3">
-          <div class="feature-icon">03</div>
-          <h3>错题与迁移</h3>
-          <p>老师导入错题后，系统会尽量按更细的小考点和陷阱联动同类题。</p>
-        </div>
-        <div class="feature fade-up delay-4">
-          <div class="feature-icon">04</div>
-          <h3>备课资料</h3>
-          <p>导入一篇语法填空材料后，可以像真题库一样讲题，不必临时做 PPT。</p>
-        </div>
-        <div class="feature fade-up delay-5">
-          <div class="feature-icon">05</div>
-          <h3>后续能力</h3>
-          <p>阅读、七选五、写作等板块会围绕真实课堂需要逐步接入。</p>
-        </div>
-        <div class="feature fade-up delay-6">
-          <div class="feature-icon">06</div>
-          <h3>持续共建</h3>
-          <p>使用中的不顺、讲题方式的差异和老师的经验，都会反过来更新系统。</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Scene 4 · Modules -->
-    <section class="scene scene-modules" data-scene="4">
-      <div class="section-eyebrow fade-up" style="text-align:center;">Modules</div>
-      <h2 class="fade-up delay-1" style="text-align:center;font-size:clamp(24px,3.5vw,38px);color:var(--section-heading-color);margin-bottom:10px;font-weight:300;letter-spacing:-0.5px;line-height:1.25;">模块化生长</h2>
-      <p class="sub fade-up delay-2" style="text-align:center;max-width:clamp(560px,34vw,800px);margin:0 auto 12px;">现在可以进入语法填空；其他题型先作为建设方向展示。</p>
-      <div class="status-note fade-up delay-2">当前可用：语法填空讲评</div>
-      <div class="modules-grid">
-        <div class="module-card available fade-up delay-2" onclick="location.href='./grammar-fill/'">
-          <span class="module-badge live">开放</span>
-          <div class="module-num">01</div>
-          <h3>语法填空</h3>
-          <p>按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
-          <div class="module-meta">当前主模块 · 老师和学生都从这里进入</div>
-        </div>
-        <div class="module-card coming fade-up delay-3">
-          <span class="module-badge soon">Soon</span>
-          <div class="module-num">02</div>
-          <h3>完形填空</h3>
-          <p>语义关联 · 前置线索 · 后置支撑</p>
-          <div class="module-meta">规划中</div>
-        </div>
-        <div class="module-card coming fade-up delay-4">
-          <span class="module-badge soon">Soon</span>
-          <div class="module-num">03</div>
-          <h3>七选五</h3>
-          <p>逻辑衔接 · 四步解题法</p>
-          <div class="module-meta">规划中</div>
-        </div>
-        <div class="module-card coming fade-up delay-5">
-          <span class="module-badge soon">Soon</span>
-          <div class="module-num">04</div>
-          <h3>阅读理解</h3>
-          <p>7 项能力分类 · 三层导问</p>
-          <div class="module-meta">规划中</div>
-        </div>
-        <div class="module-card coming fade-up delay-6">
-          <span class="module-badge soon">Soon</span>
-          <div class="module-num">05</div>
-          <h3>读后续写</h3>
-          <p>情节维 + 情感维 + 语言维 · 双轨提纲训练</p>
-          <div class="module-meta">建设中</div>
-        </div>
-        <div class="module-card coming fade-up delay-6">
-          <span class="module-badge soon">Soon</span>
-          <div class="module-num">06</div>
-          <h3>应用文写作</h3>
-          <p>内容支架 + 语言支架双管齐下</p>
-          <div class="module-meta">建设中</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Scene 6 · CTA -->
-    <section class="scene scene-cta" data-scene="5">
-      <div class="footer-cta" style="padding:0;">
-        <div class="section-eyebrow fade-up" style="text-align:center;">Get started</div>
-        <h2 class="fade-up delay-1">进入语法填空讲评</h2>
-        <p class="fade-up delay-2" style="font-size:16px;color:var(--text-2);max-width:clamp(520px,30vw,720px);margin:8px auto 28px;line-height:1.7;">第一次使用可以先注册账号。进入后选择一套卷，点击题号或空格，就可以开始讲题。</p>
-        <div class="fade-up delay-3" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-          <button class="btn primary" onclick="location.href='./grammar-fill/'">进入语法填空</button>
-          <button class="btn" onclick="openModal('signin')">登录 / 注册</button>
-        </div>
-        <div class="fade-up delay-3" style="margin-top:16px;text-align:center;">
-          <a href="./score-analysis/" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-3);text-decoration:none;padding:5px 13px;border:1px solid var(--border);border-radius:999px;">🧪 成绩单转换 · 测试小工具</a>
-        </div>
-      </div>
-      <div class="disclaimer fade-up delay-4" style="margin-top:64px;">
-        <h3>反馈与共建</h3>
-        <p>Seeklume 会在真实课堂使用中继续调整。讲题不顺、分类不准、界面不清楚，都可以直接反馈。</p>
-        <ul>
-          <li>📧 <code>liuzhenlzstiles@icloud.com</code></li>
-          <li>💻 <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank">GitHub Issues</a></li>
-          <li>🔒 <a href="./privacy.html">隐私说明</a></li>
-        </ul>
-      </div>
-      <div class="footer-note fade-up delay-5">Seeklume · English Teaching System</div>
-    </section>
   </div>
 
   <!-- ========== Modules View ========== -->
@@ -1337,10 +1142,16 @@
     document.querySelectorAll('#view-welcome .fade-up, #view-welcome .counter')
       .forEach(function(el) { io.observe(el); });
 
-    setupSceneDots();
-    setupSceneTracking();
-    setupIdleAutoscroll();
-    setupSceneLoopAnimations();
+    // 首页已精简为单屏 hero：多于一屏时才启用分屏导航/自动滚动/逐屏动画。
+    if (document.querySelectorAll('#view-welcome .scene').length > 1) {
+      setupSceneDots();
+      setupSceneTracking();
+      setupIdleAutoscroll();
+      setupSceneLoopAnimations();
+    } else {
+      var dotsEl = document.getElementById('sceneDots');
+      if (dotsEl) dotsEl.style.display = 'none';
+    }
   }
 
   function setupSceneDots() {

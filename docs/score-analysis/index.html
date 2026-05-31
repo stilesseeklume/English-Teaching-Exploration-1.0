@@ -53,17 +53,8 @@
     <div id="errBox" class="note err"></div>
   </div>
 
-  <div class="card" id="speakingCard" style="display:none;">
-    <h2>② 听说成绩（可选 · 折算到 150 分）</h2>
-    <textarea id="speakingInput" placeholder="粘贴「姓名 听说分」，每行一个（按姓名匹配，因为听说和考试的学号常不是一套；分隔可用空格/制表符/逗号）。也可不填，只看 130 分折算。"></textarea>
-    <div class="row" style="margin-top:10px;">
-      <button id="mergeBtn" type="button">合并听说分</button>
-      <span id="mergeNote" class="note"></span>
-    </div>
-  </div>
-
   <div class="card" id="resultCard" style="display:none;">
-    <h2>③ 逐生转换表</h2>
+    <h2>② 逐生转换表</h2>
     <div class="row" style="margin-bottom:12px;">
       <button id="copyBtn" class="primary" type="button" disabled>复制到剪贴板</button>
       <button id="exportBtn" type="button" disabled>导出 Excel</button>
@@ -76,7 +67,8 @@
 </div>
 
 <script type="module">
-import { detectSections, parseExamScores, buildStudentRows, parseSpeakingInput, mergeSpeaking, toTable, toTSV }
+// 听说板块暂封：parseSpeakingInput / mergeSpeaking 留在模块里，后续听说出表后再接。
+import { detectSections, parseExamScores, buildStudentRows, toTable, toTSV }
   from './score-convert.js';
 
 const $ = id => document.getElementById(id);
@@ -109,13 +101,10 @@ async function handleFile(file) {
   setError('');
   $('fileName').textContent = file.name;
   $('resultCard').style.display = 'none';
-  $('speakingCard').style.display = 'none';
   $('copyBtn').disabled = true;
   $('exportBtn').disabled = true;
   $('scopeNote').textContent = '';
-  $('mergeNote').textContent = '';
   $('copyNote').textContent = '';
-  $('speakingInput').value = '';
   state.rows = null; state.detection = null; state.table = null;
   if (!window.XLSX) { setError('Excel 解析库未加载，请检查网络后刷新。'); return; }
   try {
@@ -130,7 +119,6 @@ async function handleFile(file) {
     const warnCount = state.rows.filter(r => r.warn).length;
     $('scopeNote').textContent = '识别为 ' + state.detection.scope + ' 分卷，共 ' + state.rows.length + ' 名学生'
       + (warnCount ? '（' + warnCount + ' 行总分与板块之和不符，已标黄）' : '') + '。';
-    $('speakingCard').style.display = state.detection.scope === 120 ? '' : 'none';
     render();
   } catch (e) {
     setError('解析失败：' + e.message);
@@ -140,16 +128,6 @@ async function handleFile(file) {
 $('fileInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) handleFile(f); });
 ['dragover', 'drop'].forEach(ev => document.body.addEventListener(ev, e => e.preventDefault()));
 document.body.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
-
-$('mergeBtn').addEventListener('click', () => {
-  if (!state.rows) return;
-  const map = parseSpeakingInput($('speakingInput').value);
-  const res = mergeSpeaking(state.rows, map);
-  let msg = '匹配 ' + res.matched + ' 人，未匹配 ' + res.unmatched + ' 人。';
-  if (res.ambiguous.length) msg += ' ⚠ 名册有同名，请核对：' + res.ambiguous.join('、');
-  $('mergeNote').textContent = msg;
-  render();
-});
 
 $('copyBtn').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(toTSV(state.table)); $('copyNote').textContent = '已复制，可直接粘贴到 Excel。'; }
