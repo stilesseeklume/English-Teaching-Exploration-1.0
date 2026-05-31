@@ -102,3 +102,22 @@ test('buildStudentRows 在 80 分卷不产出折算', () => {
   assert.equal(rows[0].converted130, null);
   assert.equal(rows[0].subjective, null);
 });
+
+test('parseSpeakingInput 解析「学号 分数」文本，跳过表头', () => {
+  const txt = '学号\t听说\n1001\t18\n1002, 15.5\n';
+  const m = parseSpeakingInput(txt);
+  assert.equal(m['1001'], 18);
+  assert.equal(m['1002'], 15.5);
+});
+
+test('mergeSpeaking 按学号补出听说与总分150', () => {
+  const d = detectSections(H0, H1, DATA);
+  const rows = buildStudentRows(DATA, d, {});
+  const res = mergeSpeaking(rows, { '1001': 18 });
+  assert.equal(res.matched, 1);
+  assert.equal(res.unmatched, 1);
+  assert.equal(rows[0].listening, 18);
+  assert.equal(rows[0].total150, 63.5);   // 45.5 + 18
+  assert.equal(rows[1].listening, null);
+  assert.equal(rows[1].total150, null);
+});

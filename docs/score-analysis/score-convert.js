@@ -137,8 +137,37 @@ export function buildStudentRows(dataRows, detection, examMap) {
     };
   });
 }
-export function parseSpeakingInput() { throw new Error('not implemented'); }
-export function mergeSpeaking() { throw new Error('not implemented'); }
+// 解析粘贴/上传的听说成绩文本：每行「学号 <分隔> 分数」，分隔可为 制表符/逗号/空格。
+export function parseSpeakingInput(text) {
+  const map = {};
+  for (const line of String(text || '').split(/\r?\n/)) {
+    const parts = line.trim().split(/[\t,，\s]+/).filter(Boolean);
+    if (parts.length < 2) continue;
+    const id = parts[0].trim();
+    const score = Number(parts[parts.length - 1]);
+    if (!Number.isFinite(score)) continue;   // 表头行（分数非数字）自动跳过
+    map[id] = score;
+  }
+  return map;
+}
+
+// 把听说分按学号合并进逐生行，补出 total150。直接修改并返回统计。
+export function mergeSpeaking(rows, speakingMap) {
+  let matched = 0, unmatched = 0;
+  for (const r of rows) {
+    const v = speakingMap[r.id];
+    if (Number.isFinite(v) && r.converted130 != null) {
+      r.listening = v;
+      r.total150 = Math.round((r.converted130 + v + Number.EPSILON) * 100) / 100;
+      matched++;
+    } else {
+      r.listening = null;
+      r.total150 = null;
+      unmatched++;
+    }
+  }
+  return { matched, unmatched };
+}
 export function toTable() { throw new Error('not implemented'); }
 export function toTSV() { throw new Error('not implemented'); }
 export function toCSV() { throw new Error('not implemented'); }
