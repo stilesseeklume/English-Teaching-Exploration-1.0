@@ -80,6 +80,7 @@ import { detectSections, parseExamScores, buildStudentRows, parseSpeakingInput, 
   from './score-convert.js';
 
 const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let state = { detection: null, rows: null, examMap: {}, table: null };
 
 function findSheet(wb, keyword) {
@@ -96,7 +97,7 @@ function render() {
   let html = '<thead><tr>' + t.columns.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
   t.data.forEach((row, i) => {
     const warn = state.rows[i].warn ? ' class="warn"' : '';
-    html += '<tr' + warn + '>' + row.map(v => '<td>' + (v === '' ? '' : v) + '</td>').join('') + '</tr>';
+    html += '<tr' + warn + '>' + row.map(v => '<td>' + (v === '' ? '' : esc(v)) + '</td>').join('') + '</tr>';
   });
   $('resultTable').innerHTML = html + '</tbody>';
   $('copyBtn').disabled = false;
@@ -107,6 +108,14 @@ function render() {
 async function handleFile(file) {
   setError('');
   $('fileName').textContent = file.name;
+  $('resultCard').style.display = 'none';
+  $('speakingCard').style.display = 'none';
+  $('copyBtn').disabled = true;
+  $('exportBtn').disabled = true;
+  $('scopeNote').textContent = '';
+  $('mergeNote').textContent = '';
+  $('copyNote').textContent = '';
+  state.rows = null; state.detection = null; state.table = null;
   if (!window.XLSX) { setError('Excel 解析库未加载，请检查网络后刷新。'); return; }
   try {
     const buf = await file.arrayBuffer();
@@ -127,7 +136,7 @@ async function handleFile(file) {
   }
 }
 
-$('fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+$('fileInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) handleFile(f); });
 ['dragover', 'drop'].forEach(ev => document.body.addEventListener(ev, e => e.preventDefault()));
 document.body.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
 
