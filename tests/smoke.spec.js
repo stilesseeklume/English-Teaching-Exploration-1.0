@@ -3239,6 +3239,18 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && vmAll.showAllButton.visible && /只看 6/.test(vmAll.showAllButton.label)) ? 'ok' : 'bad';
   })).toBe('ok');
 
+  // 需求5：showAll 状态在切换来源时复位
+  expect(await page.evaluate(() => {
+    window._migrationShowAll = false;
+    window.toggleMigrationShowAll();
+    var afterToggle = window._migrationShowAll;
+    // 切换迁移来源应复位
+    var cur = (window.GrammarAppState.state.migrationSource) || 'bank';
+    window.setMigrationSource(cur);
+    var afterSource = window._migrationShowAll;
+    return (afterToggle === true && afterSource === false) ? 'ok' : ('bad:' + afterToggle + ',' + afterSource);
+  })).toBe('ok');
+
   expect(errors).toEqual([]);
 });
 

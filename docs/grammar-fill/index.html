@@ -2077,6 +2077,22 @@
   .teaching-migration-note strong {
     color: var(--text);
   }
+  .teaching-migration-show-all {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .teaching-migration-show-all:hover { background: var(--accent); color: #fff; }
   .teaching-mindmap {
     display: grid;
     gap: 18px;
@@ -7083,6 +7099,7 @@ function getTeachingMindmapFallback(q) {
 }
 
 function openTeachingStageByIdx(idx, options) {
+  _migrationShowAll = false;   // 切换题目时复位"显示全部"，避免状态串到下一题
   options = options || {};
   var practiceContext = getPracticeContextSnapshot();
   var session = getTeachingSessionSnapshot().teachingSession;
