@@ -546,6 +546,27 @@
     var pool = selectSourcePool(source, bankDisplayPool, errorDisplayPool);
     var tabs = buildTabs(bankDisplayPool, errorDisplayPool);
 
+    // T4：facets 可缩放范围。底座=同大类（fallback*Pool 已是同 category 排除自身），
+    // 按选中范围（word/type/category）缩放，默认落最细。spec §四之二。
+    var qFacets = q.facets || {};
+    var hasFacets = !!(qFacets && Object.keys(qFacets).length);
+    var scopes = [];
+    var activeScope = null;
+    if (hasFacets) {
+      var scopeBasePool = selectSourcePool(source, fallbackBankPool, fallbackErrorPool);
+      scopes = buildMigrationScopes(qFacets, fineCat, q.category).map(function(s) {
+        return {
+          level: s.level,
+          value: s.value,
+          count: scopeBasePool.filter(function(it) { return migrationMatchesScope(it, s); }).length
+        };
+      });
+      activeScope = options.scope || scopes[0] || null;
+      pool = activeScope
+        ? scopeBasePool.filter(function(it) { return migrationMatchesScope(it, activeScope); })
+        : scopeBasePool;
+    }
+
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
     var headerLabel = '';
     var headerSubLabel = '';
@@ -606,6 +627,8 @@
       headerSubLabel: headerSubLabel,
       poolCount: pool.length,
       tabs: tabs,
+      scopes: scopes,
+      activeScope: activeScope,
       emptyState: emptyState,
       migration: migration
     };

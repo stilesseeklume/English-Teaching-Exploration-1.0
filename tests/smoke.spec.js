@@ -3235,6 +3235,35 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '|' + mWordForm + mWordNo + mTypeSub + mCat + mCatNo;
   })).toBe('ok');
 
+  // T4：buildMigrationData 按 facets 范围缩放（同大类底座 + 三档）
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var q = { exam: 'e', no: 1, category: 'attrib', fine_category: 'attrib-pronoun',
+      facets: { type: 'relative-pronoun', word: 'which', restrictive: true }, type: '真题' };
+    var bank = [
+      q,
+      { exam: 'e', no: 2, category: 'attrib', fine_category: 'attrib-pronoun', facets: { type: 'relative-pronoun', word: 'which' }, type: '真题' },
+      { exam: 'e', no: 3, category: 'attrib', fine_category: 'attrib-pronoun', facets: { type: 'relative-pronoun', word: 'that' }, type: '真题' },
+      { exam: 'e', no: 4, category: 'attrib', fine_category: 'attrib-adverb', facets: { type: 'relative-adverb', word: 'when' }, type: '真题' },
+      { exam: 'e', no: 5, category: 'word', fine_category: 'word-noun', facets: { subtype: 'derivation' }, type: '真题' }
+    ];
+    function build(scope) {
+      return mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [], scope: scope, limit: 99 });
+    }
+    var def = build(null);          // 默认最细 = word:which → 仅 no2
+    var byType = build({ level: 'type', value: 'relative-pronoun' });  // which+that → no2,no3
+    var byCat = build({ level: 'category', value: 'attrib' });          // 整个定语从句 → no2,no3,no4
+    var scopes = def.scopes || [];
+    var levels = scopes.map(function(s){ return s.level; }).join(',');
+    return (def.poolCount === 1 && byType.poolCount === 2 && byCat.poolCount === 3
+      && levels === 'word,type,category'
+      && def.activeScope && def.activeScope.level === 'word' && def.activeScope.value === 'which'
+      && scopes[0].count === 1 && scopes[1].count === 2 && scopes[2].count === 3) ? 'ok'
+      : 'bad:' + def.poolCount + '/' + byType.poolCount + '/' + byCat.poolCount + '|' + levels
+        + '|' + (def.activeScope && def.activeScope.level) + (def.activeScope && def.activeScope.value)
+        + '|' + scopes.map(function(s){ return s.count; }).join(',');
+  })).toBe('ok');
+
   // 需求3：看讲解跳到指定 section 并展开
   expect(await page.evaluate(() => {
     window.openKnowledgePoint('predicate', 'predicate-tense');
