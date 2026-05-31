@@ -1378,8 +1378,8 @@
   }
 
   function collectDecisionAncestors(id, byId) {
-    var out = [], n = (byId || {})[id];
-    while (n && n.parent && byId[n.parent]) {
+    var out = [], n = (byId || {})[id], guard = 0;
+    while (n && n.parent && byId[n.parent] && guard++ < 100) {
       out.push(n.parent);
       n = byId[n.parent];
     }
