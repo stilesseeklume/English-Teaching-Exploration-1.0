@@ -2982,8 +2982,37 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
   await page.locator('.dm-cv .dm-node').nth(1).click();
   await expect(await page.evaluate(() => !!(window.dmCam && typeof window.dmCam.focusId === 'string' && window.dmCam.focusId.length))).toBe(true);
   // 按 ⤢ 全局 → 取消聚焦，回到整图
-  await page.locator('.dm-hud-wide').click();
+  await page.locator('.dm-hud-wide').first().click();
   await expect(await page.evaluate(() => window.dmCam && window.dmCam.focusId === '')).toBe(true);
+
+  // Task 3A: 纯函数 searchDecisionNodes / collectDecisionAncestors / collectExpandableIds
+  expect(await page.evaluate(() => {
+    var kvm = window.GrammarKnowledgeViewModel;
+    var DM = window.GRAMMAR_DECISION_MAP;
+    var tree = kvm.buildDecisionTree(DM.nodes);
+    if (!kvm.searchDecisionNodes || !kvm.collectDecisionAncestors || !kvm.collectExpandableIds) return 'no-fn';
+    var hits = kvm.searchDecisionNodes('定语从句', tree.byId);
+    if (!hits.length) return 'no-hit';
+    var anc = kvm.collectDecisionAncestors(hits[0].id, tree.byId);
+    var expandable = kvm.collectExpandableIds(tree.childrenOf);
+    return (Array.isArray(anc) && expandable.length > 0) ? 'ok' : 'bad';
+  })).toBe('ok');
+
+  // Task 3B: dmExpandAll 全展开后叶子节点可见
+  expect(await page.evaluate(() => {
+    window.setKnowledgeView('system');
+    window.dmExpandAll();
+    var leaves = document.querySelectorAll('#knowledgeContent .dm-node.leaf').length;
+    return leaves > 0;
+  })).toBe(true);
+  // Task 3B: dmRevealNode 展开路径并聚焦
+  expect(await page.evaluate(() => {
+    var kvm = window.GrammarKnowledgeViewModel;
+    var hits = kvm.searchDecisionNodes('定语从句', window.dmCtx.full.byId);
+    if (!hits.length) return 'no-hit';
+    window.dmRevealNode(hits[0].id);
+    return window.dmCam.focusId === hits[0].id ? 'ok' : 'no-focus';
+  })).toBe('ok');
 
   await page.locator('[data-dock-key="categories"]').click();
   await expect(page.locator('#homeCategories')).toHaveClass(/active/);

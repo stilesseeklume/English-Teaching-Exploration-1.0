@@ -1361,6 +1361,37 @@
     return { rootId: rootId, byId: byId, childrenOf: childrenOf };
   }
 
+  function searchDecisionNodes(query, byId, limit) {
+    var q = String(query || '').trim().toLowerCase().replace(/\s+/g, '');
+    if (!q) return [];
+    limit = limit || 12;
+    var out = [];
+    Object.keys(byId || {}).forEach(function(id) {
+      var n = byId[id] || {};
+      var title = String(n.title || '').toLowerCase().replace(/\s+/g, '');
+      var sub = String(n.sub || '').toLowerCase().replace(/\s+/g, '');
+      if (title.indexOf(q) !== -1 || sub.indexOf(q) !== -1) {
+        out.push({ id: id, title: n.title || '', isLeaf: !!(n.fine || n.cat) });
+      }
+    });
+    return out.slice(0, limit);
+  }
+
+  function collectDecisionAncestors(id, byId) {
+    var out = [], n = (byId || {})[id];
+    while (n && n.parent && byId[n.parent]) {
+      out.push(n.parent);
+      n = byId[n.parent];
+    }
+    return out;
+  }
+
+  function collectExpandableIds(childrenOf) {
+    return Object.keys(childrenOf || {}).filter(function(id) {
+      return (childrenOf[id] || []).length > 0;
+    });
+  }
+
   function buildGuidedStepModel(tree, currentId) {
     tree = tree || { byId: {}, childrenOf: {}, rootId: '' };
     var cur = tree.byId[currentId] || tree.byId[tree.rootId] || null;
@@ -1492,6 +1523,9 @@
     buildGlobalGraphSvgModel: buildGlobalGraphSvgModel,
     buildKnowledgeSidebarModel: buildKnowledgeSidebarModel,
     buildKnowledgeBookContentModel: buildKnowledgeBookContentModel,
-    buildKnowledgeViewChromeModel: buildKnowledgeViewChromeModel
+    buildKnowledgeViewChromeModel: buildKnowledgeViewChromeModel,
+    searchDecisionNodes: searchDecisionNodes,
+    collectDecisionAncestors: collectDecisionAncestors,
+    collectExpandableIds: collectExpandableIds
   };
 })();

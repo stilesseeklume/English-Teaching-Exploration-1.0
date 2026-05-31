@@ -736,6 +736,14 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     }).slice(0, limit);
   }
 
+  function buildDmWheelAction(deltaX, deltaY, ctrlKey) {
+    // 触控板捏合手势浏览器带 ctrlKey → 缩放；普通双指/滚轮 → 平移画布
+    if (ctrlKey) {
+      return { action: 'zoom', factor: deltaY < 0 ? 1.12 : 0.9 };
+    }
+    return { action: 'pan', dx: -(Number(deltaX) || 0), dy: -(Number(deltaY) || 0) };
+  }
+
   function getNodeCategoryLabels(node, categoryMap, knowledgeData) {
     return getGraphNodeLabelGroups(node, {
       categoryMap: categoryMap,
@@ -793,6 +801,7 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     graphNodeMatchesQuestion: graphNodeMatchesQuestion,
     getGlobalGraphQuestionMatches: getGlobalGraphQuestionMatches,
     searchGraphNodes: searchGraphNodes,
+    buildDmWheelAction: buildDmWheelAction,
     getNodeCategoryLabels: getNodeCategoryLabels,
     getRootColorStyle: getRootColorStyle
   };
