@@ -168,6 +168,40 @@ export function mergeSpeaking(rows, speakingMap) {
   }
   return { matched, unmatched };
 }
-export function toTable() { throw new Error('not implemented'); }
-export function toTSV() { throw new Error('not implemented'); }
-export function toCSV() { throw new Error('not implemented'); }
+// 把逐生行铺成 { columns:[...], data:[[...]] }，列按 scope 与是否有听说伸缩。
+export function toTable(rows, detection, opts) {
+  const hasSpeaking = !!(opts && opts.hasSpeaking);
+  const is120 = detection.scope === 120;
+  const sectionNames = detection.sections.map(s => s.name);
+
+  const columns = ['姓名', '班级', '学号', '年级排名', '班级排名', '档次', ...sectionNames, '客观题(80)'];
+  if (is120) columns.push('主观题(40)', '总分(120)', '折算(130)');
+  if (hasSpeaking) columns.push('听说(20)', '总分(150)');
+
+  const blank = v => (v == null || v === '' ? '' : v);
+  const data = rows.map(r => {
+    const out = [r.name, r.cls, r.id, blank(r.gradeRank), blank(r.classRank), blank(r.tier)];
+    for (const n of sectionNames) out.push(blank(r.sections[n]));
+    out.push(blank(r.objective));
+    if (is120) out.push(blank(r.subjective), blank(r.total120), blank(r.converted130));
+    if (hasSpeaking) out.push(blank(r.listening), blank(r.total150));
+    return out;
+  });
+  return { columns, data };
+}
+
+function joinRow(cells, sep, quote) {
+  return cells.map(v => {
+    const s = String(v ?? '');
+    if (quote && /[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }).join(sep);
+}
+
+export function toTSV(table) {
+  return [table.columns, ...table.data].map(r => joinRow(r, '\t', false)).join('\n');
+}
+
+export function toCSV(table) {
+  return [table.columns, ...table.data].map(r => joinRow(r, ',', true)).join('\n');
+}

@@ -121,3 +121,36 @@ test('mergeSpeaking 按学号补出听说与总分150', () => {
   assert.equal(rows[1].listening, null);
   assert.equal(rows[1].total150, null);
 });
+
+test('toTable 列随 scope/听说 伸缩', () => {
+  const d = detectSections(H0, H1, DATA);
+  const rows = buildStudentRows(DATA, d, parseExamScores(EXAM_H, EXAM_ROWS));
+  mergeSpeaking(rows, { '1001': 18 });
+  const t = toTable(rows, d, { hasSpeaking: true });
+  assert.deepEqual(t.columns, [
+    '姓名','班级','学号','年级排名','班级排名','档次',
+    '阅读理解','七选五','完形填空','语法填空','应用文','续写',
+    '客观题(80)','主观题(40)','总分(120)','折算(130)','听说(20)','总分(150)',
+  ]);
+  assert.equal(t.data[0][0], '张三');
+  assert.equal(t.data[0][t.columns.indexOf('折算(130)')], 45.5);
+  assert.equal(t.data[0][t.columns.indexOf('总分(150)')], 63.5);
+});
+
+test('toTable 80 分卷去掉作文/折算/听说列', () => {
+  const h0 = H0.slice(0, 22), h1 = H1.slice(0, 22);
+  const data = DATA.map(r => r.slice(0, 22));
+  const d = detectSections(h0, h1, data);
+  const rows = buildStudentRows(data, d, {});
+  const t = toTable(rows, d, { hasSpeaking: false });
+  assert.ok(!t.columns.includes('主观题(40)'));
+  assert.ok(!t.columns.includes('折算(130)'));
+  assert.ok(!t.columns.includes('应用文'));
+  assert.ok(t.columns.includes('客观题(80)'));
+});
+
+test('toTSV / toCSV 序列化', () => {
+  const t = { columns: ['姓名', '总分(120)'], data: [['张三', 42], ['李,四', 40]] };
+  assert.equal(toTSV(t), '姓名\t总分(120)\n张三\t42\n李,四\t40');
+  assert.equal(toCSV(t), '姓名,总分(120)\n张三,42\n"李,四",40');
+});
