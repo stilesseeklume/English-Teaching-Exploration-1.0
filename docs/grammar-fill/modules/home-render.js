@@ -88,8 +88,32 @@
     return html;
   }
 
+  function homeCategoriesHtml(model, deps) {
+    deps = deps || {};
+    var inlineSidebarAction = deps.inlineSidebarAction;
+    model = model || {};
+    var html = '';
+    (model.sections || []).forEach(function(section) {
+      html += '<div class="category-section">'
+        + '<div class="category-section-title">' + window.escapeHtml(section.titleText || '') + '</div>'
+        + '<div class="grid-11">';
+      (section.items || []).forEach(function(item) {
+        var tagClass = item.tagClass ? 'card-tag ' + item.tagClass : 'card-tag';
+        html += '<div class="card" onclick="' + inlineSidebarAction(item.action, 'startByCategory', item.category) + '">'
+          + '<span class="' + tagClass + '">' + window.escapeHtml(item.tagText || '') + '</span>'
+          + '<div class="card-title">' + window.escapeHtml(item.titleText || '') + '</div>'
+          + '<div class="card-desc">' + window.escapeHtml(item.descriptionText || '') + '</div>'
+          + '<div class="card-count" id="' + window.escapeHtml(item.countElementId || ('count-' + item.category)) + '">' + window.escapeHtml(item.countText || '') + '</div>'
+          + '</div>';
+      });
+      html += '</div></div>';
+    });
+    return html;
+  }
+
   window.GrammarHomeRender = {
     homeDashboardHtml: homeDashboardHtml,
-    examGridHtml: examGridHtml
+    examGridHtml: examGridHtml,
+    homeCategoriesHtml: homeCategoriesHtml
   };
 })();

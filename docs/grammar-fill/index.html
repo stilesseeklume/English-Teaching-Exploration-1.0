@@ -5867,22 +5867,7 @@ function renderHomeCategories() {
   var root = document.getElementById('homeCategories');
   if (!root || !window.GrammarCategoryRules) return;
   var model = window.GrammarCategoryRules.buildHomeCategoryModel(ALL_QUESTIONS);
-  var html = '';
-  (model.sections || []).forEach(function(section) {
-    html += '<div class="category-section">'
-      + '<div class="category-section-title">' + escapeHtml(section.titleText || '') + '</div>'
-      + '<div class="grid-11">';
-    (section.items || []).forEach(function(item) {
-      var tagClass = item.tagClass ? 'card-tag ' + item.tagClass : 'card-tag';
-      html += '<div class="card" onclick="' + inlineSidebarAction(item.action, 'startByCategory', item.category) + '">'
-        + '<span class="' + tagClass + '">' + escapeHtml(item.tagText || '') + '</span>'
-        + '<div class="card-title">' + escapeHtml(item.titleText || '') + '</div>'
-        + '<div class="card-desc">' + escapeHtml(item.descriptionText || '') + '</div>'
-        + '<div class="card-count" id="' + escapeHtml(item.countElementId || ('count-' + item.category)) + '">' + escapeHtml(item.countText || '') + '</div>'
-        + '</div>';
-    });
-    html += '</div></div>';
-  });
+  var html = window.GrammarHomeRender.homeCategoriesHtml(model, { inlineSidebarAction: inlineSidebarAction });
   root.innerHTML = html;
 }
 

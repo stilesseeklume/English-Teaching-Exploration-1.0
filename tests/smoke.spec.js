@@ -3867,15 +3867,21 @@ test('home-render pure html output', async ({ page }) => {
       { groups: [{ year: '2024', count: 1, titleText: '', items: [{ action: {}, id: '2024A', type: '真题', tagClass: '', blankCount: 10, descriptionText: '' }] }] },
       { inlineSidebarAction: function(a, fn, v) { return fn + ':' + v; } }
     );
+    const cats = R.homeCategoriesHtml(
+      { sections: [{ titleText: '考点', items: [{ action: {}, category: 'predicate', tagClass: '', tagText: '谓语', titleText: '谓语动词', descriptionText: '', countText: '5 题', countElementId: 'count-predicate' }] }] },
+      { inlineSidebarAction: function(a, fn, v) { return fn + ':' + v; } }
+    );
     return {
       missing: false,
       dashHasHero: dash.includes('正文') && dash.includes('按钮') && dash.includes('DASH:switch-page'),
       dashHasBooks: dash.includes('必修一') && dash.includes('x.png'),
-      examGridHasCard: grid.includes('category-section') && grid.includes('grid-11') && grid.includes('startByExam:2024A')
+      examGridHasCard: grid.includes('category-section') && grid.includes('grid-11') && grid.includes('startByExam:2024A'),
+      catsHasCard: cats.includes('category-section') && cats.includes('count-predicate') && cats.includes('startByCategory:predicate')
     };
   });
   expect(out.missing).toBe(false);
   expect(out.dashHasHero).toBe(true);
   expect(out.dashHasBooks).toBe(true);
   expect(out.examGridHasCard).toBe(true);
+  expect(out.catsHasCard).toBe(true);
 });

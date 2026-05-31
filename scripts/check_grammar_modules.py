@@ -652,6 +652,7 @@ EXPECTED_MODULES = [
         "exports": [
             "homeDashboardHtml",
             "examGridHtml",
+            "homeCategoriesHtml",
         ],
     },
 ]
