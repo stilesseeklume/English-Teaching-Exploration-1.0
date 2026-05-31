@@ -362,17 +362,11 @@ window.GRAMMAR_BANK = {
         {
           "no": 56,
           "answer": "engineering",
-          "explanation": "非谓语动词。空处修饰空后的名词techniques，在句中作定语，说明名词的作用，故填动名词engineering。此处表示“最新的设计制造技术”。",
-          "grammar_point": "非谓语动词",
-          "category": "nonpredicate",
-          "category_name": "非谓语动词",
-          "fine_category": "nonp-attribute",
-          "nonp_function": "attribute",
-          "nonp_function_label": "作定语",
-          "nonp_form": "doing",
-          "nonp_form_label": "doing",
-          "nonp_rule": "engineering 修饰 techniques，是动名词作定语，说明技术用途或类别。",
-          "nonp_needs_review": false
+          "explanation": "词性转换。括号内 engineer 是名词/动词，空处修饰名词 techniques 作定语，应用其名词形式 engineering（动名词的名词用法，意为“工程/工程技术”），故填 engineering。",
+          "grammar_point": "词性转换",
+          "category": "word",
+          "category_name": "词性转换",
+          "fine_category": "word-noun-derivation"
         },
         {
           "no": 57,
@@ -2612,18 +2606,12 @@ window.GRAMMAR_BANK = {
       "type": "真题",
       "no": 56,
       "answer": "engineering",
-      "explanation": "非谓语动词。空处修饰空后的名词techniques，在句中作定语，说明名词的作用，故填动名词engineering。此处表示“最新的设计制造技术”。",
-      "grammar_point": "非谓语动词",
-      "category": "nonpredicate",
-      "category_name": "非谓语动词",
+      "explanation": "词性转换。括号内 engineer 是名词/动词，空处修饰名词 techniques 作定语，应用其名词形式 engineering（动名词的名词用法，意为“工程/工程技术”），故填 engineering。",
+      "grammar_point": "词性转换",
+      "category": "word",
+      "category_name": "词性转换",
       "passage": "Heatherwick Studio recently built a greenhouse at the edge of the National Trust's Woolbeding Gardens. This beautiful structure, named Glasshouse, is at the centre of a new garden that shows how the Silk Road influences English gardens even in modern times.\n\nThe latest ___56___ (engineer) techniques are applied to create this protective ___57___ (function) structure that is also beautiful. The design features ten steel “sepals (萼片)” made of glass and aluminium (铝). These sepals open on warm days ___58___ (give) the inside plants sunshine and fresh air. In cold weather, the structure stays ___59___ (close) to protect the plants.\n\nFurther, the Silk Route Garden around the greenhouse ___60___ (walk) visitors through a journey influenced by the ancient Silk Road, by which silk as well as many plant species came to Britain for ___61___ first time. These plants included modern Western ___62___ (favourite) such as rosemary, lavender and fennel. The garden also contains a winding path that guides visitors through the twelve regions of the Silk Road. The path offers over 300 plant species for visitors to see, too.\n\nThe Glasshouse stands ___63___ a great achievement in contemporary design, to house the plants of the southwestern part of China at the end of a path retracing (追溯) the steps along the Silk Route ___64___ brought the plants from their native habitat in Asia to come to define much of the ___65___ (rich) of gardening in England.",
-      "fine_category": "nonp-attribute",
-      "nonp_function": "attribute",
-      "nonp_function_label": "作定语",
-      "nonp_form": "doing",
-      "nonp_form_label": "doing",
-      "nonp_rule": "engineering 修饰 techniques，是动名词作定语，说明技术用途或类别。",
-      "nonp_needs_review": false
+      "fine_category": "word-noun-derivation"
     },
     {
       "id": "2024全国一卷-57",
