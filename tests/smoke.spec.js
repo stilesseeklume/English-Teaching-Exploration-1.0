@@ -2903,47 +2903,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && snapshot.currentKnowledgeNodeId === window.GrammarAppState.state.currentKnowledgeNodeId;
   })).toBe(true);
   await expect(page.locator('#knowledgeContent')).toContainText(/必修一/);
-  await page.locator('button', { hasText: '列表' }).click();
-  await expect(await page.evaluate(() => {
-    return window.GrammarAppState
-      && window.GrammarAppState.state.textbookViewMode === 'list'
-      && window.getTextbookViewModeSnapshot
-      && window.getTextbookViewModeSnapshot().textbookViewMode === 'list';
-  })).toBe(true);
-  await expect(page.locator('#knowledgeContent')).toContainText(/必修二|必修三/);
-  await expect(await page.evaluate(() => {
-    var textbookModel = window._textbookModel || (window.GrammarKnowledgeViewModel && window.GrammarKnowledgeViewModel.buildTextbookModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      []
-    ));
-    var unit = textbookModel && textbookModel.books && textbookModel.books.reduce(function(found, book) {
-      return found || (book.units && book.units.find(function(item) {
-        return item && item.tagIds && item.tagIds.length;
-      }));
-    }, null);
-    if (!unit || !window.openUnitQuestionList) return false;
-    window.openUnitQuestionList(unit.unitLabel, unit.tagIds);
-    var state = window.GrammarAppState && window.GrammarAppState.state;
-    return !!(state
-      && state.unitMiniContext
-      && state.unitMiniContext.source === 'bank'
-      && state.unitMiniContext.filter === '真题'
-      && state.unitMiniContext.tagIds
-      && state.unitMiniContext.tagIds.length);
-  })).toBe(true);
-  await page.evaluate(() => window.setUnitMiniFilter && window.setUnitMiniFilter('模拟'));
-  await expect.poll(async () => page.evaluate(() => {
-    var state = window.GrammarAppState && window.GrammarAppState.state;
-    var snapshot = window.getUnitMiniContextSnapshot && window.getUnitMiniContextSnapshot();
-    return !!(state
-      && state.unitMiniContext
-      && state.unitMiniContext.filter === '模拟'
-      && snapshot
-      && snapshot.filter === '模拟');
-  })).toBe(true);
-  await page.evaluate(() => window._closeUnitMiniModal && window._closeUnitMiniModal());
-  await expect(page.locator('#unitQuestionsModalWrap')).toHaveCount(0);
+  // 教材视图已搁置：仅展示"开发中"提示 + 封面画廊（不可点），无列表切换/单元交互
+  await expect(page.locator('#knowledgeContent')).toContainText(/开发中|敬请期待/);
   await page.locator('#knowledgeFineCatBtn').click();
   await expect(page.locator('#knowledgeContent')).toContainText(/考点视图/);
   await expect(await page.evaluate(() => {

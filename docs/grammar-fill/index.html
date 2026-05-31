@@ -8104,22 +8104,17 @@ function renderTextbookView() {
 
   var html = '<div class="knowledge-section">';
 
-  // 顶部精简：只留一行模式切换 chips（无 banner）
-  html += '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">';
-  html += '<div style="display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;font-size:12px;">';
-  toggleModel.options.forEach(function(option) {
-    html += '<button onclick="setTextbookViewMode(\'' + escapeHtml(option.mode) + '\')" style="border:none;background:' + (option.active ? 'var(--accent)' : 'transparent') + ';color:' + (option.active ? '#fff' : 'var(--text-2)') + ';padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;">' + escapeHtml(option.label) + '</button>';
-  });
-  html += '</div>';
-  html += '</div>';
+  // 功能搁置：教材视图待开发，仅保留封面画廊展示（不可点）。代码保留，以后再启用。
+  html += '<div style="margin-bottom:16px;padding:12px 16px;border:1px dashed var(--border);border-radius:10px;background:var(--surface-2);color:var(--text-2);font-size:13px;line-height:1.6;">'
+        + '🚧 <b>教材视图功能开发中，敬请期待</b><br>'
+        + '<span style="color:var(--text-3);">教材单元与考点的精准映射正在重做，暂未开放。当前仅展示教材封面。需要讲题/迁移请用「全局图谱」或「书本速查」。</span>'
+        + '</div>';
 
-  // 画廊（更大的封面 + 错峰渐入）
+  // 画廊（保留漂亮封面，但搁置期不可点）
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;padding:8px 4px 24px;">';
   textbookModel.books.forEach(function(bookModel, idx) {
-    html += '<div onclick="openTextbookModal(\'' + escapeHtml(bookModel.book) + '\')" '
-         + 'style="cursor:pointer;display:block;transition:transform .25s ease,box-shadow .25s ease;border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,0.08);animation:fadeInUp 0.4s ease-out ' + (idx * 60) + 'ms both;" '
-         + 'onmouseover="this.style.transform=\'translateY(-8px) scale(1.03)\';this.style.boxShadow=\'0 16px 36px rgba(0,0,0,0.22)\'" '
-         + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.08)\'">';
+    html += '<div '
+         + 'style="display:block;border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,0.08);animation:fadeInUp 0.4s ease-out ' + (idx * 60) + 'ms both;opacity:.92;">';
     html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + bookModel.cover + '\') no-repeat center/cover;"></div>';
     html += '<div style="padding:10px 12px;text-align:center;">';
     html += '<div style="font-weight:600;font-size:14px;color:var(--text);">' + escapeHtml(bookModel.labelText) + '</div>';
@@ -8128,15 +8123,6 @@ function renderTextbookView() {
     html += '</div>';
   });
   html += '</div>';
-
-  // 列表模式：在画廊下方一次性展开所有册
-  if (textbookViewModel.showList) {
-    html += '<div style="margin-top:20px;">';
-    textbookModel.books.forEach(function(bookModel, idx) {
-      html += renderBookDetail(bookModel.book, idx);
-    });
-    html += '</div>';
-  }
 
   html += '</div>';
   content.innerHTML = html;
