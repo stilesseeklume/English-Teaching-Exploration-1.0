@@ -39,7 +39,7 @@
 ### 5. 冠词 article
 - `art-a-an` 不定冠词
 - `art-the` 定冠词
-- `art-zero` 零冠词
+（零冠词高考不考，删除）
 
 ### 6. 代词 pronoun
 - `pron-personal` 人称/物主/反身代词
