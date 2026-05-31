@@ -46,22 +46,21 @@
 - `pron-indefinite` 不定代词
 - `pron-it` 形式 it（形式主宾/强调）
 
-### 7. 介词 preposition
-- `prep-time` 时间介词
-- `prep-place` 地点介词
-- `prep-manner` 方式介词
-- `prep-reason` 原因介词
-- `prep-collocation` 固定搭配（动介/形介/名介）
+### 7. 介词 preposition（对齐语法通霸21，2026-05-31 修订）
+- `prep-common` 常见介词的常见用法（as/by/for/in/on…）
+- `prep-time` 介词辨析·时间
+- `prep-place` 介词辨析·地点位置
+- `prep-collocation` 介词辨析·动介搭配（动词+介词）
+- `prep-other` 介词辨析·其他（穿衣/工具/原因/be+adj+prep）
 
-### 8. 逻辑连词 logic
-- `logic-coordinating` 并列连词
-- `logic-correlative` 关联连词
+### 8. 逻辑连词 logic（合并为 1，2026-05-31 修订）
+- `logic-coordinating` 并列连词（and/but/or/so；含 both…and 等关联结构，由 `facets.kind: coordinating/correlative` 区分）
 
 ### 9. 定语从句 attrib
 - `attrib-pronoun` 关系代词（who/whom/which/that/whose）
 - `attrib-adverb` 关系副词（when/where/why）
 - `attrib-prep-relative` 介词+关系词
-- `attrib-as` as/but/than 作关系词
+- `attrib-as` as 作关系词（but/than 不属定从考点，已排除）
 
 ### 10. 名词性从句 nounclause
 - `nounc-that` that 引导
@@ -70,13 +69,9 @@
 - `nounc-wh-adverb` 连接副词（when/where/how/why）
 - `nounc-ever` wh-ever 类引导词
 
-### 11. 状语从句 advclause
-- `advc-time` 时间
-- `advc-cause` 原因
-- `advc-condition` 条件
-- `advc-concession` 让步
-- `advc-purpose-result` 目的/结果
-- `advc-manner-place` 方式/地点
+### 11. 状语从句 advclause（按真语义类别拆，不按语法通霸编排配对，2026-05-31 修订）
+- `advc-time` 时间 / `advc-cause` 原因 / `advc-place` 地点 / `advc-condition` 条件
+- `advc-manner` 方式 / `advc-concession` 让步 / `advc-comparison` 比较 / `advc-purpose` 目的 / `advc-result` 结果
 
 ### 12. 情态动词 modal
 - `modal-speculation` 推测
