@@ -317,6 +317,8 @@
           answer: (blank.answer || '?').toString().trim(),
           category: blank.category || 'word',
           fine_category: blank.fine_category || '',
+          // facets：导入题与题库同结构（spec §一之二），仅在解析吐出对象时保留
+          facets: (blank.facets && typeof blank.facets === 'object') ? blank.facets : undefined,
           analysis: (blank.analysis || '').toString().trim(),
           solve: (blank.solve || '').toString().trim(),
           nonp_function: blank.nonp_function || '',

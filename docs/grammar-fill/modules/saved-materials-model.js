@@ -505,6 +505,7 @@
       answer: blank.answer || '?',
       category: blank.category || 'word',
       fine_category: blank.fine_category || '',
+      facets: (blank.facets && typeof blank.facets === 'object') ? blank.facets : undefined,
       analysis: blank.analysis || '',
       solve: blank.solve || '',
       nonp_function: blank.nonp_function || '',

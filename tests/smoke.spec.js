@@ -3716,6 +3716,7 @@ test('Word upload imports AI parse success into lesson prep', async ({ page }) =
             answer: 'use',
             category: 'predicate',
             fine_category: 'pred-tense',
+            facets: { tense: 'present', voice: 'active', agreement: true },
             analysis: '主语 Teachers 为复数，一般现在时用 use。'
           }]
         }]
@@ -3757,7 +3758,11 @@ test('Word upload imports AI parse success into lesson prep', async ({ page }) =
       return item.title === 'Smoke AI Success Lesson'
         && item.blanks
         && item.blanks.length === 1
-        && item.blanks[0].answer === 'use';
+        && item.blanks[0].answer === 'use'
+        && item.blanks[0].facets
+        && item.blanks[0].facets.tense === 'present'
+        && item.blanks[0].facets.voice === 'active'
+        && item.blanks[0].facets.agreement === true;
     });
   })).toBe(true);
 

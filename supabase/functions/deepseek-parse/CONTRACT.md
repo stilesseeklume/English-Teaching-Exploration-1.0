@@ -34,8 +34,9 @@ Success JSON:
         {
           "no": 1,
           "answer": "answer",
-          "category": "word",
-          "fine_category": "word-adj-adv-choice",
+          "category": "attrib",
+          "fine_category": "attrib-pronoun",
+          "facets": { "type": "relative-pronoun", "word": "which", "restrictive": true },
           "analysis": "Chinese explanation",
           "solve": "Chinese how-to-solve guidance (做题思路)"
         }
@@ -58,6 +59,8 @@ All errors return JSON with an `error` string. JSON parse failures may also incl
 ## Secrets
 
 Reads `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `DEEPSEEK_API_KEY` from Supabase Edge Function environment variables. No secret value belongs in Git.
+
+`fine_category` is one of the 51 tags from `docs/data/grammar_fine_tags.js` (体系重订 2026-05-31). `facets` is an optional multi-dimension object whose keys depend on `category` (e.g. nonpredicate→`form`, attrib→`type/word/restrictive`, predicate→`tense/voice/agreement`); invalid keys or values are silently dropped. Both `fine_category` and `facets` are dropped to `undefined` when the model returns something off-whitelist.
 
 ## AI
 
