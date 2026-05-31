@@ -3221,6 +3221,13 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive-form'; });
   })).toBe(true);
 
+  // 需求4：看讲解跳到指定 section 并展开
+  expect(await page.evaluate(() => {
+    window.openKnowledgePoint('predicate', 'predicate-tense');
+    var el = document.getElementById('sub-predicate-tense');
+    return !!el && !el.classList.contains('collapsed');
+  })).toBe(true);
+
   expect(errors).toEqual([]);
 });
 
