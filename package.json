@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "check": "bash scripts/check_all.sh",
+    "test:unit": "node --test 'test/**/*.test.js'",
     "test:smoke": "playwright test tests/smoke.spec.js --project=chromium",
     "test:smoke:headed": "playwright test tests/smoke.spec.js --project=chromium --headed"
   },
