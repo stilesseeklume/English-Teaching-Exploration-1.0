@@ -479,3 +479,10 @@ d29c166 注册登录改为用户名+密码
 - 同步更新 Playwright smoke：断言首页教材封面模型不再带 `open-textbook` action，渲染输出只保留封面和状态标签，不再输出“展开全部/更多”类入口。
 
 *此日志随项目推进持续更新。最后更新：2026-05-31*
+
+## 2026-06-01 决策地图叶子下钻 Task F 查证结论
+
+真题/模拟/错题筛选一致性：**预期行为，非 bug**。
+- 3 处 isMockQuestion（knowledge-view-model / migration-training / saved-materials-model）均认全「模拟卷」+「模拟题」双写法，模拟计数无遗漏。
+- buildUnitFilterChips 在 source !== bank 时返回空 → 错题本不出真/模筛选片，是设计预期（错题本不区分真题/模拟）。
+无需改代码。
