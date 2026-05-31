@@ -6853,6 +6853,7 @@ function applyMigrationSourceState(nextState) {
 applyMigrationSourceState(_migrationSource);
 
 function setMigrationSource(src) {
+  _migrationShowAll = false;
   var practiceContext = getPracticeContextSnapshot();
   var sessionState = getTeachingSessionSnapshot();
   var session = sessionState.teachingSession;
@@ -6894,6 +6895,19 @@ function setMigrationSource(src) {
       console.error('迁移训练切换失败：', e);
       document.getElementById('drawerContent').innerHTML = plan.drawerErrorHtml;
     }
+  }
+}
+
+function toggleMigrationShowAll() {
+  _migrationShowAll = !_migrationShowAll;
+  var sessionState = getTeachingSessionSnapshot();
+  var selectedState = getSelectedQuestionSnapshot();
+  if (sessionState.teachingSession) {
+    renderTeachingStage();
+  } else if (selectedState.selectedQuestion) {
+    try {
+      document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedState.selectedQuestion);
+    } catch (e) { console.error('迁移展开失败：', e); }
   }
 }
 
@@ -7161,7 +7175,7 @@ function buildTeachingGuideHtml(q, practicalGuide) { return window.GrammarTeachi
 function buildTeachingMigrationHtml(q) {
   var data = getMigrationData(q);
   var migrationSource = getMigrationSourceSnapshot().migrationSource;
-  var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource);
+  var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource, _migrationShowAll);
   recordUsageEvent('migration_training_viewed', 'migration-training', {
     source: migrationSource,
     question_no: q ? (q.no || null) : null,
@@ -7394,6 +7408,8 @@ function closeTeachingStage() {
   teardownTeachingStage();
 }
 
+var _migrationShowAll = false;
+
 function getMigrationData(q) {
   var migrationSource = getMigrationSourceSnapshot().migrationSource;
   var data = window.GrammarMigrationTraining.buildMigrationData(q, {
@@ -7408,7 +7424,7 @@ function getMigrationData(q) {
     getFineTagInfo: getFineTagInfo,
     getNonpAxis: getNonpAxis,
     getQuestionPracticalGuide: getQuestionPracticalGuide,
-    limit: 6
+    limit: _migrationShowAll ? 9999 : 6
   });
   data.migration = data.migration.map(function(entry) {
     entry.id = registerTeachingMigrationItem(entry.item);
@@ -7422,7 +7438,7 @@ function buildMigrationContent(q) {
   clearTeachingMigrationRegistry();
   var data = getMigrationData(q);
   var migrationSource = getMigrationSourceSnapshot().migrationSource;
-  var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource);
+  var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource, _migrationShowAll);
   return window.GrammarTeachingRender.migrationDrawerHtml(contentModel);
 }
 
@@ -9458,6 +9474,7 @@ Object.assign(window, {
   selectGlobalGraphNode: selectGlobalGraphNode,
   sendAssistantMsg: sendAssistantMsg,
   setMigrationSource: setMigrationSource,
+  toggleMigrationShowAll: toggleMigrationShowAll,
   setDrawerProjectionSize: setDrawerProjectionSize,
   searchGlobalGraph: searchGlobalGraph,
   showGlobalKnowledgeNode: showGlobalKnowledgeNode,

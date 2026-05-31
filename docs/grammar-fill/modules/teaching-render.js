@@ -212,6 +212,11 @@
         + '</div>';
     });
     html += '</div>';
+    if (contentModel.showAllButton && contentModel.showAllButton.visible) {
+      html += '<button type="button" class="migration-show-all" onclick="toggleMigrationShowAll()" '
+        + 'style="display:block;width:100%;margin-top:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--accent);font-weight:600;font-family:inherit;cursor:pointer;font-size:calc(var(--drawer-font-size-sm,23px) - 4px);">'
+        + window.escapeHtml(contentModel.showAllButton.label) + '</button>';
+    }
     return html;
   }
 
@@ -253,6 +258,10 @@
         + '</div>';
     });
     html += '</div>';
+    if (contentModel.showAllButton && contentModel.showAllButton.visible) {
+      html += '<button type="button" class="teaching-migration-show-all" onclick="toggleMigrationShowAll()">'
+        + window.escapeHtml(contentModel.showAllButton.label) + '</button>';
+    }
     return html;
   }
 

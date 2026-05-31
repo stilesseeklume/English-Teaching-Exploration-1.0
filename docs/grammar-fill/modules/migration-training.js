@@ -293,7 +293,7 @@
     };
   }
 
-  function buildMigrationContentViewModel(data, source) {
+  function buildMigrationContentViewModel(data, source, showAll) {
     data = data || {};
     var panel = buildMigrationPanelViewModel(data, source);
     return {
@@ -305,6 +305,14 @@
       countText: panel.countText,
       emptyHint: panel.emptyHint,
       hasItems: panel.hasItems,
+      showAllButton: (function() {
+        var poolCount = Number(data.poolCount) || 0;
+        return {
+          visible: poolCount > 6,
+          showingAll: !!showAll,
+          label: showAll ? '收起，只看 6 题' : ('显示全部 ' + poolCount + ' 题')
+        };
+      })(),
       entries: asArray(data.migration).map(function(entry, index) {
         entry = entry || {};
         return {

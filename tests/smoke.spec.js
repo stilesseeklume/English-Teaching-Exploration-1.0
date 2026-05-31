@@ -3228,6 +3228,17 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return !!el && !el.classList.contains('collapsed');
   })).toBe(true);
 
+  // 需求5：showAll 模型
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var data = { migration: [1,2,3,4,5,6], poolCount: 14, tabs: [], headerLabel: 'x' };
+    var vm6 = mt.buildMigrationContentViewModel(data, 'bank', false);
+    var vmAll = mt.buildMigrationContentViewModel(data, 'bank', true);
+    if (!vm6.showAllButton) return 'no-field';
+    return (vm6.showAllButton.visible && /显示全部 14/.test(vm6.showAllButton.label)
+      && vmAll.showAllButton.visible && /只看 6/.test(vmAll.showAllButton.label)) ? 'ok' : 'bad';
+  })).toBe('ok');
+
   expect(errors).toEqual([]);
 });
 
