@@ -512,7 +512,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     });
     var normalizedMigrationSource = stateModel && stateModel.normalizeMigrationSource('bad-source');
     var migrationSourceState = stateModel && stateModel.buildMigrationSourceState('errors');
-    var migrationSourceChangePlan = stateModel && stateModel.buildMigrationSourceChangePlan('all', {
+    var migrationSourceChangePlan = stateModel && stateModel.buildMigrationSourceChangePlan('mock', {
       question: { no: 4, category: 'predicate', fine_category: 'pred-tense' },
       hasTeachingSession: false,
       hasSelectedQuestion: true
@@ -2091,7 +2091,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && drawerTeachingTabPlan.shouldUpdateTabChrome === false
       && normalizedMigrationSource === 'bank'
       && migrationSourceState && migrationSourceState.migrationSource === 'errors'
-      && migrationSourceChangePlan && migrationSourceChangePlan.migrationSource === 'all'
+      && migrationSourceChangePlan && migrationSourceChangePlan.migrationSource === 'mock'
       && migrationSourceChangePlan.renderTarget === 'drawer'
       && migrationSourceChangePlan.eventContext.question_no === 4
       && migrationTeachingSourceChangePlan && migrationTeachingSourceChangePlan.renderTarget === 'teaching-stage'
@@ -3062,17 +3062,17 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && snapshot.teachingSession
       && snapshot.teachingSession.tab === 'migration';
   })).toBe(true);
-  await page.locator('.teaching-migration-source-tabs button', { hasText: '全部' }).click();
-  await expect(page.locator('.teaching-migration-source-tabs button.active')).toContainText('全部');
-  await expect(await page.evaluate(() => localStorage.getItem('grammar-migration-source'))).toBe('all');
+  await page.locator('.teaching-migration-source-tabs button', { hasText: '模拟题' }).click();
+  await expect(page.locator('.teaching-migration-source-tabs button.active')).toContainText('模拟题');
+  await expect(await page.evaluate(() => localStorage.getItem('grammar-migration-source'))).toBe('mock');
   await expect(await page.evaluate(() => {
     return window.GrammarAppState
-      && window.GrammarAppState.state.migrationSource === 'all';
+      && window.GrammarAppState.state.migrationSource === 'mock';
   })).toBe(true);
   await expect(await page.evaluate(() => {
     var snapshot = window.getMigrationSourceSnapshot && window.getMigrationSourceSnapshot();
     return !!(snapshot
-      && snapshot.migrationSource === 'all'
+      && snapshot.migrationSource === 'mock'
       && window.GrammarAppState
       && window.GrammarAppState.state.migrationSource === snapshot.migrationSource);
   })).toBe(true);
@@ -3083,7 +3083,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         && item.rows.event_type === 'migration_source_selected'
         && item.rows.module === 'migration-training'
         && item.rows.context
-        && item.rows.context.source === 'all';
+        && item.rows.context.source === 'mock';
     });
   })).toBe(true);
   await expect.poll(async () => page.evaluate(() => {
@@ -3103,7 +3103,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         && item.rows.event_type === 'migration_training_viewed'
         && item.rows.module === 'migration-training'
         && item.rows.context
-        && item.rows.context.source === 'all'
+        && item.rows.context.source === 'mock'
         && item.rows.context.shown_count >= 0;
     });
   })).toBe(true);

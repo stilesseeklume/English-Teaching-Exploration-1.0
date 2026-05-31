@@ -745,7 +745,7 @@
   }
 
   function normalizeMigrationSource(source) {
-    if (source === 'errors' || source === 'all') return source;
+    if (source === 'errors' || source === 'mock') return source;
     return 'bank';
   }
 

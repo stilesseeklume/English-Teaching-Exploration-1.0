@@ -13,6 +13,15 @@
     return !!(item && (item.exam === '错题本' || (item.id && String(item.id).indexOf('err_') === 0)));
   }
 
+  function isMockQuestion(item) {
+    item = item || {};
+    return item.type === '模拟卷' || item.type === '模拟题';
+  }
+
+  function isRealQuestion(item) {
+    return (item || {}).type === '真题';
+  }
+
   function asArray(value) {
     if (Array.isArray(value)) return value;
     if (value === null || typeof value === 'undefined') return [];
@@ -65,27 +74,21 @@
     pool = pool || [];
     limit = limit || 6;
     if (source === 'errors') return pool.slice(0, limit);
-    if (source === 'all') {
-      var bankItems = pool.filter(function(item) { return !isErrorQuestionItem(item); });
-      var errorItems = pool.filter(isErrorQuestionItem);
-      return onePerExam(bankItems).concat(errorItems).slice(0, limit);
-    }
     return onePerExam(pool).slice(0, limit);
   }
 
   function selectSourcePool(source, bankDisplayPool, errorDisplayPool) {
-    var allDisplayPool = dedupe((bankDisplayPool || []).concat(errorDisplayPool || []));
     if (source === 'errors') return errorDisplayPool || [];
-    if (source === 'all') return allDisplayPool;
-    return bankDisplayPool || [];
+    if (source === 'mock') return (bankDisplayPool || []).filter(isMockQuestion);
+    return (bankDisplayPool || []).filter(isRealQuestion);
   }
 
   function buildTabs(bankDisplayPool, errorDisplayPool) {
-    var allDisplayPool = dedupe((bankDisplayPool || []).concat(errorDisplayPool || []));
+    var pool = bankDisplayPool || [];
     return [
-      { key: 'bank', label: '真题库', count: (bankDisplayPool || []).length },
-      { key: 'errors', label: '我的错题', count: (errorDisplayPool || []).length },
-      { key: 'all', label: '全部', count: allDisplayPool.length }
+      { key: 'bank', label: '真题库', count: pool.filter(isRealQuestion).length },
+      { key: 'mock', label: '模拟题', count: pool.filter(isMockQuestion).length },
+      { key: 'errors', label: '我的错题', count: (errorDisplayPool || []).length }
     ];
   }
 
@@ -253,8 +256,8 @@
     if (emptyState.source === 'errors') {
       primaryText = '错题本里还没有同类判断「' + focusLabel + '」的题。';
       secondaryText = '上传 Word 文档时勾选"高频错题"，多积累几道再来。';
-    } else if (emptyState.source === 'all') {
-      primaryText = '题库和错题本里都没有同类判断「' + focusLabel + '」的题。';
+    } else if (emptyState.source === 'mock') {
+      primaryText = '模拟题里暂无同类判断「' + focusLabel + '」的其他题目。';
     } else {
       primaryText = '真题库里暂无同类判断「' + focusLabel + '」的其他题目。';
     }
@@ -519,7 +522,9 @@
 
     var fallbackCount = source === 'errors'
       ? fallbackErrorPool.length
-      : (source === 'all' ? fallbackBankPool.length + fallbackErrorPool.length : fallbackBankPool.length);
+      : (source === 'mock'
+          ? fallbackBankPool.filter(isMockQuestion).length
+          : fallbackBankPool.filter(isRealQuestion).length);
     var focusLabel = practicalGuide && practicalGuide.title
       ? practicalGuide.title
       : (nonpAxis ? nonpAxis.title : (fineInfo ? fineInfo.name : (trap ? trap.name : focus.label)));
@@ -570,6 +575,8 @@
   window.GrammarMigrationTraining = {
     questionKey: questionKey,
     isErrorQuestionItem: isErrorQuestionItem,
+    isMockQuestion: isMockQuestion,
+    isRealQuestion: isRealQuestion,
     asArray: asArray,
     sameQuestion: sameQuestion,
     nonpAxisExactMatch: nonpAxisExactMatch,
