@@ -1431,6 +1431,12 @@
   .dm-cue { display: inline-block; margin-top: 8px; font-size: 11.5px; color: var(--accent); font-weight: 500; }
   .dm-node.entry .dm-cue { color: rgba(255,255,255,.7); }
   .dm-elabel { position: absolute; transform: translate(-50%, -50%); background: var(--surface); border: 0.5px solid var(--border); border-radius: 980px; padding: 2px 9px; font-size: 11px; color: var(--text-3); white-space: nowrap; pointer-events: none; }
+  .dm-search-wrap { position: relative; margin-bottom: 8px; max-width: 320px; }
+  .dm-search-wrap input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 13px; box-sizing: border-box; }
+  .dm-search-results { position: absolute; z-index: 20; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-top: 4px; max-height: 240px; overflow: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .dm-search-results:empty { display: none; }
+  .dm-search-hit { display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: transparent; color: var(--text); cursor: pointer; font-family: inherit; font-size: 13px; }
+  .dm-search-hit:hover { background: var(--accent-bg); color: var(--accent); }
   .dm-hud { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 8px; z-index: 8; }
   .dm-hud button { width: 38px; height: 38px; border-radius: 50%; border: 0.5px solid var(--border); background: rgba(250,250,252,.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--text); font-size: 17px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
   .dm-hud .dm-hud-wide { width: auto; border-radius: 980px; padding: 0 18px; font-size: 14px; font-weight: 500; }
@@ -8727,6 +8733,32 @@ function dmResetView() {
   dmCam.focusId = '';
   renderSystemView();
 }
+function dmExpandAll() {
+  if (!dmCtx || !dmCtx.full) return;
+  var ids = window.GrammarKnowledgeViewModel.collectExpandableIds(dmCtx.full.childrenOf);
+  ids.forEach(function(id) { dmExpanded[id] = true; });
+  renderSystemView();
+  dmFit(true);
+}
+function dmRevealNode(id) {
+  if (!dmCtx || !dmCtx.full) return;
+  var anc = window.GrammarKnowledgeViewModel.collectDecisionAncestors(id, dmCtx.full.byId);
+  anc.forEach(function(a) { dmExpanded[a] = true; });
+  renderSystemView(id);
+  var input = document.getElementById('dmSearch');
+  var box = document.getElementById('dmSearchResults');
+  if (box) box.innerHTML = '';
+  if (input) input.blur();
+}
+function dmSearch(value) {
+  var box = document.getElementById('dmSearchResults');
+  if (!box || !dmCtx || !dmCtx.full) return;
+  var hits = window.GrammarKnowledgeViewModel.searchDecisionNodes(value, dmCtx.full.byId);
+  if (!hits.length) { box.innerHTML = ''; return; }
+  box.innerHTML = hits.map(function(h) {
+    return '<button type="button" class="dm-search-hit" onclick="dmRevealNode(\'' + graphEscapeAttr(h.id) + '\')">' + escapeHtml(h.title) + '</button>';
+  }).join('');
+}
 function openKnowledgePoint(cat) {
   // 看讲解：进「书本速查」该考点的讲解内容（KNOWLEDGE_DATA 按粗考点 id 索引）
   if (cat && typeof selectKnowledgeCategory === 'function') selectKnowledgeCategory(cat, false);
@@ -8785,6 +8817,7 @@ function renderSystemView(focusNodeId) {
   var pos = layout.pos;
 
   var html = '<div class="dm-wrap">';
+  html += '<div class="dm-search-wrap"><input id="dmSearch" type="text" placeholder="搜索语法考点…" autocomplete="off" oninput="dmSearch(this.value)"><div class="dm-search-results" id="dmSearchResults"></div></div>';
   html += '<div class="dm-caption">做题决策地图 · 点节点逐层往下钻；到底层看 讲解 / 真题 · 拖动浏览 · ⤢ 收起回顶</div>';
   html += '<div class="dm-vp" id="dmViewport"><div class="dm-cv" id="dmCanvas" style="width:' + layout.width + 'px;height:' + layout.height + 'px;">';
   html += '<svg class="dm-edges" width="' + layout.width + '" height="' + layout.height + '">';
@@ -8830,6 +8863,7 @@ function renderSystemView(focusNodeId) {
   });
   html += '</div></div>';
   html += '<div class="dm-hud"><button type="button" class="dm-hud-wide" onclick="dmResetView()">⤢ 收起</button>'
+    + '<button type="button" class="dm-hud-wide" onclick="dmExpandAll()">⊞ 全展开</button>'
     + '<button type="button" onclick="dmZoom(1.25)">＋</button>'
     + '<button type="button" onclick="dmZoom(0.8)">－</button></div>';
   html += '</div>';
@@ -8844,7 +8878,12 @@ function renderSystemView(focusNodeId) {
       dmDrag.on = true; vp.classList.add('drag');
       dmDrag.sx = e.clientX; dmDrag.sy = e.clientY; dmDrag.stx = dmCam.tx; dmDrag.sty = dmCam.ty;
     });
-    vp.addEventListener('wheel', function(e) { e.preventDefault(); dmZoom(e.deltaY < 0 ? 1.12 : 0.9, false); }, { passive: false });
+    vp.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      var act = window.GrammarTeachingViewModel.buildDmWheelAction(e.deltaX, e.deltaY, e.ctrlKey);
+      if (act.action === 'zoom') { dmZoom(act.factor, false); }
+      else { dmCam.tx += act.dx; dmCam.ty += act.dy; applyDmCamera(false); }
+    }, { passive: false });
   }
   if (focusNodeId && tree.byId[focusNodeId]) dmFocus(focusNodeId, false);
   else dmFit(false);
@@ -9398,6 +9437,9 @@ Object.assign(window, {
   openAuthModal: openAuthModal,
   openSettingsModal: openSettingsModal,
   requestMyUsernameChange: requestMyUsernameChange,
+  dmExpandAll: dmExpandAll,
+  dmRevealNode: dmRevealNode,
+  dmSearch: dmSearch,
   clearGlobalGraphSearch: clearGlobalGraphSearch,
   focusGlobalGraphPreset: focusGlobalGraphPreset,
   selectKnowledgeCategory: selectKnowledgeCategory,
