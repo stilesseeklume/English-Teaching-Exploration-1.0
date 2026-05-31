@@ -170,7 +170,7 @@ export function mergeSpeaking(rows, speakingMap) {
 }
 // 把逐生行铺成 { columns:[...], data:[[...]] }，列按 scope 与是否有听说伸缩。
 export function toTable(rows, detection, opts) {
-  const hasSpeaking = !!(opts && opts.hasSpeaking);
+  const hasSpeaking = !!(opts && opts.hasSpeaking) || rows.some(r => r.total150 != null);
   const is120 = detection.scope === 120;
   const sectionNames = detection.sections.map(s => s.name);
 
