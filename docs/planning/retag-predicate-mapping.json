@@ -1,0 +1,226 @@
+{
+  "2023全国二卷-65": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "past",
+      "voice": "active",
+      "agreement": false
+    }
+  },
+  "2023浙江首考-59": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2023浙江首考-60": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "past",
+      "voice": "active",
+      "agreement": false
+    }
+  },
+  "2024全国一卷-60": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2024全国二卷-38": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "past",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2024全国二卷-41": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2024广州一模-37": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2024广州一模-39": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "perfect-progressive",
+      "voice": "active",
+      "agreement": false
+    }
+  },
+  "2024广州二模-39": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2024广州二模-44": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2024浙江首考-61": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past-future",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2024浙江首考-62": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "perfect",
+      "voice": "active",
+      "agreement": false
+    }
+  },
+  "2024深圳一模-39": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2024深圳一模-40": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "present",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2024深圳二模-39": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2024深圳二模-43": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2025全国一卷-60": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "present",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2025全国一卷-61": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2025全国二卷-41": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2025广州一模-37": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2025深圳一模-38": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "past",
+      "voice": "active",
+      "agreement": false
+    }
+  },
+  "2025深圳一模-40": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2025深圳二模-39": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "past",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2026广州一模-43": {
+    "fine_category": "pred-agreement",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2026深圳一模-39": {
+    "fine_category": "pred-passive",
+    "facets": {
+      "tense": "present",
+      "voice": "passive",
+      "agreement": false
+    }
+  },
+  "2026深圳一模-41": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "past",
+      "voice": "active",
+      "agreement": false
+    }
+  },
+  "2025广州二模-64": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  },
+  "2025浙江首考-62": {
+    "fine_category": "pred-tense",
+    "facets": {
+      "tense": "present",
+      "voice": "active",
+      "agreement": true
+    }
+  }
+}

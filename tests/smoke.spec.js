@@ -191,7 +191,7 @@ async function mockSignedInTeacher(page) {
           answer: 'prepared',
           category: 'predicate',
           category_name: '谓语动词',
-          fine_category: 'pred-tense-past-future',
+          fine_category: 'pred-tense',
           analysis: '根据 before class 的过去语境，谓语动词用一般过去时 prepared。',
           exam: '错题本',
           exam_id: '错题本'
@@ -207,7 +207,7 @@ async function mockSignedInTeacher(page) {
             no: 1,
             answer: 'learn',
             category: 'predicate',
-            fine_category: 'pred-tense-present',
+            fine_category: 'pred-tense',
             analysis: '主语 Students 为复数，描述一般事实，用 learn。'
           }]
         }
@@ -3169,17 +3169,17 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var cr = window.GrammarCategoryRules;
     if (!cr || !cr.buildFineTagPracticePlan) return 'no-fn';
     var all = (window.GRAMMAR_BANK && window.GRAMMAR_BANK.questions) || [];
-    var plan = cr.buildFineTagPracticePlan('pred-passive-form', all, window.CATEGORY_MAP || {});
+    var plan = cr.buildFineTagPracticePlan('pred-passive', all, window.CATEGORY_MAP || {});
     if (!plan.hasQuestions) return 'empty';
-    var allSame = plan.questions.every(function(q){ return q.fine_category === 'pred-passive-form'; });
+    var allSame = plan.questions.every(function(q){ return q.fine_category === 'pred-passive'; });
     return allSame ? 'ok' : 'mixed';
   })).toBe('ok');
 
   // 需求1：从图谱叶子按 fine 开练，currentQuestions 全部同 fine
   expect(await page.evaluate(() => {
-    window.startByFineTag('pred-passive-form');
+    window.startByFineTag('pred-passive');
     var qs = (window.GrammarAppState.state.currentQuestions) || [];
-    return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive-form'; });
+    return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive'; });
   })).toBe(true);
 
   // 迁移内筛选（原型）：闭合类出筛选片、开放类不出、非谓语用 nonp_form
@@ -3646,7 +3646,7 @@ test('Word upload imports AI parse success into lesson prep', async ({ page }) =
             no: 1,
             answer: 'use',
             category: 'predicate',
-            fine_category: 'pred-tense-present',
+            fine_category: 'pred-tense',
             analysis: '主语 Teachers 为复数，一般现在时用 use。'
           }]
         }]
