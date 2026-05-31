@@ -17,6 +17,23 @@ SOURCE_BANK_DIR = ROOT / "data" / "语法填空库"
 REQUIRED_EXAM_FIELDS = {"exam_id", "year", "type", "passage", "blank_count", "questions"}
 REQUIRED_QUESTION_FIELDS = {"no", "answer", "explanation", "category"}
 
+# 各 category 允许的 facets 键（精简版 schema，2026-05-31 体系重订）
+ALLOWED_FACET_KEYS = {
+    "predicate":    {"tense", "voice", "agreement"},
+    "nonpredicate": {"form"},
+    "word":         {"subtype"},
+    "number":       {"type"},
+    "article":      {"word"},
+    "pronoun":      {"type"},
+    "preposition":  {"word", "sense"},
+    "logic":        {"word", "kind"},
+    "attrib":       {"type", "word", "restrictive"},
+    "nounclause":   {"type", "word"},
+    "advclause":    {"type"},
+    "modal":        {"type"},
+    "special":      {"type"},
+}
+
 
 def fail(message: str) -> None:
     print(f"FAIL: {message}", file=sys.stderr)
@@ -127,6 +144,20 @@ def check_bank_shape(bank: dict, source_name: str, fine_tag_ids: set[str], requi
                 missing_fine += 1
             elif fine not in fine_tag_ids:
                 unknown_fine.append(f"{q_label}:{fine}")
+
+            facets = q.get("facets")
+            if facets is not None:
+                if not isinstance(facets, dict):
+                    errors.append(f"{source_name}: {q_label} facets 不是对象")
+                else:
+                    cat = q.get("category")
+                    allowed = ALLOWED_FACET_KEYS.get(cat)
+                    if allowed is None:
+                        errors.append(f"{source_name}: {q_label} 未知 category '{cat}' 无法校验 facets")
+                    else:
+                        bad = set(facets.keys()) - allowed
+                        if bad:
+                            errors.append(f"{source_name}: {q_label} ({cat}) facets 含非法键 {sorted(bad)}（允许 {sorted(allowed)}）")
 
         if numbers and len(numbers) != len(questions):
             errors.append(f"{source_name}: {label} question numbers are not unique")
