@@ -103,29 +103,42 @@ test('buildStudentRows 在 80 分卷不产出折算', () => {
   assert.equal(rows[0].subjective, null);
 });
 
-test('parseSpeakingInput 解析「学号 分数」文本，跳过表头', () => {
-  const txt = '学号\t听说\n1001\t18\n1002, 15.5\n';
+test('parseSpeakingInput 按姓名解析，跳过表头，容忍多列', () => {
+  const txt = '姓名\t听说\n张三\t18\n李四, 15.5\n';
   const m = parseSpeakingInput(txt);
-  assert.equal(m['1001'], 18);
-  assert.equal(m['1002'], 15.5);
+  assert.equal(m['张三'], 18);
+  assert.equal(m['李四'], 15.5);
+  // 「学号 姓名 分数」三列：姓名取第一个非数字，分数取末列
+  const m2 = parseSpeakingInput('1001 张三 18\n');
+  assert.equal(m2['张三'], 18);
 });
 
-test('mergeSpeaking 按学号补出听说与总分150', () => {
+test('mergeSpeaking 按姓名补出听说与总分150', () => {
   const d = detectSections(H0, H1, DATA);
   const rows = buildStudentRows(DATA, d, {});
-  const res = mergeSpeaking(rows, { '1001': 18 });
+  const res = mergeSpeaking(rows, { '张三': 18 });
   assert.equal(res.matched, 1);
   assert.equal(res.unmatched, 1);
+  assert.deepEqual(res.ambiguous, []);
   assert.equal(rows[0].listening, 18);
   assert.equal(rows[0].total150, 63.5);   // 45.5 + 18
   assert.equal(rows[1].listening, null);
   assert.equal(rows[1].total150, null);
 });
 
+test('mergeSpeaking 同名时列入 ambiguous 提示', () => {
+  const d = detectSections(H0, H1, DATA);
+  const rows = buildStudentRows(DATA, d, {});
+  rows[1].name = '张三';   // 制造同名
+  const res = mergeSpeaking(rows, { '张三': 18 });
+  assert.equal(res.matched, 2);
+  assert.deepEqual(res.ambiguous, ['张三']);
+});
+
 test('toTable 列随 scope/听说 伸缩', () => {
   const d = detectSections(H0, H1, DATA);
   const rows = buildStudentRows(DATA, d, parseExamScores(EXAM_H, EXAM_ROWS));
-  mergeSpeaking(rows, { '1001': 18 });
+  mergeSpeaking(rows, { '张三': 18 });
   const t = toTable(rows, d, { hasSpeaking: true });
   assert.deepEqual(t.columns, [
     '姓名','班级','学号','年级排名','班级排名','档次',

@@ -137,36 +137,44 @@ export function buildStudentRows(dataRows, detection, examMap) {
     };
   });
 }
-// 解析粘贴/上传的听说成绩文本：每行「学号 <分隔> 分数」，分隔可为 制表符/逗号/空格。
+// 解析粘贴/上传的听说成绩文本：每行「姓名 <分隔> 分数」，分隔可为 制表符/逗号/空格。
+// 按姓名匹配（听说与考试两套学号常不一致）。容忍多列：分数取最后一个数字，
+// 姓名取第一个非数字 token（这样「学号 姓名 分数」「姓名 分数」都能解析；表头行自动跳过）。
 export function parseSpeakingInput(text) {
   const map = {};
   for (const line of String(text || '').split(/\r?\n/)) {
     const parts = line.trim().split(/[\t,，\s]+/).filter(Boolean);
     if (parts.length < 2) continue;
-    const id = parts[0].trim();
     const score = Number(parts[parts.length - 1]);
-    if (!Number.isFinite(score)) continue;   // 表头行（分数非数字）自动跳过
-    map[id] = score;
+    if (!Number.isFinite(score)) continue;            // 表头行（末列非数字）自动跳过
+    const name = parts.find(p => !Number.isFinite(Number(p)));  // 第一个非数字 token = 姓名
+    if (!name) continue;
+    map[name.trim()] = score;
   }
   return map;
 }
 
-// 把听说分按学号合并进逐生行，补出 total150。直接修改并返回统计。
+// 把听说分按【姓名】合并进逐生行，补出 total150。直接修改并返回统计。
+// 名册中存在同名时会在 ambiguous 里列出，提示老师人工核对。
 export function mergeSpeaking(rows, speakingMap) {
+  const nameCount = {};
+  for (const r of rows) nameCount[r.name] = (nameCount[r.name] || 0) + 1;
   let matched = 0, unmatched = 0;
+  const ambiguous = new Set();
   for (const r of rows) {
-    const v = speakingMap[r.id];
+    const v = speakingMap[r.name];
     if (Number.isFinite(v) && r.converted130 != null) {
       r.listening = v;
-      r.total150 = Math.round((r.converted130 + v + Number.EPSILON) * 100) / 100;
+      r.total150 = round2(r.converted130 + v);
       matched++;
+      if (nameCount[r.name] > 1) ambiguous.add(r.name);
     } else {
       r.listening = null;
       r.total150 = null;
       unmatched++;
     }
   }
-  return { matched, unmatched };
+  return { matched, unmatched, ambiguous: [...ambiguous] };
 }
 // 把逐生行铺成 { columns:[...], data:[[...]] }，列按 scope 与是否有听说伸缩。
 export function toTable(rows, detection, opts) {

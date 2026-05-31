@@ -55,7 +55,7 @@
 
   <div class="card" id="speakingCard" style="display:none;">
     <h2>② 听说成绩（可选 · 折算到 150 分）</h2>
-    <textarea id="speakingInput" placeholder="粘贴「学号 听说分」，每行一个（分隔可用空格/制表符/逗号）。也可不填，只看 130 分折算。"></textarea>
+    <textarea id="speakingInput" placeholder="粘贴「姓名 听说分」，每行一个（按姓名匹配，因为听说和考试的学号常不是一套；分隔可用空格/制表符/逗号）。也可不填，只看 130 分折算。"></textarea>
     <div class="row" style="margin-top:10px;">
       <button id="mergeBtn" type="button">合并听说分</button>
       <span id="mergeNote" class="note"></span>
@@ -66,7 +66,7 @@
     <h2>③ 逐生转换表</h2>
     <div class="row" style="margin-bottom:12px;">
       <button id="copyBtn" class="primary" type="button" disabled>复制到剪贴板</button>
-      <button id="exportBtn" type="button" disabled>导出 CSV</button>
+      <button id="exportBtn" type="button" disabled>导出 Excel</button>
       <span id="copyNote" class="note"></span>
     </div>
     <div class="table-scroll"><table id="resultTable"></table></div>
@@ -76,7 +76,7 @@
 </div>
 
 <script type="module">
-import { detectSections, parseExamScores, buildStudentRows, parseSpeakingInput, mergeSpeaking, toTable, toTSV, toCSV }
+import { detectSections, parseExamScores, buildStudentRows, parseSpeakingInput, mergeSpeaking, toTable, toTSV }
   from './score-convert.js';
 
 const $ = id => document.getElementById(id);
@@ -145,7 +145,9 @@ $('mergeBtn').addEventListener('click', () => {
   if (!state.rows) return;
   const map = parseSpeakingInput($('speakingInput').value);
   const res = mergeSpeaking(state.rows, map);
-  $('mergeNote').textContent = '匹配 ' + res.matched + ' 人，未匹配 ' + res.unmatched + ' 人。';
+  let msg = '匹配 ' + res.matched + ' 人，未匹配 ' + res.unmatched + ' 人。';
+  if (res.ambiguous.length) msg += ' ⚠ 名册有同名，请核对：' + res.ambiguous.join('、');
+  $('mergeNote').textContent = msg;
   render();
 });
 
@@ -155,15 +157,13 @@ $('copyBtn').addEventListener('click', async () => {
 });
 
 $('exportBtn').addEventListener('click', () => {
-  const blob = new Blob(['﻿' + toCSV(state.table)], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '成绩分析转换表.csv';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (!state.table) return;
+  // 直接导出 .xlsx（兼容 WPS / Excel），用已加载的 SheetJS 生成，无需服务端。
+  const aoa = [state.table.columns, ...state.table.data];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '成绩分析');
+  XLSX.writeFile(wb, '成绩分析转换表.xlsx');
 });
 </script>
 </body>
