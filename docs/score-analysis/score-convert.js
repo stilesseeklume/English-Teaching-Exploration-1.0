@@ -17,6 +17,9 @@ function round2(n) {
 
 // header0: 题号表头行；header1: 得分/作答子表头行；dataRows: 学生数据行
 export function detectSections(header0, header1, dataRows) {
+  if (!dataRows || dataRows.length === 0) {
+    throw new Error('detectSections: 数据行为空，无法识别板块');
+  }
   const meta = {
     nameCol: findCol(header0, '姓名'),
     clsCol: findCol(header0, '班级'),
@@ -69,10 +72,71 @@ export function detectSections(header0, header1, dataRows) {
   return { scope, meta, sections };
 }
 
-// --- Stubs for functions implemented in later tasks ---
+// 考生成绩-英语表 → { 学号: {gradeRank, classRank, tier} }
+export function parseExamScores(header, rows) {
+  if (!header) return {};
+  const idCol = findCol(header, '学号');
+  const gCol = findCol(header, '年级排名');
+  const cCol = findCol(header, '班级排名');
+  const tCol = findCol(header, '档次');
+  const map = {};
+  for (const r of rows || []) {
+    const id = String(r[idCol] ?? '').trim();
+    if (!id) continue;
+    map[id] = {
+      gradeRank: gCol >= 0 ? r[gCol] : '',
+      classRank: cCol >= 0 ? r[cCol] : '',
+      tier: tCol >= 0 ? r[tCol] : '',
+    };
+  }
+  return map;
+}
 
-export function parseExamScores() { throw new Error('not implemented'); }
-export function buildStudentRows() { throw new Error('not implemented'); }
+export function buildStudentRows(dataRows, detection, examMap) {
+  const { meta, sections, scope } = detection;
+  const exam = examMap || {};
+  return (dataRows || []).map(row => {
+    const sectionScores = {};
+    let objective = 0, subjective = 0;
+    let hasSubjective = false;
+    for (const s of sections) {
+      let sum = 0;
+      for (const c of s.cols) {
+        const v = Number(row[c]);
+        if (Number.isFinite(v)) sum += v;
+      }
+      sum = round2(sum);
+      sectionScores[s.name] = sum;
+      if (s.kind === 'objective') objective += sum;
+      else { subjective += sum; hasSubjective = true; }
+    }
+    objective = round2(objective);
+    subjective = hasSubjective ? round2(subjective) : null;
+    const total120 = round2(objective + (subjective || 0));
+    const reported = Number(row[meta.totalCol]);
+    const warn = Number.isFinite(reported) ? Math.abs(reported - total120) > 0.5 : false;
+    const converted130 = scope === 120 ? round2(total120 * 130 / 120) : null;
+    const id = String(row[meta.idCol] ?? '').trim();
+    const rk = exam[id] || {};
+    return {
+      id,
+      name: String(row[meta.nameCol] ?? '').trim(),
+      cls: String(row[meta.clsCol] ?? '').trim(),
+      sections: sectionScores,
+      objective,
+      subjective,
+      total120,
+      converted130,
+      listening: null,
+      total150: null,
+      gradeRank: rk.gradeRank ?? '',
+      classRank: rk.classRank ?? '',
+      tier: rk.tier ?? '',
+      reportedTotal: Number.isFinite(reported) ? reported : null,
+      warn,
+    };
+  });
+}
 export function parseSpeakingInput() { throw new Error('not implemented'); }
 export function mergeSpeaking() { throw new Error('not implemented'); }
 export function toTable() { throw new Error('not implemented'); }

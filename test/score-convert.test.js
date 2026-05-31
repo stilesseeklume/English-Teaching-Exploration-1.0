@@ -55,3 +55,50 @@ test('detectSections 无作文则 scope=80', () => {
   assert.ok(!d.sections.some(s => s.name === '应用文' || s.name === '续写'));
   assert.ok(d.sections.some(s => s.name === '语法填空'));
 });
+
+test('parseExamScores 学号→排名档次', () => {
+  const m = parseExamScores(EXAM_H, EXAM_ROWS);
+  assert.deepEqual(m['1001'], { gradeRank: 32, classRank: 1, tier: 'A+' });
+  assert.deepEqual(m['1002'], { gradeRank: 55, classRank: 2, tier: 'A' });
+});
+
+test('buildStudentRows 归并六板块 + 客观/主观 + 折算130 + 合并排名', () => {
+  const d = detectSections(H0, H1, DATA);
+  const exam = parseExamScores(EXAM_H, EXAM_ROWS);
+  const rows = buildStudentRows(DATA, d, exam);
+  const a = rows[0];
+  assert.equal(a.name, '张三');
+  assert.equal(a.id, '1001');
+  assert.equal(a.sections['阅读理解'], 5);
+  assert.equal(a.sections['七选五'], 5);
+  assert.equal(a.sections['完形填空'], 1);
+  assert.equal(a.sections['语法填空'], 3);
+  assert.equal(a.sections['应用文'], 12);
+  assert.equal(a.sections['续写'], 16);
+  assert.equal(a.objective, 14);
+  assert.equal(a.subjective, 28);
+  assert.equal(a.total120, 42);
+  assert.equal(a.converted130, 45.5);   // 42*130/120
+  assert.equal(a.gradeRank, 32);
+  assert.equal(a.classRank, 1);
+  assert.equal(a.tier, 'A+');
+  assert.equal(a.warn, false);
+});
+
+test('buildStudentRows 总分对不上时标 warn', () => {
+  const bad = ROW_A.slice();
+  bad[5] = 99;                       // 总分列与板块之和(42)不符
+  const d = detectSections(H0, H1, DATA);
+  const rows = buildStudentRows([bad], d, {});
+  assert.equal(rows[0].warn, true);
+  assert.equal(rows[0].reportedTotal, 99);
+});
+
+test('buildStudentRows 在 80 分卷不产出折算', () => {
+  const h0 = H0.slice(0, 22), h1 = H1.slice(0, 22);
+  const data = DATA.map(r => r.slice(0, 22));
+  const d = detectSections(h0, h1, data);
+  const rows = buildStudentRows(data, d, {});
+  assert.equal(rows[0].converted130, null);
+  assert.equal(rows[0].subjective, null);
+});
