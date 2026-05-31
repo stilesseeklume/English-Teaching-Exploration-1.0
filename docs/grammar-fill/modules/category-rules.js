@@ -177,6 +177,7 @@
 
   function buildFineTagPracticePlan(fineCategory, allQuestions, categoryMap) {
     var questions = selectFineTagQuestions(allQuestions, fineCategory);
+    // 假设同一 fine_category 下所有题目属于同一粗类别（当前数据成立）
     var category = questions.length ? questions[0].category : '';
     return buildCategoryPracticeEntryModel(category, questions, categoryMap);
   }
