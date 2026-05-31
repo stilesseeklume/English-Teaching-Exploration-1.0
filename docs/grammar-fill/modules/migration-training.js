@@ -313,6 +313,10 @@
     });
     // 只在 2~8 个不同键时显示筛选片：闭合类(doing/what/and)出片，开放类(形容词)不出
     if (order.length < 2 || order.length > 8) return [];
+    // 抑制实词噪音：清一色 count=1（每题不同的 verb/形容词）无分组意义，不出片；
+    // 至少有一个键重复(count>=2)才说明有真正的"同类"组（如 and:7 / what:3）
+    var maxCount = order.reduce(function(m, k) { return counts[k] > m ? counts[k] : m; }, 0);
+    if (maxCount < 2) return [];
     return order.map(function(k) { return { key: k, label: k, count: counts[k] }; });
   }
 

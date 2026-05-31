@@ -3231,12 +3231,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var open = mt.buildMigrationFilterChips(
       Array.apply(null, { length: 10 }).map(function(_, i) { return { filterKey: 'adj' + i }; })
     );
+    // 实词噪音：3 个键各 count=1（每题不同 verb）→ 抑制，不出片
+    var singletons = mt.buildMigrationFilterChips([{ filterKey: 'a' }, { filterKey: 'b' }, { filterKey: 'c' }]);
     var formKey = mt.migrationFilterKey({ nonp_form: 'doing', answer: 'running' });
     var wordKey = mt.migrationFilterKey({ answer: 'What' });
     var phraseKey = mt.migrationFilterKey({ answer: 'were permitted' });
-    return (closed.length === 3 && open.length === 0 && formKey === 'doing'
+    return (closed.length === 3 && open.length === 0 && singletons.length === 0 && formKey === 'doing'
       && wordKey === 'what' && phraseKey === '') ? 'ok'
-      : 'bad:' + closed.length + '/' + open.length + '/' + formKey + '/' + wordKey + '/' + phraseKey;
+      : 'bad:' + closed.length + '/' + open.length + '/' + singletons.length + '/' + formKey + '/' + wordKey + '/' + phraseKey;
   })).toBe('ok');
 
   // 需求3：看讲解跳到指定 section 并展开
