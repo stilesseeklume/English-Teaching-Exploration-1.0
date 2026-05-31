@@ -12,6 +12,19 @@
 
 **验证**：`python3 scripts/check_grammar_bank.py`、`npm run check`、`npm run test:smoke`。
 
+## 数据架构与重标机制（执行中发现，关键）
+
+题库 **3 处须一致**（校验脚本强制）：
+- `data/grammar_bank.json`（源；fine_category 选填，但 present 的须合法）
+- `docs/data/grammar_bank.js`（应用读，格式 `window.GRAMMAR_BANK = {…JSON…};` + 头部注释）——内含 **`exams[].questions` 和 flat `questions[]` 两份镜像**，必须在 `category/category_name/fine_category/answer/grammar_point` 上一致（`check_flat_questions_mirror`）。跨文件还校验 exam 数量与 exam_id 集合一致（不校验 fine_category 跨文件相等）。
+
+**重标机制（所有 re-tag 阶段统一用）**：手改多副本极易 desync。改为——
+1. AI 产出**映射 JSON**：`{ "<exam_id>-<no>": { "fine_category": "新tag", "facets": {…} }, … }`（用户确认 ambiguous 后定稿）。
+2. 跑可复用脚本 **`scripts/apply_retag.py <mapping.json>`**：解析 `docs/data/grammar_bank.js`（剥 `window.GRAMMAR_BANK = ` 前缀 + 去尾 `;` → json.loads），对 `exams[].questions` 和 flat `questions[]` 按 `<exam_id>-<no>` 一致写入新 `fine_category`+`facets`，保留头部注释与格式回写；同时把 `data/grammar_bank.json` 中已有 fine_category 的题一并 remap。
+3. `python3 scripts/check_grammar_bank.py` 验证（镜像/白名单/facets 全过）。
+
+`scripts/apply_retag.py` 在 Task 3 首次建好，后续阶段复用。
+
 ---
 
 ## 文件结构
