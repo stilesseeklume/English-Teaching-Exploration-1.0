@@ -3847,3 +3847,29 @@ test('sidebar-render pure html output', async ({ page }) => {
   expect(out.examGroupsHasItem).toBe(true);
   expect(out.hiddenEmpty).toBe(true);
 });
+
+test('home-render pure html output', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.waitForFunction(() => !!window.GrammarHomeRender);
+
+  const out = await page.evaluate(() => {
+    const R = window.GrammarHomeRender;
+    if (!R) return { missing: true };
+    const dash = R.homeDashboardHtml(
+      { hero: { kickerText: 'K', titleText: 'T', bodyParts: [{ text: '正文', strong: true }] },
+        actions: [{ action: { type: 'switch-page', value: 'home' }, icon: '📘', label: '按钮', subtitleText: '副', chrome: { style: '', mouseover: '', mouseout: '' } }],
+        textbookSection: { visible: true, titleText: '教材', actionLabel: '更多', action: {} },
+        books: [{ action: {}, cover: 'x.png', labelText: '必修一', animationDelayMs: 0 }] },
+      { inlineHomeDashboardAction: function(a) { return 'DASH:' + (a && a.type || ''); } }
+    );
+    return {
+      missing: false,
+      dashHasHero: dash.includes('正文') && dash.includes('按钮') && dash.includes('DASH:switch-page'),
+      dashHasBooks: dash.includes('必修一') && dash.includes('x.png')
+    };
+  });
+  expect(out.missing).toBe(false);
+  expect(out.dashHasHero).toBe(true);
+  expect(out.dashHasBooks).toBe(true);
+});

@@ -3965,6 +3965,7 @@
 <script src="./modules/app-state.js"></script>
 <script src="./modules/teaching-render.js"></script>
 <script src="./modules/sidebar-render.js"></script>
+<script src="./modules/home-render.js"></script>
 
 <script>
 
@@ -5715,15 +5716,6 @@ function renderBankStat() {
 
 // ─── Sprint 1.6 · 智能 Dashboard 主页 ─────────────
 // 按用户数据状态自适应：新用户引导 / 活跃用户行动入口
-function renderHomeDashboardTextParts(parts) {
-  if (!Array.isArray(parts)) return '';
-  return parts.map(function(part) {
-    var text = escapeHtml(part && part.text || '');
-    if (part && part.strong) return '<b style="color:var(--text);">' + text + '</b>';
-    return text;
-  }).join('');
-}
-
 function inlineHomeDashboardAction(action) {
   action = action || {};
   return escapeHtml('runHomeDashboardAction('
@@ -5754,19 +5746,6 @@ function runHomeDashboardAction(type, value) {
   });
 }
 
-function renderHomeDashboardActionButton(item) {
-  item = item || {};
-  var chrome = item.chrome || window.GrammarHomeDashboardModel.getActionButtonChrome(item.tone || '');
-  return '<button onclick="' + inlineHomeDashboardAction(item.action) + '" '
-       + 'style="' + chrome.style + '" '
-       + 'onmouseover="' + chrome.mouseover + '" '
-       + 'onmouseout="' + chrome.mouseout + '">'
-       + '<span style="font-size:20px;">' + escapeHtml(item.icon || '') + '</span>'
-       + '<span>' + escapeHtml(item.label || '') + '</span>'
-       + '<span style="font-size:11px;' + (item.subtitleStyle || '') + 'font-weight:400;">' + escapeHtml(item.subtitleText || '') + '</span>'
-       + '</button>';
-}
-
 function renderHomeDashboard() {
   var el = document.getElementById('homeDashboardContent');
   if (!el) return;
@@ -5778,47 +5757,7 @@ function renderHomeDashboard() {
     errorCount: errCount,
     textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units
   });
-  var hero = dashboardModel.hero || {};
-
-  var html = '';
-  // ─ Hero 区
-  html += '<section style="background:linear-gradient(135deg, var(--accent-bg) 0%, var(--surface) 80%);border-radius:18px;padding:32px 30px;margin-bottom:22px;position:relative;overflow:hidden;">';
-  html += '<div style="font-size:14px;color:var(--accent);margin-bottom:6px;font-weight:600;">' + escapeHtml(hero.kickerText || '') + '</div>';
-  html += '<h2 style="margin:0 0 8px 0;font-size:26px;color:var(--text);line-height:1.4;">' + escapeHtml(hero.titleText || '') + '</h2>';
-  html += '<p style="margin:0 0 18px;color:var(--text-2);line-height:1.7;font-size:15px;">' + renderHomeDashboardTextParts(hero.bodyParts) + '</p>';
-
-  // 4 大行动按钮
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">';
-
-  dashboardModel.actions.forEach(function(item) {
-    html += renderHomeDashboardActionButton(item);
-  });
-
-  html += '</div>';
-  html += '</section>';
-
-  // ─ 教材封面画廊（永远显示，作为内容兜底 + 引导）
-  var textbookSection = dashboardModel.textbookSection || {};
-  if (textbookSection.visible) {
-    html += '<section>';
-    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">';
-    html += '<h3 style="margin:0;font-size:16px;color:var(--text);">' + escapeHtml(textbookSection.titleText || '') + '</h3>';
-    html += '<a onclick="' + inlineHomeDashboardAction(textbookSection.action) + '" style="font-size:13px;color:var(--accent);cursor:pointer;">' + escapeHtml(textbookSection.actionLabel || '') + '</a>';
-    html += '</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;">';
-    dashboardModel.books.forEach(function(item) {
-      html += '<div onclick="' + inlineHomeDashboardAction(item.action) + '" '
-           + 'style="cursor:pointer;border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:all .2s;animation:fadeInUp .4s ease-out ' + (Number(item.animationDelayMs) || 0) + 'ms both;" '
-           + 'onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 20px rgba(0,0,0,0.15)\'" '
-           + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 1px 4px rgba(0,0,0,0.06)\'">';
-      html += '<div style="width:100%;aspect-ratio:140/190;background:#eee url(\'' + escapeHtml(item.cover || '') + '\') no-repeat center/cover;"></div>';
-      html += '<div style="padding:5px;text-align:center;font-size:11px;font-weight:600;color:var(--text-2);">' + escapeHtml(item.labelText || item.book || '') + '</div>';
-      html += '</div>';
-    });
-    html += '</div>';
-    html += '</section>';
-  }
-
+  var html = window.GrammarHomeRender.homeDashboardHtml(dashboardModel, { inlineHomeDashboardAction: inlineHomeDashboardAction });
   el.innerHTML = html;
 }
 

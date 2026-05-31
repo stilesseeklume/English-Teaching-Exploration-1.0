@@ -646,6 +646,13 @@ EXPECTED_MODULES = [
             "sidebarHtml",
         ],
     },
+    {
+        "path": "home-render.js",
+        "namespace": "GrammarHomeRender",
+        "exports": [
+            "homeDashboardHtml",
+        ],
+    },
 ]
 
 FORBIDDEN_IN_PURE_MODULES = [
