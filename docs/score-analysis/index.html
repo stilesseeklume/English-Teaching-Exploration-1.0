@@ -115,6 +115,7 @@ async function handleFile(file) {
   $('scopeNote').textContent = '';
   $('mergeNote').textContent = '';
   $('copyNote').textContent = '';
+  $('speakingInput').value = '';
   state.rows = null; state.detection = null; state.table = null;
   if (!window.XLSX) { setError('Excel 解析库未加载，请检查网络后刷新。'); return; }
   try {
@@ -155,11 +156,14 @@ $('copyBtn').addEventListener('click', async () => {
 
 $('exportBtn').addEventListener('click', () => {
   const blob = new Blob(['﻿' + toCSV(state.table)], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = url;
   a.download = '成绩分析转换表.csv';
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 </script>
 </body>
