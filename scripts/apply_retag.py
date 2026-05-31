@@ -25,14 +25,30 @@ Behavior per copy:
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_BANK_JS = ROOT / "docs" / "data" / "grammar_bank.js"
 RAW_BANK_JSON = ROOT / "data" / "grammar_bank.json"
+FINE_TAGS_JS = ROOT / "docs" / "data" / "grammar_fine_tags.js"
 
 JS_PREFIX = "window.GRAMMAR_BANK = "
+
+
+def load_fine_tag_maps() -> tuple[dict, dict]:
+    """从 grammar_fine_tags.js 提取 {fine_category id: category} 与 {category id: 中文名}。
+
+    跨大类重标（如 nonp-* → word-noun）时，question 的 category/category_name 必须
+    随新 fine_category 同步，否则镜像校验 + facets 校验（按 category 判允许键）会失败。
+    """
+    text = FINE_TAGS_JS.read_text(encoding="utf-8")
+    fine_to_cat = {m.group(1): m.group(2)
+                   for m in re.finditer(r"\{\s*id:\s*'([^']+)',\s*category:\s*'([^']+)'", text)}
+    cat_to_name = {m.group(1): m.group(2)
+                   for m in re.finditer(r"(\w+):\s*\{\s*name:\s*'([^']+)'", text)}
+    return fine_to_cat, cat_to_name
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +96,16 @@ def make_key_from_flat_q(q: dict) -> str:
 # Core update logic
 # ---------------------------------------------------------------------------
 
-def apply_to_js(mapping: dict) -> tuple[int, int]:
+def _sync_category(q: dict, fine: str, fine_to_cat: dict, cat_to_name: dict) -> None:
+    """跨大类重标时把 question 的 category/category_name 同步到新 fine_category 的大类。"""
+    new_cat = fine_to_cat.get(fine)
+    if new_cat and q.get("category") != new_cat:
+        q["category"] = new_cat
+        if new_cat in cat_to_name:
+            q["category_name"] = cat_to_name[new_cat]
+
+
+def apply_to_js(mapping: dict, fine_to_cat: dict, cat_to_name: dict) -> tuple[int, int]:
     """Apply mapping to docs/data/grammar_bank.js.
 
     Returns (exams_updated, flat_updated).
@@ -98,6 +123,7 @@ def apply_to_js(mapping: dict) -> tuple[int, int]:
             if key in mapping:
                 m = mapping[key]
                 q["fine_category"] = m["fine_category"]
+                _sync_category(q, m["fine_category"], fine_to_cat, cat_to_name)
                 if "facets" in m:
                     q["facets"] = m["facets"]
                 exams_updated += 1
@@ -108,6 +134,7 @@ def apply_to_js(mapping: dict) -> tuple[int, int]:
         if key in mapping:
             m = mapping[key]
             q["fine_category"] = m["fine_category"]
+            _sync_category(q, m["fine_category"], fine_to_cat, cat_to_name)
             if "facets" in m:
                 q["facets"] = m["facets"]
             flat_updated += 1
@@ -116,7 +143,7 @@ def apply_to_js(mapping: dict) -> tuple[int, int]:
     return exams_updated, flat_updated
 
 
-def apply_to_json(mapping: dict) -> int:
+def apply_to_json(mapping: dict, fine_to_cat: dict, cat_to_name: dict) -> int:
     """Apply mapping to data/grammar_bank.json.
 
     Only remaps fine_category on questions that already have it.
@@ -131,6 +158,7 @@ def apply_to_json(mapping: dict) -> int:
         if key in mapping and "fine_category" in q:
             m = mapping[key]
             q["fine_category"] = m["fine_category"]
+            _sync_category(q, m["fine_category"], fine_to_cat, cat_to_name)
             # NOTE: intentionally never add facets to grammar_bank.json
             json_updated += 1
 
@@ -181,9 +209,10 @@ def main() -> None:
         for q in exam.get("questions", []):
             known_keys.add(make_key_from_exam_q(eid, q))
 
-    # Apply changes
-    js_exams, js_flat = apply_to_js(mapping)
-    json_updated = apply_to_json(mapping)
+    # Apply changes（跨大类重标需同步 category/category_name）
+    fine_to_cat, cat_to_name = load_fine_tag_maps()
+    js_exams, js_flat = apply_to_js(mapping, fine_to_cat, cat_to_name)
+    json_updated = apply_to_json(mapping, fine_to_cat, cat_to_name)
 
     # Detect mapping keys not found in the bank
     missing_keys = [k for k in mapping if k not in known_keys]

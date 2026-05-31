@@ -1,0 +1,212 @@
+{
+  "2023全国一卷-57": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2023全国一卷-61": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2023全国一卷-65": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2023浙江首考-58": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2024全国一卷-58": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2024全国二卷-40": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2024全国二卷-43": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2024全国二卷-44": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2024广州一模-36": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2024广州一模-41": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2024浙江首考-56": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2024浙江首考-63": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2024深圳一模-38": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2024深圳一模-42": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2024深圳二模-36": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2024深圳二模-41": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "gerund"
+    }
+  },
+  "2025全国一卷-58": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2025全国二卷-42": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2025全国二卷-45": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2025广州一模-38": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2025广州一模-45": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2025广州二模-61": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2025广州二模-63": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2025广州二模-65": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2025浙江首考-60": {
+    "fine_category": "nonpred-to-do",
+    "facets": {
+      "form": "to-do"
+    }
+  },
+  "2025浙江首考-65": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "gerund"
+    }
+  },
+  "2025深圳一模-37": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2025深圳一模-45": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2025深圳二模-37": {
+    "fine_category": "nonpred-doing",
+    "facets": {
+      "form": "doing"
+    }
+  },
+  "2025深圳二模-40": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2026广州一模-40": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "gerund"
+    }
+  },
+  "2026广州一模-44": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2026深圳一模-37": {
+    "fine_category": "nonpred-done",
+    "facets": {
+      "form": "done"
+    }
+  },
+  "2026深圳一模-44": {
+    "fine_category": "word-noun",
+    "facets": {
+      "subtype": "gerund"
+    }
+  },
+  "2023全国一卷-59": {
+    "fine_category": "word-adj",
+    "facets": {
+      "subtype": "participle-adj"
+    }
+  }
+}
