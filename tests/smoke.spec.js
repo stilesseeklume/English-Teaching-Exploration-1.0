@@ -3174,6 +3174,17 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     });
   })).toBe(true);
 
+  // 需求1：按 fine tag 精准筛题
+  expect(await page.evaluate(() => {
+    var cr = window.GrammarCategoryRules;
+    if (!cr || !cr.buildFineTagPracticePlan) return 'no-fn';
+    var all = (window.GRAMMAR_BANK && window.GRAMMAR_BANK.questions) || [];
+    var plan = cr.buildFineTagPracticePlan('pred-passive-form', all, window.CATEGORY_MAP || {});
+    if (!plan.hasQuestions) return 'empty';
+    var allSame = plan.questions.every(function(q){ return q.fine_category === 'pred-passive-form'; });
+    return allSame ? 'ok' : 'mixed';
+  })).toBe('ok');
+
   expect(errors).toEqual([]);
 });
 
@@ -3822,6 +3833,7 @@ test('teaching-render pure html output', async ({ page }) => {
   expect(out.stageNoContent).toBe(true);
   expect(out.dockHasBtns).toBe(true);
   expect(out.dockHidden).toBe(true);
+
 });
 
 test('sidebar-render pure html output', async ({ page }) => {

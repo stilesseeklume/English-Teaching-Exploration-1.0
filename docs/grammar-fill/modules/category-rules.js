@@ -169,6 +169,18 @@
     );
   }
 
+  function selectFineTagQuestions(allQuestions, fineCategory) {
+    return asArray(allQuestions).filter(function(q) {
+      return q && q.fine_category === fineCategory;
+    });
+  }
+
+  function buildFineTagPracticePlan(fineCategory, allQuestions, categoryMap) {
+    var questions = selectFineTagQuestions(allQuestions, fineCategory);
+    var category = questions.length ? questions[0].category : '';
+    return buildCategoryPracticeEntryModel(category, questions, categoryMap);
+  }
+
   window.GrammarCategoryRules = {
     DEFAULT_CATEGORY_NAMES: DEFAULT_CATEGORY_NAMES,
     CATEGORY_TIPS: CATEGORY_TIPS,
@@ -184,6 +196,8 @@
     getEmptyCategoryMessage: getEmptyCategoryMessage,
     selectCategoryQuestions: selectCategoryQuestions,
     buildCategoryPracticeEntryModel: buildCategoryPracticeEntryModel,
-    buildCategoryPracticePlan: buildCategoryPracticePlan
+    buildCategoryPracticePlan: buildCategoryPracticePlan,
+    selectFineTagQuestions: selectFineTagQuestions,
+    buildFineTagPracticePlan: buildFineTagPracticePlan
   };
 })();
