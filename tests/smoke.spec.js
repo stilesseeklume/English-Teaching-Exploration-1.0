@@ -3221,6 +3221,24 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive-form'; });
   })).toBe(true);
 
+  // 迁移内筛选（原型）：闭合类出筛选片、开放类不出、非谓语用 nonp_form
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    if (!mt.buildMigrationFilterChips || !mt.migrationFilterKey) return 'no-fn';
+    var closed = mt.buildMigrationFilterChips([
+      { filterKey: 'doing' }, { filterKey: 'doing' }, { filterKey: 'done' }, { filterKey: 'to do' }
+    ]);
+    var open = mt.buildMigrationFilterChips(
+      Array.apply(null, { length: 10 }).map(function(_, i) { return { filterKey: 'adj' + i }; })
+    );
+    var formKey = mt.migrationFilterKey({ nonp_form: 'doing', answer: 'running' });
+    var wordKey = mt.migrationFilterKey({ answer: 'What' });
+    var phraseKey = mt.migrationFilterKey({ answer: 'were permitted' });
+    return (closed.length === 3 && open.length === 0 && formKey === 'doing'
+      && wordKey === 'what' && phraseKey === '') ? 'ok'
+      : 'bad:' + closed.length + '/' + open.length + '/' + formKey + '/' + wordKey + '/' + phraseKey;
+  })).toBe('ok');
+
   // 需求3：看讲解跳到指定 section 并展开
   expect(await page.evaluate(() => {
     window.openKnowledgePoint('predicate', 'predicate-tense');

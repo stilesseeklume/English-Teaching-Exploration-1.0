@@ -1649,6 +1649,13 @@
     color: var(--text);
   }
 
+  .mig-filter-chip {
+    border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+    color: var(--text-2); padding: 4px 12px; font-size: 12px; font-family: inherit;
+    cursor: pointer; transition: all .12s;
+  }
+  .mig-filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .mig-filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   .migration-card {
     border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
     margin-bottom: 12px; cursor: pointer; transition: all .15s;
@@ -6927,6 +6934,20 @@ function toggleMigrationShowAll() {
   }
 }
 
+// 迁移内筛选（原型）：纯前端 show/hide 同 tag 题，按答案派生的筛选键收窄。key 为空=全部
+function filterMigrationCards(btn, key) {
+  var row = btn && btn.parentNode;
+  if (!row) return;
+  var chips = row.querySelectorAll('.mig-filter-chip');
+  for (var i = 0; i < chips.length; i++) chips[i].classList.toggle('active', chips[i] === btn);
+  var scope = row.parentNode || document;
+  var cards = scope.querySelectorAll('[data-mig-filter]');
+  for (var j = 0; j < cards.length; j++) {
+    var show = !key || cards[j].getAttribute('data-mig-filter') === key;
+    cards[j].style.display = show ? '' : 'none';
+  }
+}
+
 var _teachingMigrationRegistry = {};
 var _teachingMigrationCounter = 0;
 
@@ -9492,6 +9513,7 @@ Object.assign(window, {
   sendAssistantMsg: sendAssistantMsg,
   setMigrationSource: setMigrationSource,
   toggleMigrationShowAll: toggleMigrationShowAll,
+  filterMigrationCards: filterMigrationCards,
   setDrawerProjectionSize: setDrawerProjectionSize,
   searchGlobalGraph: searchGlobalGraph,
   showGlobalKnowledgeNode: showGlobalKnowledgeNode,

@@ -293,10 +293,47 @@
     };
   }
 
+  // 迁移内筛选（原型）：tag 内按"具体词/形式"下钻。筛选键优先用非谓语已存的 nonp_form，
+  // 其次用单词答案本身；开放类（形容词等每题不同）会产生过多键，由 chip 数量阈值过滤掉。
+  function migrationFilterKey(item) {
+    item = item || {};
+    if (item.nonp_form) return String(item.nonp_form);
+    var ans = String(item.answer || '').trim().toLowerCase();
+    if (ans && ans.indexOf(' ') === -1 && ans.length <= 12) return ans;
+    return '';
+  }
+
+  function buildMigrationFilterChips(entries) {
+    var counts = {}, order = [];
+    asArray(entries).forEach(function(e) {
+      var k = e && e.filterKey;
+      if (!k) return;
+      if (!(k in counts)) { counts[k] = 0; order.push(k); }
+      counts[k]++;
+    });
+    // 只在 2~8 个不同键时显示筛选片：闭合类(doing/what/and)出片，开放类(形容词)不出
+    if (order.length < 2 || order.length > 8) return [];
+    return order.map(function(k) { return { key: k, label: k, count: counts[k] }; });
+  }
+
   function buildMigrationContentViewModel(data, source, showAll) {
     data = data || {};
     var panel = buildMigrationPanelViewModel(data, source);
+    var entries = asArray(data.migration).map(function(entry, index) {
+      entry = entry || {};
+      return {
+        id: entry.id || '',
+        index: index,
+        entry: entry,
+        item: entry.item || {},
+        sentenceHtml: entry.sentenceHtml || '',
+        row: buildMigrationEntryViewModel(entry, index),
+        card: buildMigrationCardViewModel(entry),
+        filterKey: migrationFilterKey(entry.item || {})
+      };
+    });
     return {
+      filterChips: buildMigrationFilterChips(entries),
       tabs: panel.tabs,
       heading: panel.heading,
       subline: panel.subline,
@@ -313,18 +350,7 @@
           label: showAll ? '收起，只看 6 题' : ('显示全部 ' + poolCount + ' 题')
         };
       })(),
-      entries: asArray(data.migration).map(function(entry, index) {
-        entry = entry || {};
-        return {
-          id: entry.id || '',
-          index: index,
-          entry: entry,
-          item: entry.item || {},
-          sentenceHtml: entry.sentenceHtml || '',
-          row: buildMigrationEntryViewModel(entry, index),
-          card: buildMigrationCardViewModel(entry)
-        };
-      })
+      entries: entries
     };
   }
 
@@ -558,6 +584,8 @@
     buildMigrationEmptyHintModel: buildMigrationEmptyHintModel,
     buildMigrationPanelViewModel: buildMigrationPanelViewModel,
     buildMigrationContentViewModel: buildMigrationContentViewModel,
+    migrationFilterKey: migrationFilterKey,
+    buildMigrationFilterChips: buildMigrationFilterChips,
     countAnalysisMigrationCandidates: countAnalysisMigrationCandidates,
     buildMigrationData: buildMigrationData
   };
