@@ -3185,6 +3185,13 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return allSame ? 'ok' : 'mixed';
   })).toBe('ok');
 
+  // 需求1：从图谱叶子按 fine 开练，currentQuestions 全部同 fine
+  expect(await page.evaluate(() => {
+    window.startByFineTag('pred-passive-form');
+    var qs = (window.GrammarAppState.state.currentQuestions) || [];
+    return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive-form'; });
+  })).toBe(true);
+
   expect(errors).toEqual([]);
 });
 

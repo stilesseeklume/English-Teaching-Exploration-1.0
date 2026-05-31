@@ -6209,6 +6209,24 @@ function startByCategory(cat) {
   renderExam();
 }
 
+function startByFineTag(fine) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var entryModel = window.GrammarCategoryRules.buildFineTagPracticePlan(fine, ALL_QUESTIONS, CATEGORY_MAP);
+  if (!entryModel.hasQuestions) {
+    alert(entryModel.emptyMessage);
+    return;
+  }
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
 function startByExam(examId, preserveDrawerReturn) {
   closeDrawer(!!preserveDrawerReturn);
   resetPracticeDisplayState();
@@ -8714,9 +8732,9 @@ function openKnowledgePoint(cat) {
   if (cat && typeof selectKnowledgeCategory === 'function') selectKnowledgeCategory(cat, false);
   else if (typeof setKnowledgeView === 'function') setKnowledgeView('book');
 }
-function startMigrationFromMap(cat) {
-  // 从图谱叶子开练：进该考点练习，并把"返回"指回知识库(全局图谱)，避免出去回不来
-  startByCategory(cat);
+function startMigrationFromMap(fine) {
+  // 从图谱叶子开练：按细分支(fine tag)精准筛题，"返回"指回知识库(全局图谱)
+  startByFineTag(fine);
   setPreviousView({ page: 'knowledge' });
   if (typeof syncAppState === 'function') syncAppState();
   if (typeof updateDockBackButton === 'function') updateDockBackButton();
@@ -8800,7 +8818,7 @@ function renderSystemView(focusNodeId) {
       var c = (fine && typeof _countByFineTag === 'function') ? _countByFineTag(fine) : 0;
       var qn = (typeof c === 'number') ? c : ((c && c.total) || 0);
       var acts = '';
-      if (qn > 0 && cat) acts += '<button type="button" onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(cat) + '\')">🔁 迁移训练 · ' + qn + ' 题</button>';
+      if (qn > 0 && fine) acts += '<button type="button" onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(fine) + '\')">🔁 迁移训练 · ' + qn + ' 题</button>';
       acts += '<button type="button" class="ghost" onclick="event.stopPropagation();openKnowledgePoint(\'' + graphEscapeAttr(cat) + '\')">📖 看讲解</button>';
       tip = '<div class="dm-see">' + acts + '</div>';
     }
@@ -9391,6 +9409,7 @@ Object.assign(window, {
   showGlobalKnowledgeNode: showGlobalKnowledgeNode,
   showAnalysisByIdx: showAnalysisByIdx,
   startByCategory: startByCategory,
+  startByFineTag: startByFineTag,
   startByExam: startByExam,
   submitAuth: submitAuth,
   switchDrawerTab: switchDrawerTab,
