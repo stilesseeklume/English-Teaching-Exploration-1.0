@@ -25,7 +25,7 @@
       number:       { name: '名词/数词',    source: '语法通霸 18' },
       article:      { name: '冠词',         source: '语法通霸 19' },
       pronoun:      { name: '代词',         source: '语法通霸 20' },
-      preposition:  { name: '介词',         source: '语法通霸 21' },
+      preposition:  { name: '介词',         source: '语法通霸 21', core_words: ['in','on','at','for','with','of','by','from','to'] },
       logic:        { name: '逻辑连词',     source: '语法通霸 08' },
       attrib:       { name: '定语从句',     source: '语法通霸 05' },
       nounclause:   { name: '名词性从句',   source: '语法通霸 06' },
@@ -60,8 +60,8 @@
       { id: 'num-possessive',    category: 'number', source: '体系重订2026-05-31', name: '名词所有格' },
       { id: 'num-numeral',       category: 'number', source: '体系重订2026-05-31', name: '数词（基数/序数/倍数）' },
       // article 冠词（2，零冠词不考已删）
-      { id: 'art-a-an',          category: 'article', source: '体系重订2026-05-31', name: '不定冠词 a/an' },
-      { id: 'art-the',           category: 'article', source: '体系重订2026-05-31', name: '定冠词 the' },
+      { id: 'art-a-an',          category: 'article', source: '体系重订2026-05-31', name: '不定冠词 a/an', words: ['a','an'] },
+      { id: 'art-the',           category: 'article', source: '体系重订2026-05-31', name: '定冠词 the', words: ['the'] },
       // pronoun 代词（3）
       { id: 'pron-personal',     category: 'pronoun', source: '体系重订2026-05-31', name: '人称/物主/反身/指示代词' },
       { id: 'pron-indefinite',   category: 'pronoun', source: '体系重订2026-05-31', name: '不定代词' },
@@ -73,18 +73,18 @@
       { id: 'prep-collocation',  category: 'preposition', source: '语法通霸21.05', name: '介词辨析·动介搭配（动词+介词）' },
       { id: 'prep-other',        category: 'preposition', source: '语法通霸21.06', name: '介词辨析·其他（穿衣/工具/原因/be+adj+prep）' },
       // logic 逻辑连词（2）
-      { id: 'logic-coordinating',category: 'logic', source: '语法通霸08', name: '并列连词（and/but/or/so；含 both…and 等关联结构，由 facets.kind 区分）' },
+      { id: 'logic-coordinating',category: 'logic', source: '语法通霸08', name: '并列连词（and/but/or/so；含 both…and 等关联结构，由 facets.kind 区分）', words: ['and','but','or','so','for','nor','yet'] },
       // attrib 定语从句（4）
-      { id: 'attrib-pronoun',      category: 'attrib', source: '体系重订2026-05-31', name: '关系代词（who/whom/which/that/whose）' },
-      { id: 'attrib-adverb',       category: 'attrib', source: '体系重订2026-05-31', name: '关系副词（when/where/why）' },
-      { id: 'attrib-prep-relative',category: 'attrib', source: '体系重订2026-05-31', name: '介词+关系词' },
-      { id: 'attrib-as',           category: 'attrib', source: '体系重订2026-05-31', name: 'as 作关系词' },
+      { id: 'attrib-pronoun',      category: 'attrib', source: '体系重订2026-05-31', name: '关系代词（who/whom/which/that/whose）', words: ['who','whom','which','that','whose'] },
+      { id: 'attrib-adverb',       category: 'attrib', source: '体系重订2026-05-31', name: '关系副词（when/where/why）', words: ['when','where','why'] },
+      { id: 'attrib-prep-relative',category: 'attrib', source: '体系重订2026-05-31', name: '介词+关系词', words: ['介词+which','介词+whom'] },
+      { id: 'attrib-as',           category: 'attrib', source: '体系重订2026-05-31', name: 'as 作关系词', words: ['as'] },
       // nounclause 名词性从句（5）
-      { id: 'nounc-that',        category: 'nounclause', source: '体系重订2026-05-31', name: 'that 引导' },
-      { id: 'nounc-whether-if',  category: 'nounclause', source: '体系重订2026-05-31', name: 'whether/if 引导' },
-      { id: 'nounc-wh-pronoun',  category: 'nounclause', source: '体系重订2026-05-31', name: '连接代词（what/who/which）' },
-      { id: 'nounc-wh-adverb',   category: 'nounclause', source: '体系重订2026-05-31', name: '连接副词（when/where/how/why）' },
-      { id: 'nounc-ever',        category: 'nounclause', source: '体系重订2026-05-31', name: 'wh-ever 类（whatever/whoever…）' },
+      { id: 'nounc-that',        category: 'nounclause', source: '体系重订2026-05-31', name: 'that 引导', words: ['that'] },
+      { id: 'nounc-whether-if',  category: 'nounclause', source: '体系重订2026-05-31', name: 'whether/if 引导', words: ['whether','if'] },
+      { id: 'nounc-wh-pronoun',  category: 'nounclause', source: '体系重订2026-05-31', name: '连接代词（what/who/which）', words: ['what','who','which','whom','whose'] },
+      { id: 'nounc-wh-adverb',   category: 'nounclause', source: '体系重订2026-05-31', name: '连接副词（when/where/how/why）', words: ['when','where','how','why'] },
+      { id: 'nounc-ever',        category: 'nounclause', source: '体系重订2026-05-31', name: 'wh-ever 类（whatever/whoever…）', words: ['whatever','whoever','whichever','whomever','whenever','wherever','however'] },
       // advclause 状语从句（6）
       { id: 'advc-time',        category: 'advclause', source: '体系重订2026-05-31', name: '时间状语从句' },
       { id: 'advc-cause',       category: 'advclause', source: '体系重订2026-05-31', name: '原因状语从句' },

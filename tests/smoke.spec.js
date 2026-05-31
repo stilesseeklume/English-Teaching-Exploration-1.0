@@ -3210,65 +3210,61 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     // 非谓语 {form} → word + category 两级（无 type）
     var nonp = mt.buildMigrationScopes({ form: 'doing' }, 'nonpred-doing', 'nonpredicate');
     var nonpLevels = nonp.map(function(s){ return s.level; }).join(',');
-    // 定从 {type,word,restrictive} → word + type + category 三级
-    var attrib = mt.buildMigrationScopes(
-      { type: 'relative-pronoun', word: 'which', restrictive: true }, 'attrib-pronoun', 'attrib');
+    // 传 fineTags：定从 → word + 4个finetag + category
+    var tbc = window.GRAMMAR_FINE_TAGS.tags_by_category;
+    var attrib = mt.buildMigrationScopes({ word: 'which' }, 'attrib-pronoun', 'attrib', tbc);
     var attribLevels = attrib.map(function(s){ return s.level; }).join(',');
+    var ftCount = attrib.filter(function(s){ return s.level === 'finetag'; }).length;
     var attribWord = attrib[0] && attrib[0].value;
     var attribCat = attrib[attrib.length - 1] && attrib[attrib.length - 1].value;
-    // 谓语 {tense,voice,agreement} → 仅 category 一级
+    // 谓语不传 fineTags → 仅 category 一级
     var pred = mt.buildMigrationScopes(
       { tense: 'past', voice: 'passive', agreement: false }, 'pred-passive', 'predicate');
     var predLevels = pred.map(function(s){ return s.level; }).join(',');
-    // 匹配：word 级用 form/word；type 级用 type/subtype；category 级用 item.category
+    // 匹配：word=form/word；finetag=fine_category；category=item.category
     var mWordForm = mt.migrationMatchesScope({ facets: { form: 'doing' } }, { level: 'word', value: 'doing' });
     var mWordNo = mt.migrationMatchesScope({ facets: { form: 'done' } }, { level: 'word', value: 'doing' });
-    var mTypeSub = mt.migrationMatchesScope({ facets: { subtype: 'derivation' } }, { level: 'type', value: 'derivation' });
+    var mFine = mt.migrationMatchesScope({ fine_category: 'attrib-pronoun', facets: {} }, { level: 'finetag', value: 'attrib-pronoun' });
+    var mFineNo = mt.migrationMatchesScope({ fine_category: 'attrib-adverb', facets: {} }, { level: 'finetag', value: 'attrib-pronoun' });
     var mCat = mt.migrationMatchesScope({ category: 'attrib', facets: {} }, { level: 'category', value: 'attrib' });
-    var mCatNo = mt.migrationMatchesScope({ category: 'word', facets: {} }, { level: 'category', value: 'attrib' });
     return (nonpLevels === 'word,category'
-      && attribLevels === 'word,type,category' && attribWord === 'which' && attribCat === 'attrib'
+      && attribWord === 'which' && ftCount === 4 && attribCat === 'attrib'
+      && attribLevels === 'word,finetag,finetag,finetag,finetag,category'
       && predLevels === 'category'
-      && mWordForm === true && mWordNo === false && mTypeSub === true
-      && mCat === true && mCatNo === false) ? 'ok'
-      : 'bad:' + nonpLevels + '|' + attribLevels + '/' + attribWord + '/' + attribCat + '|' + predLevels
-        + '|' + mWordForm + mWordNo + mTypeSub + mCat + mCatNo;
+      && mWordForm === true && mWordNo === false && mFine === true && mFineNo === false && mCat === true) ? 'ok'
+      : 'bad:' + nonpLevels + '|' + attribLevels + '/' + attribWord + '/' + ftCount + '/' + attribCat + '|' + predLevels
+        + '|' + mWordForm + mWordNo + mFine + mFineNo + mCat;
   })).toBe('ok');
 
-  // T4：buildMigrationData 按 facets 范围缩放（同大类底座 + 三档）
+  // Task E：buildMigrationData 第②档=该大类全部 fine tag（含0题），默认激活当前 fine
   expect(await page.evaluate(() => {
     var mt = window.GrammarMigrationTraining;
+    var ft = window.GRAMMAR_FINE_TAGS;
     var q = { exam: 'e', no: 1, category: 'attrib', fine_category: 'attrib-pronoun',
-      facets: { type: 'relative-pronoun', word: 'which', restrictive: true }, type: '真题' };
+      facets: { word: 'which' }, type: '真题' };
     var bank = [
       q,
-      { exam: 'e', no: 2, category: 'attrib', fine_category: 'attrib-pronoun', facets: { type: 'relative-pronoun', word: 'which' }, type: '真题' },
-      { exam: 'e', no: 3, category: 'attrib', fine_category: 'attrib-pronoun', facets: { type: 'relative-pronoun', word: 'that' }, type: '真题' },
-      { exam: 'e', no: 4, category: 'attrib', fine_category: 'attrib-adverb', facets: { type: 'relative-adverb', word: 'when' }, type: '真题' },
-      { exam: 'e', no: 5, category: 'word', fine_category: 'word-noun', facets: { subtype: 'derivation' }, type: '真题' }
+      { exam: 'e', no: 2, category: 'attrib', fine_category: 'attrib-pronoun', facets: { word: 'that' }, type: '真题' },
+      { exam: 'e', no: 3, category: 'attrib', fine_category: 'attrib-adverb', facets: { word: 'when' }, type: '真题' }
     ];
     function build(scope) {
       return mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [],
-        categoryMap: { attrib: '定语从句' }, scope: scope, limit: 99 });
+        categoryMap: { attrib: '定语从句' }, fineTags: ft, scope: scope, limit: 99 });
     }
-    var def = build(null);          // 默认最细 = word:which → 仅 no2
-    var byType = build({ level: 'type', value: 'relative-pronoun' });  // which+that → no2,no3
-    var byCat = build({ level: 'category', value: 'attrib' });          // 整个定语从句 → no2,no3,no4
-    var scopes = def.scopes || [];
-    var levels = scopes.map(function(s){ return s.level; }).join(',');
-    // 渲染模型：内容视图应吐出可见的 3 按钮范围选择器，激活档=最细
+    var def = build(null);   // 默认激活 finetag=attrib-pronoun → 底池同大类(no2,no3)中 attrib-pronoun = no2 → 1
+    var byCat = build({ level: 'category', value: 'attrib' });   // 整个定语从句 → no2,no3 → 2
     var sel = mt.buildMigrationContentViewModel(def, 'bank', false).scopeSelector;
-    var selOk = sel && sel.visible && sel.buttons.length === 3
-      && sel.buttons[0].active === true && sel.buttons[2].active === false
-      && sel.buttons[2].label === '整个定语从句' && sel.buttons[2].count === 3;
-    return (def.poolCount === 1 && byType.poolCount === 2 && byCat.poolCount === 3
-      && levels === 'word,type,category'
-      && def.activeScope && def.activeScope.level === 'word' && def.activeScope.value === 'which'
-      && scopes[0].count === 1 && scopes[1].count === 2 && scopes[2].count === 3
-      && selOk) ? 'ok'
-      : 'bad:' + def.poolCount + '/' + byType.poolCount + '/' + byCat.poolCount + '|' + levels
-        + '|' + (def.activeScope && def.activeScope.level) + (def.activeScope && def.activeScope.value)
-        + '|' + scopes.map(function(s){ return s.count; }).join(',') + '|sel:' + (sel && sel.visible) + '/' + (sel && sel.buttons.length);
+    var ftBtns = sel.buttons.filter(function(b){ return b.level === 'finetag'; });
+    var ids = ftBtns.map(function(b){ return b.value; }).sort().join(',');
+    var prepRel = ftBtns.filter(function(b){ return b.value === 'attrib-prep-relative'; })[0];
+    var pron = ftBtns.filter(function(b){ return b.value === 'attrib-pronoun'; })[0];
+    return (ftBtns.length === 4
+      && ids === 'attrib-adverb,attrib-as,attrib-prep-relative,attrib-pronoun'
+      && prepRel && prepRel.count === 0 && pron && pron.count === 1
+      && def.activeScope && def.activeScope.level === 'finetag' && def.activeScope.value === 'attrib-pronoun'
+      && def.poolCount === 1 && byCat.poolCount === 2) ? 'ok'
+      : 'bad:' + ftBtns.length + '|' + ids + '|' + (prepRel && prepRel.count) + '/' + (pron && pron.count)
+        + '|' + (def.activeScope && def.activeScope.level) + '/' + def.poolCount + '/' + byCat.poolCount;
   })).toBe('ok');
 
   // 需求3：看讲解跳到指定 section 并展开

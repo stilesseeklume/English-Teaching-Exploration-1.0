@@ -48,9 +48,53 @@
   }
 
   function countByFineTag(fineCategory, bankQuestions, errorQuestions) {
-    var bankCount = asArray(bankQuestions).filter(function(q) { return q && q.fine_category === fineCategory; }).length;
+    var bankItems = asArray(bankQuestions).filter(function(q) { return q && q.fine_category === fineCategory; });
     var errorCount = asArray(errorQuestions).filter(function(q) { return q && q.fine_category === fineCategory; }).length;
-    return { bank: bankCount, error: errorCount, total: bankCount + errorCount };
+    var realCount = bankItems.filter(function(q) { return q && q.type === '真题'; }).length;
+    return { bank: bankItems.length, error: errorCount, real: realCount, total: bankItems.length + errorCount };
+  }
+
+  // 取某 fine tag 的"具体词"分布。闭合类(tag.words)列全标0；介词(category.core_words)核心打底+题库追加；
+  // 其余大类返回空(不下钻)。每词 {word,total,real}，有题在前(total降序)，0题词按预定义顺序排后。
+  function buildLeafWordBreakdown(fineId, fineTags, bankQuestions, errorQuestions) {
+    fineTags = fineTags || {};
+    var tag = (fineTags.tags_by_id || {})[fineId];
+    if (!tag) return [];
+    var counts = {};
+    function tally(pool, isBank) {
+      asArray(pool).forEach(function(q) {
+        if (!q || q.fine_category !== fineId) return;
+        var w = (q.facets || {}).word;
+        if (!w) return;
+        if (!counts[w]) counts[w] = { total: 0, real: 0 };
+        counts[w].total++;
+        if (isBank && q.type === '真题') counts[w].real++;
+      });
+    }
+    tally(bankQuestions, true);
+    tally(errorQuestions, false);
+
+    var predefined = [];
+    if (tag.words && tag.words.length) predefined = tag.words.slice();
+    else if (tag.category === 'preposition') {
+      var cat = (fineTags.categories || {}).preposition || {};
+      predefined = (cat.core_words || []).slice();
+    } else {
+      return []; // 非下钻大类
+    }
+
+    var seen = {}, list = [];
+    predefined.forEach(function(w) {
+      if (seen[w]) return; seen[w] = true;
+      var c = counts[w] || { total: 0, real: 0 };
+      list.push({ word: w, total: c.total, real: c.real });
+    });
+    Object.keys(counts).forEach(function(w) {
+      if (seen[w]) return; seen[w] = true;
+      list.push({ word: w, total: counts[w].total, real: counts[w].real });
+    });
+    list.sort(function(a, b) { return b.total - a.total; });
+    return list;
   }
 
   function getFrequencyStyle(total) {
@@ -339,7 +383,9 @@
             name: tag.name,
             source: tag.source || '',
             counts: counts,
-            countText: String(counts.total),
+            countText: (counts.real < counts.total)
+              ? (counts.total + ' · 真题' + counts.real)
+              : String(counts.total),
             alertMessage: buildFineCategoryTagMessage({
               name: tag.name,
               source: tag.source || '',
@@ -1475,6 +1521,7 @@
     stripHtml: stripHtml,
     normalizeTagId: normalizeTagId,
     countByFineTag: countByFineTag,
+    buildLeafWordBreakdown: buildLeafWordBreakdown,
     getFrequencyStyle: getFrequencyStyle,
     buildCategoryStatsModel: buildCategoryStatsModel,
     buildSearchIndex: buildSearchIndex,

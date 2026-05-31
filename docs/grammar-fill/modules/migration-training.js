@@ -47,13 +47,16 @@
     return '';
   }
 
-  function buildMigrationScopes(facets, fineCategory, category) {
+  function buildMigrationScopes(facets, fineCategory, category, fineTagsByCategory) {
     facets = facets || {};
     var scopes = [];
     var wordVal = facetWordValue(facets);
     if (wordVal) scopes.push({ level: 'word', value: wordVal });
-    var typeVal = facetTypeValue(facets);
-    if (typeVal) scopes.push({ level: 'type', value: typeVal });
+    // 第②档：该大类全部 fine tag 固定全列（含0题），不再只取当前题 type
+    var tags = (fineTagsByCategory && category) ? (fineTagsByCategory[category] || []) : [];
+    tags.forEach(function(tag) {
+      if (tag && tag.id) scopes.push({ level: 'finetag', value: tag.id, label: tag.name || tag.id });
+    });
     if (category) scopes.push({ level: 'category', value: String(category) });
     return scopes;
   }
@@ -62,6 +65,7 @@
     if (!item || !scope) return false;
     var facets = item.facets || {};
     if (scope.level === 'word') return facetWordValue(facets) === scope.value;
+    if (scope.level === 'finetag') return String(item.fine_category || '') === scope.value;
     if (scope.level === 'type') return facetTypeValue(facets) === scope.value;
     if (scope.level === 'category') return String(item.category || '') === scope.value;
     return false;
@@ -87,6 +91,7 @@
   function scopeButtonLabel(scope, categoryName) {
     if (!scope) return '';
     if (scope.level === 'category') return '整个' + (categoryName || scope.value);
+    if (scope.level === 'finetag') return scope.label || scope.value;
     return SCOPE_VALUE_LABELS[scope.value] || scope.value;
   }
 
@@ -597,15 +602,20 @@
     var scopes = [];
     var activeScope = null;
     if (hasFacets) {
+      var fineTagsByCategory = (options.fineTags && options.fineTags.tags_by_category) || {};
       var scopeBasePool = selectSourcePool(source, fallbackBankPool, fallbackErrorPool);
-      scopes = buildMigrationScopes(qFacets, fineCat, q.category).map(function(s) {
+      scopes = buildMigrationScopes(qFacets, fineCat, q.category, fineTagsByCategory).map(function(s) {
         return {
           level: s.level,
           value: s.value,
+          label: s.label,
           count: scopeBasePool.filter(function(it) { return migrationMatchesScope(it, s); }).length
         };
       });
-      activeScope = options.scope || scopes[0] || null;
+      // 默认激活：当前题对应的 finetag 档（没有则落最细 word 档）
+      activeScope = options.scope
+        || scopes.filter(function(s){ return s.level === 'finetag' && s.value === fineCat; })[0]
+        || scopes[0] || null;
       pool = activeScope
         ? scopeBasePool.filter(function(it) { return migrationMatchesScope(it, activeScope); })
         : scopeBasePool;
