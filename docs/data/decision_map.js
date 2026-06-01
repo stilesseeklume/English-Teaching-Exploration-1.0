@@ -37,11 +37,8 @@
     // l_voice_form 无 keys = keyless 通配，countByPoint 计全部被动；l_voice_implicit 用占位 key 故意计 0（主动表被动暂无数据信号，留后）
     { id: 'l_voice_form',     parent: 'pred_voice', title: '被动语态的构成', cat: 'predicate', fine: 'pred-passive', point: { tag: 'pred-passive' } },
     { id: 'l_voice_implicit', parent: 'pred_voice', title: '主动形式表被动', cat: 'predicate', fine: 'pred-passive', point: { tag: 'pred-passive', keys: ['__implicit__'] } },
-    { id: 'pred_sva', parent: 'pred', title: '主谓一致', sub: '回到主语中心词', kd: 'predicate-agreement' },
-    { id: 'l_sva_form', parent: 'pred_sva', title: '语法形式一致', cat: 'predicate', fine: 'pred-agreement' },
-    { id: 'l_sva_meaning', parent: 'pred_sva', title: '意义 / 就近一致', cat: 'predicate', fine: 'pred-agreement' },
-    { id: 'l_sva_collective', parent: 'pred_sva', title: '集合 / 复数名词作主语', cat: 'predicate', fine: 'pred-agreement' },
-    { id: 'l_sva_quantity', parent: 'pred_sva', title: '数量短语作主语', cat: 'predicate', fine: 'pred-agreement' },
+    // 主谓一致并成一叶（语法形式/就近/集合/数量 题库无字段区分，原 4 叶重复计数）
+    { id: 'pred_sva', parent: 'pred', title: '主谓一致', sub: '回到主语中心词', cat: 'predicate', fine: 'pred-agreement', kd: 'predicate-agreement' },
 
     // 非谓语：节点标签=形式，tag=形式（按引导词/形式一把尺子）
     { id: 'nonp', parent: 'verb', title: '非谓语', sub: '已有谓语 → 选形式（具体成分到题里判断）', cat: 'nonpredicate' },
@@ -60,21 +57,16 @@
     { id: 'numw', parent: 'word', title: '数词', sub: '数量 / 序数表达', cat: 'number' },
     { id: 'l_num_quantity', parent: 'numw', title: '数量的表示方法 / 数词', cat: 'number', fine: 'num-numeral' },
 
-    { id: 'adj', parent: 'word', title: '形容词', sub: '修饰名词 / 作表语', cat: 'word', kd: 'word-adj-adv' },
-    { id: 'l_adj_choice', parent: 'adj', title: '形容词的选用', cat: 'word', fine: 'word-adj-vs-adv' },
-    { id: 'l_adj_eding', parent: 'adj', title: '-ed vs -ing 形容词', cat: 'word', fine: 'word-adj' },
-    { id: 'l_adj_distinguish', parent: 'adj', title: '常考形容词辨析', cat: 'word', fine: 'word-adj' },
+    // 派生形容词并成一叶（-ed/-ing + 常考辨析；删死 tag「形容词的选用 word-adj-vs-adv」，已与 adj/adv 重叠被官方删）
+    { id: 'adj', parent: 'word', title: '派生形容词', sub: '-ed/-ing 形容词 · 常考辨析', cat: 'word', fine: 'word-adj', kd: 'word-adj-adv' },
 
-    { id: 'adv', parent: 'word', title: '副词', sub: '修饰动作 / 形容词 / 句子', cat: 'word', kd: 'word-adj-adv' },
-    { id: 'l_adv_other', parent: 'adv', title: '副词用法', cat: 'word', fine: 'word-adv' },
-    { id: 'l_adv_common', parent: 'adv', title: '几个常用副词', cat: 'word', fine: 'word-adv' },
-    { id: 'l_adv_phrase', parent: 'adv', title: '常考副词词组辨析', cat: 'word', fine: 'word-adv' },
+    // 派生副词并成一叶（用法 · 常用副词 · 词组辨析）
+    { id: 'adv', parent: 'word', title: '派生副词', sub: '副词用法 · 常用副词 · 词组辨析', cat: 'word', fine: 'word-adv', kd: 'word-adj-adv' },
 
+    // 比较级/最高级按 facets.subtype 拆两叶（最高级暂无真题→灰，传新卷自动激活；删构成规则/倍数叶，无数据信号）
     { id: 'cmp', parent: 'word', title: '比较级 / 最高级', sub: 'than / much / the most 等信号触发', cat: 'word', kd: 'word-compare' },
-    { id: 'l_cmp_comparative', parent: 'cmp', title: '比较级', cat: 'word', fine: 'word-comparative' },
-    { id: 'l_cmp_superlative', parent: 'cmp', title: '最高级', cat: 'word', fine: 'word-comparative' },
-    { id: 'l_cmp_rules', parent: 'cmp', title: '构成规则 / than·as 词性', cat: 'word', fine: 'word-comparative' },
-    { id: 'l_cmp_multiple', parent: 'cmp', title: '倍数表达', cat: 'word', fine: 'word-comparative' },
+    { id: 'l_cmp_comparative', parent: 'cmp', title: '比较级', cat: 'word', fine: 'word-comparative', point: { tag: 'word-comparative', keys: ['comparative'] } },
+    { id: 'l_cmp_superlative', parent: 'cmp', title: '最高级', cat: 'word', fine: 'word-comparative', point: { tag: 'word-comparative', keys: ['superlative'] } },
 
     // ───────── 无提示词 · 考关系（四类：介词 / 冠词 / 代词 / 连词）─────────
     { id: 'noclue', parent: 'root', title: '无提示词', sub: '没给词 → 判断缺什么关系' },
@@ -91,24 +83,25 @@
     { id: 'l_art_the', parent: 'art', title: '定冠词 the', cat: 'article', fine: 'art-the' },
     // l_art_zero（不用冠词）已删除：新体系零冠词高考不考（spec §一之5）
 
+    // 代词拆回标准 tag（原「人称/物主/反身/指示」并成一叶会让物主/指示题成孤儿；不定代词一/二并成一叶）
     { id: 'pron', parent: 'noclue', title: '代词', sub: '指代上下文 / 格 / 替代', cat: 'pronoun' },
-    { id: 'l_pron_personal', parent: 'pron', title: '人称 / 物主 / 反身 / 指示', cat: 'pronoun', fine: 'pron-personal' },
-    { id: 'l_pron_indef1', parent: 'pron', title: '不定代词（一）', cat: 'pronoun', fine: 'pron-indefinite' },
-    { id: 'l_pron_indef2', parent: 'pron', title: '不定代词（二）', cat: 'pronoun', fine: 'pron-indefinite' },
+    { id: 'l_pron_personal', parent: 'pron', title: '人称代词', cat: 'pronoun', fine: 'pron-personal' },
+    { id: 'l_pron_possessive', parent: 'pron', title: '物主代词', cat: 'pronoun', fine: 'pron-possessive' },
+    { id: 'l_pron_reflexive', parent: 'pron', title: '反身代词', cat: 'pronoun', fine: 'pron-reflexive' },
+    { id: 'l_pron_demonstrative', parent: 'pron', title: '指示代词', cat: 'pronoun', fine: 'pron-demonstrative' },
+    { id: 'l_pron_indefinite', parent: 'pron', title: '不定代词', cat: 'pronoun', fine: 'pron-indefinite' },
     { id: 'l_pron_it', parent: 'pron', title: '代词 it', cat: 'pronoun', fine: 'pron-it' },
 
     { id: 'conj', parent: 'noclue', title: '连词', sub: '判断：连同层成分，还是引出从句？' },
-    { id: 'coord', parent: 'conj', title: '并列连词', sub: '连接同层词 / 短语 / 句子', cat: 'logic', kd: 'logic-coord' },
-    { id: 'l_coord_phrase', parent: 'coord', title: '连接词或短语的并列', cat: 'logic', fine: 'logic-coordinating' },
-    { id: 'l_coord_compound', parent: 'coord', title: '并列句', cat: 'logic', fine: 'logic-coordinating' },
+    // 并列连词并成一叶（原「短语并列/并列句」按句法切分、题库无字段区分、重复计数）；and/or/but/so 词级区分由 buildLeafWordBreakdown 在视图里展开
+    { id: 'coord', parent: 'conj', title: '并列连词', sub: '连接同层词 / 短语 / 句子', cat: 'logic', fine: 'logic-coordinating', kd: 'logic-coord' },
 
     { id: 'rel', parent: 'conj', title: '关系词', sub: '引出从句 → 判断这是哪种从句' },
     { id: 'attrib', parent: 'rel', title: '定语从句', sub: '修饰名词：先行词 + 从句缺什么', cat: 'attrib' },
-    { id: 'l_attrib_choice', parent: 'attrib', title: '关系词的选择', cat: 'attrib', fine: 'attrib-pronoun' },
+    // 关系代词并成一叶（原「选择/限制非限制/只能that」按教学概念切分、题库无字段区分、重复计数）；which/that/who/whose 词级区分由 buildLeafWordBreakdown 展开
+    { id: 'l_attrib_choice', parent: 'attrib', title: '关系代词', cat: 'attrib', fine: 'attrib-pronoun' },
     { id: 'l_attrib_adverb', parent: 'attrib', title: '关系副词', cat: 'attrib', fine: 'attrib-adverb' },
-    { id: 'l_attrib_prep', parent: 'attrib', title: '介词 + 关系代词', cat: 'attrib', fine: 'attrib-prep-relative' },
-    { id: 'l_attrib_restr', parent: 'attrib', title: '限制性 vs 非限制性', cat: 'attrib', fine: 'attrib-pronoun' },
-    { id: 'l_attrib_only_that', parent: 'attrib', title: '只能用 that', cat: 'attrib', fine: 'attrib-pronoun' },
+    { id: 'l_attrib_prep',   parent: 'attrib', title: '介词 + 关系词', cat: 'attrib', fine: 'attrib-prep-relative' },
 
     // 名词性从句：从「成分（主/宾/表/同位）」改为「引导词」（spec §3.2），与 nounc-* tag 1:1
     { id: 'nounc', parent: 'rel', title: '名词性从句', sub: '整体作名词成分 → 判断用哪个引导词', cat: 'nounclause' },
