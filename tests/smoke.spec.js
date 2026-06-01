@@ -3295,6 +3295,31 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       : 'bad:' + data.poolCount + '|' + (data.activeScope&&data.activeScope.value) + '|' + ftBtns.length + '/' + ids + '/' + sel.visible + '|H=' + data.headerLabel + '|T=' + tag0;
   })).toBe('ok');
 
+  // T2：迁移渲染去掉旧答案派生 chip 回退。即便范围选择器不可见(无facets)，也不再渲染 mig-filter-chip。
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var ft = window.GRAMMAR_FINE_TAGS;
+    var gfti = function(fc){ return window.GrammarQuestionModel.getFineTagInfo(fc, ft); };
+    // 故意不带 facets → scopes=[] → scopeSelector 不可见，逼出旧回退分支
+    var q = { exam:'e1', no:1, category:'article', fine_category:'art-a-an', type:'真题', answer:'a' };
+    var bank = [ q,
+      { exam:'e2', no:2, category:'article', fine_category:'art-a-an', type:'真题', answer:'a' },
+      { exam:'e3', no:3, category:'article', fine_category:'art-a-an', type:'真题', answer:'an' },
+      { exam:'e4', no:4, category:'article', fine_category:'art-a-an', type:'真题', answer:'a' } ];
+    var data = mt.buildMigrationData(q, { source:'bank', bankQuestions:bank, errorQuestions:[],
+      categoryMap:{article:'冠词'}, fineTags:ft, getFineTagInfo:gfti, limit:99 });
+    var cm = mt.buildMigrationContentViewModel(data, 'bank', false);
+    cm.entries.forEach(function(e){ e.stageSentenceHtml = '<span>x</span>'; });
+    var stage = window.GrammarTeachingRender.migrationStageHtml(cm);
+    var drawer = window.GrammarTeachingRender.migrationDrawerHtml(cm);
+    // 前置条件：选择器确实不可见且旧逻辑本会生成 filterChips（否则测试无意义）
+    return (!cm.scopeSelector.visible && cm.filterChips.length >= 2
+      && stage.indexOf('mig-filter-chip') === -1
+      && drawer.indexOf('mig-filter-chip') === -1) ? 'ok'
+      : 'bad:selVisible=' + cm.scopeSelector.visible + '/chips=' + cm.filterChips.length
+        + '/stageChip=' + (stage.indexOf('mig-filter-chip')!==-1) + '/drawerChip=' + (drawer.indexOf('mig-filter-chip')!==-1);
+  })).toBe('ok');
+
   // buildAllQuestions / createExamQuestionFromRaw 必须保留 facets（否则叶子有题但具体词全0）
   expect(await page.evaluate(() => {
     var qm = window.GrammarQuestionModel;

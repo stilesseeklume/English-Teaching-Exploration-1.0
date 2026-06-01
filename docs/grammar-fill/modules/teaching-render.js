@@ -221,9 +221,9 @@
       + window.escapeHtml(contentModel.countText)
       + '</div>'
       + '</div>'
-      + (contentModel.scopeSelector && contentModel.scopeSelector.visible
+      + ((contentModel.scopeSelector && contentModel.scopeSelector.visible)
           ? migrationScopeSelectorHtml(contentModel.scopeSelector)
-          : migrationFilterChipsHtml(contentModel.filterChips))
+          : '')
       + '<div class="migration-list">';
     contentModel.entries.forEach(function(entryModel) {
       var cardModel = entryModel.card;
@@ -274,9 +274,9 @@
     if (contentModel.emptyHint) {
       return html + migrationEmptyHint(contentModel.emptyHint);
     }
-    html += (contentModel.scopeSelector && contentModel.scopeSelector.visible
+    html += (contentModel.scopeSelector && contentModel.scopeSelector.visible)
       ? migrationScopeSelectorHtml(contentModel.scopeSelector)
-      : migrationFilterChipsHtml(contentModel.filterChips));
+      : '';
     html += '<div class="teaching-migration-scroll">';
     contentModel.entries.forEach(function(entryModel) {
       var rowModel = entryModel.row;
