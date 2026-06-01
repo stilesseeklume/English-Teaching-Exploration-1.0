@@ -4105,6 +4105,22 @@ test('home-render pure html output', async ({ page }) => {
   expect(out.catsHasCard).toBe(true);
 });
 
+test('真题加载后每题都带非空 points，且 tag 都是现行 tag', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarQuestionModel && window.GRAMMAR_BANK && window.GrammarQuestionPoints), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var qs = window.GrammarQuestionModel.buildAllQuestions(window.GRAMMAR_BANK, {});
+    var byId = (window.GRAMMAR_FINE_TAGS||{}).tags_by_id || {};
+    var noPoints = 0, badTag = [];
+    qs.forEach(function(q){
+      if (!Array.isArray(q.points) || !q.points.length) { noPoints++; return; }
+      q.points.forEach(function(p){ if (!byId[p.tag]) badTag.push(q.no + ':' + p.tag); });
+    });
+    return (noPoints === 0 && badTag.length === 0) ? 'ok'
+      : 'bad:noPoints=' + noPoints + ' badTag=' + badTag.slice(0,8).join(',');
+  })).toBe('ok');
+});
+
 test('buildQuestionPoints 按规则派生 points（谓语多标签/引导词单标签）', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!window.GrammarQuestionPoints, null, { timeout: 15000 });

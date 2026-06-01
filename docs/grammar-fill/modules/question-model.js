@@ -20,6 +20,9 @@
         grammar_point: q.grammar_point,
         fine_category: q.fine_category,
         facets: q.facets,
+        points: (typeof window !== 'undefined' && window.GrammarQuestionPoints)
+          ? window.GrammarQuestionPoints.buildQuestionPoints(q)
+          : [{ tag: q.fine_category }],
         nonp_function: q.nonp_function,
         nonp_function_label: q.nonp_function_label,
         nonp_form: q.nonp_form,
@@ -82,6 +85,9 @@
       grammar_point: raw.grammar_point,
       fine_category: raw.fine_category,
       facets: raw.facets,
+      points: (typeof window !== 'undefined' && window.GrammarQuestionPoints)
+        ? window.GrammarQuestionPoints.buildQuestionPoints(raw)
+        : [{ tag: raw.fine_category }],
       nonp_function: raw.nonp_function,
       nonp_function_label: raw.nonp_function_label,
       nonp_form: raw.nonp_form,

@@ -180,6 +180,13 @@ EXPECTED_MODULES = [
         ],
     },
     {
+        "path": "question-points.js",
+        "namespace": "GrammarQuestionPoints",
+        "exports": [
+            "buildQuestionPoints",
+        ],
+    },
+    {
         "path": "question-model.js",
         "namespace": "GrammarQuestionModel",
         "exports": [

@@ -63,5 +63,7 @@
     return [{ tag: fc }];
   }
 
-  window.GrammarQuestionPoints = { buildQuestionPoints: buildQuestionPoints };
+  window.GrammarQuestionPoints = {
+    buildQuestionPoints: buildQuestionPoints
+  };
 })();
