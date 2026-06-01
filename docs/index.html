@@ -96,24 +96,7 @@
 
   /* ===== 滚动 + 入场动画 ===== */
   html { background: var(--bg); }
-  #view-welcome .scene {
-    min-height: 100vh; min-height: 100svh;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    padding: 100px 24px 80px;
-    width: 100%; margin: 0 auto;
-    position: relative;
-    contain: layout style paint;
-  }
-  #view-welcome .scene > .hero,
-  #view-welcome .scene > .footer-cta,
-  #view-welcome .scene > .modules-grid,
-  #view-welcome .scene > .features,
-  #view-welcome .scene > h2,
-  #view-welcome .scene > .sub,
-  #view-welcome .scene > .section-eyebrow,
-  #view-welcome .scene > .footer-note,
-  #view-welcome .scene > .disclaimer { width: 100%; }
+  /* 旧 #view-welcome 分屏样式已随单页合并删除 */
 
 
 
@@ -688,44 +671,7 @@
     box-shadow: 0 0 0 1px rgba(255,255,255,0.25), 0 8px 32px rgba(255,255,255,0.10);
   }
 
-  /* ===== Scene Dots ===== */
-  .scene-dots {
-    position: fixed;
-    right: 24px; top: 50%;
-    transform: translateY(-50%);
-    z-index: 60;
-    display: flex; flex-direction: column; gap: 14px;
-    opacity: 0;
-    transition: opacity .3s;
-    pointer-events: none;
-  }
-  body.welcome-mode .scene-dots { opacity: 1; pointer-events: auto; }
-  .scene-dots .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--dot-bg);
-    border: 0.5px solid rgba(255,255,255,0.08);
-    cursor: pointer;
-    transition: background .2s, transform .2s, border-color .2s;
-    position: relative;
-  }
-  .scene-dots .dot::after {
-    content: ''; position: absolute;
-    inset: -8px; border-radius: 50%;
-  }
-  .scene-dots .dot:hover { background: var(--text-3); }
-  .scene-dots .dot.active { background: var(--dot-active-bg); transform: scale(1.45); }
-  .scene-dots.is-playing .dot.active {
-    box-shadow: 0 0 0 0 var(--accent-glow);
-    animation: dotProgress 5s linear forwards;
-  }
-  @keyframes dotProgress {
-    0%   { box-shadow: 0 0 0 0   var(--accent-glow); }
-    100% { box-shadow: 0 0 0 14px var(--accent-glow); }
-  }
-  @media (max-width: 600px) {
-    .scene-dots { right: 12px; gap: 10px; }
-  }
+  /* 旧 Scene Dots 样式已随单页合并删除 */
   .module-badge {
     position: absolute; top: 18px; right: 18px;
     font-size: 10px; letter-spacing: 1.2px;
@@ -891,8 +837,9 @@
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 200);
 </script>
 <style>
-  html.has-session #view-welcome { display: none !important; }
-  html.has-session #view-modules { display: block !important; }
+  /* 头区文案按登录态切换：访客看品牌介绍，登录后看 dashboard 问候 */
+  html:not(.has-session) .auth-only { display: none; }
+  html.has-session .guest-only { display: none; }
 </style>
 </head>
 <body>
@@ -913,42 +860,21 @@
 </header>
 
 <main>
-  <div class="scene-dots" id="sceneDots" aria-hidden="true"></div>
 
-  <!-- ========== Welcome View ========== -->
-  <div class="view" id="view-welcome">
-
-    <!-- Scene 0 · Hero -->
-    <section class="scene scene-hero" data-scene="0">
-      <div class="hero" style="padding:0;">
-        <div class="eyebrow fade-up">Pilot · Grammar First</div>
-        <h1 class="fade-up delay-1">Seeklume</h1>
-        <p class="hero-cn fade-up delay-2">English Teaching web 初步探索</p>
-        <div class="cta fade-up delay-4">
-          <button class="btn primary" onclick="location.href='./grammar-fill/'">进入语法填空讲评</button>
-          <button class="btn" onclick="openModal('signup')">注册系统账号</button>
-          <button class="btn" onclick="location.href='./score-analysis/'">🧪 成绩单转换（测试）</button>
-        </div>
-        <div class="fade-up delay-5" style="margin-top:18px;font-size:12px;"><a href="./privacy.html" style="color:var(--text-3);text-decoration:none;">隐私说明</a></div>
-      </div>
-    </section>
-
-  </div>
-
-  <!-- ========== Modules View ========== -->
-  <div class="view" id="view-modules">
+  <!-- ========== 单页 · 访客与登录后共用（has-session 切换头区文案） ========== -->
+  <div class="view active" id="view-modules">
     <div class="hero" style="padding: 72px 24px 48px;">
-      <div class="eyebrow" id="modulesGreeting">欢迎回来</div>
-      <h1>选一个模块开始</h1>
-      <p class="sub">当前可以使用语法填空讲评。其他题型会随着课堂流程和知识框架逐步接入。</p>
+      <div class="eyebrow" id="modulesGreeting">Pilot · Grammar First</div>
+      <h1><span class="guest-only">Seeklume</span><span class="auth-only">选一个模块开始</span></h1>
+      <p class="sub"><span class="guest-only">English Teaching web 初步探索 · 选一个模块开始</span><span class="auth-only">当前可以使用语法填空讲评。其他题型会随着课堂流程和知识框架逐步接入。</span></p>
     </div>
     <div class="modules-grid">
       <a class="module-card available" href="./grammar-fill/">
         <span class="module-badge live">开放</span>
         <div class="module-num">01</div>
         <h3>语法填空</h3>
-        <p>20 套真题 + 按考点训练 + 跨卷迁移 + 错题本与备课资料</p>
-        <div class="module-meta">当前主入口 · 登录后使用</div>
+        <p>套题讲评 · 按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
+        <div class="module-meta">免登录即可讲评 · 错题本/备课需登录</div>
       </a>
       <div class="module-card coming">
         <span class="module-badge soon">Soon</span>
@@ -985,12 +911,20 @@
         <p>内容支架 + 语言支架双管齐下</p>
         <div class="module-meta">建设中</div>
       </div>
+      <a class="module-card available" href="./score-analysis/">
+        <span class="module-badge beta">工具 · 试用</span>
+        <div class="module-num">🧪</div>
+        <h3>成绩单转换</h3>
+        <p>上传 Excel 成绩单 · 自动识别板块 · 120→130 换算 · 合并听说算总分</p>
+        <div class="module-meta">本地处理 · 不上传服务器</div>
+      </a>
     </div>
     <div style="text-align:center; padding: 56px 24px 0; font-size: 13px; color: var(--text-3);">
       <p>遇到问题、想要新功能、或者觉得方法论可以更好——都欢迎联系。<br>
       <a href="mailto:liuzhenlzstiles@icloud.com" style="color:var(--text);">liuzhenlzstiles@icloud.com</a>
       &nbsp;·&nbsp;
       <a href="https://github.com/stilesseeklume/English-Teaching-Exploration-1.0/issues" target="_blank" style="color:var(--text);">GitHub Issues</a></p>
+      <p style="margin-top:10px;"><a href="./privacy.html" style="color:var(--text-3);text-decoration:none;">隐私说明</a></p>
     </div>
   </div>
 
@@ -1053,7 +987,12 @@
   }
 
   async function refreshAndRoute() {
-    if (!sb) { showView('welcome'); document.documentElement.classList.remove('has-session'); return; }
+    if (!sb) {
+      document.documentElement.classList.remove('has-session');
+      renderUserPill();
+      renderGreeting();
+      return;
+    }
     var s = await sb.auth.getSession();
     state.user = (s.data && s.data.session) ? s.data.session.user : null;
     if (state.user) {
@@ -1064,11 +1003,7 @@
       state.isAdmin = false;
     }
     renderUserPill();
-    if (!state.user) showView('welcome');
-    else {
-      renderGreeting();
-      showView('modules');
-    }
+    renderGreeting();
   }
 
   function displayName() {
@@ -1101,325 +1036,22 @@
   function renderGreeting() {
     var el = document.getElementById('modulesGreeting');
     if (!el) return;
-    if (!state.user) { el.textContent = '当前开放 · 语法填空讲评'; return; }
+    if (!state.user) { el.textContent = 'Pilot · Grammar First'; return; }
     var h = new Date().getHours();
     var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
           : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
     el.textContent = g + '，' + displayName();
   }
 
-  function showView(name) {
-    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
-    var v = document.getElementById('view-' + name);
-    if (v) v.classList.add('active');
-    document.body.classList.toggle('welcome-mode', name === 'welcome');
+  // 合并为单页后：始终展示模块网格，仅刷新头区问候
+  function showView() {
+    var m = document.getElementById('view-modules');
+    if (m) m.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'instant' });
-    if (name === 'modules') renderGreeting();
-    if (name === 'welcome') setTimeout(initWelcomeAnimations, 30);
+    renderGreeting();
   }
 
-  var _welcomeAnimInited = false;
-  function initWelcomeAnimations() {
-    if (_welcomeAnimInited) return;
-    _welcomeAnimInited = true;
-
-    var io = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          if (entry.target.classList.contains('counter')) {
-            animateCounter(entry.target);
-          } else if (entry.target.querySelector) {
-            var counters = entry.target.querySelectorAll('.counter');
-            counters.forEach(animateCounter);
-          }
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-
-    document.querySelectorAll('#view-welcome .fade-up, #view-welcome .counter')
-      .forEach(function(el) { io.observe(el); });
-
-    // 首页已精简为单屏 hero：多于一屏时才启用分屏导航/自动滚动/逐屏动画。
-    if (document.querySelectorAll('#view-welcome .scene').length > 1) {
-      setupSceneDots();
-      setupSceneTracking();
-      setupIdleAutoscroll();
-      setupSceneLoopAnimations();
-    } else {
-      var dotsEl = document.getElementById('sceneDots');
-      if (dotsEl) dotsEl.style.display = 'none';
-    }
-  }
-
-  function setupSceneDots() {
-    var dotsEl = document.getElementById('sceneDots');
-    if (!dotsEl) return;
-    var scenes = document.querySelectorAll('#view-welcome .scene');
-    var html = '';
-    scenes.forEach(function(_, i) {
-      html += '<div class="dot' + (i === 0 ? ' active' : '') + '" data-scene="' + i + '" '
-           +  'onclick="window.__jumpToScene && window.__jumpToScene(' + i + ')"></div>';
-    });
-    dotsEl.innerHTML = html;
-  }
-  window.__jumpToScene = function(idx) {
-    stopAutoscroll();
-    goToScene(idx);
-  };
-
-  var _currentSceneIdx = 0;
-  function setupSceneTracking() {
-    var scenes = document.querySelectorAll('#view-welcome .scene');
-    var sceneIo = new IntersectionObserver(function(entries) {
-      entries.forEach(function(e) {
-        if (e.isIntersecting && e.intersectionRatio > 0.5) {
-          var idx = Array.prototype.indexOf.call(scenes, e.target);
-          if (idx >= 0 && idx !== _currentSceneIdx) {
-            _currentSceneIdx = idx;
-            updateDotsActive();
-            if (idx === 1) triggerAIAnimation();
-            if (idx === 2) startDemoLoop();
-            else stopDemoLoop();
-          }
-        }
-      });
-    }, { threshold: [0.5, 0.8] });
-    scenes.forEach(function(s) { sceneIo.observe(s); });
-  }
-  function updateDotsActive() {
-    document.querySelectorAll('#sceneDots .dot').forEach(function(d, i) {
-      d.classList.toggle('active', i === _currentSceneIdx);
-    });
-  }
-
-  /* ===== AI Split Panel 动画 ===== */
-  var _aiAnimated = false;
-  var _aiAnimInterval = null;
-  function triggerAIAnimation() {
-    if (_aiAnimated) return;
-    _aiAnimated = true;
-    function replay() {
-      var panel = document.getElementById('aiAfterPanel');
-      if (!panel) return;
-      panel.classList.remove('animating');
-      var lines = panel.querySelectorAll('.result-line');
-      lines.forEach(function(l) { l.style.animation = 'none'; });
-      requestAnimationFrame(function() {
-        lines.forEach(function(l) { l.style.animation = ''; });
-        requestAnimationFrame(function() {
-          panel.classList.add('animating');
-        });
-      });
-    }
-    replay();
-    _aiAnimInterval = setInterval(function() {
-      if (_currentSceneIdx !== 1) return;
-      replay();
-    }, 5000);
-  }
-
-  /* ===== Idle Autoscroll ===== */
-  var _autoscrollEnabled = true;
-  var _autoscrollTimer = null;
-  var IDLE_BEFORE_PLAY = 2000;
-  var SCENE_DWELL = 5000;
-
-  function setupIdleAutoscroll() {
-    ['wheel','touchstart','mousedown'].forEach(function(evt) {
-      window.addEventListener(evt, function() {
-        if (_autoscrollEnabled) stopAutoscroll();
-      }, { passive: true });
-    });
-    window.addEventListener('keydown', function(e) {
-      if (!document.body.classList.contains('welcome-mode')) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (_autoscrollEnabled) stopAutoscroll();
-        advanceScene();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (_autoscrollEnabled) stopAutoscroll();
-        goToPrevScene();
-      }
-    });
-  }
-  function scheduleNextAdvance(delay) {
-    if (!_autoscrollEnabled) return;
-    if (_autoscrollTimer) clearTimeout(_autoscrollTimer);
-    var dotsEl = document.getElementById('sceneDots');
-    if (dotsEl) dotsEl.classList.add('is-playing');
-    _autoscrollTimer = setTimeout(advanceScene, delay);
-  }
-  var _lastAdvanceTime = 0;
-  function advanceScene() {
-    var now = Date.now();
-    if (now - _lastAdvanceTime < 800) return;
-    _lastAdvanceTime = now;
-    if (!document.body.classList.contains('welcome-mode')) {
-      stopAutoscroll(); return;
-    }
-    var scenes = document.querySelectorAll('#view-welcome .scene');
-    var next = (_currentSceneIdx + 1) % scenes.length;
-    goToScene(next);
-    scheduleNextAdvance(SCENE_DWELL);
-  }
-  function goToPrevScene() {
-    if (!document.body.classList.contains('welcome-mode')) return;
-    var scenes = document.querySelectorAll('#view-welcome .scene');
-    var prev = _currentSceneIdx <= 0 ? scenes.length - 1 : _currentSceneIdx - 1;
-    goToScene(prev);
-  }
-  function goToScene(idx) {
-    var scenes = document.querySelectorAll('#view-welcome .scene');
-    if (!scenes[idx]) return;
-    scenes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
-    _currentSceneIdx = idx;
-    updateDotsActive();
-    if (idx === 1) triggerAIAnimation();
-    if (idx === 2) startDemoLoop();
-    else stopDemoLoop();
-  }
-  function stopAutoscroll() {
-    _autoscrollEnabled = false;
-    if (_autoscrollTimer) { clearTimeout(_autoscrollTimer); _autoscrollTimer = null; }
-    var dotsEl = document.getElementById('sceneDots');
-    if (dotsEl) dotsEl.classList.remove('is-playing');
-  }
-
-  /* ===== Fake Screen Recording Demo ===== */
-  var _demoInterval = null;
-  var _demoStepTimers = [];
-  var _demoFirstRun = true;
-  function startDemoLoop() {
-    if (_demoInterval) return;
-    _demoFirstRun = true;
-    runDemoStep();
-    _demoInterval = setInterval(function() {
-      if (_currentSceneIdx !== 2) { stopDemoLoop(); return; }
-      runDemoStep();
-    }, 5000);
-  }
-  function stopDemoLoop() {
-    if (_demoInterval) { clearInterval(_demoInterval); _demoInterval = null; }
-    clearDemoStepTimers();
-    var fc = document.getElementById('fakeCursor');
-    if (fc) fc.classList.remove('show');
-    var blanks = document.querySelectorAll('.passage-text .blank-word');
-    blanks.forEach(function(b) { b.classList.remove('active'); });
-    var ac = document.getElementById('apContent');
-    if (ac) ac.classList.remove('show');
-    var ae = document.getElementById('apEmpty');
-    if (ae) ae.style.display = '';
-  }
-  function clearDemoStepTimers() {
-    _demoStepTimers.forEach(function(t) { clearTimeout(t); });
-    _demoStepTimers = [];
-  }
-  function runDemoStep() {
-    clearDemoStepTimers();
-    var blanks = document.querySelectorAll('.passage-text .blank-word');
-    if (!blanks.length) return;
-    var idx = _demoFirstRun ? 0 : Math.floor(Math.random() * blanks.length);
-    _demoFirstRun = false;
-    var blank = blanks[idx];
-    var qno = blank.dataset.q;
-    var fakeCursor = document.getElementById('fakeCursor');
-    var screenBody = document.getElementById('screenBody');
-    var apEmpty = document.getElementById('apEmpty');
-    var apContent = document.getElementById('apContent');
-    var apQno = document.getElementById('apQno');
-    var apAnswer = document.getElementById('apAnswer');
-    var apReason = document.getElementById('apReason');
-
-    if (!fakeCursor || !screenBody) return;
-
-    fakeCursor.classList.remove('show');
-    blanks.forEach(function(b) { b.classList.remove('active'); });
-    if (apContent) apContent.classList.remove('show');
-    if (apEmpty) apEmpty.style.display = '';
-
-    _demoStepTimers.push(setTimeout(function() {
-      var blankRect = blank.getBoundingClientRect();
-      var bodyRect = screenBody.getBoundingClientRect();
-      fakeCursor.style.left = (blankRect.left - bodyRect.left + blankRect.width / 2 - 9) + 'px';
-      fakeCursor.style.top = (blankRect.top - bodyRect.top + blankRect.height / 2 - 12) + 'px';
-      fakeCursor.classList.add('show');
-    }, 200));
-
-    _demoStepTimers.push(setTimeout(function() {
-      blank.classList.add('active');
-    }, 500));
-
-    _demoStepTimers.push(setTimeout(function() {
-      if (apEmpty) apEmpty.style.display = 'none';
-      if (apContent) apContent.classList.add('show');
-      if (apQno) apQno.textContent = '第 ' + qno + ' 题';
-      if (apAnswer) apAnswer.textContent = blank.textContent;
-      if (apReason) {
-        var reasons = {
-          '56': '考点：定语从句（非限制性定语从句）<br>先行词 Go, or weiqi in Chinese 指物，且从句缺少主语，填 which。',
-          '58': '考点：非谓语动词（不定式作宾语）<br>固定搭配 hope to do sth.，填 to present。',
-          '59': '考点：词性转换（动词→名词）<br>形容词性物主代词 your 后接名词，guide → guidance。',
-          '60': '考点：谓语动词（被动语态）<br>主语 personalities 与 reveal 是被动关系，一般现在时复数，填 are revealed。'
-        };
-        apReason.innerHTML = reasons[qno] || '';
-      }
-        var cross1 = document.getElementById('apCross1');
-        var cross2 = document.getElementById('apCross2');
-        var cross3 = document.getElementById('apCross3');
-        if (cross1 && cross2 && cross3) {
-          var crossData = {
-            '56': ['2024 全国二卷 · 第 36 题 — 定语从句 (who)', '2024 全国一卷 · 第 64 题 — 定语从句 (that/which)', '错题本 · 3天前 — 定语从句'],
-            '58': ['2024 全国二卷 · 第 44 题 — 非谓语动词 (Recalling)', '2023 全国一卷 · 第 65 题 — 非谓语动词 (wanting)', '错题本 · 昨天 — 非谓语动词'],
-            '59': ['2024 全国二卷 · 第 42 题 — 词性转换 (visibility)', '2025 深圳一模 · 第 39 题 — 词性转换 (recovery)', '错题本 · 5天前 — 词性转换'],
-            '60': ['2023 浙江首考 · 第 59 题 — 动词语态 (were permitted)', '2025 深圳一模 · 第 40 题 — 动词语态 (was forced)', '错题本 · 上周 — 动词语态']
-          };
-          var items = crossData[qno] || ['', '', ''];
-          cross1.innerHTML = '<span class="cross-dot"></span> ' + (items[0] || '');
-          cross2.innerHTML = '<span class="cross-dot"></span> ' + (items[1] || '');
-          cross3.innerHTML = '<span class="cross-dot"></span> ' + (items[2] || '');
-        }
-    }, 800));
-  }
-
-  /* ===== Scene 循环动画 ===== */
-  function setupSceneLoopAnimations() {
-    var moduleCards = document.querySelectorAll('.modules-grid .module-card');
-    if (moduleCards.length) {
-      var mi = -1;
-      setInterval(function() {
-        if (!document.body.classList.contains('welcome-mode')) return;
-        if (mi >= 0 && moduleCards[mi]) moduleCards[mi].classList.remove('spotlit');
-        mi = (mi + 1) % moduleCards.length;
-        if (moduleCards[mi]) moduleCards[mi].classList.add('spotlit');
-      }, 3000);
-    }
-    setInterval(function() {
-      if (!document.body.classList.contains('welcome-mode')) return;
-      document.querySelectorAll('.stat-num.counter').forEach(function(el) {
-        el.dataset.done = '';
-        animateCounter(el);
-      });
-    }, 35000);
-  }
-
-  function animateCounter(el) {
-    if (el.dataset.done === '1') return;
-    el.dataset.done = '1';
-    var target = parseInt(el.dataset.target || el.textContent, 10) || 0;
-    var dur = 1400;
-    var start = performance.now();
-    function tick(now) {
-      var t = Math.min(1, (now - start) / dur);
-      var e = 1 - Math.pow(1 - t, 3);
-      el.textContent = Math.round(target * e);
-      if (t < 1) requestAnimationFrame(tick);
-      else el.textContent = target;
-    }
-    requestAnimationFrame(tick);
-  }
+  /* 旧 #view-welcome 的分屏动画/演示/自动滚动 JS 已随单页合并删除 */
 
   /* ===== Auth Modal ===== */
   var _mode = 'signin';
@@ -1527,8 +1159,7 @@
   }
 
   function goHome() {
-    if (state.user) showView('modules');
-    else showView('welcome');
+    showView();
   }
 
   function toggleTheme() {
@@ -1555,19 +1186,10 @@
   window.toggleTheme = toggleTheme;
 
   (function syncInitView() {
-    var has = window.__hasSessionSync;
-    var w = document.getElementById('view-welcome');
+    // 单页：始终展示模块网格；has-session 仅切换头区文案（CSS 处理）
     var m = document.getElementById('view-modules');
-    if (has) {
-      if (w) w.classList.remove('active');
-      if (m) m.classList.add('active');
-      document.body.classList.remove('welcome-mode');
-    } else {
-      if (w) w.classList.add('active');
-      if (m) m.classList.remove('active');
-      document.body.classList.add('welcome-mode');
-      try { initWelcomeAnimations(); } catch(e) {}
-    }
+    if (m) m.classList.add('active');
+    document.documentElement.classList.toggle('has-session', !!window.__hasSessionSync);
     document.documentElement.classList.add('ready');
   })();
 
