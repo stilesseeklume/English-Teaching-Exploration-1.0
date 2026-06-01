@@ -3977,7 +3977,7 @@ test('home-render pure html output', async ({ page }) => {
   expect(out.catsHasCard).toBe(true);
 });
 
-test('迁移按 points 匹配：which→which、was built 命中过去时∪被动、无同point则空', async ({ page }) => {
+test('迁移按 points 匹配：which→which、was built 按首轴(过去时)纯池、无同point则空', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!window.GrammarMigrationTraining, null, { timeout: 15000 });
   expect(await page.evaluate(() => {
@@ -3989,6 +3989,7 @@ test('迁移按 points 匹配：which→which、was built 命中过去时∪被�
       { exam:'e3', no:3, category:'attrib', fine_category:'attrib-pronoun', points:[P('attrib-pronoun','that')], type:'真题' } ];
     var d = mt.buildMigrationData(which, { source:'bank', bankQuestions:bank, errorQuestions:[], categoryMap:{}, limit:99 });
     var ok1 = d.poolCount === 1 && d.migration[0] && d.migration[0].item.no === 2;
+    // was built: points=[pred-tense/past, pred-passive]。默认 pointIdx=0 → 只按 pred-tense/past 建纯池，仅命中 no11；no12(纯被动) 不入池。
     var wb = { exam:'e1', no:10, category:'predicate', fine_category:'pred-passive', points:[P('pred-tense','past'),P('pred-passive')], type:'真题' };
     var pbank = [ wb,
       { exam:'e2', no:11, category:'predicate', fine_category:'pred-tense', points:[P('pred-tense','past')], type:'真题' },
@@ -3996,7 +3997,7 @@ test('迁移按 points 匹配：which→which、was built 命中过去时∪被�
       { exam:'e4', no:13, category:'predicate', fine_category:'pred-tense', points:[P('pred-tense','present')], type:'真题' } ];
     var d2 = mt.buildMigrationData(wb, { source:'bank', bankQuestions:pbank, errorQuestions:[], categoryMap:{}, limit:99 });
     var nos = d2.migration.map(function(m){ return m.item.no; }).sort().join(',');
-    var ok2 = d2.poolCount === 2 && nos === '11,12';
+    var ok2 = d2.poolCount === 1 && nos === '11';
     var lonely = { exam:'e1', no:20, category:'attrib', fine_category:'attrib-as', points:[P('attrib-as','as')], type:'真题' };
     var d3 = mt.buildMigrationData(lonely, { source:'bank', bankQuestions:[lonely], errorQuestions:[], categoryMap:{}, limit:99 });
     var ok3 = d3.poolCount === 0 && !!d3.emptyState;
@@ -4297,4 +4298,51 @@ test('buildLeafWordBreakdown 按 points.key 分词：art-a-an 显 a/an(非合并
     // a=2(real2), an=1(real0,模拟卷), 无 'a-an' chip
     return [ a && a.total, a && a.real, an && an.total, an && an.real, combined === undefined ].join(',');
   })).toBe('2,2,1,0,true');
+});
+
+test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+
+  const out = await page.evaluate(() => {
+    const M = window.GrammarMigrationTraining;
+    const q = { exam: 'EQ', no: 1, category: 'predicate', facets: { tense: '一般现在', voice: 'passive' } };
+    const bank = [
+      { exam: 'EA', no: 11, type: '真题', category: 'predicate', facets: { tense: '一般现在', voice: 'passive' } },
+      { exam: 'EB', no: 12, type: '真题', category: 'predicate', facets: { tense: '一般现在', agreement: true } },
+      { exam: 'EC', no: 13, type: '真题', category: 'predicate', facets: { tense: '一般过去', voice: 'passive' } },
+      { exam: 'ED', no: 14, type: '真题', category: 'predicate', facets: { agreement: true } }
+    ];
+    const opts = (pointIdx) => ({
+      source: 'bank',
+      bankQuestions: bank,
+      errorQuestions: [],
+      categoryMap: { predicate: '谓语动词' },
+      getFineTagInfo: function () { return null; },
+      getPointTitle: function (pts) { return pts.map(function (p) { return p.tag + (p.key ? ':' + p.key : ''); }).join(' + '); },
+      pointIdx: pointIdx,
+      limit: 9999
+    });
+    const d0 = M.buildMigrationData(q, opts(0));
+    const d1 = M.buildMigrationData(q, opts(1));
+    const nos = (d) => d.migration.map(function (e) { return e.item.no; }).sort();
+    return {
+      tenseNos: nos(d0),
+      passiveNos: nos(d1),
+      headerHasPlus: d0.headerLabel.indexOf(' + ') !== -1,
+      chipsLen0: (d0.pointChips || []).length,
+      chip0Active: (d0.pointChips || [])[0] && d0.pointChips[0].active,
+      chip1Active1: (d1.pointChips || [])[1] && d1.pointChips[1].active
+    };
+  });
+
+  expect(out.tenseNos).toEqual([11, 12]);
+  expect(out.passiveNos).toEqual([11, 13]);
+  expect(out.headerHasPlus).toBe(false);
+  expect(out.chipsLen0).toBe(2);
+  expect(out.chip0Active).toBe(true);
+  expect(out.chip1Active1).toBe(true);
+  expect(errors).toEqual([]);
 });

@@ -289,9 +289,16 @@
     }).length;
   }
 
-  // 取题的考点清单：优先 item.points；缺失时回退到 [{tag: fine_category}]（兼容未派生场景）
+  // 取题的考点清单：优先 item.points；谓语题缺 points 时从 facets 派生多轴；其余回退 fine_category / category。
   function questionPoints(item) {
     if (item && Array.isArray(item.points) && item.points.length) return item.points;
+    // 谓语题：从 facets 派生多轴（pred-tense/pred-passive/pred-agreement），需 GrammarQuestionPoints 运行时可用。
+    if (item && item.category === 'predicate'
+        && window.GrammarQuestionPoints
+        && typeof window.GrammarQuestionPoints.buildQuestionPoints === 'function') {
+      var derived = window.GrammarQuestionPoints.buildQuestionPoints(item);
+      if (derived && derived.length) return derived;
+    }
     // 回退：有 fine_category 用之；否则用 category 级伪 tag(同大类可匹配)
     if (item && item.fine_category) return [{ tag: item.fine_category }];
     return [{ tag: 'cat:' + ((item && item.category) || '') }];
@@ -308,6 +315,19 @@
         var bk = String(bp[j].key == null ? '' : bp[j].key);
         if (ak === bk || ak === '' || bk === '') return true;
       }
+    }
+    return false;
+  }
+
+  // item 是否带有与 point 同 tag 的考点，且(同 key，或任一方 keyless 通配)。单点匹配版。
+  function questionMatchesPoint(item, point) {
+    if (!point) return false;
+    var ip = questionPoints(item);
+    var pk = String(point.key == null ? '' : point.key);
+    for (var i = 0; i < ip.length; i++) {
+      if (ip[i].tag !== point.tag) continue;
+      var ik = String(ip[i].key == null ? '' : ip[i].key);
+      if (ik === pk || ik === '' || pk === '') return true;
     }
     return false;
   }
@@ -348,12 +368,18 @@
       return item.category === q.category && !sameQuestion(item, q);
     });
 
-    // 显示池=与当前题共享至少一个 point（考点）的题，排除自身。多标签题(谓语)按任一轴命中取并集。
+    // 当前题考点清单(谓语已按 时态→被动→主谓一致 顺序派生)；选中一个考点(默认时态)，只按它建纯池。
+    var points = questionPoints(q);
+    var pointIdx = (typeof options.pointIdx === 'number' && options.pointIdx >= 0 && options.pointIdx < points.length)
+      ? options.pointIdx : 0;
+    var selectedPoint = points[pointIdx];
+
+    // 显示池=只与选中考点匹配的题(去并集)，排除自身。
     var pointBankPool = bankQuestions.filter(function(item) {
-      return !sameQuestion(item, q) && questionsSharePoint(q, item);
+      return !sameQuestion(item, q) && questionMatchesPoint(item, selectedPoint);
     });
     var pointErrorPool = errorQuestions.filter(function(item) {
-      return !sameQuestion(item, q) && questionsSharePoint(q, item);
+      return !sameQuestion(item, q) && questionMatchesPoint(item, selectedPoint);
     });
 
     var bankDisplayPool = dedupe(pointBankPool);
@@ -364,9 +390,7 @@
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
     // 表头优先用考点面包屑(精确到 where/a/一般现在，与考点训练同口径)；解析不出再回退 fine 粗名。
     // 标题里的具体词只在当前来源池对该 key 同质时保留，否则退回 tag 级(避免"标题 from / 展示 to")。
-    var titlePoints = questionPoints(q).map(function(p) {
-      return poolHomogeneousOnKey(pool, p) ? p : { tag: p.tag };
-    });
+    var titlePoints = [ poolHomogeneousOnKey(pool, selectedPoint) ? selectedPoint : { tag: selectedPoint.tag } ];
     var pointTitle = (typeof options.getPointTitle === 'function')
       ? (options.getPointTitle(titlePoints) || '')
       : '';
@@ -404,6 +428,17 @@
       };
     });
 
+    var catLabel = categoryMap[q.category] || q.category || '';
+    function chipLabel(fullTitle) {
+      var s = String(fullTitle || '').replace(/^按考点\s*·?\s*/, '');
+      if (catLabel && s.indexOf(catLabel + ' · ') === 0) s = s.slice((catLabel + ' · ').length);
+      return s.split(' · ').join('·');
+    }
+    var getPointTitleFn = (typeof options.getPointTitle === 'function') ? options.getPointTitle : function() { return ''; };
+    var pointChips = points.map(function(p, i) {
+      return { idx: i, label: chipLabel(getPointTitleFn([p])), active: i === pointIdx };
+    });
+
     return {
       q: q,
       fineInfo: fineInfo,
@@ -413,7 +448,8 @@
       tabs: tabs,
       categoryName: categoryMap[q.category] || q.category || '',
       emptyState: emptyState,
-      migration: migration
+      migration: migration,
+      pointChips: pointChips
     };
   }
 
@@ -436,6 +472,7 @@
     buildMigrationPanelViewModel: buildMigrationPanelViewModel,
     buildMigrationContentViewModel: buildMigrationContentViewModel,
     countAnalysisMigrationCandidates: countAnalysisMigrationCandidates,
+    questionMatchesPoint: questionMatchesPoint,
     buildMigrationData: buildMigrationData
   };
 })();
