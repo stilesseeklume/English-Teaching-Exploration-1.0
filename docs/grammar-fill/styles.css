@@ -1643,13 +1643,6 @@
     color: var(--text);
   }
 
-  .mig-filter-chip {
-    border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
-    color: var(--text-2); padding: 4px 12px; font-size: 12px; font-family: inherit;
-    cursor: pointer; transition: all .12s;
-  }
-  .mig-filter-chip:hover { border-color: var(--accent); color: var(--accent); }
-  .mig-filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   .migration-card {
     border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
     margin-bottom: 12px; cursor: pointer; transition: all .15s;

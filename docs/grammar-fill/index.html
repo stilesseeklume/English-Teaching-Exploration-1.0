@@ -600,24 +600,6 @@ function sameQuestion(a, b) {
   return window.GrammarMigrationTraining.sameQuestion(a, b);
 }
 
-function nonpAxisExactMatch(item, q) {
-  return window.GrammarMigrationTraining.nonpAxisExactMatch(item, q);
-}
-
-function nonpAxisFormMatch(item, q) {
-  return window.GrammarMigrationTraining.nonpAxisFormMatch(item, q);
-}
-
-function teachingMigrationDeps(focus, nonpAxis) {
-  return {
-    focus: focus,
-    nonpAxis: nonpAxis,
-    safeQuestionFocus: safeQuestionFocus,
-    getNonpAxis: getNonpAxis,
-    getQuestionPracticalGuide: getQuestionPracticalGuide
-  };
-}
-
 function teachingViewModelDeps() {
   return {
     categoryMap: CATEGORY_MAP,
@@ -3233,14 +3215,6 @@ function toggleAnalysisFloat(kind, btn) {
   }
 }
 
-function getTeachingMigrationKeys(q, focus, nonpAxis) {
-  return window.GrammarMigrationTraining.getTeachingMigrationKeys(q, teachingMigrationDeps(focus, nonpAxis));
-}
-
-function hasTeachingMigrationOverlap(item, q, qKeys) {
-  return window.GrammarMigrationTraining.hasTeachingMigrationOverlap(item, q, qKeys, teachingMigrationDeps());
-}
-
 function buildAnalysisContent(q) {
   q = q || {};
   var sent = renderSentenceWithBlank(q, true);
@@ -3369,20 +3343,6 @@ function toggleMigrationShowAll() {
     try {
       document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedState.selectedQuestion);
     } catch (e) { console.error('迁移展开失败：', e); }
-  }
-}
-
-// 迁移内筛选（原型）：纯前端 show/hide 同 tag 题，按答案派生的筛选键收窄。key 为空=全部
-function filterMigrationCards(btn, key) {
-  var row = btn && btn.parentNode;
-  if (!row) return;
-  var chips = row.querySelectorAll('.mig-filter-chip');
-  for (var i = 0; i < chips.length; i++) chips[i].classList.toggle('active', chips[i] === btn);
-  var scope = row.parentNode || document;
-  var cards = scope.querySelectorAll('[data-mig-filter]');
-  for (var j = 0; j < cards.length; j++) {
-    var show = !key || cards[j].getAttribute('data-mig-filter') === key;
-    cards[j].style.display = show ? '' : 'none';
   }
 }
 
@@ -3895,13 +3855,7 @@ function getMigrationData(q) {
     bankQuestions: ALL_QUESTIONS,
     errorQuestions: errorBookQuestions,
     categoryMap: CATEGORY_MAP,
-    safeQuestionFocus: safeQuestionFocus,
-    safeQuestionFocusKey: safeQuestionFocusKey,
-    safeQuestionTrap: safeQuestionTrap,
-    safeQuestionTrapId: safeQuestionTrapId,
     getFineTagInfo: getFineTagInfo,
-    getNonpAxis: getNonpAxis,
-    getQuestionPracticalGuide: getQuestionPracticalGuide,
     scope: _migrationScope,
     fineTags: window.GRAMMAR_FINE_TAGS,
     limit: _migrationShowAll ? 9999 : 6
@@ -5959,7 +5913,6 @@ Object.assign(window, {
   sendAssistantMsg: sendAssistantMsg,
   setMigrationSource: setMigrationSource,
   toggleMigrationShowAll: toggleMigrationShowAll,
-  filterMigrationCards: filterMigrationCards,
   setDrawerProjectionSize: setDrawerProjectionSize,
   searchGlobalGraph: searchGlobalGraph,
   showGlobalKnowledgeNode: showGlobalKnowledgeNode,

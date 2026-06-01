@@ -965,17 +965,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var knowledgeModel = window.GrammarKnowledgeViewModel;
     var savedModel = window.GrammarSavedMaterialsModel;
     var wordImportModel = window.GrammarWordImportModel;
-    var migrationKeys = migrationModel && migrationModel.getTeachingMigrationKeys(question, {
-      focus: focusFromModule,
-      nonpAxis: axis,
-      getQuestionPracticalGuide: function(){ return guide; }
-    });
-    var migrationOverlap = migrationModel && migrationModel.hasTeachingMigrationOverlap(
-      { exam: 'smoke', no: 999, id: 'smoke-overlap' },
-      question,
-      ['smoke-key'],
-      { getQuestionPracticalGuide: function(){ return { migrationKeys: ['smoke-key'] }; } }
-    );
     var migrationData = migrationModel && migrationModel.buildMigrationData(question, {
       source: 'bank',
       bankQuestions: window.GRAMMAR_BANK.questions || [],
@@ -1867,7 +1856,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && teachingGlobalGraphOpenPlan.selectDelayMs === 80
       && emptyTeachingGlobalGraphOpenPlan && emptyTeachingGlobalGraphOpenPlan.action === 'none'
       && emptyTeachingGlobalGraphOpenPlan.active === false
-      && migrationKeys && migrationKeys.length && migrationOverlap === true
       && migrationData && migrationData.tabs && migrationData.tabs.length === 3
       && migrationData.headerLabel && migrationData.poolCount >= migrationData.migration.length
       && migrationData.migration && migrationData.migration.length
@@ -3183,27 +3171,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive'; });
   })).toBe(true);
 
-  // 迁移内筛选（原型）：闭合类出筛选片、开放类不出、非谓语用 nonp_form
-  expect(await page.evaluate(() => {
-    var mt = window.GrammarMigrationTraining;
-    if (!mt.buildMigrationFilterChips || !mt.migrationFilterKey) return 'no-fn';
-    var closed = mt.buildMigrationFilterChips([
-      { filterKey: 'doing' }, { filterKey: 'doing' }, { filterKey: 'done' }, { filterKey: 'to do' }
-    ]);
-    var open = mt.buildMigrationFilterChips(
-      Array.apply(null, { length: 10 }).map(function(_, i) { return { filterKey: 'adj' + i }; })
-    );
-    // 实词噪音：3 个键各 count=1（每题不同 verb）→ 抑制，不出片
-    var singletons = mt.buildMigrationFilterChips([{ filterKey: 'a' }, { filterKey: 'b' }, { filterKey: 'c' }]);
-    var formKey = mt.migrationFilterKey({ nonp_form: 'doing', answer: 'running' });
-    var wordKey = mt.migrationFilterKey({ answer: 'What' });
-    var phraseKey = mt.migrationFilterKey({ answer: 'were permitted' });
-    return (closed.length === 3 && open.length === 0 && singletons.length === 0 && formKey === 'doing'
-      && wordKey === 'what' && phraseKey === '') ? 'ok'
-      : 'bad:' + closed.length + '/' + open.length + '/' + singletons.length + '/' + formKey + '/' + wordKey + '/' + phraseKey;
-  })).toBe('ok');
-
-  // T4：facets 可缩放范围（word↔type↔category）—— 纯逻辑
+  // facets 可缩放范围（word↔type↔category）—— 纯逻辑
   expect(await page.evaluate(() => {
     var mt = window.GrammarMigrationTraining;
     if (!mt.buildMigrationScopes || !mt.migrationMatchesScope) return 'no-fn';
@@ -3312,11 +3280,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     cm.entries.forEach(function(e){ e.stageSentenceHtml = '<span>x</span>'; });
     var stage = window.GrammarTeachingRender.migrationStageHtml(cm);
     var drawer = window.GrammarTeachingRender.migrationDrawerHtml(cm);
-    // 前置条件：选择器确实不可见且旧逻辑本会生成 filterChips（否则测试无意义）
-    return (!cm.scopeSelector.visible && cm.filterChips.length >= 2
+    // 选择器不可见(无facets)时也不再有旧 chip；且 filterChips 字段已随体系B删除
+    return (!cm.scopeSelector.visible && cm.filterChips === undefined
       && stage.indexOf('mig-filter-chip') === -1
       && drawer.indexOf('mig-filter-chip') === -1) ? 'ok'
-      : 'bad:selVisible=' + cm.scopeSelector.visible + '/chips=' + cm.filterChips.length
+      : 'bad:selVisible=' + cm.scopeSelector.visible + '/filterChips=' + (typeof cm.filterChips)
         + '/stageChip=' + (stage.indexOf('mig-filter-chip')!==-1) + '/drawerChip=' + (drawer.indexOf('mig-filter-chip')!==-1);
   })).toBe('ok');
 

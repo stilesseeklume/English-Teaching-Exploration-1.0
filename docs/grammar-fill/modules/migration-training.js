@@ -123,21 +123,6 @@
     );
   }
 
-  function nonpAxisExactMatch(item, q) {
-    return item && q && item.category === 'nonpredicate' && q.category === 'nonpredicate'
-      && item.nonp_form && q.nonp_form
-      && item.nonp_function && q.nonp_function
-      && item.nonp_form === q.nonp_form
-      && item.nonp_function === q.nonp_function;
-  }
-
-  function nonpAxisFormMatch(item, q) {
-    return item && q && item.category === 'nonpredicate' && q.category === 'nonpredicate'
-      && item.nonp_form && q.nonp_form
-      && item.nonp_form === q.nonp_form
-      && !nonpAxisExactMatch(item, q);
-  }
-
   function dedupe(items) {
     var seen = {};
     return (items || []).filter(function(item) {
@@ -179,50 +164,6 @@
     ];
   }
 
-  function buildDisplayPools(options) {
-    options = options || {};
-    var nonpAxis = !!options.nonpAxis;
-    var focusFirst = !!options.focusFirst;
-    var bankDisplayPool = nonpAxis
-      ? dedupe([].concat(
-          options.nonpExactBankPool || [],
-          options.nonpFormBankPool || []
-        ))   // 非谓语迁移只取同形式(doing/done/to_do)，不灌粗类避免 doing 题混进一堆 todo
-      : (focusFirst
-          ? dedupe([].concat(options.teachingBankPool || [], options.bankPool || [], options.trapBankPool || [], options.fineBankPool || []))
-          : dedupe([].concat(options.teachingBankPool || [], options.fineBankPool || [], options.trapBankPool || [], options.bankPool || [])));
-
-    var errorDisplayPool = nonpAxis
-      ? dedupe([].concat(
-          options.nonpExactErrorPool || [],
-          options.nonpFormErrorPool || []
-        ))
-      : (focusFirst
-          ? dedupe([].concat(options.teachingErrorPool || [], options.errorPool || [], options.trapErrorPool || [], options.fineErrorPool || []))
-          : dedupe([].concat(options.teachingErrorPool || [], options.fineErrorPool || [], options.trapErrorPool || [], options.errorPool || [])));
-
-    return {
-      bankDisplayPool: bankDisplayPool,
-      errorDisplayPool: errorDisplayPool,
-      allDisplayPool: dedupe(bankDisplayPool.concat(errorDisplayPool))
-    };
-  }
-
-  function getTeachingMigrationKeys(q, deps) {
-    deps = deps || {};
-    var focus = deps.focus || (deps.safeQuestionFocus ? deps.safeQuestionFocus(q) : null);
-    var nonpAxis = deps.nonpAxis || (deps.getNonpAxis ? deps.getNonpAxis(q) : null);
-    var guide = deps.getQuestionPracticalGuide ? deps.getQuestionPracticalGuide(q, focus, nonpAxis) : null;
-    return guide ? asArray(guide.migrationKeys) : [];
-  }
-
-  function hasTeachingMigrationOverlap(item, q, qKeys, deps) {
-    if (!item || !q || sameQuestion(item, q)) return false;
-    qKeys = asArray(qKeys);
-    if (!qKeys.length) return false;
-    var itemKeys = getTeachingMigrationKeys(item, deps);
-    return itemKeys.some(function(key) { return qKeys.indexOf(key) !== -1; });
-  }
 
   function fallbackFocus(q) {
     q = q || {};
@@ -383,33 +324,6 @@
     };
   }
 
-  // 迁移内筛选（原型）：tag 内按"具体词/形式"下钻。筛选键优先用非谓语已存的 nonp_form，
-  // 其次用单词答案本身；开放类（形容词等每题不同）会产生过多键，由 chip 数量阈值过滤掉。
-  function migrationFilterKey(item) {
-    item = item || {};
-    if (item.nonp_form) return String(item.nonp_form);
-    var ans = String(item.answer || '').trim().toLowerCase();
-    if (ans && ans.indexOf(' ') === -1 && ans.length <= 12) return ans;
-    return '';
-  }
-
-  function buildMigrationFilterChips(entries) {
-    var counts = {}, order = [];
-    asArray(entries).forEach(function(e) {
-      var k = e && e.filterKey;
-      if (!k) return;
-      if (!(k in counts)) { counts[k] = 0; order.push(k); }
-      counts[k]++;
-    });
-    // 只在 2~8 个不同键时显示筛选片：闭合类(doing/what/and)出片，开放类(形容词)不出
-    if (order.length < 2 || order.length > 8) return [];
-    // 抑制实词噪音：清一色 count=1（每题不同的 verb/形容词）无分组意义，不出片；
-    // 至少有一个键重复(count>=2)才说明有真正的"同类"组（如 and:7 / what:3）
-    var maxCount = order.reduce(function(m, k) { return counts[k] > m ? counts[k] : m; }, 0);
-    if (maxCount < 2) return [];
-    return order.map(function(k) { return { key: k, label: k, count: counts[k] }; });
-  }
-
   function buildMigrationContentViewModel(data, source, showAll) {
     data = data || {};
     var panel = buildMigrationPanelViewModel(data, source);
@@ -422,12 +336,10 @@
         item: entry.item || {},
         sentenceHtml: entry.sentenceHtml || '',
         row: buildMigrationEntryViewModel(entry, index),
-        card: buildMigrationCardViewModel(entry),
-        filterKey: migrationFilterKey(entry.item || {})
+        card: buildMigrationCardViewModel(entry)
       };
     });
     return {
-      filterChips: buildMigrationFilterChips(entries),
       scopeSelector: buildMigrationScopeSelectorModel(data.scopes, data.activeScope, data.categoryName),
       tabs: panel.tabs,
       heading: panel.heading,
@@ -578,24 +490,17 @@
     buildMigrationScopeSelectorModel: buildMigrationScopeSelectorModel,
     asArray: asArray,
     sameQuestion: sameQuestion,
-    nonpAxisExactMatch: nonpAxisExactMatch,
-    nonpAxisFormMatch: nonpAxisFormMatch,
     dedupe: dedupe,
     onePerExam: onePerExam,
     selectMigrationItems: selectMigrationItems,
     selectSourcePool: selectSourcePool,
     buildTabs: buildTabs,
-    buildDisplayPools: buildDisplayPools,
-    getTeachingMigrationKeys: getTeachingMigrationKeys,
-    hasTeachingMigrationOverlap: hasTeachingMigrationOverlap,
     getMigrationEntryTypeMeta: getMigrationEntryTypeMeta,
     buildMigrationEntryViewModel: buildMigrationEntryViewModel,
     buildMigrationCardViewModel: buildMigrationCardViewModel,
     buildMigrationEmptyHintModel: buildMigrationEmptyHintModel,
     buildMigrationPanelViewModel: buildMigrationPanelViewModel,
     buildMigrationContentViewModel: buildMigrationContentViewModel,
-    migrationFilterKey: migrationFilterKey,
-    buildMigrationFilterChips: buildMigrationFilterChips,
     countAnalysisMigrationCandidates: countAnalysisMigrationCandidates,
     buildMigrationData: buildMigrationData
   };

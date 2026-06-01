@@ -158,21 +158,7 @@
     return html;
   }
 
-  // 迁移内筛选片（原型）：tag 内按具体词/形式下钻；纯前端 show/hide，由 filterMigrationCards 处理
-  function migrationFilterChipsHtml(chips) {
-    chips = chips || [];
-    if (!chips.length) return '';
-    var html = '<div class="migration-filter-row" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;">';
-    html += '<button type="button" class="mig-filter-chip active" onclick="filterMigrationCards(this,\'\')">全部</button>';
-    chips.forEach(function(c) {
-      html += '<button type="button" class="mig-filter-chip" onclick="filterMigrationCards(this,\'' + window.escapeHtml(c.key) + '\')">'
-        + window.escapeHtml(c.label) + ' <span style="opacity:.55;">' + c.count + '</span></button>';
-    });
-    html += '</div>';
-    return html;
-  }
-
-  // T4：facets 范围选择器（本词 → 本类型 → 整个大类）。点击调 setMigrationScope 重渲染。
+  // facets 范围选择器（本词 → 本类型 → 整个大类）。点击调 setMigrationScope 重渲染。
   function migrationScopeSelectorHtml(selector) {
     if (!selector || !selector.visible || !selector.buttons || !selector.buttons.length) return '';
     var html = '<div class="migration-scope-row" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center;">';
@@ -233,7 +219,7 @@
           + window.escapeHtml(cardModel.typeTag.label)
           + '</span>';
       }
-      html += '<div class="migration-card" data-mig-filter="' + window.escapeHtml(entryModel.filterKey || '') + '" onclick="jumpToMigrationQuestionById(\'' + entryModel.id + '\')">'
+      html += '<div class="migration-card" onclick="jumpToMigrationQuestionById(\'' + entryModel.id + '\')">'
         + '<div class="migration-card-head">'
         + '<span class="migration-card-source"' + (cardModel.sourceAccent ? ' style="color:var(--accent);"' : '') + '>'
         +    window.escapeHtml(cardModel.sourceLabel) + typeTagHtml + ' · 第' + window.escapeHtml(cardModel.questionNo) + '题</span>'
@@ -280,7 +266,7 @@
     html += '<div class="teaching-migration-scroll">';
     contentModel.entries.forEach(function(entryModel) {
       var rowModel = entryModel.row;
-      html += '<div class="teaching-migration-row' + rowModel.rowClass + '" data-mig-filter="' + window.escapeHtml(entryModel.filterKey || '') + '">'
+      html += '<div class="teaching-migration-row' + rowModel.rowClass + '">'
         + '<div class="teaching-migration-index">'
         + '<strong>' + window.escapeHtml(rowModel.indexText) + '</strong>'
         + '<span class="teaching-migration-type' + rowModel.typeClass + '">' + window.escapeHtml(rowModel.typeLabel) + '</span>'
