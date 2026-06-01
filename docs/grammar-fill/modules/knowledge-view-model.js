@@ -71,8 +71,20 @@
     return { bank: bankItems.length, error: errorCount, real: realCount, total: bankItems.length + errorCount };
   }
 
+  // 取题在某 tag 下的迁移细分值：优先 points 里同 tag 的 key（与迁移口径一致，如冠词 a/an），回退 facets.word。
+  function pointKeyForTag(q, tag) {
+    if (q && Array.isArray(q.points)) {
+      for (var i = 0; i < q.points.length; i++) {
+        var p = q.points[i];
+        if (p && p.tag === tag && p.key) return String(p.key);
+      }
+    }
+    return (q && q.facets && q.facets.word) || '';
+  }
+
   // 取某 fine tag 的"具体词"分布。闭合类(tag.words)列全标0；介词(category.core_words)核心打底+题库追加；
   // 其余大类返回空(不下钻)。每词 {word,total,real}，有题在前(total降序)，0题词按预定义顺序排后。
+  // 词取 points.key（与迁移筛选同口径，回退 facets.word）——冠词 a/an 因此正确分开而非合并 'a-an'。
   function buildLeafWordBreakdown(fineId, fineTags, bankQuestions, errorQuestions) {
     fineTags = fineTags || {};
     var tag = (fineTags.tags_by_id || {})[fineId];
@@ -81,7 +93,7 @@
     function tally(pool, isBank) {
       asArray(pool).forEach(function(q) {
         if (!q || q.fine_category !== fineId) return;
-        var w = (q.facets || {}).word;
+        var w = pointKeyForTag(q, fineId);
         if (!w) return;
         if (!counts[w]) counts[w] = { total: 0, real: 0 };
         counts[w].total++;

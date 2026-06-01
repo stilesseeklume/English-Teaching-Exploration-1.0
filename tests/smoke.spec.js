@@ -4221,3 +4221,23 @@ test('Phase2 卫生：scope 死代码已删除', async ({ page }) => {
     return [gone, noScopeFields, cm.scopeSelector === undefined].join(',');
   })).toBe('true,true,true');
 });
+
+test('buildLeafWordBreakdown 按 points.key 分词：art-a-an 显 a/an(非合并a-an)', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarKnowledgeViewModel, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var kvm = window.GrammarKnowledgeViewModel;
+    // a/an 题：points.key 区分 a/an，但 facets.word 是合并值 'a-an'（数据现状）
+    var bank = [
+      { fine_category:'art-a-an', points:[{tag:'art-a-an',key:'a'}],  facets:{word:'a-an'}, type:'真题' },
+      { fine_category:'art-a-an', points:[{tag:'art-a-an',key:'a'}],  facets:{word:'a-an'}, type:'真题' },
+      { fine_category:'art-a-an', points:[{tag:'art-a-an',key:'an'}], facets:{word:'a-an'}, type:'模拟卷' }
+    ];
+    var ft = { tags_by_id:{ 'art-a-an':{ id:'art-a-an', category:'article', words:['a','an'] } }, categories:{} };
+    var br = kvm.buildLeafWordBreakdown('art-a-an', ft, bank, []);
+    function find(w){ return br.filter(function(x){ return x.word === w; })[0]; }
+    var a = find('a'), an = find('an'), combined = find('a-an');
+    // a=2(real2), an=1(real0,模拟卷), 无 'a-an' chip
+    return [ a && a.total, a && a.real, an && an.total, an && an.real, combined === undefined ].join(',');
+  })).toBe('2,2,1,0,true');
+});
