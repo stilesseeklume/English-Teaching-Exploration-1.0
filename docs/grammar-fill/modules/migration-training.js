@@ -28,93 +28,6 @@
     return [value];
   }
 
-  // T4：facets 可缩放范围（由细到粗）。一把尺子：
-  //   word     级 ← facets.word || facets.form     （最细：具体引导词/形式，如 which / doing）
-  //   type     级 ← facets.type || facets.subtype  （中：结构子类，如 relative-pronoun / derivation）
-  //   category 级 ← item.category 大类             （最粗：13 大类，如 attrib / nonpredicate）
-  // 谓语 {tense,voice,agreement} 无 word/type 键 → 仅 category 一级（时态轴以后再增强）。
-  function facetWordValue(facets) {
-    facets = facets || {};
-    if (facets.word) return String(facets.word);
-    if (facets.form) return String(facets.form);
-    return '';
-  }
-
-  function facetTypeValue(facets) {
-    facets = facets || {};
-    if (facets.type) return String(facets.type);
-    if (facets.subtype) return String(facets.subtype);
-    return '';
-  }
-
-  function buildMigrationScopes(facets, fineCategory, category, fineTagsByCategory) {
-    facets = facets || {};
-    var scopes = [];
-    var wordVal = facetWordValue(facets);
-    if (wordVal) scopes.push({ level: 'word', value: wordVal });
-    // 第②档：该大类全部 fine tag 固定全列（含0题），不再只取当前题 type
-    var tags = (fineTagsByCategory && category) ? (fineTagsByCategory[category] || []) : [];
-    tags.forEach(function(tag) {
-      if (tag && tag.id) scopes.push({ level: 'finetag', value: tag.id, label: tag.name || tag.id });
-    });
-    if (category) scopes.push({ level: 'category', value: String(category) });
-    return scopes;
-  }
-
-  function migrationMatchesScope(item, scope) {
-    if (!item || !scope) return false;
-    var facets = item.facets || {};
-    if (scope.level === 'word') return facetWordValue(facets) === scope.value;
-    if (scope.level === 'finetag') return String(item.fine_category || '') === scope.value;
-    if (scope.level === 'type') return facetTypeValue(facets) === scope.value;
-    if (scope.level === 'category') return String(item.category || '') === scope.value;
-    return false;
-  }
-
-  // 范围选择器友好标签（未覆盖的值回退原串，标签非硬约束，可后续细化）
-  var SCOPE_VALUE_LABELS = {
-    'to-do': '不定式', 'doing': '分词/动名词', 'done': '过去分词',
-    'derivation': '派生词', 'comparative': '比较级', 'superlative': '最高级',
-    'gerund': '动名词', 'participle-adj': '分词形容词', 'selection': '形/副选用',
-    'personal': '人称代词', 'indefinite': '不定代词', 'it': '形式 it',
-    'plural': '名词复数', 'possessive': '名词所有格', 'numeral': '数词',
-    'relative-pronoun': '关系代词', 'relative-adverb': '关系副词',
-    'prep-relative': '介词+关系词', 'as-relative': 'as 关系词',
-    'that': 'that 引导', 'whether-if': 'whether/if', 'wh-pronoun': '连接代词',
-    'wh-adverb': '连接副词', 'wh-ever': 'wh-ever',
-    'time': '时间', 'cause': '原因', 'place': '地点', 'condition': '条件',
-    'manner': '方式', 'concession': '让步', 'comparison': '比较',
-    'purpose': '目的', 'result': '结果',
-    'coordinating': '并列', 'correlative': '关联'
-  };
-
-  function scopeButtonLabel(scope, categoryName) {
-    if (!scope) return '';
-    if (scope.level === 'category') return '整个' + (categoryName || scope.value);
-    if (scope.level === 'finetag') return scope.label || scope.value;
-    return SCOPE_VALUE_LABELS[scope.value] || scope.value;
-  }
-
-  function sameScope(a, b) {
-    return !!(a && b && a.level === b.level && a.value === b.value);
-  }
-
-  // 范围选择器视图模型：由细到粗的按钮，标注当前激活档。
-  function buildMigrationScopeSelectorModel(scopes, activeScope, categoryName) {
-    scopes = asArray(scopes);
-    if (scopes.length < 2) return { visible: false, buttons: [] };
-    var buttons = scopes.map(function(s) {
-      return {
-        level: s.level,
-        value: s.value,
-        count: Number(s.count) || 0,
-        label: scopeButtonLabel(s, categoryName),
-        active: sameScope(s, activeScope)
-      };
-    });
-    return { visible: true, buttons: buttons };
-  }
-
   function sameQuestion(a, b) {
     return a && b && (
       (a.exam === b.exam && String(a.no) === String(b.no)) ||
@@ -340,7 +253,6 @@
       };
     });
     return {
-      scopeSelector: buildMigrationScopeSelectorModel(data.scopes, data.activeScope, data.categoryName),
       tabs: panel.tabs,
       heading: panel.heading,
       subline: panel.subline,
@@ -426,8 +338,6 @@
     var errorDisplayPool = dedupe(pointErrorPool);
     var pool = selectSourcePool(source, bankDisplayPool, errorDisplayPool);
     var tabs = buildTabs(bankDisplayPool, errorDisplayPool);
-    var scopes = [];       // 范围选择器已废弃：points 自带粒度
-    var activeScope = null;
 
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
     var headerLabel = resolvedFineInfo
@@ -467,8 +377,6 @@
       headerSubLabel: headerSubLabel,
       poolCount: pool.length,
       tabs: tabs,
-      scopes: scopes,
-      activeScope: activeScope,
       categoryName: categoryMap[q.category] || q.category || '',
       emptyState: emptyState,
       migration: migration
@@ -480,9 +388,6 @@
     isErrorQuestionItem: isErrorQuestionItem,
     isMockQuestion: isMockQuestion,
     isRealQuestion: isRealQuestion,
-    buildMigrationScopes: buildMigrationScopes,
-    migrationMatchesScope: migrationMatchesScope,
-    buildMigrationScopeSelectorModel: buildMigrationScopeSelectorModel,
     asArray: asArray,
     sameQuestion: sameQuestion,
     dedupe: dedupe,

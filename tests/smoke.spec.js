@@ -3171,39 +3171,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return qs.length > 0 && qs.every(function(q){ return q.fine_category === 'pred-passive'; });
   })).toBe(true);
 
-  // facets 可缩放范围（word↔type↔category）—— 纯逻辑
-  expect(await page.evaluate(() => {
-    var mt = window.GrammarMigrationTraining;
-    if (!mt.buildMigrationScopes || !mt.migrationMatchesScope) return 'no-fn';
-    // 非谓语 {form} → word + category 两级（无 type）
-    var nonp = mt.buildMigrationScopes({ form: 'doing' }, 'nonpred-doing', 'nonpredicate');
-    var nonpLevels = nonp.map(function(s){ return s.level; }).join(',');
-    // 传 fineTags：定从 → word + 5个finetag(含 only-that) + category
-    var tbc = window.GRAMMAR_FINE_TAGS.tags_by_category;
-    var attrib = mt.buildMigrationScopes({ word: 'which' }, 'attrib-pronoun', 'attrib', tbc);
-    var attribLevels = attrib.map(function(s){ return s.level; }).join(',');
-    var ftCount = attrib.filter(function(s){ return s.level === 'finetag'; }).length;
-    var attribWord = attrib[0] && attrib[0].value;
-    var attribCat = attrib[attrib.length - 1] && attrib[attrib.length - 1].value;
-    // 谓语不传 fineTags → 仅 category 一级
-    var pred = mt.buildMigrationScopes(
-      { tense: 'past', voice: 'passive', agreement: false }, 'pred-passive', 'predicate');
-    var predLevels = pred.map(function(s){ return s.level; }).join(',');
-    // 匹配：word=form/word；finetag=fine_category；category=item.category
-    var mWordForm = mt.migrationMatchesScope({ facets: { form: 'doing' } }, { level: 'word', value: 'doing' });
-    var mWordNo = mt.migrationMatchesScope({ facets: { form: 'done' } }, { level: 'word', value: 'doing' });
-    var mFine = mt.migrationMatchesScope({ fine_category: 'attrib-pronoun', facets: {} }, { level: 'finetag', value: 'attrib-pronoun' });
-    var mFineNo = mt.migrationMatchesScope({ fine_category: 'attrib-adverb', facets: {} }, { level: 'finetag', value: 'attrib-pronoun' });
-    var mCat = mt.migrationMatchesScope({ category: 'attrib', facets: {} }, { level: 'category', value: 'attrib' });
-    return (nonpLevels === 'word,category'
-      && attribWord === 'which' && ftCount === 5 && attribCat === 'attrib'
-      && attribLevels === 'word,finetag,finetag,finetag,finetag,finetag,category'
-      && predLevels === 'category'
-      && mWordForm === true && mWordNo === false && mFine === true && mFineNo === false && mCat === true) ? 'ok'
-      : 'bad:' + nonpLevels + '|' + attribLevels + '/' + attribWord + '/' + ftCount + '/' + attribCat + '|' + predLevels
-        + '|' + mWordForm + mWordNo + mFine + mFineNo + mCat;
-  })).toBe('ok');
-
   // 迁移按 points：art-a-an 题(回退 [{tag:art-a-an}]) → 命中同 art-a-an 的 no2，不含 art-the 的 no3；表头/卡片用 fine name；practicalGuide 桩被忽略。
   expect(await page.evaluate(() => {
     var mt = window.GrammarMigrationTraining;
@@ -3225,12 +3192,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       : 'bad:' + data.poolCount + '|' + (data.migration[0] && data.migration[0].item.no) + '|H=' + data.headerLabel + '|T=' + tag0;
   })).toBe('ok');
 
-  // T2：迁移渲染去掉旧答案派生 chip 回退。即便范围选择器不可见(无facets)，也不再渲染 mig-filter-chip。
+  // T2：迁移渲染去掉旧答案派生 chip 回退；scope 选择器整套已删（scopeSelector 字段不再存在），也不再渲染 mig-filter-chip。
   expect(await page.evaluate(() => {
     var mt = window.GrammarMigrationTraining;
     var ft = window.GRAMMAR_FINE_TAGS;
     var gfti = function(fc){ return window.GrammarQuestionModel.getFineTagInfo(fc, ft); };
-    // 故意不带 facets → scopes=[] → scopeSelector 不可见，逼出旧回退分支
     var q = { exam:'e1', no:1, category:'article', fine_category:'art-a-an', type:'真题', answer:'a' };
     var bank = [ q,
       { exam:'e2', no:2, category:'article', fine_category:'art-a-an', type:'真题', answer:'a' },
@@ -3242,11 +3208,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     cm.entries.forEach(function(e){ e.stageSentenceHtml = '<span>x</span>'; });
     var stage = window.GrammarTeachingRender.migrationStageHtml(cm);
     var drawer = window.GrammarTeachingRender.migrationDrawerHtml(cm);
-    // 选择器不可见(无facets)时也不再有旧 chip；且 filterChips 字段已随体系B删除
-    return (!cm.scopeSelector.visible && cm.filterChips === undefined
+    // scopeSelector / filterChips 字段已删除；渲染里无旧 chip
+    return (cm.scopeSelector === undefined && cm.filterChips === undefined
       && stage.indexOf('mig-filter-chip') === -1
       && drawer.indexOf('mig-filter-chip') === -1) ? 'ok'
-      : 'bad:selVisible=' + cm.scopeSelector.visible + '/filterChips=' + (typeof cm.filterChips)
+      : 'bad:scopeSelector=' + (typeof cm.scopeSelector) + '/filterChips=' + (typeof cm.filterChips)
         + '/stageChip=' + (stage.indexOf('mig-filter-chip')!==-1) + '/drawerChip=' + (drawer.indexOf('mig-filter-chip')!==-1);
   })).toBe('ok');
 
@@ -4241,4 +4207,17 @@ test('决策地图渲染：时态叶迁移按钮按 point；词 chip 带具体�
     var whichChip = html.indexOf("startByPointFromMap('attrib-pronoun',['which']") !== -1;
     return [tenseBtn, whichChip].join(',');
   })).toBe('true,true');
+});
+
+test('Phase2 卫生：scope 死代码已删除', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarMigrationTraining, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var gone = !mt.buildMigrationScopes && !mt.migrationMatchesScope && !mt.buildMigrationScopeSelectorModel;
+    var d = mt.buildMigrationData({ category:'attrib', points:[{tag:'attrib-pronoun',key:'which'}] }, { source:'bank', bankQuestions:[], errorQuestions:[], categoryMap:{} });
+    var noScopeFields = d.scopes === undefined && d.activeScope === undefined;
+    var cm = mt.buildMigrationContentViewModel(d, 'bank', false);
+    return [gone, noScopeFields, cm.scopeSelector === undefined].join(',');
+  })).toBe('true,true,true');
 });

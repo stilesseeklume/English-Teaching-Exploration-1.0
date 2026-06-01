@@ -3307,7 +3307,6 @@ applyMigrationSourceState(_migrationSource);
 
 function setMigrationSource(src) {
   _migrationShowAll = false;
-  _migrationScope = null;   // 换来源时复位范围档
   var practiceContext = getPracticeContextSnapshot();
   var sessionState = getTeachingSessionSnapshot();
   var session = sessionState.teachingSession;
@@ -3538,7 +3537,6 @@ function getTeachingMindmapFallback(q) {
 
 function openTeachingStageByIdx(idx, options) {
   _migrationShowAll = false;   // 切换题目时复位"显示全部"，避免状态串到下一题
-  _migrationScope = null;      // 切换题目时复位 facets 范围档
   options = options || {};
   var practiceContext = getPracticeContextSnapshot();
   var session = getTeachingSessionSnapshot().teachingSession;
@@ -3865,7 +3863,6 @@ function closeTeachingStage() {
 }
 
 var _migrationShowAll = false;
-var _migrationScope = null;   // T4：当前 facets 范围档（{level,value}），切题/切来源时复位
 
 function getMigrationData(q) {
   var migrationSource = getMigrationSourceSnapshot().migrationSource;
@@ -3875,8 +3872,6 @@ function getMigrationData(q) {
     errorQuestions: errorBookQuestions,
     categoryMap: CATEGORY_MAP,
     getFineTagInfo: getFineTagInfo,
-    scope: _migrationScope,
-    fineTags: window.GRAMMAR_FINE_TAGS,
     limit: _migrationShowAll ? 9999 : 6
   });
   data.migration = data.migration.map(function(entry) {
