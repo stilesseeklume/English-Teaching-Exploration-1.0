@@ -497,76 +497,12 @@
     var bankQuestions = options.bankQuestions || [];
     var errorQuestions = options.errorQuestions || [];
     var categoryMap = options.categoryMap || {};
-    var safeQuestionFocus = options.safeQuestionFocus || fallbackFocus;
-    var safeQuestionTrap = options.safeQuestionTrap || function() { return null; };
-    var safeQuestionTrapId = options.safeQuestionTrapId || function(item) {
-      var trap = safeQuestionTrap(item);
-      return trap ? trap.id : '';
-    };
-    var safeQuestionFocusKey = options.safeQuestionFocusKey || function(item) {
-      var focus = safeQuestionFocus(item);
-      return focus ? focus.key : '';
-    };
     var getFineTagInfo = options.getFineTagInfo || function() { return null; };
-    var getNonpAxis = options.getNonpAxis || function() { return null; };
-    var getQuestionPracticalGuide = options.getQuestionPracticalGuide || function() { return null; };
-    var deps = {
-      safeQuestionFocus: safeQuestionFocus,
-      getNonpAxis: getNonpAxis,
-      getQuestionPracticalGuide: getQuestionPracticalGuide
-    };
 
-    var focus = safeQuestionFocus(q) || fallbackFocus(q);
-    var trap = safeQuestionTrap(q);
-    var trapId = trap ? trap.id : '';
     var fineCat = q.fine_category;
     var fineInfo = getFineTagInfo(fineCat);
-    var nonpAxis = getNonpAxis(q);
-    var practicalGuide = getQuestionPracticalGuide(q, focus, nonpAxis);
-    var teachingKeys = practicalGuide ? asArray(practicalGuide.migrationKeys) : [];
-    var focusFirst = q.category === 'word' && fineCat === 'word-adj-adv-choice';
 
-    var teachingBankPool = teachingKeys.length ? bankQuestions.filter(function(item) {
-      return hasTeachingMigrationOverlap(item, q, teachingKeys, deps);
-    }) : [];
-    var teachingErrorPool = teachingKeys.length ? errorQuestions.filter(function(item) {
-      return hasTeachingMigrationOverlap(item, q, teachingKeys, deps);
-    }) : [];
-
-    var nonpExactBankPool = nonpAxis ? bankQuestions.filter(function(item) {
-      return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
-    }) : [];
-    var nonpExactErrorPool = nonpAxis ? errorQuestions.filter(function(item) {
-      return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
-    }) : [];
-    var nonpFormBankPool = nonpAxis ? bankQuestions.filter(function(item) {
-      return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
-    }) : [];
-    var nonpFormErrorPool = nonpAxis ? errorQuestions.filter(function(item) {
-      return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
-    }) : [];
-
-    var fineBankPool = fineCat ? bankQuestions.filter(function(item) {
-      return item.fine_category === fineCat && !sameQuestion(item, q);
-    }) : [];
-    var fineErrorPool = fineCat ? errorQuestions.filter(function(item) {
-      return item.fine_category === fineCat && !sameQuestion(item, q);
-    }) : [];
-
-    var trapBankPool = trapId ? bankQuestions.filter(function(item) {
-      return safeQuestionTrapId(item) === trapId && !sameQuestion(item, q);
-    }) : [];
-    var trapErrorPool = trapId ? errorQuestions.filter(function(item) {
-      return safeQuestionTrapId(item) === trapId && !sameQuestion(item, q);
-    }) : [];
-
-    var bankPool = bankQuestions.filter(function(item) {
-      return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !sameQuestion(item, q);
-    });
-    var errorPool = errorQuestions.filter(function(item) {
-      return item.category === q.category && safeQuestionFocusKey(item) === focus.key && !sameQuestion(item, q);
-    });
-
+    // 同大类底池（排除自身）——范围选择器底座与 fallbackCount 都从这里取
     var fallbackBankPool = bankQuestions.filter(function(item) {
       return item.category === q.category && !sameQuestion(item, q);
     });
@@ -574,24 +510,16 @@
       return item.category === q.category && !sameQuestion(item, q);
     });
 
-    var displayPools = buildDisplayPools({
-      nonpAxis: nonpAxis,
-      focusFirst: focusFirst,
-      teachingBankPool: teachingBankPool,
-      teachingErrorPool: teachingErrorPool,
-      nonpExactBankPool: nonpExactBankPool,
-      nonpExactErrorPool: nonpExactErrorPool,
-      nonpFormBankPool: nonpFormBankPool,
-      nonpFormErrorPool: nonpFormErrorPool,
-      fineBankPool: fineBankPool,
-      fineErrorPool: fineErrorPool,
-      trapBankPool: trapBankPool,
-      trapErrorPool: trapErrorPool,
-      bankPool: bankPool,
-      errorPool: errorPool
-    });
-    var bankDisplayPool = displayPools.bankDisplayPool;
-    var errorDisplayPool = displayPools.errorDisplayPool;
+    // 默认显示池=同 fine_category（从同大类底池再过滤）；无 fine_category 时退回同大类
+    var fineBankPool = fineCat ? fallbackBankPool.filter(function(item) {
+      return item.fine_category === fineCat;
+    }) : fallbackBankPool;
+    var fineErrorPool = fineCat ? fallbackErrorPool.filter(function(item) {
+      return item.fine_category === fineCat;
+    }) : fallbackErrorPool;
+
+    var bankDisplayPool = dedupe(fineBankPool);
+    var errorDisplayPool = dedupe(fineErrorPool);
     var pool = selectSourcePool(source, bankDisplayPool, errorDisplayPool);
     var tabs = buildTabs(bankDisplayPool, errorDisplayPool);
 
@@ -622,26 +550,17 @@
     }
 
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
-    var headerLabel = '';
-    var headerSubLabel = '';
-    if (practicalGuide && practicalGuide.title) {
-      headerLabel = '同类迁移：' + practicalGuide.title;
-      headerSubLabel = practicalGuide.trigger || '';
-    } else if (resolvedFineInfo) {
-      headerLabel = '同考点：' + resolvedFineInfo.name;
-      headerSubLabel = formatFineHeaderSubLabel(resolvedFineInfo);
-    } else {
-      headerLabel = '同类型：' + focus.label;
-    }
+    var headerLabel = resolvedFineInfo
+      ? ('同考点：' + resolvedFineInfo.name)
+      : ('同类型：' + (categoryMap[q.category] || q.category || '语法填空'));
+    var headerSubLabel = resolvedFineInfo ? formatFineHeaderSubLabel(resolvedFineInfo) : '';
 
     var fallbackCount = source === 'errors'
       ? fallbackErrorPool.length
       : (source === 'mock'
           ? fallbackBankPool.filter(isMockQuestion).length
           : fallbackBankPool.filter(isRealQuestion).length);
-    var focusLabel = practicalGuide && practicalGuide.title
-      ? practicalGuide.title
-      : (nonpAxis ? nonpAxis.title : (fineInfo ? fineInfo.name : (trap ? trap.name : focus.label)));
+    var focusLabel = resolvedFineInfo ? resolvedFineInfo.name : (categoryMap[q.category] || q.category || '当前考点');
     var emptyState = pool.length ? null : {
       source: source,
       focusLabel: focusLabel,
@@ -652,31 +571,18 @@
     var migration = selectMigrationItems(pool, source, options.limit || 6).map(function(item) {
       var isError = isErrorQuestionItem(item);
       var itemFineInfo = getFineTagInfo(item.fine_category);
-      var itemFocus = safeQuestionFocus(item) || fallbackFocus(item);
-      var itemAxis = getNonpAxis(item);
-      var itemGuide = getQuestionPracticalGuide(item, itemFocus, itemAxis);
       return {
         item: item,
         isError: isError,
         srcLabel: isError ? '📝 我的错题' : item.exam,
-        tagLabel: itemGuide && itemGuide.title
-          ? itemGuide.title
-          : (itemAxis
-            ? (itemAxis.formLabel + ' · ' + itemAxis.functionLabel)
-            : ((itemFineInfo && itemFineInfo.name) || itemFocus.label)),
-        teachingLine: itemGuide && itemGuide.trigger
-          ? itemGuide.trigger
-          : (itemAxis && itemAxis.rule ? itemAxis.rule : '')
+        tagLabel: (itemFineInfo && itemFineInfo.name) || (categoryMap[item.category] || item.category || '同类迁移'),
+        teachingLine: ''
       };
     });
 
     return {
       q: q,
-      focus: focus,
-      trap: trap,
       fineInfo: fineInfo,
-      nonpAxis: nonpAxis,
-      practicalGuide: practicalGuide,
       headerLabel: headerLabel,
       headerSubLabel: headerSubLabel,
       poolCount: pool.length,

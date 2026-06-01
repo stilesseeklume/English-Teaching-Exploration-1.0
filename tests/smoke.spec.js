@@ -3267,6 +3267,34 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '|' + (def.activeScope && def.activeScope.level) + '/' + def.poolCount + '/' + byCat.poolCount;
   })).toBe('ok');
 
+  // T1：迁移统一到fine_category+facets。即便喂满体系B依赖(practicalGuide桩会劫持header/tag)，统一后也只认fine_category：
+  // 池=同fine_category、默认激活当前fine档、范围选择器=同大类全fine列、表头与卡片标签用fine name。
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var ft = window.GRAMMAR_FINE_TAGS;
+    var gfti = function(fc){ return window.GrammarQuestionModel.getFineTagInfo(fc, ft); };
+    var q = { exam:'e', no:1, category:'article', fine_category:'art-a-an', facets:{ word:'a-an' }, type:'真题' };
+    var bank = [ q,
+      { exam:'e', no:2, category:'article', fine_category:'art-a-an', facets:{ word:'a-an' }, type:'真题' },
+      { exam:'e', no:3, category:'article', fine_category:'art-the', facets:{ word:'the' }, type:'真题' } ];
+    // 故意喂满体系B依赖 + practicalGuide桩(现劫持 headerLabel/tagLabel)。统一后须被忽略。
+    var stubGuide = function(){ return { title:'体系B指引', trigger:'X' }; };
+    var data = mt.buildMigrationData(q, { source:'bank', bankQuestions:bank, errorQuestions:[],
+      categoryMap:{ article:'冠词' }, fineTags:ft, getFineTagInfo:gfti,
+      getQuestionPracticalGuide:stubGuide, limit:99 });
+    var cm = mt.buildMigrationContentViewModel(data, 'bank', false);
+    var sel = cm.scopeSelector;
+    var ftBtns = (sel.buttons||[]).filter(function(b){ return b.level==='finetag'; });
+    var ids = ftBtns.map(function(b){ return b.value; }).sort().join(',');
+    var tag0 = (data.migration[0]||{}).tagLabel;
+    return (data.poolCount === 1
+      && data.activeScope && data.activeScope.level==='finetag' && data.activeScope.value==='art-a-an'
+      && sel.visible && ftBtns.length === 2 && ids === 'art-a-an,art-the'
+      && data.headerLabel === '同考点：不定冠词 a/an'
+      && tag0 === '不定冠词 a/an') ? 'ok'
+      : 'bad:' + data.poolCount + '|' + (data.activeScope&&data.activeScope.value) + '|' + ftBtns.length + '/' + ids + '/' + sel.visible + '|H=' + data.headerLabel + '|T=' + tag0;
+  })).toBe('ok');
+
   // buildAllQuestions / createExamQuestionFromRaw 必须保留 facets（否则叶子有题但具体词全0）
   expect(await page.evaluate(() => {
     var qm = window.GrammarQuestionModel;
