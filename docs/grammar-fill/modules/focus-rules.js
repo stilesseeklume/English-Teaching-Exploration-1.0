@@ -257,6 +257,17 @@
     }
 
     if (category === 'predicate') {
+      // 优先信任题库 fine_category（权威主考点）；缺失才回退关键词启发式
+      var pf = q.fine_category || '';
+      var pfac = q.facets || {};
+      if (pf === 'pred-agreement') return { key: 'predicate-agreement', label: '谓语 · 主谓一致', note: '找主语中心词，不要被修饰语带跑。' };
+      if (pf === 'pred-passive') return { key: 'predicate-passive', label: '谓语 · 被动语态', note: '先问主语是执行动作，还是承受动作。' };
+      if (pf === 'pred-tense') {
+        if (pfac.tense === 'perfect' || pfac.tense === 'perfect-progressive') return { key: 'predicate-perfect', label: '谓语 · 完成时', note: '看动作是否从过去延续/影响到现在，或发生在过去的过去。' };
+        if (pfac.tense === 'past') return { key: 'predicate-past', label: '谓语 · 过去时间', note: '时间背景落在过去，先定过去时。' };
+        if (pfac.tense === 'present') return { key: 'predicate-present', label: '谓语 · 一般现在', note: '语境是客观事实或常态，谓语多用一般现在。' };
+        return { key: 'predicate-tense', label: '谓语 · 时态判断', note: '先找时间锚点，再看语境。' };
+      }
       if (hasPredicatePassiveCue(q, answer, blob, grammarPoint)) return { key: 'predicate-passive', label: '谓语 · 被动语态', note: '先问主语是执行动作，还是承受动作。' };
       if (hasPredicatePerfectCue(q, blob)) return { key: 'predicate-perfect', label: '谓语 · 完成时', note: '看动作是否从过去延续/影响到现在，或发生在过去的过去。' };
       if (hasPredicateAgreementCue(q, blob, grammarPoint)) return { key: 'predicate-agreement', label: '谓语 · 主谓一致', note: '找主语中心词，不要被修饰语带跑。' };
