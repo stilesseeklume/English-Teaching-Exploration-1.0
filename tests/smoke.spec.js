@@ -3249,10 +3249,14 @@ test('考点训练页：dock 入口 + 图(决策地图)/文字(考点视图)双�
   await page.locator('#ptTextBtn').click();
   await expect(page.locator('#ptTextBtn')).toHaveClass(/active/);
   await expect(page.locator('#pointsTrainingContent')).toContainText(/考点视图/);
-  // 切回 图：决策地图重新渲染进 #pointsTrainingContent（交互重渲染不串页）
-  await page.locator('#ptGraphBtn').click();
-  await expect(page.locator('#ptGraphBtn')).toHaveClass(/active/);
-  await expect(page.locator('#pointsTrainingContent .dm-wrap')).toBeVisible();
+  // 文字视图：点具体时态叶子「一般现在」→ 落精确练习标题（叶子驱动 + 可点进迁移）
+  await page.locator('#pointsTrainingContent button', { hasText: '一般现在' }).first().click();
+  await expect(page.locator('#page-practice')).toHaveClass(/active/);
+  await expect(page.locator('#sourceName')).toHaveText('按考点 · 谓语动词 · 时态 · 一般现在');
+  await expect(await page.evaluate(() => {
+    var qs = (window.GrammarAppState.state.currentQuestions) || [];
+    return qs.length > 0 && qs.every(function(q){ return (q.points||[]).some(function(p){ return p.tag==='pred-tense' && p.key==='present'; }); });
+  })).toBe(true);
 
   expect(errors).toEqual([]);
 });
