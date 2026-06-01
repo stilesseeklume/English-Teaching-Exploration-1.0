@@ -3273,6 +3273,8 @@ test('signed-in saved materials and auto fullscreen paths render', async ({ page
   await expect(page.locator('#page-error-book')).toHaveClass(/active/);
   await expect(page.locator('#errorBookStat')).toContainText('共 1 道');
   await expect(page.locator('#errorBookList')).toContainText('prepared');
+  // 考点卡片默认折叠，先点开才能操作题目（批量勾选 / 删除）
+  await page.locator('#errorBookList .category-section-title').first().click();
   await page.locator('#page-error-book button', { hasText: '批量删除' }).click();
   await expect(page.locator('#errorBulkBar')).toHaveClass(/show/);
   await expect(await page.evaluate(() => {
