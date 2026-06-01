@@ -71,6 +71,22 @@
     return { bank: bankItems.length, error: errorCount, real: realCount, total: bankItems.length + errorCount };
   }
 
+  // 计数徽章：total 题 · 真题R · 模拟M · 错题E。全真题(无模拟无错题)时只显示「N 题」。
+  // mock = bank - real（bank 中非真题即模拟卷）；error = 错题本命中数。
+  function formatCountBadge(counts) {
+    counts = counts || {};
+    var total = Number(counts.total) || 0;
+    var real = Number(counts.real) || 0;
+    var error = Number(counts.error) || 0;
+    var mock = Math.max(0, (Number(counts.bank) || 0) - real);
+    if (mock === 0 && error === 0) return total + ' 题';
+    var segs = [];
+    if (real > 0) segs.push('真题' + real);
+    if (mock > 0) segs.push('模拟' + mock);
+    if (error > 0) segs.push('错题' + error);
+    return total + ' 题 · ' + segs.join(' · ');
+  }
+
   // 取题在某 tag 下的迁移细分值：优先 points 里同 tag 的 key（与迁移口径一致，如冠词 a/an），回退 facets.word。
   function pointKeyForTag(q, tag) {
     if (q && Array.isArray(q.points)) {
@@ -412,9 +428,7 @@
             name: tag.name,
             source: tag.source || '',
             counts: counts,
-            countText: (counts.real < counts.total)
-              ? (counts.total + ' · 真题' + counts.real)
-              : String(counts.total),
+            countText: formatCountBadge(counts),
             alertMessage: buildFineCategoryTagMessage({
               name: tag.name,
               source: tag.source || '',
@@ -1551,6 +1565,7 @@
     normalizeTagId: normalizeTagId,
     countByFineTag: countByFineTag,
     countByPoint: countByPoint,
+    formatCountBadge: formatCountBadge,
     buildLeafWordBreakdown: buildLeafWordBreakdown,
     getFrequencyStyle: getFrequencyStyle,
     buildCategoryStatsModel: buildCategoryStatsModel,

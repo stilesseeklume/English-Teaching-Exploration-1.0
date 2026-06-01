@@ -145,7 +145,7 @@
     });
   }
 
-  function buildCategoryPracticeEntryModel(category, questions, categoryMap) {
+  function buildCategoryPracticeEntryModel(category, questions, categoryMap, sourceLabel) {
     questions = asArray(questions);
     return {
       category: category || '',
@@ -153,7 +153,7 @@
       hasQuestions: questions.length > 0,
       emptyMessage: getEmptyCategoryMessage(category),
       currentExam: {
-        source: getCategorySourceText(category, categoryMap),
+        source: sourceLabel || getCategorySourceText(category, categoryMap),
         questions: questions,
         mode: 'category',
         category: category || ''
@@ -175,11 +175,11 @@
     });
   }
 
-  function buildFineTagPracticePlan(fineCategory, allQuestions, categoryMap) {
+  function buildFineTagPracticePlan(fineCategory, allQuestions, categoryMap, sourceLabel) {
     var questions = selectFineTagQuestions(allQuestions, fineCategory);
     // 假设同一 fine_category 下所有题目属于同一粗类别（当前数据成立）
     var category = questions.length ? questions[0].category : '';
-    return buildCategoryPracticeEntryModel(category, questions, categoryMap);
+    return buildCategoryPracticeEntryModel(category, questions, categoryMap, sourceLabel);
   }
 
   function questionHasPoint(q, tag, keys) {
@@ -198,10 +198,10 @@
     });
   }
 
-  function buildPointPracticePlan(tag, keys, allQuestions, categoryMap) {
+  function buildPointPracticePlan(tag, keys, allQuestions, categoryMap, sourceLabel) {
     var questions = selectPointQuestions(allQuestions, tag, keys);
     var category = questions.length ? questions[0].category : '';
-    return buildCategoryPracticeEntryModel(category, questions, categoryMap);
+    return buildCategoryPracticeEntryModel(category, questions, categoryMap, sourceLabel);
   }
 
   window.GrammarCategoryRules = {

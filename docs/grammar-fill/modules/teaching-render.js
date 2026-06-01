@@ -90,64 +90,6 @@
       + practicalGuideHtml(model.practicalGuide);
   }
 
-  function teachingKnowledgeHtml(q, deps) {
-    deps = deps || {};
-    var vmDeps = deps.teachingViewModelDeps();
-    vmDeps.graphNodeIndex = deps.getGraphNodeIndex();
-    var model = window.GrammarTeachingViewModel.buildTeachingKnowledgePanelModel(q, vmDeps);
-    var html = '<div class="teaching-tab-title">'
-      + '<div class="teaching-tab-kicker">' + window.escapeHtml(model.kicker) + '</div>'
-      + '<div class="teaching-tab-heading">' + window.escapeHtml(model.heading) + '</div>'
-      + '<div class="teaching-tab-sub">' + window.escapeHtml(model.subline) + '</div>'
-      + '</div>';
-    html += '<div class="teaching-global-locator">'
-      + '<button class="node-link-chip" onclick="openGlobalGraphForTeachingQuestion()">' + window.escapeHtml(model.locatorLabel) + '</button>'
-      + '</div>';
-    html += '<div class="teaching-mindmap">';
-    html += '<div class="teaching-mindmap-path">';
-    model.path.forEach(function(item, idx) {
-      if (idx > 0) html += '<span class="arrow">›</span>';
-      html += '<span' + (item.current ? ' class="current"' : '') + '>' + window.escapeHtml(item.label) + '</span>';
-    });
-    html += '</div>';
-    html += '<div class="teaching-mindmap-board">';
-    html += '<div class="teaching-mindmap-column">';
-    html += '<div class="mindmap-label">上级</div>';
-    html += '<div class="mindmap-up-node"><b>' + window.escapeHtml(model.parent.title) + '</b><span>' + window.escapeHtml(model.parent.note) + '</span></div>';
-    if (model.siblings && model.siblings.length) {
-      html += '<div class="mindmap-label">同级分支</div><div class="mindmap-siblings">';
-      model.siblings.forEach(function(label) {
-        html += '<div class="mindmap-sibling">' + window.escapeHtml(label) + '</div>';
-      });
-      html += '</div>';
-    }
-    html += '</div>';
-    html += '<div class="teaching-mindmap-center">';
-    html += '<div class="mindmap-label">当前考点</div>';
-    html += '<div class="mindmap-center-node"><b>' + window.escapeHtml(model.center.title) + '</b><span>' + window.escapeHtml(model.center.note) + '</span></div>';
-    html += '<div class="mindmap-current-focus">' + window.escapeHtml(model.center.focusText) + '</div>';
-    html += '</div>';
-    html += '<div class="teaching-mindmap-branches">';
-    model.branches.forEach(function(branch) {
-      html += '<div class="mindmap-branch' + (branch.active ? ' active' : '') + '">';
-      html += '<div class="mindmap-branch-node"><b>' + window.escapeHtml(branch.title || '') + '</b><span>' + window.escapeHtml(branch.note || '') + '</span></div>';
-      html += '<div class="mindmap-leaves">';
-      (branch.leaves || []).forEach(function(leaf) {
-        html += '<div class="mindmap-leaf' + (branch.active ? ' active' : '') + '">' + window.escapeHtml(leaf) + '</div>';
-      });
-      html += '</div></div>';
-    });
-    html += '</div></div>';
-    if (model.rules && model.rules.length) {
-      html += '<div class="teaching-mindmap-rules">';
-      model.rules.forEach(function(rule) {
-        html += '<div class="mindmap-rule"><span>' + rule.no + '</span><div>' + window.escapeHtml(rule.text) + '</div></div>';
-      });
-      html += '</div>';
-    }
-    html += '</div>';
-    return html;
-  }
 
   function migrationEmptyHint(hint) {
     if (!hint) return '';
@@ -352,7 +294,7 @@
     solutionPanelHtml: solutionPanelHtml,
     theoryContent: theoryContent,
     teachingGuideHtml: teachingGuideHtml,
-    teachingKnowledgeHtml: teachingKnowledgeHtml,
+
     migrationDrawerHtml: migrationDrawerHtml,
     migrationStageHtml: migrationStageHtml,
     analysisHtml: analysisHtml,

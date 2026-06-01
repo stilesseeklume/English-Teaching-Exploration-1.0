@@ -431,6 +431,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var normalizedDockKey = stateModel && stateModel.normalizeDockKey('practice');
     var knowledgePageState = stateModel && stateModel.buildActivePageState('knowledge');
     var practicePageState = stateModel && stateModel.buildActivePageState('practice');
+    var asPT = window.GrammarAppState;
+    var ptPage = asPT.buildActivePageState('points-training');
     var categoryDockState = stateModel && stateModel.buildDockActivationState('categories');
     var homeRenderPlan = stateModel && stateModel.buildPageRenderPlan('home');
     var adminRenderPlan = stateModel && stateModel.buildPageRenderPlan('admin');
@@ -632,7 +634,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var returnStackSnapshot = stateModel && stateModel.buildTeachingReturnStackSnapshotState(pushedReturn.teachingReturnStack);
     var returnDockState = stateModel && stateModel.buildTeachingReturnDockState(pushedReturn.teachingReturnStack);
     var teachingDockModel = stateModel && stateModel.buildTeachingDockModel(
-      { source: 'practice', idx: 1, tab: 'knowledge', showAnswer: false },
+      { source: 'practice', idx: 1, tab: 'guide', showAnswer: false },
       [{ no: 1 }, { no: 2 }],
       pushedReturn.teachingReturnStack,
       { normalizeTab: viewModel.normalizeTab }
@@ -643,7 +645,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var teachingStageOpenPlan = stateModel && stateModel.buildTeachingStageOpenPlan(
       [{ no: 1 }, { no: 2, category: 'predicate', fine_category: 'pred-smoke' }],
       1,
-      { source: 'practice', tab: 'knowledge', showAnswer: true },
+      { source: 'practice', tab: 'guide', showAnswer: true },
       null,
       { normalizeTab: viewModel.normalizeTab }
     );
@@ -662,7 +664,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       { normalizeTab: viewModel.normalizeTab }
     );
     var teachingQuestionJumpPlan = stateModel && stateModel.buildTeachingQuestionJumpPlan(
-      { source: 'practice', idx: 1, tab: 'knowledge', showAnswer: true },
+      { source: 'practice', idx: 1, tab: 'guide', showAnswer: true },
       [{ no: 1 }, { no: 2 }, { no: 3 }],
       1,
       true
@@ -692,7 +694,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var teachingReturnAction = stateModel && stateModel.buildTeachingReturnAction({
       type: 'migration',
       idx: 4,
-      tab: 'knowledge',
+      tab: 'guide',
       showAnswer: true
     });
     var teachingBaseState = stateModel && stateModel.buildTeachingBaseContextState(appSnapshot, {
@@ -836,7 +838,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var stageShellModel = viewModel && viewModel.buildTeachingStageShellModel(question, {
       source: 'Smoke Source'
     }, {
-      tab: 'knowledge'
+      tab: 'migration'
     }, {
       categoryMap: window.CATEGORY_MAP || {},
       safeQuestionFocus: function(){ return focusFromModule; },
@@ -933,21 +935,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       getNonpAxis: function(){ return axis; },
       getQuestionPracticalGuide: function(){ return guide; }
     });
-    var knowledgePanelModel = viewModel && viewModel.buildTeachingKnowledgePanelModel(question, {
-      categoryMap: window.CATEGORY_MAP || {},
-      knowledgeCore: window.GRAMMAR_KNOWLEDGE_CORE || {},
-      graphNodeIndex: viewModel.buildGraphNodeIndex(
-        (window.GRAMMAR_KNOWLEDGE_CORE && window.GRAMMAR_KNOWLEDGE_CORE.teaching_graph) || {},
-        (window.GRAMMAR_KNOWLEDGE_CORE && window.GRAMMAR_KNOWLEDGE_CORE.nodes) || {}
-      ),
-      safeQuestionFocus: function(){ return focusFromModule; },
-      safeQuestionTrapId: function(){ return trapIdFromModule; },
-      getNonpAxis: function(){ return axis; },
-      getQuestionPracticalGuide: function(){ return guide; },
-      getFineTagInfo: function(id) {
-        return questionModel.getFineTagInfo(id, window.GRAMMAR_FINE_TAGS || {});
-      }
-    });
+
     var teachingGlobalGraphOpenPlan = viewModel && viewModel.buildTeachingGlobalGraphOpenPlan(question, {
       knowledgeCore: window.GRAMMAR_KNOWLEDGE_CORE || {},
       safeQuestionTrapId: function(){ return trapIdFromModule; }
@@ -1842,11 +1830,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && focusFromModule && focusFromModule.key && trapIdFromModule
       && teachingCard && teachingCard.headline && lessonPath && lessonPath.length
       && mindmap && mindmap.center && mindmapActive && Object.keys(mindmapActive).length
-      && knowledgePanelModel && knowledgePanelModel.heading
-      && knowledgePanelModel.path && knowledgePanelModel.path.length === 3
-      && knowledgePanelModel.locatorLabel && knowledgePanelModel.locatorLabel.indexOf('全图定位：') === 0
-      && knowledgePanelModel.branches && knowledgePanelModel.branches.length
-      && knowledgePanelModel.branches.some(function(branch) { return branch.active; })
       && teachingGlobalGraphOpenPlan && teachingGlobalGraphOpenPlan.action === 'open-global-graph'
       && teachingGlobalGraphOpenPlan.active === true
       && teachingGlobalGraphOpenPlan.nodeId === teachingQuestionGraphNodeId
@@ -2014,7 +1997,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && normalizedPreviousError && normalizedPreviousError.page === 'error-book' && !normalizedPreviousError.view
       && previousViewState && previousViewState.previousView && previousViewState.previousView.page === 'lesson-prep'
       && previousViewState.label === '返回备课资料'
-      && categoryEntryPrevious && categoryEntryPrevious.view === 'categories'
+      && categoryEntryPrevious && categoryEntryPrevious.page === 'points-training'
       && examEntryPrevious && examEntryPrevious.view === 'exams'
       && errorEntryPrevious && errorEntryPrevious.page === 'error-book'
       && prepEntryPrevious && prepEntryPrevious.page === 'lesson-prep'
@@ -2034,6 +2017,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && normalizedDockKey === ''
       && knowledgePageState && knowledgePageState.activePage === 'knowledge' && knowledgePageState.activeDock === 'knowledge'
       && practicePageState && practicePageState.activePage === 'practice' && practicePageState.activeDock === ''
+      && ptPage.activePage === 'points-training' && ptPage.activeDock === 'points-training'
       && categoryDockState && categoryDockState.activeDock === 'categories'
       && homeRenderPlan && homeRenderPlan.renderAction === 'navigate-home-cards' && homeRenderPlan.homeView === 'cards'
       && adminRenderPlan && adminRenderPlan.renderAction === 'render-admin'
@@ -2169,14 +2153,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && teachingDockModel && teachingDockModel.visible === true
       && teachingDockModel.navButtons[0].delta === -1
       && teachingDockModel.questionButtons[1].active === true
-      && teachingDockModel.tabButtons.some(function(item) { return item.key === 'knowledge' && item.active; })
+      && teachingDockModel.tabButtons.some(function(item) { return item.key === 'guide' && item.active; })
       && teachingDockModel.returnButton && teachingDockModel.returnButton.label === '返回原题'
       && teachingDockModel.exitButton && teachingDockModel.exitButton.label === '退出'
       && emptyTeachingDockModel && emptyTeachingDockModel.visible === false
       && teachingStageOpenPlan && teachingStageOpenPlan.action === 'open-teaching-stage'
       && teachingStageOpenPlan.active === true
       && teachingStageOpenPlan.selectedState.selectedQuestionIndex === 1
-      && teachingStageOpenPlan.sessionState.teachingSession.tab === 'knowledge'
+      && teachingStageOpenPlan.sessionState.teachingSession.tab === 'guide'
       && teachingStageOpenPlan.sessionState.teachingSession.showAnswer === true
       && teachingStageOpenPlan.shouldCaptureBaseContext === true
       && teachingStageOpenPlan.shouldRequestFullscreen === true
@@ -2190,7 +2174,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && emptyTeachingStageOpenPlan.active === false
       && teachingQuestionJumpPlan && teachingQuestionJumpPlan.action === 'jump-teaching-question'
       && teachingQuestionJumpPlan.targetIndex === 2
-      && teachingQuestionJumpPlan.teachingOptions.tab === 'knowledge'
+      && teachingQuestionJumpPlan.teachingOptions.tab === 'guide'
       && teachingQuestionJumpPlan.teachingOptions.showAnswer === true
       && teachingQuestionJumpPlan.shouldCloseTeachingExamMenu === true
       && teachingQuestionWrapJumpPlan && teachingQuestionWrapJumpPlan.targetIndex === 1
@@ -2212,7 +2196,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && drawerReturnAction.teardownOptions && drawerReturnAction.teardownOptions.skipRestore === true
       && teachingReturnAction && teachingReturnAction.action === 'teaching-context'
       && teachingReturnAction.targetIndex === 4
-      && teachingReturnAction.tab === 'knowledge'
+      && teachingReturnAction.tab === 'guide'
       && teachingReturnAction.showAnswer === true
       && teachingBaseState && teachingBaseState.teachingBaseContext.idx === 3
       && teachingBaseState.teachingBaseContext.selectedQuestion === examState.currentQuestions[3]
@@ -2894,13 +2878,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
   await expect(page.locator('#knowledgeContent')).toContainText(/必修一/);
   // 教材视图已搁置：仅展示"开发中"提示 + 封面画廊（不可点），无列表切换/单元交互
   await expect(page.locator('#knowledgeContent')).toContainText(/开发中|敬请期待/);
-  await page.locator('#knowledgeFineCatBtn').click();
-  await expect(page.locator('#knowledgeContent')).toContainText(/考点视图/);
-  await expect(await page.evaluate(() => {
-    return window.GrammarAppState
-      && window.GrammarAppState.state.currentKnowledgeView === 'fine-cat'
-      && window.GrammarAppState.state.currentKnowledgeNodeId === '';
-  })).toBe(true);
+  // Task 4 迁移：#knowledgeFineCatBtn(考点视图) 已移至「考点训练」dock 页，知识库不再有该按钮（见专门的考点训练页测试）
   await page.locator('#knowledgeBookBtn').click();
   await expect(page.locator('#knowledgeSidebar')).toBeVisible();
   await expect(await page.evaluate(() => {
@@ -2924,16 +2902,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && snapshot.knowledgeSearchIndex
       && snapshot.knowledgeSearchIndex.length === state.knowledgeSearchIndex.length);
   })).toBe(true);
-  await page.locator('#knowledgeSystemBtn').click();
-  await expect(page.locator('.dm-wrap')).toBeVisible();
-  await expect(page.locator('.dm-cv .dm-node').first()).toBeVisible();
-  await expect(await page.evaluate(() => window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.currentKnowledgeView === 'system')).toBe(true);
-  // 点一个节点 → 相机聚焦它（focusId 记下该节点）
-  await page.locator('.dm-cv .dm-node').nth(1).click();
-  await expect(await page.evaluate(() => !!(window.dmCam && typeof window.dmCam.focusId === 'string' && window.dmCam.focusId.length))).toBe(true);
-  // 按 ⤢ 全局 → 取消聚焦，回到整图
-  await page.locator('.dm-hud-wide').first().click();
-  await expect(await page.evaluate(() => window.dmCam && window.dmCam.focusId === '')).toBe(true);
+  // Task 4 迁移：#knowledgeSystemBtn 已移至「考点训练」dock，知识库不再有系统视图按钮
 
   // Task 3A: 纯函数 searchDecisionNodes / collectDecisionAncestors / collectExpandableIds
   expect(await page.evaluate(() => {
@@ -2964,24 +2933,19 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     return window.dmCam.focusId === hits[0].id ? 'ok' : 'no-focus';
   })).toBe('ok');
 
-  await page.locator('[data-dock-key="categories"]').click();
-  await expect(page.locator('#homeCategories')).toHaveClass(/active/);
+  // Task 4：考点分类训练 已并入「考点训练」dock 页（图/文字双视图）。从考点视图进入同类练习并开讲题台。
+  await page.locator('[data-dock-key="points-training"]').click();
+  await expect(page.locator('#page-points-training')).toHaveClass(/active/);
   await expect(await page.evaluate(() => {
     var state = window.GrammarAppState && window.GrammarAppState.state;
     var activeDock = document.querySelector('.dock-item.active');
-    var snapshot = window.getPageNavigationSnapshot && window.getPageNavigationSnapshot();
     return !!(state
-      && state.activePage === 'home'
-      && state.activeDock === 'categories'
-      && state.currentHomeView === 'categories'
-      && snapshot
-      && snapshot.activePage === state.activePage
-      && snapshot.activeDock === state.activeDock
-      && snapshot.currentHomeView === state.currentHomeView
+      && state.activePage === 'points-training'
+      && state.activeDock === 'points-training'
       && activeDock
-      && activeDock.dataset.dockKey === 'categories');
+      && activeDock.dataset.dockKey === 'points-training');
   })).toBe(true);
-  await page.locator('#homeCategories .card').first().click();
+  await page.evaluate(() => window.startByFineTag('pred-tense'));
   await expect(page.locator('#page-practice')).toHaveClass(/active/);
   await expect(page.locator('#passageBox .cat-hint')).toContainText(/同类训练共/);
   await page.locator('#passageBox .blank-inline').first().click();
@@ -3298,6 +3262,28 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var afterSource = window._migrationShowAll;
     return (afterToggle === true && afterSource === false) ? 'ok' : ('bad:' + afterToggle + ',' + afterSource);
   })).toBe('ok');
+
+  expect(errors).toEqual([]);
+});
+
+test('考点训练页：dock 入口 + 图(决策地图)/文字(考点视图)双视图渲染', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.locator('[data-dock-key="points-training"]').click();
+  await expect(page.locator('#page-points-training')).toHaveClass(/active/);
+  // 默认 图 = 决策地图，渲染进 #pointsTrainingContent（验证渲染目标重定向，而非串到知识库页）
+  await expect(page.locator('#ptGraphBtn')).toHaveClass(/active/);
+  await expect(page.locator('#pointsTrainingContent .dm-wrap')).toBeVisible();
+  // 切 文字 = 考点视图
+  await page.locator('#ptTextBtn').click();
+  await expect(page.locator('#ptTextBtn')).toHaveClass(/active/);
+  await expect(page.locator('#pointsTrainingContent')).toContainText(/考点视图/);
+  // 切回 图：决策地图重新渲染进 #pointsTrainingContent（交互重渲染不串页）
+  await page.locator('#ptGraphBtn').click();
+  await expect(page.locator('#ptGraphBtn')).toHaveClass(/active/);
+  await expect(page.locator('#pointsTrainingContent .dm-wrap')).toBeVisible();
 
   expect(errors).toEqual([]);
 });
@@ -4144,6 +4130,22 @@ test('countByPoint 按 tag+keys 精数，不同 key 计数互不相同', async (
   })).toBe('2,2,2,0,2,1,1,3');
 });
 
+test('formatCountBadge 按 bank/real/error/total 生成徽章文本', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarKnowledgeViewModel, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var kvmBadge = window.GrammarKnowledgeViewModel;
+    var badgeMixed = kvmBadge.formatCountBadge({ bank: 12, real: 5, error: 0, total: 12 });
+    var badgeAllReal = kvmBadge.formatCountBadge({ bank: 5, real: 5, error: 0, total: 5 });
+    var badgeWithErr = kvmBadge.formatCountBadge({ bank: 12, real: 5, error: 3, total: 15 });
+    return [
+      badgeMixed === '12 题 · 真题5 · 模拟7',
+      badgeAllReal === '5 题',
+      badgeWithErr === '15 题 · 真题5 · 模拟7 · 错题3'
+    ].join(',');
+  })).toBe('true,true,true');
+});
+
 test('buildPointPracticePlan 按 point 选题：which→which，定从 which 不串名从 which', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!window.GrammarCategoryRules, null, { timeout: 15000 });
@@ -4157,11 +4159,19 @@ test('buildPointPracticePlan 按 point 选题：which→which，定从 which 不
     ];
     var plan = cr.buildPointPracticePlan('attrib-pronoun', ['which'], all, {});
     var empty = cr.buildPointPracticePlan('attrib-as', ['as'], all, {});
+    var planWithLabel = cr.buildPointPracticePlan('pred-tense', ['present'],
+      [{ category: 'predicate', points: [{ tag: 'pred-tense', key: 'present' }] }],
+      { predicate: '谓语动词' }, '按考点 · 谓语动词 · 时态 · 一般现在');
+    var planNoLabel = cr.buildPointPracticePlan('pred-tense', ['present'],
+      [{ category: 'predicate', points: [{ tag: 'pred-tense', key: 'present' }] }],
+      { predicate: '谓语动词' });
     return [
       plan.hasQuestions, plan.questions.length, plan.questions[0] && plan.questions[0].no,
-      plan.category, empty.hasQuestions
+      plan.category, empty.hasQuestions,
+      planWithLabel.currentExam.source === '按考点 · 谓语动词 · 时态 · 一般现在',
+      planNoLabel.currentExam.source === '按考点 · 谓语动词'
     ].join(',');
-  })).toBe('true,1,1,attrib,false');
+  })).toBe('true,1,1,attrib,false,true,true');
 });
 
 test('决策地图谓语叶子带 point；时态6叶真实计数不全相等；无 l_art_spec', async ({ page }) => {

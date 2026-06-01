@@ -225,15 +225,13 @@ var TEACHING_GRAMMAR_MINDMAPS = {
   }
 
   function normalizeTab(tab) {
-    if (tab === 'migration' || tab === 'knowledge' || tab === 'guide') return tab;
-    if (tab === 'analysis' || tab === 'solution') return 'guide';
+    if (tab === 'migration' || tab === 'guide') return tab;
     return 'guide';
   }
 
   function getTabLabel(tab) {
     tab = normalizeTab(tab);
     if (tab === 'migration') return '迁移';
-    if (tab === 'knowledge') return '图谱';
     return '讲题';
   }
 
@@ -389,7 +387,7 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     return {
       visible: hasQuestion,
       tab: tab,
-      focusContent: tab === 'migration' || tab === 'knowledge',
+      focusContent: tab === 'migration',
       sourceLabel: exam.source || q.exam || '当前资料',
       questionNo: q.no || '',
       questionLabel: '第' + (q.no || '') + '题',
@@ -400,61 +398,6 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     };
   }
 
-  function buildTeachingKnowledgePanelModel(q, deps) {
-    q = q || {};
-    deps = deps || {};
-    var map = getMindmapDefinition(q) || getMindmapFallback(q, deps);
-    var active = getMindmapActiveKeys(q, deps);
-    var header = buildHeaderInfo(q, deps);
-    var graphNodeId = getGraphNodeIdForQuestion(q, deps);
-    var graphNodeIndex = deps.graphNodeIndex || {};
-    if (!deps.graphNodeIndex && deps.knowledgeCore && deps.knowledgeCore.teaching_graph) {
-      graphNodeIndex = buildGraphNodeIndex(deps.knowledgeCore.teaching_graph, deps.knowledgeCore.nodes || {});
-    }
-    var graphNode = graphNodeIndex[graphNodeId] || null;
-    var parentTitle = (map.parent && map.parent.title) || '当前系统';
-    var parentNote = (map.parent && map.parent.note) || '';
-    var centerTitle = (map.center && map.center.title) || header.categoryLabel || '当前考点';
-    var centerNote = (map.center && map.center.note) || header.subline || '';
-    var focusTitle = header.headline || header.categoryLabel || '当前题';
-    return {
-      kicker: '知识思维导图',
-      heading: centerTitle || '当前语法框架',
-      subline: '把这道题放回语法框架里：看上级系统、当前考点和下级分支，学生先建立树，再记规则。',
-      graphNodeId: graphNodeId,
-      locatorLabel: '全图定位：' + ((graphNode && graphNode.title) || '当前节点'),
-      path: [
-        { label: map.root || '语法体系', current: false },
-        { label: parentTitle, current: false },
-        { label: centerTitle, current: true }
-      ],
-      parent: {
-        title: parentTitle,
-        note: parentNote
-      },
-      siblings: asArray(map.siblings),
-      center: {
-        title: centerTitle,
-        note: centerNote,
-        focusText: '本题落点：' + focusTitle + (header.subline ? '。' + header.subline : '')
-      },
-      branches: asArray(map.branches).map(function(branch) {
-        branch = branch || {};
-        return {
-          title: branch.title || '',
-          note: branch.note || '',
-          leaves: asArray(branch.leaves),
-          active: isMindmapBranchActive(branch, active)
-        };
-      }),
-      rules: asArray(map.rules).map(function(rule, idx) {
-        return {
-          no: idx + 1,
-          text: rule
-        };
-      })
-    };
-  }
 
   function buildTeachingGlobalGraphOpenPlan(q, deps, options) {
     options = options || {};
@@ -781,7 +724,7 @@ var TEACHING_GRAMMAR_MINDMAPS = {
     isMindmapBranchActive: isMindmapBranchActive,
     getMindmapDefinition: getMindmapDefinition,
     getMindmapFallback: getMindmapFallback,
-    buildTeachingKnowledgePanelModel: buildTeachingKnowledgePanelModel,
+
     buildTeachingGlobalGraphOpenPlan: buildTeachingGlobalGraphOpenPlan,
     buildGraphNodeIndex: buildGraphNodeIndex,
     getGraphNodeTypeLabel: getGraphNodeTypeLabel,

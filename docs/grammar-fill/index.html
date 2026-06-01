@@ -241,7 +241,6 @@
         <div id="examGrid"></div>
       </div>
 
-      <div id="homeCategories" class="home-subview"></div>
     </div>
 
     <div class="page" id="page-practice">
@@ -305,10 +304,8 @@
     <div class="page" id="page-knowledge">
       <!-- 视图切换 tab bar：教材视图作为默认首页（最美观、最直观） -->
       <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
-        <button class="knowledge-view-btn active" id="knowledgeSystemBtn" onclick="setKnowledgeView('system')">🌐 全局图谱</button>
-        <button class="knowledge-view-btn" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
+        <button class="knowledge-view-btn active" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
         <button class="knowledge-view-btn" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
-        <button class="knowledge-view-btn" id="knowledgeFineCatBtn" onclick="setKnowledgeView('fine-cat')">🏷️ 考点视图</button>
         <button class="knowledge-view-btn" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
       </div>
       <div class="knowledge-layout" id="knowledgeLayout">
@@ -327,6 +324,14 @@
           <div class="empty-hint">选择上方任一视图开始</div>
         </main>
       </div>
+    </div>
+
+    <div class="page" id="page-points-training">
+      <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
+        <button class="knowledge-view-btn active" id="ptGraphBtn" onclick="setPointsTrainingView('graph')">🌐 图谱</button>
+        <button class="knowledge-view-btn" id="ptTextBtn" onclick="setPointsTrainingView('text')">🏷️ 文字</button>
+      </div>
+      <div id="pointsTrainingContent"></div>
     </div>
 
     <div class="page" id="page-error-book">
@@ -585,8 +590,6 @@ const PATTERN_DATA = window.PATTERN_DATA || {};
 const KNOWLEDGE_CORE = window.GRAMMAR_KNOWLEDGE_CORE || { roots: [], nodes: {}, learning_paths: [], category_to_nodes: {}, trap_to_nodes: {} };
 // Sprint 1 · 精细 tag 体系（来自 docs/data/grammar_fine_tags.js）
 const FINE_TAGS = window.GRAMMAR_FINE_TAGS || { tags_by_id: {}, tags_by_category: {}, categories: {}, textbook_units: [], tag_to_units: {} };
-
-const TEACHING_GRAMMAR_MINDMAPS = window.GrammarTeachingViewModel.TEACHING_GRAMMAR_MINDMAPS;
 
 // 从 fine_category id 取展示用对象（带 fine name + 教材引用）
 function getFineTagInfo(fineCategory) {
@@ -1672,7 +1675,6 @@ function init() {
   try { localStorage.removeItem('grammar-context-sidebar-collapsed'); } catch(e) {}
   renderBankStat();
   renderExamGrid();
-  renderHomeCategories();
   updateCounts();
   renderKnowledgePage();
   renderErrorBook();
@@ -2312,14 +2314,6 @@ function renderExamGrid() {
   grid.innerHTML = html;
 }
 
-function renderHomeCategories() {
-  var root = document.getElementById('homeCategories');
-  if (!root || !window.GrammarCategoryRules) return;
-  var model = window.GrammarCategoryRules.buildHomeCategoryModel(ALL_QUESTIONS);
-  var html = window.GrammarHomeRender.homeCategoriesHtml(model, { inlineSidebarAction: inlineSidebarAction });
-  root.innerHTML = html;
-}
-
 function getSidebarModelDeps(extra) {
   var values = {
     exams: BANK.exams,
@@ -2518,12 +2512,14 @@ function switchPage(page) {
   setActiveDock(pageState.activeDock);
   var pageEl = document.getElementById('page-' + page);
   if (pageEl) pageEl.classList.add('active');
+  if (page === 'knowledge') setKnowledgeView('map');
   window.scrollTo({ top: 0, behavior: 'instant' });
 
   if (renderPlan.renderAction === 'navigate-home-cards') navigateHome(renderPlan.homeView || 'cards');
   if (renderPlan.renderAction === 'render-error-book') renderErrorBook();
   if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
   if (renderPlan.renderAction === 'render-admin') renderAdminPage();
+  if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 错题本/备课/讲题显示）
@@ -2603,8 +2599,7 @@ function navigateHome(view) {
   view = homeState.currentHomeView;
   document.getElementById('homeCards').style.display = view === 'cards' ? '' : 'none';
   document.getElementById('homeExams').classList.toggle('active', view === 'exams');
-  document.getElementById('homeCategories').classList.toggle('active', view === 'categories');
-  // 同步 dock 圆点：cards→home / exams→exams / categories→categories
+  // 同步 dock 圆点：cards→home / exams→exams
   setActiveDock(homeState.dockKey);
   window.scrollTo({ top: 0, behavior: 'instant' });
   renderPageSidebar('home');
@@ -2661,7 +2656,11 @@ function startByCategory(cat) {
 function startByFineTag(fine) {
   closeDrawer();
   resetPracticeDisplayState();
-  var entryModel = window.GrammarCategoryRules.buildFineTagPracticePlan(fine, ALL_QUESTIONS, CATEGORY_MAP);
+  var fineTag = (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.tags_by_id && window.GRAMMAR_FINE_TAGS.tags_by_id[fine]) || {};
+  var fineName = fineTag.name || fine;
+  var catName = fineTag.category ? (CATEGORY_MAP[fineTag.category] || fineTag.category) : '';
+  var label = '按考点' + (catName ? ' · ' + catName : '') + ' · ' + fineName;
+  var entryModel = window.GrammarCategoryRules.buildFineTagPracticePlan(fine, ALL_QUESTIONS, CATEGORY_MAP, label);
   if (!entryModel.hasQuestions) {
     alert(entryModel.emptyMessage);
     return;
@@ -2676,10 +2675,22 @@ function startByFineTag(fine) {
   renderExam();
 }
 
-function startByPoint(tag, keys) {
+// 决策地图叶子→「按考点 · 粗类 · 父分组 · 叶子」面包屑。父分组与粗类同名时省略。
+function dmBreadcrumb(full, node) {
+  if (!node) return '';
+  var catName = node.cat ? (CATEGORY_MAP[node.cat] || node.cat) : '';
+  var parent = node.parent && full.byId[node.parent] ? full.byId[node.parent] : null;
+  var parts = [];
+  if (catName) parts.push(catName);
+  if (parent && parent.title && parent.title !== catName) parts.push(parent.title);
+  if (node.title) parts.push(node.title);
+  return '按考点' + (parts.length ? ' · ' + parts.join(' · ') : '');
+}
+
+function startByPoint(tag, keys, sourceLabel) {
   closeDrawer();
   resetPracticeDisplayState();
-  var entryModel = window.GrammarCategoryRules.buildPointPracticePlan(tag, keys, ALL_QUESTIONS, CATEGORY_MAP);
+  var entryModel = window.GrammarCategoryRules.buildPointPracticePlan(tag, keys, ALL_QUESTIONS, CATEGORY_MAP, sourceLabel);
   if (!entryModel.hasQuestions) {
     alert(entryModel.emptyMessage);
     return;
@@ -3492,49 +3503,6 @@ function getTeachingHeaderInfo(q) {
   return window.GrammarTeachingViewModel.buildHeaderInfo(q, teachingViewModelDeps());
 }
 
-function getTeachingKnowledgeNodeIds(q) {
-  return window.GrammarTeachingViewModel.getKnowledgeNodeIds(q, teachingViewModelDeps());
-}
-
-function getTeachingGraphNodeIdForQuestion(q) {
-  return window.GrammarTeachingViewModel.getGraphNodeIdForQuestion(q, teachingViewModelDeps());
-}
-
-function openGlobalGraphForTeachingQuestion() {
-  var practiceContext = getPracticeContextSnapshot();
-  var session = getTeachingSessionSnapshot().teachingSession;
-  if (!session) return;
-  var q = practiceContext.currentQuestions && practiceContext.currentQuestions[session.idx];
-  var plan = window.GrammarTeachingViewModel.buildTeachingGlobalGraphOpenPlan(q, teachingViewModelDeps());
-  if (!plan.active) return;
-  if (plan.shouldCloseTeachingStage) closeTeachingStage();
-  switchPage(plan.page);
-  setKnowledgeView(plan.knowledgeView);
-  setTimeout(function() {
-    selectGlobalGraphNode(plan.nodeId);
-  }, plan.selectDelayMs);
-}
-
-function getTeachingMindmapDefinition(q) {
-  return window.GrammarTeachingViewModel.getMindmapDefinition(q);
-}
-
-function getTeachingMindmapActiveKeys(q) {
-  return window.GrammarTeachingViewModel.getMindmapActiveKeys(q, teachingViewModelDeps());
-}
-
-function teachingMindmapKeyMatches(ref, active) {
-  return window.GrammarTeachingViewModel.mindmapKeyMatches(ref, active);
-}
-
-function isTeachingMindmapBranchActive(branch, active) {
-  return window.GrammarTeachingViewModel.isMindmapBranchActive(branch, active);
-}
-
-function getTeachingMindmapFallback(q) {
-  return window.GrammarTeachingViewModel.getMindmapFallback(q, teachingViewModelDeps());
-}
-
 function openTeachingStageByIdx(idx, options) {
   _migrationShowAll = false;   // 切换题目时复位"显示全部"，避免状态串到下一题
   options = options || {};
@@ -3601,8 +3569,6 @@ function renderTeachingStage() {
   try {
     if (stageModel.tab === 'migration') {
       contentHtml = buildTeachingMigrationHtml(q);
-    } else if (stageModel.tab === 'knowledge') {
-      contentHtml = buildTeachingKnowledgeHtml(q);
     } else {
       contentHtml = buildTeachingGuideHtml(q, practicalGuide);
     }
@@ -3642,7 +3608,6 @@ function buildTeachingMigrationHtml(q) {
   return window.GrammarTeachingRender.migrationStageHtml(contentModel);
 }
 
-function buildTeachingKnowledgeHtml(q) { return window.GrammarTeachingRender.teachingKnowledgeHtml(q, { teachingViewModelDeps: teachingViewModelDeps, getGraphNodeIndex: getGraphNodeIndex }); }
 
 function renderTeachingDock() {
   var practiceContext = getPracticeContextSnapshot();
@@ -4311,6 +4276,7 @@ function toggleSubsection(subKey) {
 }
 
 function setKnowledgeView(view) {
+  _knowledgeRenderTarget = 'knowledgeContent';
   var knowledgeState = applyKnowledgeViewState({
     currentKnowledgeView: view,
     currentKnowledgeNodeId: ''
@@ -4364,7 +4330,7 @@ function renderFineCategoryView() {
     currentKnowledgeView: 'fine-cat',
     currentKnowledgeNodeId: ''
   });
-  var content = document.getElementById('knowledgeContent');
+  var content = document.getElementById(_knowledgeRenderTarget);
   var model = window.GrammarKnowledgeViewModel.buildFineCategoryViewModel(window.GRAMMAR_FINE_TAGS || {}, ALL_QUESTIONS, errorBookQuestions);
   if (!content || !window.GRAMMAR_FINE_TAGS || model.empty) {
     content.innerHTML = '<div class="empty-hint">' + escapeHtml(model.emptyText) + '</div>';
@@ -5228,10 +5194,10 @@ function dmKeysLiteral(keys) {
   // 把 keys 数组序列化成 onclick 里可嵌的 JS 数组字面量：['a','b']（值为受控的考点key，无引号/特殊字符）
   return '[' + (keys || []).map(function(k){ return "'" + String(k) + "'"; }).join(',') + ']';
 }
-function startByPointFromMap(tag, keys) {
-  // 从图谱叶子/词 chip 按 point 精准开练，"返回"指回知识库
-  startByPoint(tag, keys);
-  setPreviousView({ page: 'knowledge' });
+function startByPointFromMap(tag, keys, sourceLabel) {
+  // 从图谱叶子/词 chip 按 point 精准开练，"返回"指回考点训练
+  startByPoint(tag, keys, sourceLabel);
+  setPreviousView({ page: 'points-training' });
   if (typeof syncAppState === 'function') syncAppState();
   if (typeof updateDockBackButton === 'function') updateDockBackButton();
 }
@@ -5258,7 +5224,7 @@ function renderSystemView(focusNodeId) {
     currentKnowledgeView: kvs.currentKnowledgeView === 'system-node' ? 'system-node' : 'system',
     currentKnowledgeNodeId: focusNodeId || ''
   });
-  var content = document.getElementById('knowledgeContent');
+  var content = document.getElementById(_knowledgeRenderTarget);
   if (!content) return;
   var DM = window.GRAMMAR_DECISION_MAP;
   if (!DM || !DM.nodes || !DM.nodes.length) {
@@ -5319,11 +5285,12 @@ function renderSystemView(focusNodeId) {
         ? window.GrammarKnowledgeViewModel.countByPoint(n.point.tag, n.point.keys, ALL_QUESTIONS, errorBookQuestions)
         : ((fine && window.GrammarKnowledgeViewModel)
           ? window.GrammarKnowledgeViewModel.countByFineTag(fine, ALL_QUESTIONS, errorBookQuestions)
-          : { total: 0, real: 0 });
+          : { total: 0, real: 0, bank: 0, error: 0 });
       var qn = c.total || 0;
-      var badge = (c.real < qn) ? (qn + ' 题 · 真题' + c.real) : (qn + ' 题');
+      var badge = window.GrammarKnowledgeViewModel.formatCountBadge(c);
+      var dmBc = dmBreadcrumb(full, n);
       var acts = '';
-      if (qn > 0 && n.point) acts += '<button type="button" onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(n.point.tag) + '\',' + dmKeysLiteral(n.point.keys) + ')">🔁 迁移训练 · ' + badge + '</button>';
+      if (qn > 0 && n.point) acts += '<button type="button" onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(n.point.tag) + '\',' + dmKeysLiteral(n.point.keys) + ',\'' + graphEscapeAttr(dmBc) + '\')">🔁 迁移训练 · ' + badge + '</button>';
       else if (qn > 0 && fine) acts += '<button type="button" onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(fine) + '\')">🔁 迁移训练 · ' + badge + '</button>';
       else acts += '<span style="font-size:12px;color:var(--text-3);">暂无题 · 0 题</span>';
       acts += '<button type="button" class="ghost" onclick="event.stopPropagation();openKnowledgePoint(\'' + graphEscapeAttr(cat) + '\',\'' + graphEscapeAttr(kd) + '\')">📖 看讲解</button>';
@@ -5335,9 +5302,10 @@ function renderSystemView(focusNodeId) {
       if (words.length) {
         var chips = words.map(function(wd) {
           var z = wd.total === 0 ? ' style="opacity:.4;"' : '';
-          var rt = (wd.real < wd.total) ? ('·真题' + wd.real) : '';
+          var wmock = Math.max(0, wd.total - wd.real);
+          var rt = wmock > 0 ? ('·真' + wd.real + '·模' + wmock) : '';
           return '<button type="button" class="dm-word-chip"' + z
-            + ' onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(pointTag) + '\',[\'' + graphEscapeAttr(wd.word) + '\'])">'
+            + ' onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(pointTag) + '\',[\'' + graphEscapeAttr(wd.word) + '\'],\'' + graphEscapeAttr(dmBc + ' · ' + wd.word) + '\')">'
             + escapeHtml(wd.word) + ' <span style="opacity:.6;">' + wd.total + rt + '</span></button>';
         }).join('');
         tip += '<div class="dm-words">' + chips + '</div>';
@@ -5732,7 +5700,24 @@ function renderKnowledgePage() {
   var patternTitle = document.querySelectorAll('.knowledge-sidebar-title')[1];
   if (patternTitle) patternTitle.style.display = sidebarModel.patternTitleVisible ? '' : 'none';
 
-  setKnowledgeView('system');  // 知识库默认打开全局图谱（做题决策思维导图）
+  setKnowledgeView('map');  // 知识库默认打开知识地图（全局图谱/考点视图已迁移至「考点训练」dock）
+}
+
+var _knowledgeRenderTarget = 'knowledgeContent';
+var _pointsTrainingView = 'graph';
+function setPointsTrainingView(view) {
+  _pointsTrainingView = (view === 'text') ? 'text' : 'graph';
+  var gb = document.getElementById('ptGraphBtn'); if (gb) gb.classList.toggle('active', _pointsTrainingView === 'graph');
+  var tb = document.getElementById('ptTextBtn'); if (tb) tb.classList.toggle('active', _pointsTrainingView === 'text');
+  _knowledgeRenderTarget = 'pointsTrainingContent';
+  if (_pointsTrainingView === 'graph') {
+    renderSystemView('');
+  } else {
+    renderFineCategoryView();
+  }
+}
+function renderPointsTrainingPage() {
+  setPointsTrainingView(_pointsTrainingView);
 }
 
 function renderKnowledgeMap() {
@@ -5928,6 +5913,7 @@ Object.assign(window, {
   navigateBlank: navigateBlank,
   navigateExam: navigateExam,
   navigateHome: navigateHome,
+  setPointsTrainingView: setPointsTrainingView,
   navigateToKnowledge: navigateToKnowledge,
   openAuthModal: openAuthModal,
   openSettingsModal: openSettingsModal,
@@ -5967,7 +5953,7 @@ Object.assign(window, {
   toggleChinese: toggleChinese,
   toggleCompact: toggleCompact,
   toggleExamYear: toggleExamYear,
-  openGlobalGraphForTeachingQuestion: openGlobalGraphForTeachingQuestion,
+
   togglePrepBatchImport: togglePrepBatchImport,
   toggleSubsection: toggleSubsection,
   unifiedSelectAll: unifiedSelectAll,
@@ -5996,7 +5982,7 @@ init();
     📋
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="考点分类训练" data-dock-key="categories" onclick="navigateHome('categories')">
+  <div class="dock-item" data-label="考点训练" data-dock-key="points-training" onclick="switchPage('points-training')">
     🏷️
     <div class="dock-dot"></div>
   </div>

@@ -243,7 +243,7 @@
     var key = typeof source === 'string'
       ? source
       : (source && (source.source || source.entry || source.mode || source.page)) || '';
-    if (key === 'category' || key === 'categories') return { page: 'home', view: 'categories' };
+    if (key === 'category' || key === 'categories' || key === 'points-training') return { page: 'points-training' };
     if (key === 'exam' || key === 'exams' || key === 'bank') return { page: 'home', view: 'exams' };
     if (key === 'error' || key === 'errors' || key === 'error-book') return { page: 'error-book' };
     if (key === 'prep' || key === 'lesson-prep') return { page: 'lesson-prep' };
@@ -257,6 +257,7 @@
       || page === 'home'
       || page === 'practice'
       || page === 'knowledge'
+      || page === 'points-training'
       || page === 'error-book'
       || page === 'lesson-prep'
       || page === 'admin'
@@ -296,6 +297,7 @@
       dockKey === 'home'
       || dockKey === 'exams'
       || dockKey === 'categories'
+      || dockKey === 'points-training'
       || dockKey === 'knowledge'
       || dockKey === 'error-book'
       || dockKey === 'lesson-prep'
@@ -308,7 +310,7 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
-    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep') {
+    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training') {
       return page;
     }
     return '';
@@ -335,6 +337,7 @@
     if (page === 'error-book') renderAction = 'render-error-book';
     if (page === 'lesson-prep') renderAction = 'render-lesson-prep';
     if (page === 'admin') renderAction = 'render-admin';
+    if (page === 'points-training') renderAction = 'render-points-training';
     return {
       page: page,
       renderAction: renderAction,
@@ -423,6 +426,7 @@
     }
     if (previousView.page === 'error-book') return '返回错题本';
     if (previousView.page === 'lesson-prep') return '返回备课资料';
+    if (previousView.page === 'points-training') return '返回考点训练';
     return '返回上一页';
   }
 
@@ -1196,8 +1200,7 @@
       }),
       tabButtons: [
         { key: 'guide', label: '讲题', active: activeTab === 'guide' },
-        { key: 'migration', label: '迁移', active: activeTab === 'migration' },
-        { key: 'knowledge', label: '图谱', active: activeTab === 'knowledge' }
+        { key: 'migration', label: '迁移', active: activeTab === 'migration' }
       ],
       returnButton: returnState.hasReturn
         ? { label: returnState.returnLabel, context: returnState.returnContext }
