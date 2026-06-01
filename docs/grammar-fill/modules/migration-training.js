@@ -366,19 +366,32 @@
     q = q || {};
     options = options || {};
     var bankQuestions = options.bankQuestions || [];
-    var fineCat = q.fine_category || '';
     return bankQuestions.filter(function(item) {
-      if (sameQuestion(item, q)) return false;
-      return fineCat
-        ? item.fine_category === fineCat
-        : item.category === q.category;
+      return !sameQuestion(item, q) && questionsSharePoint(q, item);
     }).length;
   }
 
   // 取题的考点清单：优先 item.points；缺失时回退到 [{tag: fine_category}]（兼容未派生场景）
   function questionPoints(item) {
     if (item && Array.isArray(item.points) && item.points.length) return item.points;
-    return [{ tag: (item && item.fine_category) || '' }];
+    // 回退：有 fine_category 用之；否则用 category 级伪 tag(同大类可匹配)
+    if (item && item.fine_category) return [{ tag: item.fine_category }];
+    return [{ tag: 'cat:' + ((item && item.category) || '') }];
+  }
+
+  // 两题是否共享至少一个考点：同 tag 且(同 key，或任一方无 key=整 tag 通配)。多标签题任一轴命中即算。
+  // keyless 通配让"无 points 回退到 [{tag:fine_category}]"的题按 tag 级匹配；而 which/that 都带 key 时精确区分。
+  function questionsSharePoint(a, b) {
+    var ap = questionPoints(a), bp = questionPoints(b);
+    for (var i = 0; i < ap.length; i++) {
+      for (var j = 0; j < bp.length; j++) {
+        if (!ap[i].tag || ap[i].tag !== bp[j].tag) continue;
+        var ak = String(ap[i].key == null ? '' : ap[i].key);
+        var bk = String(bp[j].key == null ? '' : bp[j].key);
+        if (ak === bk || ak === '' || bk === '') return true;
+      }
+    }
+    return false;
   }
 
   function buildMigrationData(q, options) {
@@ -402,23 +415,11 @@
     });
 
     // 显示池=与当前题共享至少一个 point（考点）的题，排除自身。多标签题(谓语)按任一轴命中取并集。
-    function sharesPoint(item) {
-      var qp = questionPoints(q), ip = questionPoints(item);
-      for (var i = 0; i < qp.length; i++) {
-        for (var j = 0; j < ip.length; j++) {
-          if (qp[i].tag && qp[i].tag === ip[j].tag
-              && String(qp[i].key == null ? '' : qp[i].key) === String(ip[j].key == null ? '' : ip[j].key)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
     var pointBankPool = bankQuestions.filter(function(item) {
-      return !sameQuestion(item, q) && sharesPoint(item);
+      return !sameQuestion(item, q) && questionsSharePoint(q, item);
     });
     var pointErrorPool = errorQuestions.filter(function(item) {
-      return !sameQuestion(item, q) && sharesPoint(item);
+      return !sameQuestion(item, q) && questionsSharePoint(q, item);
     });
 
     var bankDisplayPool = dedupe(pointBankPool);
