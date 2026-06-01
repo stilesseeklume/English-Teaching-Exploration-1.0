@@ -4308,12 +4308,13 @@ test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) 
 
   const out = await page.evaluate(() => {
     const M = window.GrammarMigrationTraining;
-    const q = { exam: 'EQ', no: 1, category: 'predicate', facets: { tense: '一般现在', voice: 'passive' } };
+    const P = function (tag, key) { return key ? { tag: tag, key: key } : { tag: tag }; };
+    const q = { exam: 'EQ', no: 1, category: 'predicate', points: [P('pred-tense', '一般现在'), P('pred-passive')] };
     const bank = [
-      { exam: 'EA', no: 11, type: '真题', category: 'predicate', facets: { tense: '一般现在', voice: 'passive' } },
-      { exam: 'EB', no: 12, type: '真题', category: 'predicate', facets: { tense: '一般现在', agreement: true } },
-      { exam: 'EC', no: 13, type: '真题', category: 'predicate', facets: { tense: '一般过去', voice: 'passive' } },
-      { exam: 'ED', no: 14, type: '真题', category: 'predicate', facets: { agreement: true } }
+      { exam: 'EA', no: 11, type: '真题', category: 'predicate', points: [P('pred-tense', '一般现在'), P('pred-passive')] },
+      { exam: 'EB', no: 12, type: '真题', category: 'predicate', points: [P('pred-tense', '一般现在'), P('pred-agreement')] },
+      { exam: 'EC', no: 13, type: '真题', category: 'predicate', points: [P('pred-tense', '一般过去'), P('pred-passive')] },
+      { exam: 'ED', no: 14, type: '真题', category: 'predicate', points: [P('pred-agreement')] }
     ];
     const opts = (pointIdx) => ({
       source: 'bank',

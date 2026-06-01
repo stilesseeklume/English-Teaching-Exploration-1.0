@@ -289,16 +289,9 @@
     }).length;
   }
 
-  // 取题的考点清单：优先 item.points；谓语题缺 points 时从 facets 派生多轴；其余回退 fine_category / category。
+  // 取题的考点清单：优先 item.points；回退 fine_category / category。
   function questionPoints(item) {
     if (item && Array.isArray(item.points) && item.points.length) return item.points;
-    // 谓语题：从 facets 派生多轴（pred-tense/pred-passive/pred-agreement），需 GrammarQuestionPoints 运行时可用。
-    if (item && item.category === 'predicate'
-        && window.GrammarQuestionPoints
-        && typeof window.GrammarQuestionPoints.buildQuestionPoints === 'function') {
-      var derived = window.GrammarQuestionPoints.buildQuestionPoints(item);
-      if (derived && derived.length) return derived;
-    }
     // 回退：有 fine_category 用之；否则用 category 级伪 tag(同大类可匹配)
     if (item && item.fine_category) return [{ tag: item.fine_category }];
     return [{ tag: 'cat:' + ((item && item.category) || '') }];
