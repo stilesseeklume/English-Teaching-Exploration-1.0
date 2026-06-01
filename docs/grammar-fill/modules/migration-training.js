@@ -312,6 +312,22 @@
     return false;
   }
 
+  // 标题是否可精确到这个 point 的 key：仅当池内每道携带该 tag 的题都带相同 key 时才行。
+  // 池里有 keyless 题(如未派生 points 的错题，按 tag 级通配命中)或别的 key → 标题该退回 tag 级，
+  // 否则会出现"标题写 from、却展示 to"的错位。多标签题里经别的 tag 命中的题不影响本轴。
+  function poolHomogeneousOnKey(pool, point) {
+    if (point.key == null || point.key === '') return false;
+    for (var i = 0; i < (pool || []).length; i++) {
+      var tagPts = questionPoints(pool[i]).filter(function(p) { return p.tag === point.tag; });
+      if (!tagPts.length) continue;
+      var sameKey = tagPts.some(function(p) {
+        return p.key != null && String(p.key) === String(point.key);
+      });
+      if (!sameKey) return false;
+    }
+    return true;
+  }
+
   function buildMigrationData(q, options) {
     q = q || {};
     options = options || {};
@@ -346,9 +362,13 @@
     var tabs = buildTabs(bankDisplayPool, errorDisplayPool);
 
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
-    // 表头优先用考点面包屑(精确到 where/a/一般现在，与考点训练同口径)；解析不出再回退 fine 粗名
+    // 表头优先用考点面包屑(精确到 where/a/一般现在，与考点训练同口径)；解析不出再回退 fine 粗名。
+    // 标题里的具体词只在当前来源池对该 key 同质时保留，否则退回 tag 级(避免"标题 from / 展示 to")。
+    var titlePoints = questionPoints(q).map(function(p) {
+      return poolHomogeneousOnKey(pool, p) ? p : { tag: p.tag };
+    });
     var pointTitle = (typeof options.getPointTitle === 'function')
-      ? (options.getPointTitle(questionPoints(q)) || '')
+      ? (options.getPointTitle(titlePoints) || '')
       : '';
     var headerLabel = pointTitle
       ? pointTitle

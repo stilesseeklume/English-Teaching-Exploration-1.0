@@ -4041,6 +4041,26 @@ test('迁移表头注入 getPointTitle 后用考点面包屑；解析不出回�
   })).toBe('按考点 · 定语从句 · 关系副词 · where || 同考点：关系副词（when/where/why）');
 });
 
+test('迁移表头按池同质决定是否精确到词：池有 keyless/异 key 题→退回 tag 级（修 from/to 错位）', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarMigrationTraining && window.GrammarKnowledgeViewModel && window.GrammarQuestionModel), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining, kvm = window.GrammarKnowledgeViewModel;
+    var DM = (window.GRAMMAR_DECISION_MAP || {}).nodes || [], FT = window.GRAMMAR_FINE_TAGS || {}, CM = window.CATEGORY_MAP || {};
+    var gpt = function(points) { return kvm.buildMigrationPointTitle(DM, FT, CM, points); };
+    var gfti = function(fc) { return window.GrammarQuestionModel.getFineTagInfo(fc, FT); };
+    var inj = function(extra) { return Object.assign({ source: 'bank', errorQuestions: [], categoryMap: CM, getFineTagInfo: gfti, getPointTitle: gpt, limit: 99 }, extra); };
+    var qFrom = { exam: 'e1', no: 1, category: 'preposition', fine_category: 'prep-common', points: [{ tag: 'prep-common', key: 'from' }], type: '真题' };
+    // 池里是 keyless 错题(无 points → 按 tag 通配命中) → 标题应退回 tag 级，不写 from
+    var leak = mt.buildMigrationData(qFrom, inj({ source: 'errors', bankQuestions: [],
+      errorQuestions: [{ exam: '错题本', no: 63, id: 'err_x', category: 'preposition', fine_category: 'prep-common', answer: 'to' }] }));
+    // 池里全是 from(带 key) → 标题精确到 from
+    var pure = mt.buildMigrationData(qFrom, inj({ bankQuestions: [qFrom,
+      { exam: 'e2', no: 2, category: 'preposition', fine_category: 'prep-common', points: [{ tag: 'prep-common', key: 'from' }], type: '真题' }] }));
+    return leak.headerLabel + ' || ' + pure.headerLabel;
+  })).toBe('按考点 · 介词 · 常见介词的用法 || 按考点 · 介词 · 常见介词的用法 · from');
+});
+
 test('真题加载后每题都带非空 points，且 tag 都是现行 tag', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!(window.GrammarQuestionModel && window.GRAMMAR_BANK && window.GrammarQuestionPoints), null, { timeout: 15000 });
