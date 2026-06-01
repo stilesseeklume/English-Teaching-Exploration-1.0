@@ -124,42 +124,42 @@
     // ─── 教材进度对照（视图 B，35 unit）─────
     // 来源：人教版 7 册 grammar 教学点 + knowledge-taxonomy.md §3
     textbook_units: [
-      { book: '必修一', unit: 'Welcome', grammar_en: 'Basic sentence structures', grammar_zh: '基本句子结构', maps_to: ['aux:struct-five-patterns', 'aux:struct-simple-compound-complex'] },
-      { book: '必修一', unit: 'U1', topic: 'Teenage Life', grammar_en: 'Noun/adjective/adverb phrases', grammar_zh: '名词/形容词/副词短语', maps_to: ['aux:struct-components-1', 'word-adj-adv-other'] },
-      { book: '必修一', unit: 'U2', topic: 'Travelling Around', grammar_en: 'Present continuous (future plans)', grammar_zh: '现在进行时表将来', maps_to: ['pred-tense-continuous'] },
+      { book: '必修一', unit: 'Welcome', grammar_en: 'Basic sentence structures', grammar_zh: '基本句子结构', maps_to: ['struct-five-patterns', 'struct-simple-compound-complex'] },
+      { book: '必修一', unit: 'U1', topic: 'Teenage Life', grammar_en: 'Noun/adjective/adverb phrases', grammar_zh: '名词/形容词/副词短语', maps_to: ['struct-components-1', 'word-adj'] },
+      { book: '必修一', unit: 'U2', topic: 'Travelling Around', grammar_en: 'Present continuous (future plans)', grammar_zh: '现在进行时表将来', maps_to: ['pred-tense'] },
       { book: '必修一', unit: 'U3', topic: 'Sports and Fitness', grammar_en: 'Tag questions', grammar_zh: '反意疑问句', maps_to: ['special-tag-question'] },
-      { book: '必修一', unit: 'U4', topic: 'Natural Disasters', grammar_en: 'Restrictive relative clauses (1)', grammar_zh: '限制性定语从句（1）', maps_to: ['attrib-choice', 'attrib-only-that'] },
+      { book: '必修一', unit: 'U4', topic: 'Natural Disasters', grammar_en: 'Restrictive relative clauses (1)', grammar_zh: '限制性定语从句（1）', maps_to: ['attrib-pronoun', 'attrib-only-that'] },
       { book: '必修一', unit: 'U5', topic: 'Languages Around the World', grammar_en: 'Restrictive relative clauses (2)', grammar_zh: '限制性定语从句（2）', maps_to: ['attrib-adverb', 'attrib-prep-relative'] },
-      { book: '必修二', unit: 'U1', topic: 'Cultural Heritage', grammar_en: 'Restrictive relative clauses (3)', grammar_zh: '限制性定语从句（3）', maps_to: ['attrib-other-rules', 'attrib-other'] },
-      { book: '必修二', unit: 'U2', topic: 'Wildlife Protection', grammar_en: 'Present continuous passive voice', grammar_zh: '现在进行时被动语态', maps_to: ['pred-tense-continuous', 'pred-passive-form'] },
-      { book: '必修二', unit: 'U3', topic: 'The Internet', grammar_en: 'Present perfect passive voice', grammar_zh: '现在完成时被动语态', maps_to: ['pred-tense-perfect', 'pred-passive-form'] },
-      { book: '必修二', unit: 'U4', topic: 'History and Traditions', grammar_en: 'Past participles (1) attribute/object complement', grammar_zh: '过去分词作定语和宾补', maps_to: ['nonp-attribute', 'nonp-complement'] },
-      { book: '必修二', unit: 'U5', topic: 'Music', grammar_en: 'Past participles (2) predicative/adverbial', grammar_zh: '过去分词作表语和状语', maps_to: ['nonp-subject-predicative', 'nonp-adverbial-1'] },
-      { book: '必修三', unit: 'U1', topic: 'Festivals and Celebrations', grammar_en: '-ing form (1) attribute/predicative', grammar_zh: '-ing 作定语和表语', maps_to: ['nonp-attribute', 'nonp-subject-predicative'] },
-      { book: '必修三', unit: 'U2', topic: 'Morals and Virtues', grammar_en: '-ing form (2) object complement/adverbial', grammar_zh: '-ing 作宾补和状语', maps_to: ['nonp-complement', 'nonp-adverbial-1'] },
-      { book: '必修三', unit: 'U3', topic: 'Diverse Cultures', grammar_en: 'Ellipsis', grammar_zh: '省略', maps_to: ['special-substitution-ellipsis'] },
-      { book: '必修三', unit: 'U4', topic: 'Space Exploration', grammar_en: 'Infinitives (1) attribute/adverbial', grammar_zh: '不定式作定语和状语', maps_to: ['nonp-attribute', 'nonp-adverbial-1'] },
-      { book: '必修三', unit: 'U5', topic: 'The Value of Money', grammar_en: 'Review of modal verbs / Past future tense', grammar_zh: '情态动词复习 / 过去将来时', maps_to: ['modal-features', 'pred-tense-past-future'] },
-      { book: '选必一', unit: 'U1', topic: 'People of Achievement', grammar_en: 'Non-restrictive relative clauses', grammar_zh: '非限制性定语从句', maps_to: ['attrib-restrictive-non'] },
-      { book: '选必一', unit: 'U2', topic: 'Looking into the Future', grammar_en: 'Future progressive tense', grammar_zh: '将来进行时', maps_to: ['pred-tense-continuous'] },
-      { book: '选必一', unit: 'U3', topic: 'Fascinating Parks', grammar_en: '-ing form (3) as subject', grammar_zh: '-ing 作主语', maps_to: ['nonp-subject-predicative'] },
-      { book: '选必一', unit: 'U4', topic: 'Body Language', grammar_en: '-ing form (4) as object/predicative', grammar_zh: '-ing 作宾语/表语', maps_to: ['nonp-object', 'nonp-subject-predicative'] },
-      { book: '选必一', unit: 'U5', topic: 'Working the Land', grammar_en: 'Subject clauses', grammar_zh: '主语从句', maps_to: ['nounc-connectors', 'nounc-wh-words'] },
-      { book: '选必二', unit: 'U1', topic: 'Science and Scientists', grammar_en: 'Predicative clauses', grammar_zh: '表语从句', maps_to: ['nounc-connectors'] },
-      { book: '选必二', unit: 'U2', topic: 'Bridging Cultures', grammar_en: 'Review of noun clauses', grammar_zh: '名词性从句复习', maps_to: ['nounc-connectors', 'nounc-wh-words', 'nounc-reported'] },
-      { book: '选必二', unit: 'U3', topic: 'Food and Culture', grammar_en: 'Past perfect tense / Past perfect passive', grammar_zh: '过去完成时及其被动', maps_to: ['pred-tense-past-perfect', 'pred-passive-form'] },
-      { book: '选必二', unit: 'U4', topic: 'Journey Across a Vast Land', grammar_en: 'Past participles vs -ing form', grammar_zh: '过去分词 vs -ing', maps_to: ['nonp-attribute', 'nonp-adverbial-1'] },
-      { book: '选必二', unit: 'U5', topic: 'First Aid', grammar_en: 'Review of -ing form', grammar_zh: '-ing 复习', maps_to: ['nonp-basic'] },
-      { book: '选必三', unit: 'U1', topic: 'Art', grammar_en: 'Infinitives (2) as predicative', grammar_zh: '不定式作表语', maps_to: ['nonp-subject-predicative'] },
-      { book: '选必三', unit: 'U2', topic: 'Healthy Lifestyle', grammar_en: 'Infinitives (3) as subject', grammar_zh: '不定式作主语', maps_to: ['nonp-subject-predicative'] },
-      { book: '选必三', unit: 'U3', topic: 'Environmental Protection', grammar_en: 'Direct/indirect speech', grammar_zh: '直接/间接引语', maps_to: ['nounc-reported'] },
-      { book: '选必三', unit: 'U4', topic: 'Adversity and Courage', grammar_en: 'Present perfect continuous / Review of tenses', grammar_zh: '现在完成进行 / 时态复习', maps_to: ['pred-tense-perfect', 'pred-tense-other'] },
-      { book: '选必三', unit: 'U5', topic: 'Poems', grammar_en: 'Review of relative clauses', grammar_zh: '定语从句复习', maps_to: ['attrib-other'] },
-      { book: '选必四', unit: 'U1', topic: 'Science Fiction', grammar_en: 'Review of passive voice', grammar_zh: '被动语态复习', maps_to: ['pred-passive-form', 'pred-passive-implicit'] },
-      { book: '选必四', unit: 'U2', topic: 'Iconic Attractions', grammar_en: 'Review of past participles', grammar_zh: '过去分词复习', maps_to: ['nonp-attribute', 'nonp-subject-predicative'] },
-      { book: '选必四', unit: 'U3', topic: 'Sea Exploration', grammar_en: 'Review of infinitive', grammar_zh: '不定式复习', maps_to: ['nonp-basic'] },
-      { book: '选必四', unit: 'U4', topic: 'Sharing', grammar_en: 'Review of phrases', grammar_zh: '短语复习', maps_to: ['word-phrasal-1', 'word-phrasal-2'] },
-      { book: '选必四', unit: 'U5', topic: 'Launching Your Career', grammar_en: 'Review of long sentences', grammar_zh: '长难句复习', maps_to: ['attrib-other', 'advc-time'] }
+      { book: '必修二', unit: 'U1', topic: 'Cultural Heritage', grammar_en: 'Restrictive relative clauses (3)', grammar_zh: '限制性定语从句（3）', maps_to: ['attrib-pronoun', 'attrib-pronoun'] },
+      { book: '必修二', unit: 'U2', topic: 'Wildlife Protection', grammar_en: 'Present continuous passive voice', grammar_zh: '现在进行时被动语态', maps_to: ['pred-tense', 'pred-passive'] },
+      { book: '必修二', unit: 'U3', topic: 'The Internet', grammar_en: 'Present perfect passive voice', grammar_zh: '现在完成时被动语态', maps_to: ['pred-tense', 'pred-passive'] },
+      { book: '必修二', unit: 'U4', topic: 'History and Traditions', grammar_en: 'Past participles (1) attribute/object complement', grammar_zh: '过去分词作定语和宾补', maps_to: ['nonpred-done', 'nonpred-doing'] },
+      { book: '必修二', unit: 'U5', topic: 'Music', grammar_en: 'Past participles (2) predicative/adverbial', grammar_zh: '过去分词作表语和状语', maps_to: ['nonpred-to-do', 'nonpred-doing'] },
+      { book: '必修三', unit: 'U1', topic: 'Festivals and Celebrations', grammar_en: '-ing form (1) attribute/predicative', grammar_zh: '-ing 作定语和表语', maps_to: ['nonpred-done', 'nonpred-to-do'] },
+      { book: '必修三', unit: 'U2', topic: 'Morals and Virtues', grammar_en: '-ing form (2) object complement/adverbial', grammar_zh: '-ing 作宾补和状语', maps_to: ['nonpred-doing', 'nonpred-doing'] },
+      { book: '必修三', unit: 'U3', topic: 'Diverse Cultures', grammar_en: 'Ellipsis', grammar_zh: '省略', maps_to: ['special-ellipsis'] },
+      { book: '必修三', unit: 'U4', topic: 'Space Exploration', grammar_en: 'Infinitives (1) attribute/adverbial', grammar_zh: '不定式作定语和状语', maps_to: ['nonpred-done', 'nonpred-doing'] },
+      { book: '必修三', unit: 'U5', topic: 'The Value of Money', grammar_en: 'Review of modal verbs / Past future tense', grammar_zh: '情态动词复习 / 过去将来时', maps_to: ['modal-other', 'pred-tense'] },
+      { book: '选必一', unit: 'U1', topic: 'People of Achievement', grammar_en: 'Non-restrictive relative clauses', grammar_zh: '非限制性定语从句', maps_to: ['attrib-pronoun'] },
+      { book: '选必一', unit: 'U2', topic: 'Looking into the Future', grammar_en: 'Future progressive tense', grammar_zh: '将来进行时', maps_to: ['pred-tense'] },
+      { book: '选必一', unit: 'U3', topic: 'Fascinating Parks', grammar_en: '-ing form (3) as subject', grammar_zh: '-ing 作主语', maps_to: ['nonpred-to-do'] },
+      { book: '选必一', unit: 'U4', topic: 'Body Language', grammar_en: '-ing form (4) as object/predicative', grammar_zh: '-ing 作宾语/表语', maps_to: ['nonpred-to-do', 'nonpred-to-do'] },
+      { book: '选必一', unit: 'U5', topic: 'Working the Land', grammar_en: 'Subject clauses', grammar_zh: '主语从句', maps_to: ['nounc-that', 'nounc-wh-pronoun'] },
+      { book: '选必二', unit: 'U1', topic: 'Science and Scientists', grammar_en: 'Predicative clauses', grammar_zh: '表语从句', maps_to: ['nounc-that'] },
+      { book: '选必二', unit: 'U2', topic: 'Bridging Cultures', grammar_en: 'Review of noun clauses', grammar_zh: '名词性从句复习', maps_to: ['nounc-that', 'nounc-wh-pronoun', 'nounc-that'] },
+      { book: '选必二', unit: 'U3', topic: 'Food and Culture', grammar_en: 'Past perfect tense / Past perfect passive', grammar_zh: '过去完成时及其被动', maps_to: ['pred-tense', 'pred-passive'] },
+      { book: '选必二', unit: 'U4', topic: 'Journey Across a Vast Land', grammar_en: 'Past participles vs -ing form', grammar_zh: '过去分词 vs -ing', maps_to: ['nonpred-done', 'nonpred-doing'] },
+      { book: '选必二', unit: 'U5', topic: 'First Aid', grammar_en: 'Review of -ing form', grammar_zh: '-ing 复习', maps_to: ['nonpred-to-do'] },
+      { book: '选必三', unit: 'U1', topic: 'Art', grammar_en: 'Infinitives (2) as predicative', grammar_zh: '不定式作表语', maps_to: ['nonpred-to-do'] },
+      { book: '选必三', unit: 'U2', topic: 'Healthy Lifestyle', grammar_en: 'Infinitives (3) as subject', grammar_zh: '不定式作主语', maps_to: ['nonpred-to-do'] },
+      { book: '选必三', unit: 'U3', topic: 'Environmental Protection', grammar_en: 'Direct/indirect speech', grammar_zh: '直接/间接引语', maps_to: ['nounc-that'] },
+      { book: '选必三', unit: 'U4', topic: 'Adversity and Courage', grammar_en: 'Present perfect continuous / Review of tenses', grammar_zh: '现在完成进行 / 时态复习', maps_to: ['pred-tense', 'pred-tense'] },
+      { book: '选必三', unit: 'U5', topic: 'Poems', grammar_en: 'Review of relative clauses', grammar_zh: '定语从句复习', maps_to: ['attrib-pronoun'] },
+      { book: '选必四', unit: 'U1', topic: 'Science Fiction', grammar_en: 'Review of passive voice', grammar_zh: '被动语态复习', maps_to: ['pred-passive', 'pred-passive'] },
+      { book: '选必四', unit: 'U2', topic: 'Iconic Attractions', grammar_en: 'Review of past participles', grammar_zh: '过去分词复习', maps_to: ['nonpred-done', 'nonpred-to-do'] },
+      { book: '选必四', unit: 'U3', topic: 'Sea Exploration', grammar_en: 'Review of infinitive', grammar_zh: '不定式复习', maps_to: ['nonpred-to-do'] },
+      { book: '选必四', unit: 'U4', topic: 'Sharing', grammar_en: 'Review of phrases', grammar_zh: '短语复习', maps_to: ['prep-collocation', 'prep-collocation'] },
+      { book: '选必四', unit: 'U5', topic: 'Launching Your Career', grammar_en: 'Review of long sentences', grammar_zh: '长难句复习', maps_to: ['attrib-pronoun', 'advc-time'] }
     ]
   };
 
@@ -188,7 +188,7 @@
   DATA.stats = {
     main_categories: Object.keys(DATA.categories).length,        // 13
     aux_categories: Object.keys(DATA.aux_categories).length,     // 1
-    main_tags: DATA.tags.length,                                 // 51
+    main_tags: DATA.tags.length,                                 // 57
     aux_tags: DATA.aux_tags.length,                              // 5
     textbook_units: DATA.textbook_units.length                   // 36
   };

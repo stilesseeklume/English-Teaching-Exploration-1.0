@@ -4105,6 +4105,18 @@ test('home-render pure html output', async ({ page }) => {
   expect(out.catsHasCard).toBe(true);
 });
 
+test('textbook_units 反向索引能命中现行 tag', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GRAMMAR_FINE_TAGS, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var d = window.GRAMMAR_FINE_TAGS, t2u = d.tag_to_units || {}, byId = d.tags_by_id || {};
+    var keys = Object.keys(t2u);
+    if (!keys.length) return 'empty';
+    var bad = keys.filter(function(k){ return !byId[k]; });
+    return bad.length === 0 ? 'ok' : 'bad:' + bad.slice(0,8).join(',');
+  })).toBe('ok');
+});
+
 test('fine-tags 体系重订：冠词a/an/零、代词6类、删adj-vs-adv、attrib only-that', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!window.GRAMMAR_FINE_TAGS, null, { timeout: 15000 });
