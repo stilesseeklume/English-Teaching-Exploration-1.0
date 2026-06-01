@@ -3267,6 +3267,26 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '|' + (def.activeScope && def.activeScope.level) + '/' + def.poolCount + '/' + byCat.poolCount;
   })).toBe('ok');
 
+  // buildAllQuestions / createExamQuestionFromRaw 必须保留 facets（否则叶子有题但具体词全0）
+  expect(await page.evaluate(() => {
+    var qm = window.GrammarQuestionModel;
+    var kvm = window.GrammarKnowledgeViewModel;
+    var bank = window.GRAMMAR_BANK;
+    var all = qm.buildAllQuestions(bank, window.CATEGORY_TIPS || {});
+    var withFacets = all.filter(function(q){ return q.facets && Object.keys(q.facets).length; });
+    // 介词题用 buildAllQuestions 产物做具体词分布，应数得到非0词
+    var prep = kvm.buildLeafWordBreakdown('prep-collocation', window.GRAMMAR_FINE_TAGS, all, []);
+    var nonZero = prep.filter(function(w){ return w.total > 0; });
+    // createExamQuestionFromRaw 也带 facets
+    var exam = (bank.exams||[])[0];
+    var eq = qm.createExamQuestionFromRaw(exam.questions[0], exam, window.CATEGORY_TIPS || {});
+    var rawHasFacets = !!(exam.questions[0].facets);
+    return (withFacets.length > 50
+      && nonZero.length >= 1
+      && (!rawHasFacets || (eq.facets && true))) ? 'ok'
+      : 'bad:' + withFacets.length + '/' + nonZero.length + '/' + rawHasFacets + (eq.facets?'有':'无');
+  })).toBe('ok');
+
   // 谓语题迁移范围选择器应可见（②档=谓语3个fine tag）
   expect(await page.evaluate(() => {
     var mt = window.GrammarMigrationTraining;
