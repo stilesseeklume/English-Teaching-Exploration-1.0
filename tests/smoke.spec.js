@@ -4165,11 +4165,15 @@ test('countByPoint 按 tag+keys 精数，不同 key 计数互不相同', async (
     var past = kvm.countByPoint('pred-tense', ['past'], bank, []);
     var perfect = kvm.countByPoint('pred-tense', ['perfect'], bank, []);
     var passive = kvm.countByPoint('pred-passive', [], bank, []); // keyless = 全部被动
+    var presentWithError = kvm.countByPoint('pred-tense', ['present'], bank, [
+      { type:'错题', points:[P('pred-tense','present')] }
+    ]);
     return [
       present.total, present.real,
       past.total,
       perfect.total,
-      passive.total, passive.real
+      passive.total, passive.real,
+      presentWithError.error, presentWithError.total
     ].join(',');
-  })).toBe('2,2,2,0,2,1');
+  })).toBe('2,2,2,0,2,1,1,3');
 });
