@@ -18,10 +18,10 @@
     var q = shallowCopy(raw);
     var cat = q.category || '';
     var answer = lower(q.answer);
-    var prose = String((q.grammar_point || '') + ' ' + (q.explanation || ''));
 
-    // R1 反身代词
-    if (cat === 'pronoun' && (/(?:self|selves)$/.test(answer) || /反身/.test(prose))) {
+    // R1 反身代词：反身代词的答案必以 self/selves 结尾(myself/itself/themselves…)，
+    // 答案形态即充要判据；不用散文"反身"信号(会被"不是反身代词"这类否定句误伤)。
+    if (cat === 'pronoun' && /(?:self|selves)$/.test(answer)) {
       if (q.fine_category !== 'pron-reflexive') {
         q.fine_category = 'pron-reflexive';
         var fa = shallowCopy(q.facets || {});
