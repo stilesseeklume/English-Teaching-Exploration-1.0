@@ -3847,7 +3847,10 @@ function getMigrationData(q) {
   var data = window.GrammarMigrationTraining.buildMigrationData(q, {
     source: migrationSource,
     bankQuestions: ALL_QUESTIONS,
-    errorQuestions: errorBookQuestions,
+    errorQuestions: errorBookQuestions.map(function(it){
+      var c = (window.GrammarQuestionCorrection ? window.GrammarQuestionCorrection.correctClassification(it) : it);
+      return Object.assign({}, c, { points: window.GrammarQuestionPoints.buildQuestionPoints(c) });
+    }),
     categoryMap: CATEGORY_MAP,
     getFineTagInfo: getFineTagInfo,
     getPointTitle: function(points) {

@@ -4396,3 +4396,17 @@ test('纠错接入 buildAllQuestions：真题里的 myself 已归到 pron-reflex
     return allRef ? 'ok' : 'bad:count='+m.length+' '+m.map(function(q){return q.fine_category;}).join(',');
   })).toBe('ok');
 });
+
+test('错题精确迁移：无 points 的错题被 keyless 通配误配；补带 key points 后不误配', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarMigrationTraining && window.GrammarQuestionPoints), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var M = window.GrammarMigrationTraining, P = window.GrammarQuestionPoints;
+    var fromQ = { exam:'EQ', no:1, category:'preposition', answer:'from', fine_category:'prep-common', facets:{word:'from'}, points:[{tag:'prep-common', key:'from'}] };
+    var errNoPoints = { exam:'错题本', no:9, category:'preposition', answer:'to', fine_category:'prep-common' };
+    var bad = M.buildMigrationData(fromQ, { source:'errors', bankQuestions:[], errorQuestions:[errNoPoints], categoryMap:{}, limit:9 });
+    var errFixed = Object.assign({}, errNoPoints, { points: P.buildQuestionPoints(errNoPoints) });
+    var good = M.buildMigrationData(fromQ, { source:'errors', bankQuestions:[], errorQuestions:[errFixed], categoryMap:{}, limit:9 });
+    return (bad.poolCount >= 1 && good.poolCount === 0) ? 'ok' : 'bad:'+bad.poolCount+'/'+good.poolCount;
+  })).toBe('ok');
+});
