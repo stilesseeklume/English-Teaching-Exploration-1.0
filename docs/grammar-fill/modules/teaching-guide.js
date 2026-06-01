@@ -39,30 +39,27 @@
     var grammarPoint = String((q && q.grammar_point) || '');
     var facets = q.facets || {};
 
-    // 优先信任题库已标好的 facets（权威分类），避免关键词瞎猜与题库分类打架。
-    // 谓语 facets：{ tense, voice, agreement }。
-    if (facets.agreement === true) {
+    // 优先信任题库 fine_category（权威主考点），facets.tense 只决定时态子标签。
+    // 一般现在题 agreement 常恰为 true，不能据此判主谓一致——必须用 fine_category。
+    if (fine === 'pred-agreement') {
       return { label: '谓语 · 主谓一致', key: 'predicate:sva', trigger: '先找主语中心词，再定谓语单复数。' };
     }
+    if (fine === 'pred-passive') {
+      return { label: '谓语 · 被动语态', key: 'predicate:passive', trigger: '主语承受动作，谓语要体现 be + done。' };
+    }
+    if (fine === 'pred-tense') {
+      var t = String(facets.tense || '');
+      if (t === 'present') return { label: '谓语 · 一般现在', key: 'predicate:tense:present', trigger: '语境是客观事实或常态，谓语多用一般现在。' };
+      if (t === 'past') return { label: '谓语 · 过去时间', key: 'predicate:tense:past', trigger: '时间背景落在过去，先定过去时，再看语态和一致。' };
+      if (t === 'perfect' || t === 'perfect-progressive') return { label: '谓语 · 完成时', key: 'predicate:tense:perfect', trigger: '时间线索指向完成时，再看主语和语态。' };
+      if (t) return { label: '谓语 · ' + (TENSE_LABEL[t] || '时态'), key: 'predicate:finite', trigger: '先确认句中缺谓语，再同时处理时态、语态和主谓一致。' };
+      return { label: '谓语 · 时态判断', key: 'predicate:tense:present', trigger: '先找时间线索，再定时态。' };
+    }
+
+    // 无 fine_category（旧数据/AI 未标）才回退：先 facets.voice/tense，再关键词启发式
     if (facets.voice === 'passive') {
       return { label: '谓语 · 被动语态', key: 'predicate:passive', trigger: '主语承受动作，谓语要体现 be + done。' };
     }
-    if (facets.tense) {
-      var t = String(facets.tense);
-      if (t === 'present') {
-        return { label: '谓语 · 一般现在', key: 'predicate:tense:present', trigger: '语境是客观事实或常态，谓语多用一般现在。' };
-      }
-      if (t === 'past') {
-        return { label: '谓语 · 过去时间', key: 'predicate:tense:past', trigger: '时间背景落在过去，先定过去时，再看语态和一致。' };
-      }
-      if (t === 'perfect' || t === 'perfect-progressive') {
-        return { label: '谓语 · 完成时', key: 'predicate:tense:perfect', trigger: '时间线索指向完成时，再看主语和语态。' };
-      }
-      // 其他时态（将来/进行/过去将来）走通用谓语卡，标签用 facets 时态名
-      return { label: '谓语 · ' + (TENSE_LABEL[t] || '时态'), key: 'predicate:finite', trigger: '先确认句中缺谓语，再同时处理时态、语态和主谓一致。' };
-    }
-
-    // facets 缺失（如旧数据/AI 未标）才回退到关键词启发式
     if (deps.hasPredicatePassiveCue && deps.hasPredicatePassiveCue(q, ans, blob, grammarPoint)) {
       return { label: '谓语 · 被动语态', key: 'predicate:passive', trigger: '主语承受动作，谓语要体现 be + done。' };
     }
