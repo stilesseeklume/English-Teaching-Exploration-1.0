@@ -131,6 +131,21 @@
       + window.escapeHtml(contentModel.countText)
       + '</div>'
       + '</div>'
+      + (function() {
+          var chips = (contentModel.pointChips || []);
+          if (chips.length <= 1) return '';
+          return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px;">'
+            + chips.map(function(c) {
+                return '<button type="button" onclick="setMigrationPoint(' + c.idx + ')" '
+                  + 'style="padding:4px 12px;border:1px solid ' + (c.active ? 'var(--accent)' : 'var(--border)')
+                  + ';background:' + (c.active ? 'var(--accent-bg)' : 'var(--surface)')
+                  + ';color:' + (c.active ? 'var(--accent)' : 'var(--text-2)')
+                  + ';border-radius:14px;cursor:pointer;font-family:inherit;font-weight:' + (c.active ? '700' : '500')
+                  + ';font-size:calc(var(--drawer-font-size-sm,23px) - 6px);">'
+                  + window.escapeHtml(c.label) + '</button>';
+              }).join('')
+            + '</div>';
+        })()
       + '<div class="migration-list">';
     contentModel.entries.forEach(function(entryModel) {
       var cardModel = entryModel.card;
@@ -178,6 +193,15 @@
       + (contentModel.subline ? '<div class="teaching-tab-sub">' + window.escapeHtml(contentModel.subline) + '</div>' : '')
       + '<div class="teaching-tab-sub">' + window.escapeHtml(contentModel.countText) + '</div>'
       + '</div>';
+    var stageChips = (contentModel.pointChips || []);
+    if (stageChips.length > 1) {
+      html += '<div class="teaching-migration-source-tabs" style="margin-top:6px;">'
+        + stageChips.map(function(c) {
+            return '<button class="' + (c.active ? 'active' : '') + '" onclick="setMigrationPoint(' + c.idx + ')">'
+              + window.escapeHtml(c.label) + '</button>';
+          }).join('')
+        + '</div>';
+    }
     if (contentModel.emptyHint) {
       return html + migrationEmptyHint(contentModel.emptyHint);
     }

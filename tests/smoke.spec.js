@@ -4339,6 +4339,16 @@ test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) 
       contentChipsLen: (function () {
         var cm = M.buildMigrationContentViewModel(d0, 'bank', false);
         return (cm.pointChips || []).length;
+      })(),
+      drawerHasChips: (function () {
+        var cm = M.buildMigrationContentViewModel(d0, 'bank', false);
+        return window.GrammarTeachingRender.migrationDrawerHtml(cm).indexOf('setMigrationPoint(') !== -1;
+      })(),
+      singlePointNoChips: (function () {
+        var sq = { exam: 'SQ', no: 9, category: 'predicate', points: [P('pred-agreement')] };
+        var ds = M.buildMigrationData(sq, opts(0));
+        var cm = M.buildMigrationContentViewModel(ds, 'bank', false);
+        return window.GrammarTeachingRender.migrationDrawerHtml(cm).indexOf('setMigrationPoint(') === -1;
       })()
     };
   });
@@ -4350,5 +4360,7 @@ test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) 
   expect(out.chip0Active).toBe(true);
   expect(out.chip1Active1).toBe(true);
   expect(out.contentChipsLen).toBe(2);
+  expect(out.drawerHasChips).toBe(true);
+  expect(out.singlePointNoChips).toBe(true);
   expect(errors).toEqual([]);
 });
