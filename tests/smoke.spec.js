@@ -3178,7 +3178,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     // 非谓语 {form} → word + category 两级（无 type）
     var nonp = mt.buildMigrationScopes({ form: 'doing' }, 'nonpred-doing', 'nonpredicate');
     var nonpLevels = nonp.map(function(s){ return s.level; }).join(',');
-    // 传 fineTags：定从 → word + 4个finetag + category
+    // 传 fineTags：定从 → word + 5个finetag(含 only-that) + category
     var tbc = window.GRAMMAR_FINE_TAGS.tags_by_category;
     var attrib = mt.buildMigrationScopes({ word: 'which' }, 'attrib-pronoun', 'attrib', tbc);
     var attribLevels = attrib.map(function(s){ return s.level; }).join(',');
@@ -3196,8 +3196,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var mFineNo = mt.migrationMatchesScope({ fine_category: 'attrib-adverb', facets: {} }, { level: 'finetag', value: 'attrib-pronoun' });
     var mCat = mt.migrationMatchesScope({ category: 'attrib', facets: {} }, { level: 'category', value: 'attrib' });
     return (nonpLevels === 'word,category'
-      && attribWord === 'which' && ftCount === 4 && attribCat === 'attrib'
-      && attribLevels === 'word,finetag,finetag,finetag,finetag,category'
+      && attribWord === 'which' && ftCount === 5 && attribCat === 'attrib'
+      && attribLevels === 'word,finetag,finetag,finetag,finetag,finetag,category'
       && predLevels === 'category'
       && mWordForm === true && mWordNo === false && mFine === true && mFineNo === false && mCat === true) ? 'ok'
       : 'bad:' + nonpLevels + '|' + attribLevels + '/' + attribWord + '/' + ftCount + '/' + attribCat + '|' + predLevels
@@ -3226,8 +3226,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var ids = ftBtns.map(function(b){ return b.value; }).sort().join(',');
     var prepRel = ftBtns.filter(function(b){ return b.value === 'attrib-prep-relative'; })[0];
     var pron = ftBtns.filter(function(b){ return b.value === 'attrib-pronoun'; })[0];
-    return (ftBtns.length === 4
-      && ids === 'attrib-adverb,attrib-as,attrib-prep-relative,attrib-pronoun'
+    return (ftBtns.length === 5
+      && ids === 'attrib-adverb,attrib-as,attrib-only-that,attrib-prep-relative,attrib-pronoun'
       && prepRel && prepRel.count === 0 && pron && pron.count === 1
       && def.activeScope && def.activeScope.level === 'finetag' && def.activeScope.value === 'attrib-pronoun'
       && def.poolCount === 1 && byCat.poolCount === 2) ? 'ok'
@@ -3257,7 +3257,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var tag0 = (data.migration[0]||{}).tagLabel;
     return (data.poolCount === 1
       && data.activeScope && data.activeScope.level==='finetag' && data.activeScope.value==='art-a-an'
-      && sel.visible && ftBtns.length === 2 && ids === 'art-a-an,art-the'
+      && sel.visible && ftBtns.length === 3 && ids === 'art-a-an,art-the,art-zero'
       && data.headerLabel === '同考点：不定冠词 a/an'
       && tag0 === '不定冠词 a/an') ? 'ok'
       : 'bad:' + data.poolCount + '|' + (data.activeScope&&data.activeScope.value) + '|' + ftBtns.length + '/' + ids + '/' + sel.visible + '|H=' + data.headerLabel + '|T=' + tag0;
@@ -4103,4 +4103,20 @@ test('home-render pure html output', async ({ page }) => {
   expect(out.dashHasBooks).toBe(true);
   expect(out.examGridHasCard).toBe(true);
   expect(out.catsHasCard).toBe(true);
+});
+
+test('fine-tags 体系重订：冠词a/an/零、代词6类、删adj-vs-adv、attrib only-that', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GRAMMAR_FINE_TAGS, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var t = window.GRAMMAR_FINE_TAGS.tags_by_id || {};
+    var has = function(id){ return !!t[id]; };
+    return (has('art-a-an') && has('art-the') && has('art-zero')
+      && t['art-zero'].frequency === '几乎不考'
+      && has('pron-personal') && has('pron-possessive') && has('pron-reflexive')
+      && has('pron-demonstrative') && has('pron-indefinite') && has('pron-it')
+      && !has('word-adj-vs-adv')
+      && has('attrib-only-that')) ? 'ok'
+      : 'bad:' + JSON.stringify(Object.keys(t).filter(function(k){return k.indexOf('art-')===0||k.indexOf('pron-')===0;}));
+  })).toBe('ok');
 });

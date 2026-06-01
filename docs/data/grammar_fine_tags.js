@@ -3,9 +3,9 @@
 // Seeklume 精细 tag 体系（体系重订 2026-05-31）
 // 决策依据：按引导词/形式一把尺子，不再按功能分类
 //
-// 主考点 tag：51 个，按 13 个主类别组织
+// 主考点 tag：57 个，按 13 个主类别组织（2026-06-01 重订：冠词3+零·代词6·词性5·定从5）
 // 教学辅助 tag：5 个（句子结构基础，不参与迁移训练检索，仅做教学提示）
-// 合计：56 个 tag
+// 合计：62 个 tag（主标 57 + 教学辅助 5）
 //
 // 旧体系（101 个，按功能分）已存档：见 git 历史 2026-05-31 之前
 //
@@ -13,9 +13,9 @@
 
 (function () {
   var DATA = {
-    version: '0.2.0',
-    updated_at: '2026-05-31',
-    source: '体系重订 2026-05-31：按引导词/形式一把尺子，13 类 51 个主标',
+    version: '0.3.0',
+    updated_at: '2026-06-01',
+    source: '体系重订 2026-05-31：按引导词/形式一把尺子，13 类 57 个主标',
 
     // ─── 13 主类别（11 原 + 2 扩展）+ 1 教学辅助类 ──────
     categories: {
@@ -38,7 +38,7 @@
       structure: { name: '句子结构基础', source: '语法通霸 01', purpose: '教学辅助，不打考点 tag' }
     },
 
-    // ─── 主考点 tag（51 个，体系重订 2026-05-31）──────────────────────
+    // ─── 主考点 tag（57 个，体系重订 2026-06-01）──────────────────────
     tags: [
       // predicate 谓语动词（3）
       { id: 'pred-tense',        category: 'predicate',    source: '体系重订2026-05-31', name: '时态（现在/过去/将来/进行/完成）' },
@@ -48,44 +48,48 @@
       { id: 'nonpred-to-do',     category: 'nonpredicate', source: '体系重订2026-05-31', name: '不定式 to do' },
       { id: 'nonpred-doing',     category: 'nonpredicate', source: '体系重订2026-05-31', name: '现在分词 doing' },
       { id: 'nonpred-done',      category: 'nonpredicate', source: '体系重订2026-05-31', name: '过去分词 done' },
-      // word 词性转换（6）
+      // word 词性转换（5：删 adj-vs-adv，与 adj/adv 重叠）
       { id: 'word-noun',         category: 'word', source: '体系重订2026-05-31', name: '派生名词（含动名词）' },
       { id: 'word-adj',          category: 'word', source: '体系重订2026-05-31', name: '派生形容词（含 -ed/-ing 形容词）' },
-      { id: 'word-adv',          category: 'word', source: '体系重订2026-05-31', name: '派生副词' },
+      { id: 'word-adv',          category: 'word', source: '体系重订2026-05-31', name: '派生副词（含 hard/hardly 等易混词对）' },
       { id: 'word-verb',         category: 'word', source: '体系重订2026-05-31', name: '派生动词' },
-      { id: 'word-adj-vs-adv',   category: 'word', source: '体系重订2026-05-31', name: '形容词/副词选用' },
       { id: 'word-comparative',  category: 'word', source: '体系重订2026-05-31', name: '比较级/最高级' },
       // number 名词/数词（3）
       { id: 'num-plural',        category: 'number', source: '体系重订2026-05-31', name: '名词复数' },
       { id: 'num-possessive',    category: 'number', source: '体系重订2026-05-31', name: '名词所有格' },
       { id: 'num-numeral',       category: 'number', source: '体系重订2026-05-31', name: '数词（基数/序数/倍数）' },
-      // article 冠词（2，零冠词不考已删）
+      // article 冠词（3 tag：a/an 同 tag 但 points.key 区分(学生易错点)；零冠词几乎不考但保留显完整）
       { id: 'art-a-an',          category: 'article', source: '体系重订2026-05-31', name: '不定冠词 a/an', words: ['a','an'] },
       { id: 'art-the',           category: 'article', source: '体系重订2026-05-31', name: '定冠词 the', words: ['the'] },
-      // pronoun 代词（3）
-      { id: 'pron-personal',     category: 'pronoun', source: '体系重订2026-05-31', name: '人称/物主/反身/指示代词' },
-      { id: 'pron-indefinite',   category: 'pronoun', source: '体系重订2026-05-31', name: '不定代词' },
-      { id: 'pron-it',           category: 'pronoun', source: '体系重订2026-05-31', name: '形式 it（形式主宾/强调）' },
+      { id: 'art-zero',          category: 'article', source: '体系重订2026-06-01', name: '零冠词', frequency: '几乎不考' },
+      // pronoun 代词（6：人称/物主/反身/指示拆开）
+      { id: 'pron-personal',      category: 'pronoun', source: '体系重订2026-06-01', name: '人称代词（主格/宾格）' },
+      { id: 'pron-possessive',    category: 'pronoun', source: '体系重订2026-06-01', name: '物主代词（形容性/名词性）' },
+      { id: 'pron-reflexive',     category: 'pronoun', source: '体系重订2026-06-01', name: '反身代词' },
+      { id: 'pron-demonstrative', category: 'pronoun', source: '体系重订2026-06-01', name: '指示代词' },
+      { id: 'pron-indefinite',    category: 'pronoun', source: '体系重订2026-05-31', name: '不定代词' },
+      { id: 'pron-it',            category: 'pronoun', source: '体系重订2026-05-31', name: '形式 it（形式主宾/强调）' },
       // preposition 介词（5）
       { id: 'prep-common',       category: 'preposition', source: '语法通霸21.02', name: '常见介词的常见用法（as/by/for/in/on…）' },
       { id: 'prep-time',         category: 'preposition', source: '语法通霸21.03', name: '介词辨析·时间' },
       { id: 'prep-place',        category: 'preposition', source: '语法通霸21.04', name: '介词辨析·地点位置' },
       { id: 'prep-collocation',  category: 'preposition', source: '语法通霸21.05', name: '介词辨析·动介搭配（动词+介词）' },
       { id: 'prep-other',        category: 'preposition', source: '语法通霸21.06', name: '介词辨析·其他（穿衣/工具/原因/be+adj+prep）' },
-      // logic 逻辑连词（2）
+      // logic 逻辑连词（1）
       { id: 'logic-coordinating',category: 'logic', source: '语法通霸08', name: '并列连词（and/but/or/so；含 both…and 等关联结构，由 facets.kind 区分）', words: ['and','but','or','so','for','nor','yet'] },
-      // attrib 定语从句（4）
+      // attrib 定语从句（5：加 only-that）
       { id: 'attrib-pronoun',      category: 'attrib', source: '体系重订2026-05-31', name: '关系代词（who/whom/which/that/whose）', words: ['who','whom','which','that','whose'] },
       { id: 'attrib-adverb',       category: 'attrib', source: '体系重订2026-05-31', name: '关系副词（when/where/why）', words: ['when','where','why'] },
       { id: 'attrib-prep-relative',category: 'attrib', source: '体系重订2026-05-31', name: '介词+关系词', words: ['介词+which','介词+whom'] },
-      { id: 'attrib-as',           category: 'attrib', source: '体系重订2026-05-31', name: 'as 作关系词', words: ['as'] },
+      { id: 'attrib-as',           category: 'attrib', source: '体系重订2026-05-31', name: 'as 作关系词（but/than 罕见,基本不考）', words: ['as','but','than'] },
+      { id: 'attrib-only-that',    category: 'attrib', source: '体系重订2026-06-01', name: '只能用 that（先行词含 all/最高级/序数/the only、人+物并列…）', words: ['that'] },
       // nounclause 名词性从句（5）
       { id: 'nounc-that',        category: 'nounclause', source: '体系重订2026-05-31', name: 'that 引导', words: ['that'] },
       { id: 'nounc-whether-if',  category: 'nounclause', source: '体系重订2026-05-31', name: 'whether/if 引导', words: ['whether','if'] },
       { id: 'nounc-wh-pronoun',  category: 'nounclause', source: '体系重订2026-05-31', name: '连接代词（what/who/which）', words: ['what','who','which','whom','whose'] },
       { id: 'nounc-wh-adverb',   category: 'nounclause', source: '体系重订2026-05-31', name: '连接副词（when/where/how/why）', words: ['when','where','how','why'] },
       { id: 'nounc-ever',        category: 'nounclause', source: '体系重订2026-05-31', name: 'wh-ever 类（whatever/whoever…）', words: ['whatever','whoever','whichever','whomever','whenever','wherever','however'] },
-      // advclause 状语从句（6）
+      // advclause 状语从句（9）
       { id: 'advc-time',        category: 'advclause', source: '体系重订2026-05-31', name: '时间状语从句' },
       { id: 'advc-cause',       category: 'advclause', source: '体系重订2026-05-31', name: '原因状语从句' },
       { id: 'advc-place',       category: 'advclause', source: '体系重订2026-05-31', name: '地点状语从句' },
