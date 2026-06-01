@@ -54,6 +54,23 @@
     return { bank: bankItems.length, error: errorCount, real: realCount, total: bankItems.length + errorCount };
   }
 
+  // 按 points 精数：q.points 中存在 {tag 相同 且 (keys 空=只认tag，或 key∈keys)} 即命中。
+  // 口径对齐 countByFineTag：total=bank+error，real=bank 中真题数。
+  function countByPoint(tag, keys, bankQuestions, errorQuestions) {
+    keys = asArray(keys);
+    function matches(q) {
+      if (!q || !Array.isArray(q.points)) return false;
+      return q.points.some(function(p) {
+        if (!p || p.tag !== tag) return false;
+        return keys.length === 0 || keys.indexOf(p.key) !== -1;
+      });
+    }
+    var bankItems = asArray(bankQuestions).filter(matches);
+    var errorCount = asArray(errorQuestions).filter(matches).length;
+    var realCount = bankItems.filter(function(q) { return q && q.type === '真题'; }).length;
+    return { bank: bankItems.length, error: errorCount, real: realCount, total: bankItems.length + errorCount };
+  }
+
   // 取某 fine tag 的"具体词"分布。闭合类(tag.words)列全标0；介词(category.core_words)核心打底+题库追加；
   // 其余大类返回空(不下钻)。每词 {word,total,real}，有题在前(total降序)，0题词按预定义顺序排后。
   function buildLeafWordBreakdown(fineId, fineTags, bankQuestions, errorQuestions) {
@@ -1521,6 +1538,7 @@
     stripHtml: stripHtml,
     normalizeTagId: normalizeTagId,
     countByFineTag: countByFineTag,
+    countByPoint: countByPoint,
     buildLeafWordBreakdown: buildLeafWordBreakdown,
     getFrequencyStyle: getFrequencyStyle,
     buildCategoryStatsModel: buildCategoryStatsModel,

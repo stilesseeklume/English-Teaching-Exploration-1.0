@@ -4147,3 +4147,29 @@ test('fine-tags 体系重订：冠词a/an/零、代词6类、删adj-vs-adv、att
       : 'bad:' + JSON.stringify(Object.keys(t).filter(function(k){return k.indexOf('art-')===0||k.indexOf('pron-')===0;}));
   })).toBe('ok');
 });
+
+test('countByPoint 按 tag+keys 精数，不同 key 计数互不相同', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarKnowledgeViewModel, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var kvm = window.GrammarKnowledgeViewModel;
+    var P = function(tag, key){ return key === undefined ? { tag:tag } : { tag:tag, key:key }; };
+    var bank = [
+      { type:'真题', points:[P('pred-tense','present')] },
+      { type:'真题', points:[P('pred-tense','present')] },
+      { type:'真题', points:[P('pred-tense','past')] },
+      { type:'真题', points:[P('pred-tense','past'), P('pred-passive')] },
+      { type:'模拟卷', points:[P('pred-passive')] }
+    ];
+    var present = kvm.countByPoint('pred-tense', ['present'], bank, []);
+    var past = kvm.countByPoint('pred-tense', ['past'], bank, []);
+    var perfect = kvm.countByPoint('pred-tense', ['perfect'], bank, []);
+    var passive = kvm.countByPoint('pred-passive', [], bank, []); // keyless = 全部被动
+    return [
+      present.total, present.real,
+      past.total,
+      perfect.total,
+      passive.total, passive.real
+    ].join(',');
+  })).toBe('2,2,2,0,2,1');
+});
