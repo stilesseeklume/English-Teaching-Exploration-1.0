@@ -59,6 +59,8 @@
       if (!pts.length) pts.push({ tag: fc || 'pred-tense' });
       return pts;
     }
+    // 比较级/最高级 共用 word-comparative tag，用 subtype key 区分（撑起比较级/最高级两叶）
+    if (fc === 'word-comparative') return [{ tag: fc, key: lower(fa.subtype) || 'comparative' }];
     // nonpredicate / word / number / advclause / modal / special：单标签 = fine_category
     return [{ tag: fc }];
   }
