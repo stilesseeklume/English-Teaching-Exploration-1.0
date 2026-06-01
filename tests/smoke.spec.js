@@ -4105,6 +4105,31 @@ test('home-render pure html output', async ({ page }) => {
   expect(out.catsHasCard).toBe(true);
 });
 
+test('buildQuestionPoints 按规则派生 points（谓语多标签/引导词单标签）', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarQuestionPoints, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var bp = window.GrammarQuestionPoints.buildQuestionPoints;
+    var key = function(pts){ return pts.map(function(p){ return p.tag + (p.key?(':'+p.key):''); }).sort().join('|'); };
+    var cases = [
+      [{ category:'logic', fine_category:'logic-coordinating', answer:'or', facets:{word:'or'} }, 'logic-coordinating:选择'],
+      [{ category:'logic', fine_category:'logic-coordinating', answer:'but', facets:{word:'but'} }, 'logic-coordinating:转折'],
+      [{ category:'attrib', fine_category:'attrib-pronoun', answer:'which', facets:{word:'which'} }, 'attrib-pronoun:which'],
+      [{ category:'article', fine_category:'art-a-an', answer:'an', facets:{word:'a-an'} }, 'art-a-an:an'],
+      [{ category:'article', fine_category:'art-a-an', answer:'a', facets:{word:'a-an'} }, 'art-a-an:a'],
+      [{ category:'predicate', fine_category:'pred-passive', answer:'was built', facets:{tense:'past', voice:'passive'} }, 'pred-passive|pred-tense:past'],
+      [{ category:'predicate', fine_category:'pred-tense', answer:'goes', facets:{tense:'present', voice:'active', agreement:true} }, 'pred-agreement|pred-tense:present'],
+      [{ category:'nonpredicate', fine_category:'nonpred-to-do', answer:'to bite', facets:{form:'to-do'} }, 'nonpred-to-do'],
+      [{ category:'pronoun', fine_category:'pron-personal', answer:'mine', facets:{type:'possessive'} }, 'pron-possessive']
+    ];
+    for (var i=0;i<cases.length;i++){
+      var got = key(bp(cases[i][0]));
+      if (got !== cases[i][1]) return 'bad@'+i+':'+got+'≠'+cases[i][1];
+    }
+    return 'ok';
+  })).toBe('ok');
+});
+
 test('textbook_units 反向索引能命中现行 tag', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!window.GRAMMAR_FINE_TAGS, null, { timeout: 15000 });
