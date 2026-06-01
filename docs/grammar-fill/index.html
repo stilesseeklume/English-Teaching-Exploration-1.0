@@ -4319,52 +4319,47 @@ function _freqColor(total) {
 
 // ─── 视图 A · 考点视图（13 主类 + fine tag 子节点 + 题数 badge）────
 function renderFineCategoryView() {
-  applyKnowledgeViewState({
-    currentKnowledgeView: 'fine-cat',
-    currentKnowledgeNodeId: ''
-  });
+  applyKnowledgeViewState({ currentKnowledgeView: 'fine-cat', currentKnowledgeNodeId: '' });
   var content = document.getElementById(_knowledgeRenderTarget);
-  var model = window.GrammarKnowledgeViewModel.buildFineCategoryViewModel(window.GRAMMAR_FINE_TAGS || {}, ALL_QUESTIONS, errorBookQuestions);
-  if (!content || !window.GRAMMAR_FINE_TAGS || model.empty) {
+  if (!content) { updateDockBackButton(); return; }
+  var model = window.GrammarKnowledgeViewModel.buildPointsLeafListModel(
+    (window.GRAMMAR_DECISION_MAP || {}).nodes || [],
+    window.GRAMMAR_FINE_TAGS || {},
+    ALL_QUESTIONS, errorBookQuestions, CATEGORY_MAP);
+  if (model.empty) {
     content.innerHTML = '<div class="empty-hint">' + escapeHtml(model.emptyText) + '</div>';
     updateDockBackButton();
     return;
   }
-
   var html = '<div class="knowledge-section">';
   html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
   html += '<h2 style="margin:0 0 6px 0;">' + escapeHtml(model.header.titleText) + '</h2>';
   html += '<p style="margin:0;color:var(--text-2);">' + escapeHtml(model.header.descriptionText) + '</p>';
   html += '</div>';
-
-  // 用 grid 摆 13 个 category 卡
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">';
-  model.categories.forEach(function(group) {
-    var catColor = group.frequencyStyle;
+  model.groups.forEach(function(group) {
+    var gc = group.frequencyStyle;
     html += '<section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">';
     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">';
-    html += '<div>';
-    html += '<h3 style="margin:0;color:var(--text);">' + escapeHtml(group.titleText) + (group.showExtendedLabel ? ' <span style="font-size:11px;color:var(--text-3);font-weight:400;">' + escapeHtml(group.extendedLabel) + '</span>' : '') + '</h3>';
-    html += '<div style="color:var(--text-3);font-size:12px;margin-top:2px;">' + escapeHtml(group.sourceText) + '</div>';
+    html += '<h3 style="margin:0;color:var(--text);">' + escapeHtml(group.titleText) + '</h3>';
+    html += '<span style="background:' + gc.bg + ';color:' + gc.color + ';padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;flex-shrink:0;">' + escapeHtml(group.total + ' 题') + '</span>';
     html += '</div>';
-    html += '<span style="background:' + catColor.bg + ';color:' + catColor.color + ';padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;flex-shrink:0;">' + escapeHtml(group.cardBadgeText) + '</span>';
-    html += '</div>';
-    // tag 列表
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    group.tags.forEach(function(tag) {
-      var c = tag.frequencyStyle;
-      html += '<button onclick="alert(' + escapeHtml(JSON.stringify(tag.action.message)) + ')" '
-        + 'style="background:' + c.bg + ';color:' + c.color + ';border:1px solid color-mix(in srgb, ' + c.color + ' 30%, transparent);padding:4px 10px;border-radius:14px;font-size:12px;cursor:pointer;font-family:inherit;">'
-        + escapeHtml(tag.name)
-        + ' <span style="opacity:0.7;margin-left:2px;">' + escapeHtml(tag.badgeText) + '</span>'
-        + '</button>';
+    group.leaves.forEach(function(leaf) {
+      var c = leaf.frequencyStyle;
+      var label = escapeHtml(leaf.title) + ' <span style="opacity:0.7;margin-left:2px;">' + escapeHtml(leaf.badge) + '</span>';
+      var baseStyle = 'background:' + c.bg + ';color:' + c.color + ';border:1px solid color-mix(in srgb, ' + c.color + ' 30%, transparent);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;';
+      if (!leaf.clickable) {
+        html += '<span style="' + baseStyle + 'opacity:0.4;">' + label + '</span>';
+      } else if (leaf.action.kind === 'point') {
+        html += '<button onclick="startByPointFromMap(\'' + graphEscapeAttr(leaf.action.tag) + '\',' + dmKeysLiteral(leaf.action.keys) + ',\'' + graphEscapeAttr(leaf.breadcrumb) + '\')" style="' + baseStyle + 'cursor:pointer;">' + label + '</button>';
+      } else {
+        html += '<button onclick="startMigrationFromMap(\'' + graphEscapeAttr(leaf.action.fine) + '\')" style="' + baseStyle + 'cursor:pointer;">' + label + '</button>';
+      }
     });
-    html += '</div>';
-    html += '</section>';
+    html += '</div></section>';
   });
   html += '</div>';
-
-  // 图例
   var legend = model.legend || {};
   html += '<div style="margin-top:24px;padding:14px 18px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-2);">';
   html += '<b>' + escapeHtml(legend.labelText || '') + '</b> ';
@@ -4373,9 +4368,7 @@ function renderFineCategoryView() {
     html += '<span style="background:' + style.bg + ';color:' + style.color + ';padding:2px 8px;border-radius:10px;margin:0 4px;">' + escapeHtml(item.text || '') + '</span>';
   });
   html += '<br><span style="color:var(--text-3);">' + escapeHtml(legend.noteText || '') + '</span>';
-  html += '</div>';
-
-  html += '</div>';
+  html += '</div></div>';
   content.innerHTML = html;
   updateDockBackButton();
 }
@@ -5177,9 +5170,9 @@ function openKnowledgePoint(cat, section) {
   }
 }
 function startMigrationFromMap(fine) {
-  // 从图谱叶子开练：按细分支(fine tag)精准筛题，"返回"指回知识库(全局图谱)
+  // 从图谱叶子开练：按细分支(fine tag)精准筛题，"返回"指回考点训练
   startByFineTag(fine);
-  setPreviousView({ page: 'knowledge' });
+  setPreviousView({ page: 'points-training' });
   if (typeof syncAppState === 'function') syncAppState();
   if (typeof updateDockBackButton === 'function') updateDockBackButton();
 }
