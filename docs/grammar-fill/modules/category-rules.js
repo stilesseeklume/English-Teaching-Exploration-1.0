@@ -182,6 +182,28 @@
     return buildCategoryPracticeEntryModel(category, questions, categoryMap);
   }
 
+  function questionHasPoint(q, tag, keys) {
+    if (!q || !Array.isArray(q.points)) return false;
+    for (var i = 0; i < q.points.length; i++) {
+      var p = q.points[i];
+      if (!p || p.tag !== tag) continue;
+      if (!keys || !keys.length || keys.indexOf(p.key) !== -1) return true;
+    }
+    return false;
+  }
+
+  function selectPointQuestions(allQuestions, tag, keys) {
+    return asArray(allQuestions).filter(function(q) {
+      return questionHasPoint(q, tag, keys);
+    });
+  }
+
+  function buildPointPracticePlan(tag, keys, allQuestions, categoryMap) {
+    var questions = selectPointQuestions(allQuestions, tag, keys);
+    var category = questions.length ? questions[0].category : '';
+    return buildCategoryPracticeEntryModel(category, questions, categoryMap);
+  }
+
   window.GrammarCategoryRules = {
     DEFAULT_CATEGORY_NAMES: DEFAULT_CATEGORY_NAMES,
     CATEGORY_TIPS: CATEGORY_TIPS,
@@ -199,6 +221,8 @@
     buildCategoryPracticeEntryModel: buildCategoryPracticeEntryModel,
     buildCategoryPracticePlan: buildCategoryPracticePlan,
     selectFineTagQuestions: selectFineTagQuestions,
-    buildFineTagPracticePlan: buildFineTagPracticePlan
+    buildFineTagPracticePlan: buildFineTagPracticePlan,
+    selectPointQuestions: selectPointQuestions,
+    buildPointPracticePlan: buildPointPracticePlan
   };
 })();

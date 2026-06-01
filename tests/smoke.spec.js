@@ -4177,3 +4177,23 @@ test('countByPoint 按 tag+keys 精数，不同 key 计数互不相同', async (
     ].join(',');
   })).toBe('2,2,2,0,2,1,1,3');
 });
+
+test('buildPointPracticePlan 按 point 选题：which→which，定从 which 不串名从 which', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarCategoryRules, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var cr = window.GrammarCategoryRules;
+    var P = function(t,k){ return { tag:t, key:k }; };
+    var all = [
+      { exam:'e', no:1, category:'attrib', points:[P('attrib-pronoun','which')], type:'真题', answer:'which' },
+      { exam:'e', no:2, category:'attrib', points:[P('attrib-pronoun','that')],  type:'真题', answer:'that' },
+      { exam:'e', no:3, category:'nounclause', points:[P('nounc-wh-pronoun','which')], type:'真题', answer:'which' }
+    ];
+    var plan = cr.buildPointPracticePlan('attrib-pronoun', ['which'], all, {});
+    var empty = cr.buildPointPracticePlan('attrib-as', ['as'], all, {});
+    return [
+      plan.hasQuestions, plan.questions.length, plan.questions[0] && plan.questions[0].no,
+      plan.category, empty.hasQuestions
+    ].join(',');
+  })).toBe('true,1,1,attrib,false');
+});
