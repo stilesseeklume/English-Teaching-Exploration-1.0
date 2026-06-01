@@ -312,6 +312,7 @@ EXPECTED_MODULES = [
             "COVER_MAP",
             "CATEGORY_STAT_COLORS",
             "buildDecisionTree",
+            "buildPointBreadcrumb",
             "buildGuidedStepModel",
             "buildDecisionOutlineModel",
             "layoutDecisionTree",

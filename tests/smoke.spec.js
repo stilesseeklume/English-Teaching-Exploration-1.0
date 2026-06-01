@@ -4199,8 +4199,11 @@ test('决策地图谓语叶子带 point；时态6叶真实计数不全相等；�
       && byId['l_voice_implicit'] && byId['l_voice_implicit'].point
       && byId['l_voice_implicit'].point.keys && byId['l_voice_implicit'].point.keys[0] === '__implicit__';  // 占位 key 计 0
     var artOk = !byId['l_art_spec'] && byId['l_art_the'] && byId['l_art_the'].fine === 'art-the';
-    return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk].join(',');
-  })).toBe('true,true,true,true,true');
+    var kvmBc = window.GrammarKnowledgeViewModel;
+    var dmTree = kvmBc.buildDecisionTree((window.GRAMMAR_DECISION_MAP||{}).nodes||[]);
+    var bcPresent = kvmBc.buildPointBreadcrumb(dmTree, 'l_tense_present', window.CATEGORY_MAP||{});
+    return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk, bcPresent === '按考点 · 谓语动词 · 时态 · 一般现在'].join(',');
+  })).toBe('true,true,true,true,true,true');
 });
 
 test('决策地图渲染：时态叶迁移按钮按 point；词 chip 带具体词跳 point', async ({ page }) => {

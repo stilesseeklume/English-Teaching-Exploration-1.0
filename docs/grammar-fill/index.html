@@ -2677,14 +2677,7 @@ function startByFineTag(fine) {
 
 // 决策地图叶子→「按考点 · 粗类 · 父分组 · 叶子」面包屑。父分组与粗类同名时省略。
 function dmBreadcrumb(full, node) {
-  if (!node) return '';
-  var catName = node.cat ? (CATEGORY_MAP[node.cat] || node.cat) : '';
-  var parent = node.parent && full.byId[node.parent] ? full.byId[node.parent] : null;
-  var parts = [];
-  if (catName) parts.push(catName);
-  if (parent && parent.title && parent.title !== catName) parts.push(parent.title);
-  if (node.title) parts.push(node.title);
-  return '按考点' + (parts.length ? ' · ' + parts.join(' · ') : '');
+  return node ? window.GrammarKnowledgeViewModel.buildPointBreadcrumb(full, node.id, CATEGORY_MAP) : '';
 }
 
 function startByPoint(tag, keys, sourceLabel) {

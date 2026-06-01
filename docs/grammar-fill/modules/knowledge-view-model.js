@@ -1450,6 +1450,21 @@
     return { rootId: rootId, byId: byId, childrenOf: childrenOf };
   }
 
+  // 叶子→「按考点 · 粗类 · 父分组(≠粗类时) · 叶子标题」。图的 dmBreadcrumb 与考点视图共用。
+  function buildPointBreadcrumb(tree, nodeId, categoryMap) {
+    tree = tree || { byId: {} };
+    categoryMap = categoryMap || {};
+    var node = (tree.byId || {})[nodeId];
+    if (!node) return '';
+    var catName = node.cat ? (categoryMap[node.cat] || node.cat) : '';
+    var parent = (node.parent && tree.byId[node.parent]) ? tree.byId[node.parent] : null;
+    var parts = [];
+    if (catName) parts.push(catName);
+    if (parent && parent.title && parent.title !== catName) parts.push(parent.title);
+    if (node.title) parts.push(node.title);
+    return '按考点' + (parts.length ? ' · ' + parts.join(' · ') : '');
+  }
+
   function searchDecisionNodes(query, byId, limit) {
     var q = String(query || '').trim().toLowerCase().replace(/\s+/g, '');
     if (!q) return [];
@@ -1555,6 +1570,7 @@
 
   window.GrammarKnowledgeViewModel = {
     buildDecisionTree: buildDecisionTree,
+    buildPointBreadcrumb: buildPointBreadcrumb,
     buildGuidedStepModel: buildGuidedStepModel,
     buildDecisionOutlineModel: buildDecisionOutlineModel,
     layoutDecisionTree: layoutDecisionTree,
