@@ -50,7 +50,7 @@
     var prepCount = asCount(values.prepCount);
     var errorCount = asCount(values.errorCount);
     var statusBits = [];
-    if (prepCount > 0) statusBits.push(prepCount + ' 份备课');
+    if (prepCount > 0) statusBits.push(prepCount + ' 套题');
     if (errorCount > 0) statusBits.push(errorCount + ' 道错题');
     return {
       prepCount: prepCount,
@@ -113,6 +113,15 @@
         delayedSteps: []
       };
     }
+    if (action.type === 'navigate-home') {
+      return {
+        action: action,
+        immediateSteps: [
+          { kind: 'navigate-home', view: action.value || 'cards' }
+        ],
+        delayedSteps: []
+      };
+    }
     if (action.type === 'open-textbook') {
       return {
         action: action,
@@ -139,7 +148,7 @@
         kickerText: '👋 欢迎来到 Seeklume',
         titleText: '高中英语 · 语法填空讲评工作台',
         bodyParts: [
-          { text: '第一步：上传一份你最近讲的卷子，AI 自动解析每道题并按考点分类，下次讲新题时跨卷迁移自动联动。' }
+          { text: '从精选真题 / 模拟直接开讲，或上传你自己的卷子。讲完第一张，系统就开始替你攒考点、攒错题，下次讲新卷自动联动。' }
         ]
       };
     }
@@ -147,9 +156,9 @@
       kickerText: '👋 ' + activity.greeting,
       titleText: '今天讲哪份卷子？',
       bodyParts: [
-        { text: '你已积累 ' },
+        { text: '你已攒下 ' },
         { text: activity.statusText, strong: true },
-        { text: '。继续上次的备课，或者上传一份新卷子。' }
+        { text: '。下次讲评，同考点的老题和错题会自动帮你拎出来联动。' }
       ]
     };
   }
@@ -158,19 +167,28 @@
     activity = activity || getUserActivityState({});
     return [
       {
+        key: 'pick-bank',
+        icon: '📚',
+        label: '精选题库',
+        subtitleText: '真题 + 模拟 · 直接开讲',
+        tone: 'primary',
+        count: null,
+        action: buildAction('navigate-home', 'exams')
+      },
+      {
         key: 'upload-word',
         icon: '📤',
-        label: '上传新 Word',
+        label: '上传我的卷子',
         subtitleText: 'AI 自动解析 + 入库',
         tone: 'primary',
         count: null,
         action: buildAction('upload-word', 'lesson-prep')
       },
       {
-        key: 'lesson-prep',
-        icon: '📖',
-        label: '继续备课讲题',
-        subtitleText: activity.prepCount + ' 份备课资料',
+        key: 'my-papers',
+        icon: '📁',
+        label: '我做过的题',
+        subtitleText: activity.prepCount + ' 套已入库',
         tone: 'accent',
         count: activity.prepCount,
         action: buildAction('switch-page', 'lesson-prep')
@@ -178,17 +196,26 @@
       {
         key: 'error-book',
         icon: '🎯',
-        label: '复习错题',
+        label: '错题本',
         subtitleText: activity.errorCount + ' 道待复习',
         tone: 'red',
         count: activity.errorCount,
         action: buildAction('switch-page', 'error-book')
       },
       {
+        key: 'points-training',
+        icon: '🏷️',
+        label: '考点训练',
+        subtitleText: '挑考点集中练',
+        tone: 'accent',
+        count: null,
+        action: buildAction('switch-page', 'points-training')
+      },
+      {
         key: 'knowledge',
-        icon: '📚',
+        icon: '📖',
         label: '知识库',
-        subtitleText: '教材 + 102 精细考点',
+        subtitleText: '教材 · 按考点分类',
         tone: 'purple',
         count: null,
         action: buildAction('switch-page', 'knowledge')

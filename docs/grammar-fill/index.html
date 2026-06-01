@@ -2180,6 +2180,8 @@ function runHomeDashboardAction(type, value) {
     step = step || {};
     if (step.kind === 'switch-page') {
       switchPage(step.page);
+    } else if (step.kind === 'navigate-home') {
+      navigateHome(step.view);
     } else if (step.kind === 'click-upload-button') {
       var btn = document.querySelector(step.selector);
       if (btn) btn.click();
