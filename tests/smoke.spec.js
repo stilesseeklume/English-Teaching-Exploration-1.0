@@ -4364,3 +4364,35 @@ test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) 
   expect(out.singlePointNoChips).toBe(true);
   expect(errors).toEqual([]);
 });
+
+test('字段纠错层 R1/R2：myself→反身, to_be_done→不定式, 已对的不动, 幂等, 不改原对象', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarQuestionCorrection && window.GrammarQuestionPoints), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var C = window.GrammarQuestionCorrection, P = window.GrammarQuestionPoints;
+    var myself = { category:'pronoun', answer:'myself', grammar_point:'反身代词', fine_category:'pron-personal', facets:{type:'personal'} };
+    var c1 = C.correctClassification(myself);
+    var ok1 = c1.fine_category==='pron-reflexive' && c1.facets.type==='reflexive' && P.buildQuestionPoints(c1)[0].tag==='pron-reflexive';
+    var origUntouched = myself.fine_category==='pron-personal' && myself.facets.type==='personal';
+    var lifted = { category:'nonpredicate', answer:'to be lifted', nonp_form:'to_be_done', fine_category:'nonpred-done', facets:{form:'done'} };
+    var c2 = C.correctClassification(lifted);
+    var ok2 = c2.fine_category==='nonpred-to-do' && c2.facets.form==='to-do';
+    var rightDone = { category:'nonpredicate', answer:'lifted', nonp_form:'done', fine_category:'nonpred-done', facets:{form:'done'} };
+    var c3 = C.correctClassification(rightDone);
+    var ok3 = c3.fine_category==='nonpred-done' && c3.facets.form==='done';
+    var c2b = C.correctClassification(C.correctClassification(lifted));
+    var ok4 = c2b.fine_category==='nonpred-to-do' && c2b.facets.form==='to-do';
+    return (ok1&&origUntouched&&ok2&&ok3&&ok4) ? 'ok' : 'bad:'+[ok1,origUntouched,ok2,ok3,ok4].join(',');
+  })).toBe('ok');
+});
+
+test('纠错接入 buildAllQuestions：真题里的 myself 已归到 pron-reflexive', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarQuestionModel && window.GRAMMAR_BANK), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var qs = window.GrammarQuestionModel.buildAllQuestions(window.GRAMMAR_BANK, {});
+    var m = qs.filter(function(q){ return String(q.answer||'').toLowerCase()==='myself'; });
+    var allRef = m.length>0 && m.every(function(q){ return q.fine_category==='pron-reflexive' && q.points[0] && q.points[0].tag==='pron-reflexive'; });
+    return allRef ? 'ok' : 'bad:count='+m.length+' '+m.map(function(q){return q.fine_category;}).join(',');
+  })).toBe('ok');
+});

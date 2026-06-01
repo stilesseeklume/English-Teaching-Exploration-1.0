@@ -8,6 +8,9 @@
     bank = bank || { questions: [] };
     categoryTips = categoryTips || {};
     return (bank.questions || []).map(function(q) {
+      q = (typeof window !== 'undefined' && window.GrammarQuestionCorrection)
+        ? window.GrammarQuestionCorrection.correctClassification(q)
+        : q;
       return {
         no: q.no,
         year: q.year,
@@ -75,6 +78,9 @@
 
   function createExamQuestionFromRaw(raw, exam, categoryTips) {
     raw = raw || {};
+    raw = (typeof window !== 'undefined' && window.GrammarQuestionCorrection)
+      ? window.GrammarQuestionCorrection.correctClassification(raw)
+      : raw;
     exam = exam || {};
     categoryTips = categoryTips || {};
     return {

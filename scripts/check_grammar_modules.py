@@ -179,6 +179,13 @@ EXPECTED_MODULES = [
         ],
     },
     {
+        "path": "question-correction.js",
+        "namespace": "GrammarQuestionCorrection",
+        "exports": [
+            "correctClassification",
+        ],
+    },
+    {
         "path": "question-points.js",
         "namespace": "GrammarQuestionPoints",
         "exports": [
