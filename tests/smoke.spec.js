@@ -4219,7 +4219,9 @@ test('决策地图谓语叶子带 point；时态6叶真实计数不全相等；�
     });
     var notUniform = new Set(counts).size > 1;
     var voiceOk = byId['l_voice_form'] && byId['l_voice_form'].point && byId['l_voice_form'].point.tag === 'pred-passive'
-      && byId['l_voice_implicit'] && byId['l_voice_implicit'].point;
+      && !byId['l_voice_form'].point.keys   // keyless 通配 = 计全部被动
+      && byId['l_voice_implicit'] && byId['l_voice_implicit'].point
+      && byId['l_voice_implicit'].point.keys && byId['l_voice_implicit'].point.keys[0] === '__implicit__';  // 占位 key 计 0
     var artOk = !byId['l_art_spec'] && byId['l_art_the'] && byId['l_art_the'].fine === 'art-the';
     return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk].join(',');
   })).toBe('true,true,true,true,true');

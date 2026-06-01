@@ -34,6 +34,7 @@
     { id: 'l_tense_perfect',     parent: 'pred_tense', title: '完成体',          cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['perfect', 'past-perfect', 'future-perfect'] } },
     { id: 'l_tense_perfectprog', parent: 'pred_tense', title: '完成进行',        cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['perfect-progressive', 'past-perfect-progressive'] } },
     { id: 'pred_voice', parent: 'pred', title: '语态', sub: '主语是否承受动作？', kd: 'predicate-voice' },
+    // l_voice_form 无 keys = keyless 通配，countByPoint 计全部被动；l_voice_implicit 用占位 key 故意计 0（主动表被动暂无数据信号，留后）
     { id: 'l_voice_form',     parent: 'pred_voice', title: '被动语态的构成', cat: 'predicate', fine: 'pred-passive', point: { tag: 'pred-passive' } },
     { id: 'l_voice_implicit', parent: 'pred_voice', title: '主动形式表被动', cat: 'predicate', fine: 'pred-passive', point: { tag: 'pred-passive', keys: ['__implicit__'] } },
     { id: 'pred_sva', parent: 'pred', title: '主谓一致', sub: '回到主语中心词', kd: 'predicate-agreement' },
