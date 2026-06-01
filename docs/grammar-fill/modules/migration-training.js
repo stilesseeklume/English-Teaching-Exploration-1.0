@@ -275,6 +275,7 @@
           label: showAll ? '收起，只看 6 题' : ('显示全部 ' + poolCount + ' 题')
         };
       })(),
+      pointChips: asArray(data.pointChips),
       entries: entries
     };
   }

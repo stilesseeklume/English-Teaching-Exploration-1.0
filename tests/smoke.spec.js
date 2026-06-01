@@ -4335,7 +4335,11 @@ test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) 
       headerHasPlus: d0.headerLabel.indexOf(' + ') !== -1,
       chipsLen0: (d0.pointChips || []).length,
       chip0Active: (d0.pointChips || [])[0] && d0.pointChips[0].active,
-      chip1Active1: (d1.pointChips || [])[1] && d1.pointChips[1].active
+      chip1Active1: (d1.pointChips || [])[1] && d1.pointChips[1].active,
+      contentChipsLen: (function () {
+        var cm = M.buildMigrationContentViewModel(d0, 'bank', false);
+        return (cm.pointChips || []).length;
+      })()
     };
   });
 
@@ -4345,5 +4349,6 @@ test('migration pool is per-axis pure (predicate multi-axis)', async ({ page }) 
   expect(out.chipsLen0).toBe(2);
   expect(out.chip0Active).toBe(true);
   expect(out.chip1Active1).toBe(true);
+  expect(out.contentChipsLen).toBe(2);
   expect(errors).toEqual([]);
 });
