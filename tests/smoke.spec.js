@@ -4226,3 +4226,19 @@ test('决策地图谓语叶子带 point；时态6叶真实计数不全相等；�
     return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk].join(',');
   })).toBe('true,true,true,true,true');
 });
+
+test('决策地图渲染：时态叶迁移按钮按 point；词 chip 带具体词跳 point', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GRAMMAR_DECISION_MAP && typeof renderSystemView === 'function', null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    // 展开到时态叶 + 定语从句叶，渲染决策地图
+    ['root','clue','verb','pred','pred_tense','noclue','conj','rel','attrib'].forEach(function(id){ dmExpanded[id] = true; });
+    renderSystemView();
+    var html = document.getElementById('knowledgeContent').innerHTML;
+    // 时态「一般现在」叶有题→迁移按钮按 point(pred-tense, ['present'])
+    var tenseBtn = html.indexOf("startByPointFromMap('pred-tense',['present']") !== -1;
+    // 定从「关系词的选择」叶下的 which 词 chip→带具体词 which 跳 point
+    var whichChip = html.indexOf("startByPointFromMap('attrib-pronoun',['which']") !== -1;
+    return [tenseBtn, whichChip].join(',');
+  })).toBe('true,true');
+});

@@ -2676,6 +2676,24 @@ function startByFineTag(fine) {
   renderExam();
 }
 
+function startByPoint(tag, keys) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var entryModel = window.GrammarCategoryRules.buildPointPracticePlan(tag, keys, ALL_QUESTIONS, CATEGORY_MAP);
+  if (!entryModel.hasQuestions) {
+    alert(entryModel.emptyMessage);
+    return;
+  }
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
 function startByExam(examId, preserveDrawerReturn) {
   closeDrawer(!!preserveDrawerReturn);
   resetPracticeDisplayState();
@@ -5211,6 +5229,17 @@ function startMigrationFromMap(fine) {
   if (typeof syncAppState === 'function') syncAppState();
   if (typeof updateDockBackButton === 'function') updateDockBackButton();
 }
+function dmKeysLiteral(keys) {
+  // 把 keys 数组序列化成 onclick 里可嵌的 JS 数组字面量：['a','b']（值为受控的考点key，无引号/特殊字符）
+  return '[' + (keys || []).map(function(k){ return "'" + String(k) + "'"; }).join(',') + ']';
+}
+function startByPointFromMap(tag, keys) {
+  // 从图谱叶子/词 chip 按 point 精准开练，"返回"指回知识库
+  startByPoint(tag, keys);
+  setPreviousView({ page: 'knowledge' });
+  if (typeof syncAppState === 'function') syncAppState();
+  if (typeof updateDockBackButton === 'function') updateDockBackButton();
+}
 function ensureDmWindowListeners() {
   if (dmWindowWired) return;
   dmWindowWired = true;
@@ -5290,17 +5319,21 @@ function renderSystemView(focusNodeId) {
       var fine = n.fine || '';
       var kd = n.kd || '';
       if (!kd && n.parent && full.byId[n.parent]) kd = full.byId[n.parent].kd || '';
-      var c = (fine && window.GrammarKnowledgeViewModel)
-        ? window.GrammarKnowledgeViewModel.countByFineTag(fine, ALL_QUESTIONS, errorBookQuestions)
-        : { total: 0, real: 0 };
+      var pointTag = (n.point && n.point.tag) || fine;        // 词 chip / 跳转用的 tag
+      var c = n.point
+        ? window.GrammarKnowledgeViewModel.countByPoint(n.point.tag, n.point.keys, ALL_QUESTIONS, errorBookQuestions)
+        : ((fine && window.GrammarKnowledgeViewModel)
+          ? window.GrammarKnowledgeViewModel.countByFineTag(fine, ALL_QUESTIONS, errorBookQuestions)
+          : { total: 0, real: 0 });
       var qn = c.total || 0;
       var badge = (c.real < qn) ? (qn + ' 题 · 真题' + c.real) : (qn + ' 题');
       var acts = '';
-      if (qn > 0 && fine) acts += '<button type="button" onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(fine) + '\')">🔁 迁移训练 · ' + badge + '</button>';
+      if (qn > 0 && n.point) acts += '<button type="button" onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(n.point.tag) + '\',' + dmKeysLiteral(n.point.keys) + ')">🔁 迁移训练 · ' + badge + '</button>';
+      else if (qn > 0 && fine) acts += '<button type="button" onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(fine) + '\')">🔁 迁移训练 · ' + badge + '</button>';
       else acts += '<span style="font-size:12px;color:var(--text-3);">暂无题 · 0 题</span>';
       acts += '<button type="button" class="ghost" onclick="event.stopPropagation();openKnowledgePoint(\'' + graphEscapeAttr(cat) + '\',\'' + graphEscapeAttr(kd) + '\')">📖 看讲解</button>';
       tip = '<div class="dm-see">' + acts + '</div>';
-      // Task B：闭合类/介词叶子下钻具体词 chip（点词进迁移）
+      // 闭合类/介词叶子下钻具体词 chip（点词→按 {tag, word} 精准进迁移，which→which）
       var words = (fine && window.GrammarKnowledgeViewModel.buildLeafWordBreakdown)
         ? window.GrammarKnowledgeViewModel.buildLeafWordBreakdown(fine, window.GRAMMAR_FINE_TAGS, ALL_QUESTIONS, errorBookQuestions)
         : [];
@@ -5309,7 +5342,7 @@ function renderSystemView(focusNodeId) {
           var z = wd.total === 0 ? ' style="opacity:.4;"' : '';
           var rt = (wd.real < wd.total) ? ('·真题' + wd.real) : '';
           return '<button type="button" class="dm-word-chip"' + z
-            + ' onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(fine) + '\')">'
+            + ' onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(pointTag) + '\',[\'' + graphEscapeAttr(wd.word) + '\'])">'
             + escapeHtml(wd.word) + ' <span style="opacity:.6;">' + wd.total + rt + '</span></button>';
         }).join('');
         tip += '<div class="dm-words">' + chips + '</div>';
