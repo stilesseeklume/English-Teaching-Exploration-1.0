@@ -25,17 +25,17 @@
     { id: 'verb', parent: 'clue', title: '作动词', sub: '判断：句子缺不缺谓语？' },
 
     { id: 'pred', parent: 'verb', title: '谓语动词', sub: '缺谓语 → 定 时态 / 语态 / 主谓一致', cat: 'predicate' },
-    // 时态：新体系合并为单一 pred-tense（时态细分进 facets.tense）；保留细叶子方便按解题思路导航
-    { id: 'pred_tense', parent: 'pred', title: '时态', sub: '找时间标志和上下文', kd: 'predicate-tense' },
-    { id: 'l_tense_present', parent: 'pred_tense', title: '一般现在时', cat: 'predicate', fine: 'pred-tense' },
-    { id: 'l_tense_past', parent: 'pred_tense', title: '一般过去 / 将来 / 过去将来', cat: 'predicate', fine: 'pred-tense' },
-    { id: 'l_tense_cont', parent: 'pred_tense', title: '进行时', cat: 'predicate', fine: 'pred-tense' },
-    { id: 'l_tense_perfect', parent: 'pred_tense', title: '完成时 / 完成进行', cat: 'predicate', fine: 'pred-tense' },
-    { id: 'l_tense_pastperfect', parent: 'pred_tense', title: '过去完成 / 将来完成', cat: 'predicate', fine: 'pred-tense' },
-    { id: 'l_tense_other', parent: 'pred_tense', title: '时态其他', cat: 'predicate', fine: 'pred-tense' },
+    // 时态：做题导向 6 叶——一般时按时间拆(靠时间标志)、进行/完成按体归(靠体的信号词)。point.keys 对齐 facets.tense。
+    { id: 'pred_tense', parent: 'pred', title: '时态', sub: '先抓信号再定时态', kd: 'predicate-tense' },
+    { id: 'l_tense_present',     parent: 'pred_tense', title: '一般现在',        cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['present'] } },
+    { id: 'l_tense_past',        parent: 'pred_tense', title: '一般过去',        cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['past'] } },
+    { id: 'l_tense_future',      parent: 'pred_tense', title: '一般将来·过去将来', cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['future', 'past-future'] } },
+    { id: 'l_tense_progressive', parent: 'pred_tense', title: '进行体',          cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['progressive', 'present-progressive', 'past-progressive'] } },
+    { id: 'l_tense_perfect',     parent: 'pred_tense', title: '完成体',          cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['perfect', 'past-perfect', 'future-perfect'] } },
+    { id: 'l_tense_perfectprog', parent: 'pred_tense', title: '完成进行',        cat: 'predicate', fine: 'pred-tense', point: { tag: 'pred-tense', keys: ['perfect-progressive', 'past-perfect-progressive'] } },
     { id: 'pred_voice', parent: 'pred', title: '语态', sub: '主语是否承受动作？', kd: 'predicate-voice' },
-    { id: 'l_voice_form', parent: 'pred_voice', title: '被动语态的构成', cat: 'predicate', fine: 'pred-passive' },
-    { id: 'l_voice_implicit', parent: 'pred_voice', title: '主动形式表被动', cat: 'predicate', fine: 'pred-passive' },
+    { id: 'l_voice_form',     parent: 'pred_voice', title: '被动语态的构成', cat: 'predicate', fine: 'pred-passive', point: { tag: 'pred-passive' } },
+    { id: 'l_voice_implicit', parent: 'pred_voice', title: '主动形式表被动', cat: 'predicate', fine: 'pred-passive', point: { tag: 'pred-passive', keys: ['__implicit__'] } },
     { id: 'pred_sva', parent: 'pred', title: '主谓一致', sub: '回到主语中心词', kd: 'predicate-agreement' },
     { id: 'l_sva_form', parent: 'pred_sva', title: '语法形式一致', cat: 'predicate', fine: 'pred-agreement' },
     { id: 'l_sva_meaning', parent: 'pred_sva', title: '意义 / 就近一致', cat: 'predicate', fine: 'pred-agreement' },
@@ -87,7 +87,6 @@
     { id: 'l_prep_other', parent: 'prep', title: '其他介词辨析', cat: 'preposition', fine: 'prep-other' },
 
     { id: 'art', parent: 'noclue', title: '冠词', sub: '限定名词：可数性 / 特指泛指', cat: 'article' },
-    { id: 'l_art_spec', parent: 'art', title: '特指 / 独指 / 类指', cat: 'article', fine: 'art-the' },
     { id: 'l_art_aan', parent: 'art', title: '不定冠词 a / an', cat: 'article', fine: 'art-a-an' },
     { id: 'l_art_the', parent: 'art', title: '定冠词 the', cat: 'article', fine: 'art-the' },
     // l_art_zero（不用冠词）已删除：新体系零冠词高考不考（spec §一之5）

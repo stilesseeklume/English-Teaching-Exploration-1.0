@@ -4197,3 +4197,30 @@ test('buildPointPracticePlan 按 point 选题：which→which，定从 which 不
     ].join(',');
   })).toBe('true,1,1,attrib,false');
 });
+
+test('决策地图谓语叶子带 point；时态6叶真实计数不全相等；无 l_art_spec', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GRAMMAR_DECISION_MAP && !!window.GrammarKnowledgeViewModel && !!window.GrammarQuestionModel && !!window.GRAMMAR_BANK, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var DM = window.GRAMMAR_DECISION_MAP;
+    var kvm = window.GrammarKnowledgeViewModel;
+    var allQs = window.GrammarQuestionModel.buildAllQuestions(window.GRAMMAR_BANK);
+    var byId = {};
+    DM.nodes.forEach(function(n){ byId[n.id] = n; });
+    var tenseIds = ['l_tense_present','l_tense_past','l_tense_future','l_tense_progressive','l_tense_perfect','l_tense_perfectprog'];
+    var allHavePoint = tenseIds.every(function(id){
+      var n = byId[id];
+      return n && n.point && n.point.tag === 'pred-tense' && Array.isArray(n.point.keys) && n.point.keys.length > 0;
+    });
+    var oldGone = !byId['l_tense_cont'] && !byId['l_tense_pastperfect'] && !byId['l_tense_other'];
+    var counts = tenseIds.map(function(id){
+      var n = byId[id];
+      return kvm.countByPoint(n.point.tag, n.point.keys, allQs, []).total;
+    });
+    var notUniform = new Set(counts).size > 1;
+    var voiceOk = byId['l_voice_form'] && byId['l_voice_form'].point && byId['l_voice_form'].point.tag === 'pred-passive'
+      && byId['l_voice_implicit'] && byId['l_voice_implicit'].point;
+    var artOk = !byId['l_art_spec'] && byId['l_art_the'] && byId['l_art_the'].fine === 'art-the';
+    return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk].join(',');
+  })).toBe('true,true,true,true,true');
+});
