@@ -313,6 +313,7 @@ EXPECTED_MODULES = [
             "CATEGORY_STAT_COLORS",
             "buildDecisionTree",
             "buildPointBreadcrumb",
+            "buildPointsLeafListModel",
             "buildGuidedStepModel",
             "buildDecisionOutlineModel",
             "layoutDecisionTree",

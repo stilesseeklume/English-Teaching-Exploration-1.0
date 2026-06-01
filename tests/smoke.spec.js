@@ -4202,8 +4202,22 @@ test('决策地图谓语叶子带 point；时态6叶真实计数不全相等；�
     var kvmBc = window.GrammarKnowledgeViewModel;
     var dmTree = kvmBc.buildDecisionTree((window.GRAMMAR_DECISION_MAP||{}).nodes||[]);
     var bcPresent = kvmBc.buildPointBreadcrumb(dmTree, 'l_tense_present', window.CATEGORY_MAP||{});
-    return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk, bcPresent === '按考点 · 谓语动词 · 时态 · 一般现在'].join(',');
-  })).toBe('true,true,true,true,true,true');
+    var leafModel = window.GrammarKnowledgeViewModel.buildPointsLeafListModel(
+      (window.GRAMMAR_DECISION_MAP||{}).nodes||[], window.GRAMMAR_FINE_TAGS||{},
+      window.ALL_QUESTIONS||[], window.errorBookQuestions||[], window.CATEGORY_MAP||{});
+    var predGroup = (leafModel.groups||[]).find(function(g){return g.id==='predicate';});
+    var presentLeaf = predGroup && predGroup.leaves.find(function(l){return l.id==='l_tense_present';});
+    var aanLeaf = (leafModel.groups||[]).reduce(function(acc,g){return acc||g.leaves.find(function(l){return l.id==='l_art_aan';});}, null);
+    return [allHavePoint, oldGone, notUniform, !!voiceOk, artOk, bcPresent === '按考点 · 谓语动词 · 时态 · 一般现在'
+      , leafModel && Array.isArray(leafModel.groups) && leafModel.groups.length >= 8
+      , predGroup && predGroup.titleText === '谓语动词' && predGroup.leaves.length >= 6
+      , presentLeaf && presentLeaf.action.kind === 'point' && presentLeaf.action.tag === 'pred-tense'
+      , presentLeaf && presentLeaf.action.keys.length === 1 && presentLeaf.action.keys[0] === 'present'
+      , presentLeaf && presentLeaf.breadcrumb === '按考点 · 谓语动词 · 时态 · 一般现在'
+      , presentLeaf && presentLeaf.clickable === (presentLeaf.counts.total > 0)
+      , aanLeaf && aanLeaf.action.kind === 'fine' && aanLeaf.action.fine === 'art-a-an'
+    ].join(',');
+  })).toBe('true,true,true,true,true,true,true,true,true,true,true,true,true');
 });
 
 test('决策地图渲染：时态叶迁移按钮按 point；词 chip 带具体词跳 point', async ({ page }) => {

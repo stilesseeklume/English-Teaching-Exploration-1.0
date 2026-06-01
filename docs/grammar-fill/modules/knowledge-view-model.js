@@ -406,6 +406,54 @@
     };
   }
 
+  var POINTS_LEAF_CAT_ORDER = ['predicate','nonpredicate','word','number','article','pronoun','preposition','logic','attrib','nounclause','advclause'];
+
+  // 决策地图叶子拍平成"考点清单"：按大类分组，每叶子带计数(points/fine 同图口径)+面包屑+点击动作。
+  function buildPointsLeafListModel(decisionNodes, fineTags, bankQuestions, errorQuestions, categoryMap) {
+    categoryMap = categoryMap || {};
+    var tree = buildDecisionTree(decisionNodes);
+    var byId = tree.byId, childrenOf = tree.childrenOf;
+    var groupsMap = {};
+    Object.keys(byId).forEach(function(id) {
+      if ((childrenOf[id] || []).length !== 0) return;
+      var n = byId[id] || {};
+      if (!n.cat) return;
+      var counts = n.point
+        ? countByPoint(n.point.tag, n.point.keys, bankQuestions, errorQuestions)
+        : (n.fine ? countByFineTag(n.fine, bankQuestions, errorQuestions) : { bank: 0, error: 0, real: 0, total: 0 });
+      var leaf = {
+        id: id,
+        title: n.title || id,
+        breadcrumb: buildPointBreadcrumb(tree, id, categoryMap),
+        counts: counts,
+        badge: formatCountBadge(counts),
+        frequencyStyle: getFrequencyStyle(counts.total),
+        clickable: counts.total > 0,
+        action: n.point
+          ? { kind: 'point', tag: n.point.tag, keys: asArray(n.point.keys) }
+          : { kind: 'fine', fine: n.fine || '' }
+      };
+      (groupsMap[n.cat] = groupsMap[n.cat] || []).push(leaf);
+    });
+    var groups = POINTS_LEAF_CAT_ORDER
+      .filter(function(cat) { return groupsMap[cat] && groupsMap[cat].length; })
+      .map(function(cat) {
+        var leaves = groupsMap[cat];
+        var total = leaves.reduce(function(s, l) { return s + (l.counts.total || 0); }, 0);
+        return { id: cat, titleText: categoryMap[cat] || cat, leaves: leaves, total: total, leafCount: leaves.length, frequencyStyle: getFrequencyStyle(total) };
+      });
+    return {
+      empty: groups.length === 0,
+      emptyText: '决策地图数据未加载。',
+      header: {
+        titleText: '🏷️ 考点视图 · 点任一考点直接进同类训练',
+        descriptionText: '决策地图叶子拍平成考点清单。颜色 = 当前题库题量频次；灰色 = 暂无真题（传新卷自然激活）。'
+      },
+      legend: buildFineCategoryLegendModel(),
+      groups: groups
+    };
+  }
+
   function buildFineCategoryModel(fineTags, bankQuestions, errorQuestions) {
     fineTags = fineTags || {};
     var categories = fineTags.categories || {};
@@ -1571,6 +1619,7 @@
   window.GrammarKnowledgeViewModel = {
     buildDecisionTree: buildDecisionTree,
     buildPointBreadcrumb: buildPointBreadcrumb,
+    buildPointsLeafListModel: buildPointsLeafListModel,
     buildGuidedStepModel: buildGuidedStepModel,
     buildDecisionOutlineModel: buildDecisionOutlineModel,
     layoutDecisionTree: layoutDecisionTree,
