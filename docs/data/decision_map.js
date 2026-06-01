@@ -53,8 +53,7 @@
     { id: 'word', parent: 'clue', title: '不作动词', sub: '判断：要变成什么词、作什么成分？' },
 
     { id: 'noun', parent: 'word', title: '名词', sub: '名词位 → 看可数性、数、格', cat: 'number' },
-    { id: 'l_noun_count', parent: 'noun', title: '可数 / 不可数', cat: 'number', fine: 'num-plural' },
-    { id: 'l_noun_plural', parent: 'noun', title: '名词复数形式', cat: 'number', fine: 'num-plural' },
+    { id: 'l_noun_plural', parent: 'noun', title: '名词复数', cat: 'number', fine: 'num-plural' },
     { id: 'l_noun_poss', parent: 'noun', title: '名词所有格', cat: 'number', fine: 'num-possessive' },
     { id: 'l_noun_deriv', parent: 'noun', title: '派生成名词（动→名 / 形→名）', cat: 'word', fine: 'word-noun' },
 

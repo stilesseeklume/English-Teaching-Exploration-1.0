@@ -4410,3 +4410,16 @@ test('错题精确迁移：无 points 的错题被 keyless 通配误配；补带
     return (bad.poolCount >= 1 && good.poolCount === 0) ? 'ok' : 'bad:'+bad.poolCount+'/'+good.poolCount;
   })).toBe('ok');
 });
+
+test('名词叶子合并：num-plural 标题末段=名词复数，无可数/不可数重复叶子', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarKnowledgeViewModel && window.GRAMMAR_DECISION_MAP && window.GRAMMAR_FINE_TAGS && window.CATEGORY_MAP), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var kvm = window.GrammarKnowledgeViewModel;
+    var DM = (window.GRAMMAR_DECISION_MAP || {}).nodes || [];
+    var title = kvm.buildMigrationPointTitle(DM, window.GRAMMAR_FINE_TAGS || {}, window.CATEGORY_MAP || {}, [{ tag: 'num-plural' }]);
+    var endsRight = /名词复数$/.test(title);
+    var noCountLeaf = !DM.some(function(n){ return n.id === 'l_noun_count'; });
+    return (endsRight && noCountLeaf) ? 'ok' : 'bad: title=' + title + ' noCountLeaf=' + noCountLeaf;
+  })).toBe('ok');
+});
