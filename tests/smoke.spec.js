@@ -3267,6 +3267,22 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '|' + (def.activeScope && def.activeScope.level) + '/' + def.poolCount + '/' + byCat.poolCount;
   })).toBe('ok');
 
+  // 谓语题迁移范围选择器应可见（②档=谓语3个fine tag）
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var ft = window.GRAMMAR_FINE_TAGS;
+    var q = { exam:'e', no:1, category:'predicate', fine_category:'pred-tense',
+      facets:{ tense:'present', voice:'active', agreement:true }, type:'真题' };
+    var bank = [ q,
+      { exam:'e', no:2, category:'predicate', fine_category:'pred-passive', facets:{ tense:'past', voice:'passive', agreement:false }, type:'真题' },
+      { exam:'e', no:3, category:'predicate', fine_category:'pred-agreement', facets:{ agreement:true }, type:'真题' } ];
+    var data = mt.buildMigrationData(q, { source:'bank', bankQuestions:bank, errorQuestions:[],
+      categoryMap:{ predicate:'谓语动词' }, fineTags:ft, limit:99 });
+    var sel = mt.buildMigrationContentViewModel(data, 'bank', false).scopeSelector;
+    var ftBtns = (sel.buttons||[]).filter(function(b){ return b.level === 'finetag'; });
+    return (sel.visible && ftBtns.length === 3) ? 'ok' : 'bad:' + sel.visible + '/' + ftBtns.length;
+  })).toBe('ok');
+
   // 谓语讲题卡：优先信任 facets（修"is被误判完成时"），不再被关键词带跑
   expect(await page.evaluate(() => {
     var tg = window.GrammarTeachingGuide;
