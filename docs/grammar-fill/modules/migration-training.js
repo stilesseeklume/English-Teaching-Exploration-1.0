@@ -375,6 +375,12 @@
     }).length;
   }
 
+  // 取题的考点清单：优先 item.points；缺失时回退到 [{tag: fine_category}]（兼容未派生场景）
+  function questionPoints(item) {
+    if (item && Array.isArray(item.points) && item.points.length) return item.points;
+    return [{ tag: (item && item.fine_category) || '' }];
+  }
+
   function buildMigrationData(q, options) {
     q = q || {};
     options = options || {};
@@ -387,7 +393,7 @@
     var fineCat = q.fine_category;
     var fineInfo = getFineTagInfo(fineCat);
 
-    // 同大类底池（排除自身）——范围选择器底座与 fallbackCount 都从这里取
+    // 同大类底池（排除自身）——仅 fallbackCount 用
     var fallbackBankPool = bankQuestions.filter(function(item) {
       return item.category === q.category && !sameQuestion(item, q);
     });
@@ -395,44 +401,32 @@
       return item.category === q.category && !sameQuestion(item, q);
     });
 
-    // 默认显示池=同 fine_category（从同大类底池再过滤）；无 fine_category 时退回同大类
-    var fineBankPool = fineCat ? fallbackBankPool.filter(function(item) {
-      return item.fine_category === fineCat;
-    }) : fallbackBankPool;
-    var fineErrorPool = fineCat ? fallbackErrorPool.filter(function(item) {
-      return item.fine_category === fineCat;
-    }) : fallbackErrorPool;
+    // 显示池=与当前题共享至少一个 point（考点）的题，排除自身。多标签题(谓语)按任一轴命中取并集。
+    function sharesPoint(item) {
+      var qp = questionPoints(q), ip = questionPoints(item);
+      for (var i = 0; i < qp.length; i++) {
+        for (var j = 0; j < ip.length; j++) {
+          if (qp[i].tag && qp[i].tag === ip[j].tag
+              && String(qp[i].key == null ? '' : qp[i].key) === String(ip[j].key == null ? '' : ip[j].key)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    var pointBankPool = bankQuestions.filter(function(item) {
+      return !sameQuestion(item, q) && sharesPoint(item);
+    });
+    var pointErrorPool = errorQuestions.filter(function(item) {
+      return !sameQuestion(item, q) && sharesPoint(item);
+    });
 
-    var bankDisplayPool = dedupe(fineBankPool);
-    var errorDisplayPool = dedupe(fineErrorPool);
+    var bankDisplayPool = dedupe(pointBankPool);
+    var errorDisplayPool = dedupe(pointErrorPool);
     var pool = selectSourcePool(source, bankDisplayPool, errorDisplayPool);
     var tabs = buildTabs(bankDisplayPool, errorDisplayPool);
-
-    // T4：facets 可缩放范围。底座=同大类（fallback*Pool 已是同 category 排除自身），
-    // 按选中范围（word/type/category）缩放，默认落最细。spec §四之二。
-    var qFacets = q.facets || {};
-    var hasFacets = !!(qFacets && Object.keys(qFacets).length);
-    var scopes = [];
+    var scopes = [];       // 范围选择器已废弃：points 自带粒度
     var activeScope = null;
-    if (hasFacets) {
-      var fineTagsByCategory = (options.fineTags && options.fineTags.tags_by_category) || {};
-      var scopeBasePool = selectSourcePool(source, fallbackBankPool, fallbackErrorPool);
-      scopes = buildMigrationScopes(qFacets, fineCat, q.category, fineTagsByCategory).map(function(s) {
-        return {
-          level: s.level,
-          value: s.value,
-          label: s.label,
-          count: scopeBasePool.filter(function(it) { return migrationMatchesScope(it, s); }).length
-        };
-      });
-      // 默认激活：当前题对应的 finetag 档（没有则落最细 word 档）
-      activeScope = options.scope
-        || scopes.filter(function(s){ return s.level === 'finetag' && s.value === fineCat; })[0]
-        || scopes[0] || null;
-      pool = activeScope
-        ? scopeBasePool.filter(function(it) { return migrationMatchesScope(it, activeScope); })
-        : scopeBasePool;
-    }
 
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
     var headerLabel = resolvedFineInfo

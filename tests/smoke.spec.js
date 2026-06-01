@@ -3204,39 +3204,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '|' + mWordForm + mWordNo + mFine + mFineNo + mCat;
   })).toBe('ok');
 
-  // Task E：buildMigrationData 第②档=该大类全部 fine tag（含0题），默认激活当前 fine
-  expect(await page.evaluate(() => {
-    var mt = window.GrammarMigrationTraining;
-    var ft = window.GRAMMAR_FINE_TAGS;
-    var q = { exam: 'e', no: 1, category: 'attrib', fine_category: 'attrib-pronoun',
-      facets: { word: 'which' }, type: '真题' };
-    var bank = [
-      q,
-      { exam: 'e', no: 2, category: 'attrib', fine_category: 'attrib-pronoun', facets: { word: 'that' }, type: '真题' },
-      { exam: 'e', no: 3, category: 'attrib', fine_category: 'attrib-adverb', facets: { word: 'when' }, type: '真题' }
-    ];
-    function build(scope) {
-      return mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [],
-        categoryMap: { attrib: '定语从句' }, fineTags: ft, scope: scope, limit: 99 });
-    }
-    var def = build(null);   // 默认激活 finetag=attrib-pronoun → 底池同大类(no2,no3)中 attrib-pronoun = no2 → 1
-    var byCat = build({ level: 'category', value: 'attrib' });   // 整个定语从句 → no2,no3 → 2
-    var sel = mt.buildMigrationContentViewModel(def, 'bank', false).scopeSelector;
-    var ftBtns = sel.buttons.filter(function(b){ return b.level === 'finetag'; });
-    var ids = ftBtns.map(function(b){ return b.value; }).sort().join(',');
-    var prepRel = ftBtns.filter(function(b){ return b.value === 'attrib-prep-relative'; })[0];
-    var pron = ftBtns.filter(function(b){ return b.value === 'attrib-pronoun'; })[0];
-    return (ftBtns.length === 5
-      && ids === 'attrib-adverb,attrib-as,attrib-only-that,attrib-prep-relative,attrib-pronoun'
-      && prepRel && prepRel.count === 0 && pron && pron.count === 1
-      && def.activeScope && def.activeScope.level === 'finetag' && def.activeScope.value === 'attrib-pronoun'
-      && def.poolCount === 1 && byCat.poolCount === 2) ? 'ok'
-      : 'bad:' + ftBtns.length + '|' + ids + '|' + (prepRel && prepRel.count) + '/' + (pron && pron.count)
-        + '|' + (def.activeScope && def.activeScope.level) + '/' + def.poolCount + '/' + byCat.poolCount;
-  })).toBe('ok');
-
-  // T1：迁移统一到fine_category+facets。即便喂满体系B依赖(practicalGuide桩会劫持header/tag)，统一后也只认fine_category：
-  // 池=同fine_category、默认激活当前fine档、范围选择器=同大类全fine列、表头与卡片标签用fine name。
+  // 迁移按 points：art-a-an 题(回退 [{tag:art-a-an}]) → 命中同 art-a-an 的 no2，不含 art-the 的 no3；表头/卡片用 fine name；practicalGuide 桩被忽略。
   expect(await page.evaluate(() => {
     var mt = window.GrammarMigrationTraining;
     var ft = window.GRAMMAR_FINE_TAGS;
@@ -3245,22 +3213,16 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var bank = [ q,
       { exam:'e', no:2, category:'article', fine_category:'art-a-an', facets:{ word:'a-an' }, type:'真题' },
       { exam:'e', no:3, category:'article', fine_category:'art-the', facets:{ word:'the' }, type:'真题' } ];
-    // 故意喂满体系B依赖 + practicalGuide桩(现劫持 headerLabel/tagLabel)。统一后须被忽略。
     var stubGuide = function(){ return { title:'体系B指引', trigger:'X' }; };
     var data = mt.buildMigrationData(q, { source:'bank', bankQuestions:bank, errorQuestions:[],
       categoryMap:{ article:'冠词' }, fineTags:ft, getFineTagInfo:gfti,
       getQuestionPracticalGuide:stubGuide, limit:99 });
-    var cm = mt.buildMigrationContentViewModel(data, 'bank', false);
-    var sel = cm.scopeSelector;
-    var ftBtns = (sel.buttons||[]).filter(function(b){ return b.level==='finetag'; });
-    var ids = ftBtns.map(function(b){ return b.value; }).sort().join(',');
     var tag0 = (data.migration[0]||{}).tagLabel;
     return (data.poolCount === 1
-      && data.activeScope && data.activeScope.level==='finetag' && data.activeScope.value==='art-a-an'
-      && sel.visible && ftBtns.length === 3 && ids === 'art-a-an,art-the,art-zero'
+      && data.migration[0] && data.migration[0].item.no === 2
       && data.headerLabel === '同考点：不定冠词 a/an'
       && tag0 === '不定冠词 a/an') ? 'ok'
-      : 'bad:' + data.poolCount + '|' + (data.activeScope&&data.activeScope.value) + '|' + ftBtns.length + '/' + ids + '/' + sel.visible + '|H=' + data.headerLabel + '|T=' + tag0;
+      : 'bad:' + data.poolCount + '|' + (data.migration[0] && data.migration[0].item.no) + '|H=' + data.headerLabel + '|T=' + tag0;
   })).toBe('ok');
 
   // T2：迁移渲染去掉旧答案派生 chip 回退。即便范围选择器不可见(无facets)，也不再渲染 mig-filter-chip。
@@ -3318,22 +3280,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && nonZero.length >= 1
       && (!rawHasFacets || (eq.facets && true))) ? 'ok'
       : 'bad:' + withFacets.length + '/' + nonZero.length + '/' + rawHasFacets + (eq.facets?'有':'无');
-  })).toBe('ok');
-
-  // 谓语题迁移范围选择器应可见（②档=谓语3个fine tag）
-  expect(await page.evaluate(() => {
-    var mt = window.GrammarMigrationTraining;
-    var ft = window.GRAMMAR_FINE_TAGS;
-    var q = { exam:'e', no:1, category:'predicate', fine_category:'pred-tense',
-      facets:{ tense:'present', voice:'active', agreement:true }, type:'真题' };
-    var bank = [ q,
-      { exam:'e', no:2, category:'predicate', fine_category:'pred-passive', facets:{ tense:'past', voice:'passive', agreement:false }, type:'真题' },
-      { exam:'e', no:3, category:'predicate', fine_category:'pred-agreement', facets:{ agreement:true }, type:'真题' } ];
-    var data = mt.buildMigrationData(q, { source:'bank', bankQuestions:bank, errorQuestions:[],
-      categoryMap:{ predicate:'谓语动词' }, fineTags:ft, limit:99 });
-    var sel = mt.buildMigrationContentViewModel(data, 'bank', false).scopeSelector;
-    var ftBtns = (sel.buttons||[]).filter(function(b){ return b.level === 'finetag'; });
-    return (sel.visible && ftBtns.length === 3) ? 'ok' : 'bad:' + sel.visible + '/' + ftBtns.length;
   })).toBe('ok');
 
   // 谓语讲题卡：优先信任 facets（修"is被误判完成时"），不再被关键词带跑
@@ -4103,6 +4049,34 @@ test('home-render pure html output', async ({ page }) => {
   expect(out.dashHasBooks).toBe(true);
   expect(out.examGridHasCard).toBe(true);
   expect(out.catsHasCard).toBe(true);
+});
+
+test('迁移按 points 匹配：which→which、was built 命中过去时∪被动、无同point则空', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!window.GrammarMigrationTraining, null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var P = function(tag,key){ return key ? { tag:tag, key:key } : { tag:tag }; };
+    var which = { exam:'e1', no:1, category:'attrib', fine_category:'attrib-pronoun', points:[P('attrib-pronoun','which')], type:'真题' };
+    var bank = [ which,
+      { exam:'e2', no:2, category:'attrib', fine_category:'attrib-pronoun', points:[P('attrib-pronoun','which')], type:'真题' },
+      { exam:'e3', no:3, category:'attrib', fine_category:'attrib-pronoun', points:[P('attrib-pronoun','that')], type:'真题' } ];
+    var d = mt.buildMigrationData(which, { source:'bank', bankQuestions:bank, errorQuestions:[], categoryMap:{}, limit:99 });
+    var ok1 = d.poolCount === 1 && d.migration[0] && d.migration[0].item.no === 2;
+    var wb = { exam:'e1', no:10, category:'predicate', fine_category:'pred-passive', points:[P('pred-tense','past'),P('pred-passive')], type:'真题' };
+    var pbank = [ wb,
+      { exam:'e2', no:11, category:'predicate', fine_category:'pred-tense', points:[P('pred-tense','past')], type:'真题' },
+      { exam:'e3', no:12, category:'predicate', fine_category:'pred-passive', points:[P('pred-passive')], type:'真题' },
+      { exam:'e4', no:13, category:'predicate', fine_category:'pred-tense', points:[P('pred-tense','present')], type:'真题' } ];
+    var d2 = mt.buildMigrationData(wb, { source:'bank', bankQuestions:pbank, errorQuestions:[], categoryMap:{}, limit:99 });
+    var nos = d2.migration.map(function(m){ return m.item.no; }).sort().join(',');
+    var ok2 = d2.poolCount === 2 && nos === '11,12';
+    var lonely = { exam:'e1', no:20, category:'attrib', fine_category:'attrib-as', points:[P('attrib-as','as')], type:'真题' };
+    var d3 = mt.buildMigrationData(lonely, { source:'bank', bankQuestions:[lonely], errorQuestions:[], categoryMap:{}, limit:99 });
+    var ok3 = d3.poolCount === 0 && !!d3.emptyState;
+    return (ok1 && ok2 && ok3) ? 'ok'
+      : 'bad:' + d.poolCount + '/' + (d.migration[0] && d.migration[0].item.no) + '|' + d2.poolCount + '/' + nos + '|' + d3.poolCount + '/' + !!d3.emptyState;
+  })).toBe('ok');
 });
 
 test('真题加载后每题都带非空 points，且 tag 都是现行 tag', async ({ page }) => {
