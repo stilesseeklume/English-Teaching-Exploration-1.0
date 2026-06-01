@@ -104,12 +104,18 @@
   function formatFineHeaderSubLabel(fineInfo) {
     if (!fineInfo) return '';
     var label = fineInfo.category_name || '';
-    if (fineInfo.textbook_units && fineInfo.textbook_units.length > 0) {
-      var unit = fineInfo.textbook_units[0];
-      label += (label ? '　·　' : '') + '对应' + unit.book + ' ' + unit.unit;
-      if (fineInfo.textbook_units.length > 1) {
-        label += ' 等 ' + fineInfo.textbook_units.length + ' 个单元';
-      }
+    var unitLabel = formatTextbookUnitLabel(fineInfo);
+    if (unitLabel) label += (label ? '　·　' : '') + unitLabel;
+    return label;
+  }
+
+  // 仅教材单元部分（面包屑表头已含粗类，副标题不再重复粗类名）
+  function formatTextbookUnitLabel(fineInfo) {
+    if (!fineInfo || !fineInfo.textbook_units || !fineInfo.textbook_units.length) return '';
+    var unit = fineInfo.textbook_units[0];
+    var label = '对应' + unit.book + ' ' + unit.unit;
+    if (fineInfo.textbook_units.length > 1) {
+      label += ' 等 ' + fineInfo.textbook_units.length + ' 个单元';
     }
     return label;
   }
@@ -340,10 +346,18 @@
     var tabs = buildTabs(bankDisplayPool, errorDisplayPool);
 
     var resolvedFineInfo = fineInfo || firstFineTagFromPool(pool, getFineTagInfo);
-    var headerLabel = resolvedFineInfo
-      ? ('同考点：' + resolvedFineInfo.name)
-      : ('同类型：' + (categoryMap[q.category] || q.category || '语法填空'));
-    var headerSubLabel = resolvedFineInfo ? formatFineHeaderSubLabel(resolvedFineInfo) : '';
+    // 表头优先用考点面包屑(精确到 where/a/一般现在，与考点训练同口径)；解析不出再回退 fine 粗名
+    var pointTitle = (typeof options.getPointTitle === 'function')
+      ? (options.getPointTitle(questionPoints(q)) || '')
+      : '';
+    var headerLabel = pointTitle
+      ? pointTitle
+      : (resolvedFineInfo
+          ? ('同考点：' + resolvedFineInfo.name)
+          : ('同类型：' + (categoryMap[q.category] || q.category || '语法填空')));
+    var headerSubLabel = pointTitle
+      ? formatTextbookUnitLabel(resolvedFineInfo)
+      : (resolvedFineInfo ? formatFineHeaderSubLabel(resolvedFineInfo) : '');
 
     var fallbackCount = source === 'errors'
       ? fallbackErrorPool.length

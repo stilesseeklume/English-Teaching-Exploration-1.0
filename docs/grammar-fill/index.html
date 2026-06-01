@@ -3832,6 +3832,14 @@ function getMigrationData(q) {
     errorQuestions: errorBookQuestions,
     categoryMap: CATEGORY_MAP,
     getFineTagInfo: getFineTagInfo,
+    getPointTitle: function(points) {
+      return window.GrammarKnowledgeViewModel.buildMigrationPointTitle(
+        (window.GRAMMAR_DECISION_MAP || {}).nodes || [],
+        window.GRAMMAR_FINE_TAGS || {},
+        CATEGORY_MAP,
+        points
+      );
+    },
     limit: _migrationShowAll ? 9999 : 6
   });
   data.migration = data.migration.map(function(entry) {

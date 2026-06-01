@@ -1422,6 +1422,86 @@
     return '按考点' + (parts.length ? ' · ' + parts.join(' · ') : '');
   }
 
+  // 把题的 points 解析成迁移标题面包屑（与考点训练同口径）。
+  // 单 point：命中决策地图叶子 → buildPointBreadcrumb。叶子按词再分(时态)时 key 已体现在叶标题("一般现在")，
+  // 叶子不按词分但 point 带 key(关系副词 where / 不定冠词 a)时，去掉叶标题里的词枚举再补「· 词」。
+  // 多 point(谓语 时态+语态…)：合并共享前缀，余下叶子用「＋」连。无法解析 → ''（调用方回退粗名）。
+  function buildMigrationPointTitle(decisionNodes, fineTags, categoryMap, points) {
+    points = asArray(points);
+    if (!points.length) return '';
+    categoryMap = categoryMap || {};
+    var tree = buildDecisionTree(decisionNodes);
+    var byId = tree.byId, childrenOf = tree.childrenOf;
+    var tagsById = (fineTags && fineTags.tags_by_id) || {};
+    var leaves = Object.keys(byId)
+      .filter(function(id) { return (childrenOf[id] || []).length === 0; })
+      .map(function(id) { return byId[id]; });
+
+    // point → {node, keyShown}：keyShown=叶子已按该 key 再分(无需补词)
+    function resolveLeaf(point) {
+      var tag = point.tag, key = point.key;
+      var cands = leaves.filter(function(n) {
+        return n && ((n.point && n.point.tag === tag) || n.fine === tag);
+      });
+      if (!cands.length) return null;
+      if (key != null && key !== '') {
+        var hit = cands.filter(function(n) {
+          return n.point && asArray(n.point.keys).indexOf(key) !== -1;
+        })[0];
+        if (hit) return { node: hit, keyShown: true };
+      }
+      var generic = cands.filter(function(n) {
+        return !n.point || !asArray(n.point.keys).length;
+      })[0];
+      return { node: generic || cands[0], keyShown: false };
+    }
+
+    function stripEnum(label, words) {
+      label = String(label || '');
+      label = label.replace(/[（(][^（()）]*[）)]\s*$/, '').replace(/\s+$/, '');
+      if (words && words.length) {
+        var esc = words.map(function(w) {
+          return String(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }).join('|');
+        var re = new RegExp('(?:^|\\s)(?:' + esc + ')(?:\\s*[/／、,，]\\s*(?:' + esc + '))*\\s*$', 'i');
+        label = label.replace(re, '').replace(/\s+$/, '');
+      }
+      return label;
+    }
+
+    function titleForPoint(point) {
+      var res = resolveLeaf(point);
+      if (!res) return '';
+      var bc = buildPointBreadcrumb(tree, res.node.id, categoryMap);
+      if (point.key == null || point.key === '' || res.keyShown) return bc;
+      var parts = bc.split(' · ');
+      var words = (tagsById[point.tag] && tagsById[point.tag].words) || [];
+      parts[parts.length - 1] = stripEnum(parts[parts.length - 1], words);
+      parts.push(String(point.key));
+      return parts.join(' · ');
+    }
+
+    var titles = points.map(titleForPoint).filter(Boolean);
+    if (!titles.length) return '';
+    if (titles.length === 1) return titles[0];
+    var split = titles.map(function(t) { return t.split(' · '); });
+    var prefixLen = 0;
+    while (true) {
+      var seg = split[0][prefixLen];
+      if (seg == null) break;
+      var allMatch = split.every(function(s) { return s[prefixLen] === seg; });
+      if (!allMatch) break;
+      prefixLen++;
+    }
+    var prefix = split[0].slice(0, prefixLen);
+    var seen = {}, tails = [];
+    split.forEach(function(s) {
+      var tail = s.slice(prefixLen).join(' · ');
+      if (tail && !seen[tail]) { seen[tail] = 1; tails.push(tail); }
+    });
+    return prefix.join(' · ') + (tails.length ? ' · ' + tails.join(' ＋ ') : '');
+  }
+
   function searchDecisionNodes(query, byId, limit) {
     var q = String(query || '').trim().toLowerCase().replace(/\s+/g, '');
     if (!q) return [];
@@ -1529,6 +1609,7 @@
     buildDecisionTree: buildDecisionTree,
     buildPointBreadcrumb: buildPointBreadcrumb,
     buildPointsLeafListModel: buildPointsLeafListModel,
+    buildMigrationPointTitle: buildMigrationPointTitle,
     buildGuidedStepModel: buildGuidedStepModel,
     buildDecisionOutlineModel: buildDecisionOutlineModel,
     layoutDecisionTree: layoutDecisionTree,

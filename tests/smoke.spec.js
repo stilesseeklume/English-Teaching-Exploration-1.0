@@ -4005,6 +4005,42 @@ test('迁移按 points 匹配：which→which、was built 命中过去时∪被�
   })).toBe('ok');
 });
 
+test('迁移标题面包屑：where/a 精确到词，时态到叶，多 point 合并前缀', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarKnowledgeViewModel && window.GRAMMAR_DECISION_MAP && window.GRAMMAR_FINE_TAGS && window.CATEGORY_MAP), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var kvm = window.GrammarKnowledgeViewModel;
+    var DM = (window.GRAMMAR_DECISION_MAP || {}).nodes || [];
+    var FT = window.GRAMMAR_FINE_TAGS || {};
+    var CM = window.CATEGORY_MAP || {};
+    var T = function(points) { return kvm.buildMigrationPointTitle(DM, FT, CM, points); };
+    return [
+      T([{ tag: 'attrib-adverb', key: 'where' }]),
+      T([{ tag: 'art-a-an', key: 'a' }]),
+      T([{ tag: 'pred-tense', key: 'present' }]),
+      T([{ tag: 'pred-tense', key: 'past' }, { tag: 'pred-passive' }]),
+      T([{ tag: 'no-such-tag', key: 'x' }])
+    ].join(' || ');
+  })).toBe('按考点 · 定语从句 · 关系副词 · where || 按考点 · 冠词 · 不定冠词 · a || 按考点 · 谓语动词 · 时态 · 一般现在 || 按考点 · 谓语动词 · 时态 · 一般过去 ＋ 语态 · 被动语态的构成 || ');
+});
+
+test('迁移表头注入 getPointTitle 后用考点面包屑；解析不出回退 fine 粗名', async ({ page }) => {
+  await page.goto('/docs/grammar-fill/');
+  await page.waitForFunction(() => !!(window.GrammarMigrationTraining && window.GrammarKnowledgeViewModel && window.GrammarQuestionModel), null, { timeout: 15000 });
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining, kvm = window.GrammarKnowledgeViewModel;
+    var DM = (window.GRAMMAR_DECISION_MAP || {}).nodes || [], FT = window.GRAMMAR_FINE_TAGS || {}, CM = window.CATEGORY_MAP || {};
+    var gpt = function(points) { return kvm.buildMigrationPointTitle(DM, FT, CM, points); };
+    var gfti = function(fc) { return window.GrammarQuestionModel.getFineTagInfo(fc, FT); };
+    var q = { exam: 'e1', no: 1, category: 'attrib', fine_category: 'attrib-adverb', points: [{ tag: 'attrib-adverb', key: 'where' }], type: '真题' };
+    var bank = [q, { exam: 'e2', no: 2, category: 'attrib', fine_category: 'attrib-adverb', points: [{ tag: 'attrib-adverb', key: 'where' }], type: '真题' }];
+    var withTitle = mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [], categoryMap: CM, getFineTagInfo: gfti, getPointTitle: gpt, limit: 99 });
+    // 没注入 getPointTitle → 回退老的 fine 粗名
+    var noTitle = mt.buildMigrationData(q, { source: 'bank', bankQuestions: bank, errorQuestions: [], categoryMap: CM, getFineTagInfo: gfti, limit: 99 });
+    return withTitle.headerLabel + ' || ' + noTitle.headerLabel;
+  })).toBe('按考点 · 定语从句 · 关系副词 · where || 同考点：关系副词（when/where/why）');
+});
+
 test('真题加载后每题都带非空 points，且 tag 都是现行 tag', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await page.waitForFunction(() => !!(window.GrammarQuestionModel && window.GRAMMAR_BANK && window.GrammarQuestionPoints), null, { timeout: 15000 });
