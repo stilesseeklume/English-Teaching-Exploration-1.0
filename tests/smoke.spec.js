@@ -3267,6 +3267,27 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '|' + (def.activeScope && def.activeScope.level) + '/' + def.poolCount + '/' + byCat.poolCount;
   })).toBe('ok');
 
+  // 谓语讲题卡：优先信任 facets（修"is被误判完成时"），不再被关键词带跑
+  expect(await page.evaluate(() => {
+    var tg = window.GrammarTeachingGuide;
+    // is(be) certainly not new — facets.tense=present，句中有 for decades/have been 干扰词
+    var qPresent = { category: 'predicate', fine_category: 'pred-tense', answer: 'is',
+      facets: { tense: 'present', voice: 'active', agreement: true },
+      sentence: 'The concept ___ (be) certainly not new — men have been renting good suits for decades.' };
+    var qPerfect = { category: 'predicate', fine_category: 'pred-tense', answer: 'have started',
+      facets: { tense: 'perfect', voice: 'active', agreement: false },
+      sentence: 'Over the last two years, some supermarkets ___ (start) selling.' };
+    var qPassive = { category: 'predicate', fine_category: 'pred-passive', answer: 'were included',
+      facets: { tense: 'past', voice: 'passive', agreement: false }, sentence: 'The terms ___ in 2016.' };
+    var gP = tg.getQuestionPracticalGuide(qPresent, {});
+    var gPf = tg.getQuestionPracticalGuide(qPerfect, {});
+    var gPv = tg.getQuestionPracticalGuide(qPassive, {});
+    return (gP.title === '谓语 · 一般现在'
+      && gPf.title === '谓语 · 完成时'
+      && gPv.title === '谓语 · 被动语态') ? 'ok'
+      : 'bad:' + gP.title + '|' + gPf.title + '|' + gPv.title;
+  })).toBe('ok');
+
   // 需求3：看讲解跳到指定 section 并展开
   expect(await page.evaluate(() => {
     window.openKnowledgePoint('predicate', 'predicate-tense');
