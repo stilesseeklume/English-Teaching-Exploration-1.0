@@ -383,16 +383,6 @@
     };
   }
 
-  function buildFineCategoryTagMessage(tag) {
-    tag = tag || {};
-    var counts = tag.counts || {};
-    var bank = Number(counts.bank || 0) || 0;
-    var error = Number(counts.error || 0) || 0;
-    return '考点：' + (tag.name || '')
-      + '\n题库：' + bank + ' 道 · 错题本：' + error + ' 道'
-      + '\n\n' + (tag.source || '');
-  }
-
   function buildFineCategoryLegendModel() {
     return {
       labelText: '颜色说明：',
@@ -451,87 +441,6 @@
       },
       legend: buildFineCategoryLegendModel(),
       groups: groups
-    };
-  }
-
-  function buildFineCategoryModel(fineTags, bankQuestions, errorQuestions) {
-    fineTags = fineTags || {};
-    var categories = fineTags.categories || {};
-    var tagsByCategory = fineTags.tags_by_category || {};
-    return {
-      empty: Object.keys(categories).length === 0,
-      emptyText: '精细 tag 数据未加载。',
-      header: {
-        titleText: '🏷️ 考点视图（13 类 × 102 精细 tag）',
-        descriptionText: '考点路径：粗类 → 精细 tag → 实际真题。颜色 = 当前题库出现频次。'
-      },
-      legend: buildFineCategoryLegendModel(),
-      categories: Object.keys(categories).map(function(categoryId) {
-        var category = categories[categoryId] || {};
-        var tags = asArray(tagsByCategory[categoryId]).map(function(tag) {
-          tag = tag || {};
-          var counts = countByFineTag(tag.id, bankQuestions, errorQuestions);
-          return {
-            id: tag.id,
-            name: tag.name,
-            source: tag.source || '',
-            counts: counts,
-            countText: formatCountBadge(counts),
-            alertMessage: buildFineCategoryTagMessage({
-              name: tag.name,
-              source: tag.source || '',
-              counts: counts
-            }),
-            frequencyStyle: getFrequencyStyle(counts.total)
-          };
-        });
-        var total = tags.reduce(function(sum, tag) { return sum + tag.counts.total; }, 0);
-        var stats = { total: total, tagCount: tags.length };
-        return {
-          id: categoryId,
-          category: category,
-          titleText: category.name || categoryId,
-          extendedLabel: category.extended ? '扩展' : '',
-          sourceText: (category.source || '') + ' · ' + stats.tagCount + ' 个精细 tag',
-          countText: stats.total + ' 题',
-          stats: stats,
-          frequencyStyle: getFrequencyStyle(total),
-          tags: tags
-        };
-      })
-    };
-  }
-
-  function buildFineCategoryViewModel(fineTags, bankQuestions, errorQuestions) {
-    var model = buildFineCategoryModel(fineTags, bankQuestions, errorQuestions);
-    var totalTags = 0;
-    var totalQuestions = 0;
-    var categories = asArray(model.categories).map(function(group) {
-      var tags = asArray(group.tags).map(function(tag) {
-        return Object.assign({}, tag, {
-          action: {
-            type: 'alert',
-            message: tag.alertMessage || buildFineCategoryTagMessage(tag)
-          },
-          badgeText: tag.countText || String((tag.counts && tag.counts.total) || 0)
-        });
-      });
-      totalTags += tags.length;
-      totalQuestions += Number((group.stats && group.stats.total) || 0) || 0;
-      return Object.assign({}, group, {
-        tags: tags,
-        cardBadgeText: group.countText || String((group.stats && group.stats.total) || 0) + ' 题',
-        showExtendedLabel: !!group.extendedLabel
-      });
-    });
-    return {
-      empty: !!model.empty,
-      emptyText: model.emptyText,
-      header: model.header,
-      legend: model.legend,
-      totalTags: totalTags,
-      totalQuestions: totalQuestions,
-      categories: categories
     };
   }
 
@@ -1643,10 +1552,7 @@
     buildKnowledgeSubsectionTogglePlan: buildKnowledgeSubsectionTogglePlan,
     buildKnowledgeNavigationPlan: buildKnowledgeNavigationPlan,
     buildGlobalGraphSearchResetModel: buildGlobalGraphSearchResetModel,
-    buildFineCategoryTagMessage: buildFineCategoryTagMessage,
     buildFineCategoryLegendModel: buildFineCategoryLegendModel,
-    buildFineCategoryModel: buildFineCategoryModel,
-    buildFineCategoryViewModel: buildFineCategoryViewModel,
     groupTextbookUnitsByBook: groupTextbookUnitsByBook,
     buildTextbookUnitModel: buildTextbookUnitModel,
     buildTextbookModeToggleModel: buildTextbookModeToggleModel,

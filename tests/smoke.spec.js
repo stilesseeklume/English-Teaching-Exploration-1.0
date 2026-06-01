@@ -1452,22 +1452,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var fallbackKnowledgeViewChrome = knowledgeModel && knowledgeModel.buildKnowledgeViewChromeModel('unknown-view', {
       knowledgeData: window.KNOWLEDGE_DATA || {}
     });
-    var fineCategoryModel = knowledgeModel && knowledgeModel.buildFineCategoryModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      [question]
-    );
-    var fineCategoryViewModel = knowledgeModel && knowledgeModel.buildFineCategoryViewModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      [question]
-    );
     var fineCategoryLegend = knowledgeModel && knowledgeModel.buildFineCategoryLegendModel();
-    var fineCategoryTagMessage = knowledgeModel && knowledgeModel.buildFineCategoryTagMessage({
-      name: '主谓一致',
-      source: '语法通霸 15',
-      counts: { bank: 2, error: 1 }
-    });
     var textbookModel = knowledgeModel && knowledgeModel.buildTextbookModel(
       window.GRAMMAR_FINE_TAGS || {},
       window.GRAMMAR_BANK.questions || [],
@@ -2478,23 +2463,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && knowledgeViewChrome.buttons.some(function(button) { return button.elementId === 'knowledgeBookBtn' && button.active; })
       && fallbackKnowledgeViewChrome && fallbackKnowledgeViewChrome.routeView === 'book'
       && fallbackKnowledgeViewChrome.bookKey
-      && fineCategoryModel && fineCategoryModel.categories && fineCategoryModel.categories.length
-      && fineCategoryModel.header && fineCategoryModel.header.titleText.indexOf('考点视图') !== -1
-      && fineCategoryModel.legend && fineCategoryModel.legend.items.length === 4
-      && fineCategoryModel.categories[0].titleText
-      && typeof fineCategoryModel.categories[0].countText === 'string'
-      && fineCategoryModel.categories.some(function(group) { return group.tags.some(function(tag) { return tag.alertMessage && tag.countText !== undefined; }); })
-      && fineCategoryViewModel && fineCategoryViewModel.empty === false
-      && fineCategoryViewModel.totalTags > 0
-      && fineCategoryViewModel.categories.some(function(group) {
-        return typeof group.cardBadgeText === 'string'
-          && typeof group.showExtendedLabel === 'boolean'
-          && group.tags.some(function(tag) { return tag.action && tag.action.type === 'alert' && typeof tag.badgeText === 'string'; });
-      })
       && fineCategoryLegend && fineCategoryLegend.items[0].text.indexOf('高频') === 0
-      && fineCategoryTagMessage.indexOf('考点：主谓一致') === 0
-      && fineCategoryTagMessage.indexOf('错题本：1 道') !== -1
-      && fineCategoryModel.categories.some(function(group) { return group.stats && group.stats.tagCount > 0; })
       && textbookModel && textbookModel.books && textbookModel.books.length === 7
       && textbookModel.booksById['必修一'] && textbookModel.booksById['必修一'].cover.indexOf('bixiu-1.jpg') !== -1
       && textbookModel.booksById['必修一'].metaText.indexOf('单元') !== -1
