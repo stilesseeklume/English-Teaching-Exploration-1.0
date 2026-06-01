@@ -3320,6 +3320,18 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
         + '/stageChip=' + (stage.indexOf('mig-filter-chip')!==-1) + '/drawerChip=' + (drawer.indexOf('mig-filter-chip')!==-1);
   })).toBe('ok');
 
+  // T3：countAnalysisMigrationCandidates 按 fine_category 计数——即便喂 practicalGuide 桩也只数同 fine
+  expect(await page.evaluate(() => {
+    var mt = window.GrammarMigrationTraining;
+    var q = { exam:'e', no:1, category:'article', fine_category:'art-a-an' };
+    var bank = [ q,
+      { exam:'e', no:2, category:'article', fine_category:'art-a-an' },
+      { exam:'e', no:3, category:'article', fine_category:'art-the' } ];
+    var stubGuide = function(){ return { migrationKeys:['k'] }; };  // 旧逻辑会让 guideCount 数到全部非自身=2
+    var n = mt.countAnalysisMigrationCandidates(q, { bankQuestions: bank, getQuestionPracticalGuide: stubGuide });
+    return n === 1 ? 'ok' : 'bad:' + n;  // 统一后只数同 art-a-an 排除自身 = no2 = 1
+  })).toBe('ok');
+
   // buildAllQuestions / createExamQuestionFromRaw 必须保留 facets（否则叶子有题但具体词全0）
   expect(await page.evaluate(() => {
     var qm = window.GrammarQuestionModel;

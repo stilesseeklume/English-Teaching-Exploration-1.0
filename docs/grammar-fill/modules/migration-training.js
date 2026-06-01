@@ -449,44 +449,17 @@
     };
   }
 
+  // "同类迁移 N 题"计数：与迁移抽屉同口径——有 fine_category 数同 fine，否则数同 category。
   function countAnalysisMigrationCandidates(q, options) {
     q = q || {};
     options = options || {};
     var bankQuestions = options.bankQuestions || [];
-    var nonpAxis = options.nonpAxis || (options.getNonpAxis ? options.getNonpAxis(q) : null);
-    if (nonpAxis) {
-      var exactCount = bankQuestions.filter(function(item) {
-        return nonpAxisExactMatch(item, q) && !sameQuestion(item, q);
-      }).length;
-      var formCount = bankQuestions.filter(function(item) {
-        return nonpAxisFormMatch(item, q) && !sameQuestion(item, q);
-      }).length;
-      return exactCount + formCount;
-    }
-
-    var focus = options.focus || (options.safeQuestionFocus ? options.safeQuestionFocus(q) : fallbackFocus(q));
-    var safeQuestionFocusKey = options.safeQuestionFocusKey || function(item) {
-      var itemFocus = options.safeQuestionFocus ? options.safeQuestionFocus(item) : fallbackFocus(item);
-      return itemFocus ? itemFocus.key : '';
-    };
-    var deps = {
-      safeQuestionFocus: options.safeQuestionFocus || fallbackFocus,
-      getNonpAxis: options.getNonpAxis || function() { return null; },
-      getQuestionPracticalGuide: options.getQuestionPracticalGuide || function() { return null; }
-    };
-    var practicalGuide = options.practicalGuide || (options.getQuestionPracticalGuide
-      ? options.getQuestionPracticalGuide(q, focus, nonpAxis)
-      : null);
-    var qMigrationKeys = practicalGuide ? asArray(practicalGuide.migrationKeys) : [];
-    var guideCount = qMigrationKeys.length ? bankQuestions.filter(function(item) {
-      return hasTeachingMigrationOverlap(item, q, qMigrationKeys, deps);
-    }).length : 0;
-    if (guideCount) return guideCount;
+    var fineCat = q.fine_category || '';
     return bankQuestions.filter(function(item) {
       if (sameQuestion(item, q)) return false;
-      return q.fine_category
-        ? item.fine_category === q.fine_category
-        : safeQuestionFocusKey(item) === (focus && focus.key);
+      return fineCat
+        ? item.fine_category === fineCat
+        : item.category === q.category;
     }).length;
   }
 
