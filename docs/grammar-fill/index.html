@@ -435,6 +435,7 @@
 <script src="./modules/saved-materials-model.js"></script>
 <script src="./modules/word-import-model.js"></script>
 <script src="./modules/app-state.js"></script>
+<script src="./modules/projection.js"></script>
 <script src="./modules/teaching-render.js"></script>
 <script src="./modules/sidebar-render.js"></script>
 <script src="./modules/home-render.js"></script>
@@ -4009,139 +4010,28 @@ function toggleCompact() {
 }
 
 // ─── 投影模式 ─────────────────────────
-// 全屏 + 适度放大 + 隐藏 chrome，适合教室大屏讲题
-function getFullscreenElement() {
-  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null;
+// 逻辑已搬至 modules/projection.js，此处为薄壳 + 依赖注入
+function projectionDeps() {
+  return {
+    setTeachingFullscreenRequested: function(v){ teachingFullscreenRequested = v; },
+    getPracticeContextSnapshot: getPracticeContextSnapshot,
+    getCurrentQuestionIndex: getCurrentQuestionIndex,
+    recordUsageEvent: recordUsageEvent,
+    openTeachingStageByIdx: openTeachingStageByIdx,
+    getTeachingSessionSnapshot: getTeachingSessionSnapshot,
+    closeTeachingStage: closeTeachingStage,
+    getDrawerReturnSnapshot: getDrawerReturnSnapshot,
+    executeDrawerReturn: executeDrawerReturn
+  };
 }
-
-function applyProjectionState(state) {
-  state = state || {};
-  teachingFullscreenRequested = !!state.teachingFullscreenRequested;
-  document.body.classList.toggle('projection-mode', !!state.projectionMode);
-  if (window.GrammarAppState) {
-    var patch = {
-      projectionMode: !!state.projectionMode,
-      teachingFullscreenRequested: teachingFullscreenRequested
-    };
-    if (Object.prototype.hasOwnProperty.call(state, 'drawerProjectionSize')) {
-      patch.drawerProjectionSize = state.drawerProjectionSize;
-    }
-    window.GrammarAppState.patch(patch);
-  }
-  return state;
-}
-
-function requestTeachingFullscreen() {
-  var stage = document.getElementById('teachingStage');
-  var target = stage && stage.classList.contains('open') ? stage : document.documentElement;
-  var request = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen;
-  var state = window.GrammarAppState.buildProjectionStartState({
-    hasFullscreenElement: !!getFullscreenElement(),
-    canRequestFullscreen: !!request
-  });
-  applyProjectionState(state);
-  if (state.shouldBindFullscreenEvents) {
-    document.removeEventListener('fullscreenchange', _onTeachingFullscreenChange);
-    document.addEventListener('fullscreenchange', _onTeachingFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
-  }
-  if (state.shouldRequestFullscreen) {
-    try {
-      var result = request.call(target);
-      if (result && result.catch) result.catch(function() {});
-    } catch(e) {}
-  }
-}
-
-function exitTeachingFullscreen() {
-  var state = window.GrammarAppState.buildProjectionExitState({
-    hasFullscreenElement: !!getFullscreenElement()
-  });
-  document.removeEventListener('fullscreenchange', _onTeachingFullscreenChange);
-  document.removeEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
-  var shouldExit = state.shouldExitFullscreen;
-  applyProjectionState(state);
-  if (!shouldExit) return;
-  try {
-    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (getFullscreenElement() && exit) {
-      var result = exit.call(document);
-      if (result && result.catch) result.catch(function() {});
-    }
-  } catch(e) {}
-}
-
-function _onTeachingFullscreenChange() {
-  var state = window.GrammarAppState.buildProjectionFullscreenChangeState(!!getFullscreenElement());
-  applyProjectionState(state);
-  if (!state.projectionMode) {
-    document.removeEventListener('fullscreenchange', _onTeachingFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', _onTeachingFullscreenChange);
-  }
-}
-
-function enterProjectionMode() {
-  var practiceContext = getPracticeContextSnapshot();
-  var practicePage = document.getElementById('page-practice');
-  var guard = window.GrammarAppState.buildProjectionEntryGuard({
-    practiceActive: !!(practicePage && practicePage.classList.contains('active'))
-  });
-  if (!guard.allowed) {
-    alert(guard.message);
-    return;
-  }
-  var idx = getCurrentQuestionIndex();
-  if (idx < 0) idx = 0;
-  var q = practiceContext.currentQuestions && practiceContext.currentQuestions[idx];
-  recordUsageEvent('projection_mode_entered', 'projection', {
-    source: practiceContext.currentExam ? (practiceContext.currentExam.mode || practiceContext.currentExam.source || '') : '',
-    question_no: q ? (q.no || null) : null,
-    category: q ? (q.category || '') : '',
-    fine_category: q ? (q.fine_category || '') : ''
-  });
-  openTeachingStageByIdx(idx, { tab: 'guide', source: 'projection', fullscreen: true });
-}
-
-function exitProjectionMode() {
-  var session = getTeachingSessionSnapshot().teachingSession;
-  recordUsageEvent('projection_mode_exited', 'projection', {
-    had_teaching_session: !!session
-  });
-  // 清抽屉的投影 size 状态
-  var drawer = document.getElementById('drawer');
-  if (drawer) {
-    drawer.classList.remove('drawer-state-mini', 'drawer-state-half', 'drawer-state-full');
-    drawer.style.height = '';
-  }
-  var bar = document.getElementById('projectionControls');
-  if (bar) bar.remove();
-  if (session) closeTeachingStage();
-  exitTeachingFullscreen();
-  // 如果是从教材视图进的投影 → 退出投影后自动返回教材视图原位
-  var drawerReturnState = getDrawerReturnSnapshot();
-  if (drawerReturnState.drawerReturnTo && drawerReturnState.drawerReturnTo.fromProjection) {
-    setTimeout(executeDrawerReturn, 100);
-  }
-}
-
-function _onProjectionFullscreenChange() {
-  _onTeachingFullscreenChange();
-}
-
-// 投影模式下抽屉的三档尺寸：mini / half / full
-function setDrawerProjectionSize(size) {
-  var drawer = document.getElementById('drawer');
-  if (!drawer) return;
-  var state = window.GrammarAppState.buildDrawerProjectionSizeState(size);
-  drawer.classList.remove('drawer-state-mini', 'drawer-state-half', 'drawer-state-full');
-  drawer.classList.add(state.className);
-  if (window.GrammarAppState) window.GrammarAppState.patch({ drawerProjectionSize: state.drawerProjectionSize });
-  // 同步 active 状态到按钮
-  document.querySelectorAll('.drawer-projection-size-btns button').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.size === state.drawerProjectionSize);
-  });
-}
+function getFullscreenElement(){ return window.GrammarProjection.getFullscreenElement(); }
+function applyProjectionState(state){ return window.GrammarProjection.applyProjectionState(state, projectionDeps()); }
+function requestTeachingFullscreen(){ return window.GrammarProjection.requestTeachingFullscreen(projectionDeps()); }
+function exitTeachingFullscreen(){ return window.GrammarProjection.exitTeachingFullscreen(projectionDeps()); }
+function enterProjectionMode(){ return window.GrammarProjection.enterProjectionMode(projectionDeps()); }
+function exitProjectionMode(){ return window.GrammarProjection.exitProjectionMode(projectionDeps()); }
+function _onProjectionFullscreenChange(){ return window.GrammarProjection._onProjectionFullscreenChange(); }
+function setDrawerProjectionSize(size){ return window.GrammarProjection.setDrawerProjectionSize(size, projectionDeps()); }
 
 function renderCategoryStats() {
   var el = document.getElementById('categoryStats');
