@@ -441,6 +441,9 @@
 <script src="./modules/home-render.js"></script>
 <script src="./modules/home-dashboard.js"></script>
 <script src="./modules/lesson-prep-controller.js"></script>
+<!-- cloud-sync 必须在 shared/error-book.js、shared/lesson-prep.js、shared/cloud.js 之后：
+     加载时即对 window.saveErrorBook / window.savePrepPassages 打猴补丁 -->
+<script src="./modules/cloud-sync.js"></script>
 
 <script>
 
@@ -635,7 +638,7 @@ let previousView = null;
 var _activePage = 'home';
 var _activeDock = 'home';
 var _currentHomeView = 'cards';
-var _loggingOut = false;
+// _loggingOut 已随 modules/cloud-sync.js 内部化（云登录退出态由 setCloudLoggingOutState 维护）
 var currentKnowledgeView = 'map';
 var currentKnowledgeKey = '';
 var currentKnowledgeNodeId = '';
@@ -1648,429 +1651,53 @@ function init() {
 }
 
 // ========== 云同步：UI + 数据 ==========
-// 跨模块共享：auth-ui.js 的 doLogout 会调用 clearCloudLifecycleState()
-var _lastCloudUser = null;
-var _migrationPromptShown = false;
-var _adminParamChecked = false;
+// 已抽到 modules/cloud-sync.js（IIFE → window.GrammarCloudSync）。
+// 该模块加载时即对 window.saveErrorBook / window.savePrepPassages 打猴补丁
+//（写本地后异步推云），故装配清单中必须排在 shared/error-book.js、
+// shared/lesson-prep.js、shared/cloud.js 之后。
+// 跨模块共享：auth-ui.js 的 doLogout 调用 window.clearCloudLifecycleState() /
+// window.setCloudLoggingOutState()；admin-ui.js / cloud.onChange 调用
+// window.onCloudStateChange()；word-import.js 调用 window.uploadLocalToCloud()。
+// 顶层状态变量（_lastCloudUser/_migrationPromptShown/_adminParamChecked/_loggingOut/
+// _syncOkTimer/_syncInflight/_syncQueueFallbacks/_origSaveError/_origSavePrep）已
+// 随模块内部化。
 
-function getCloudLifecycleSnapshot() {
-  if (window.GrammarAppState && window.GrammarAppState.normalizeCloudLifecycleState) {
-    return window.GrammarAppState.normalizeCloudLifecycleState({
-      cloudLastUserKey: _lastCloudUser || '',
-      cloudMigrationPromptShown: _migrationPromptShown,
-      cloudAdminParamChecked: _adminParamChecked,
-      cloudLoggingOut: _loggingOut
-    });
-  }
+// 下面是同名薄壳：内联裸名调用 / 外部 window.* 调用走薄壳，注入 cloudSyncDeps()。
+function cloudSyncDeps() {
   return {
-    cloudLastUserKey: _lastCloudUser || '',
-    cloudMigrationPromptShown: !!_migrationPromptShown,
-    cloudAdminParamChecked: !!_adminParamChecked,
-    cloudLoggingOut: !!_loggingOut
+    renderUserPill: renderUserPill,
+    switchPage: switchPage,
+    renderErrorBook: renderErrorBook,
+    renderPrepList: renderPrepList,
+    renderBankStat: renderBankStat
   };
 }
 
-function setCloudLoggingOutState(loggingOut) {
-  var nextState = window.GrammarAppState
-    ? window.GrammarAppState.buildCloudLifecycleState(getCloudLifecycleSnapshot(), { cloudLoggingOut: loggingOut })
-    : Object.assign(getCloudLifecycleSnapshot(), { cloudLoggingOut: !!loggingOut });
-  _lastCloudUser = nextState.cloudLastUserKey || '';
-  _migrationPromptShown = !!nextState.cloudMigrationPromptShown;
-  _adminParamChecked = !!nextState.cloudAdminParamChecked;
-  _loggingOut = !!nextState.cloudLoggingOut;
-  if (window.GrammarAppState) {
-    window.GrammarAppState.patch(nextState);
-  }
-  return _loggingOut;
-}
+function getCloudLifecycleSnapshot() { return window.GrammarCloudSync.getCloudLifecycleSnapshot(); }
+function setCloudLoggingOutState(loggingOut) { return window.GrammarCloudSync.setCloudLoggingOutState(loggingOut); }
+function applyCloudLifecycleState(nextState) { return window.GrammarCloudSync.applyCloudLifecycleState(nextState); }
+function clearCloudLifecycleState() { return window.GrammarCloudSync.clearCloudLifecycleState(); }
+function onCloudStateChange(state) { return window.GrammarCloudSync.onCloudStateChange(state, cloudSyncDeps()); }
+function uploadLocalToCloud() { return window.GrammarCloudSync.uploadLocalToCloud(cloudSyncDeps()); }
+function setSyncStatus(state, msg) { return window.GrammarCloudSync.setSyncStatus(state, msg); }
+function syncBegin() { return window.GrammarCloudSync.syncBegin(); }
+function syncEnd(err) { return window.GrammarCloudSync.syncEnd(err); }
+function getSavedMaterialsSyncQueueKey(kind) { return window.GrammarCloudSync.getSavedMaterialsSyncQueueKey(kind); }
+function getSavedMaterialsSyncQueue(kind) { return window.GrammarCloudSync.getSavedMaterialsSyncQueue(kind); }
+function applySavedMaterialsSyncQueue(kind, queue) { return window.GrammarCloudSync.applySavedMaterialsSyncQueue(kind, queue); }
+function requestSavedMaterialsSync(kind) { return window.GrammarCloudSync.requestSavedMaterialsSync(kind); }
+function finishSavedMaterialsSync(kind) { return window.GrammarCloudSync.finishSavedMaterialsSync(kind); }
+function runSavedMaterialsCloudSync(kind, getLocalItems, rerun) { return window.GrammarCloudSync.runSavedMaterialsCloudSync(kind, getLocalItems, rerun); }
+function syncErrorBookToCloud() { return window.GrammarCloudSync.syncErrorBookToCloud(); }
+function syncPrepToCloud() { return window.GrammarCloudSync.syncPrepToCloud(); }
 
-function applyCloudLifecycleState(nextState) {
-  nextState = window.GrammarAppState
-    ? window.GrammarAppState.buildCloudLifecycleState(getCloudLifecycleSnapshot(), nextState)
-    : Object.assign(getCloudLifecycleSnapshot(), nextState || {});
-  _lastCloudUser = nextState.cloudLastUserKey || '';
-  _migrationPromptShown = !!nextState.cloudMigrationPromptShown;
-  _adminParamChecked = !!nextState.cloudAdminParamChecked;
-  _loggingOut = !!nextState.cloudLoggingOut;
-  if (window.GrammarAppState) {
-    window.GrammarAppState.patch(nextState);
-  }
-  return {
-    cloudLastUserKey: _lastCloudUser || '',
-    cloudMigrationPromptShown: !!_migrationPromptShown,
-    cloudAdminParamChecked: !!_adminParamChecked,
-    cloudLoggingOut: !!_loggingOut
-  };
-}
-
-function clearCloudLifecycleState() {
-  return applyCloudLifecycleState(window.GrammarAppState
-    ? window.GrammarAppState.clearCloudLifecycleState()
-    : {
-        cloudLastUserKey: '',
-        cloudMigrationPromptShown: false,
-        cloudAdminParamChecked: false,
-        cloudLoggingOut: false
-      });
-}
-
-async function onCloudStateChange(state) {
-  renderUserPill(state);
-  document.getElementById('adminBanner').style.display = state.viewingUserId ? '' : 'none';
-  if (state.viewingUserId) {
-    document.getElementById('adminViewingEmail').textContent = state.viewingEmail || '';
-  }
-
-  // 1. 未登录 → 访客模式（可浏览首页/考点面板/套卷列表/考点速查）
-  if (!state.user) {
-    var isLoggingOut = !!getCloudLifecycleSnapshot().cloudLoggingOut;
-    if (isLoggingOut) return; // 正在退出登录，跳过页面切换（由 doLogout 处理跳转）
-    document.documentElement.classList.remove('has-session');
-    document.body.classList.remove('pending');
-    return;
-  }
-  document.documentElement.classList.add('has-session');
-  document.body.classList.remove('pending');
-
-  var lifecycleSnapshot = getCloudLifecycleSnapshot();
-  var arrivalState = window.GrammarAppState
-    ? window.GrammarAppState.buildCloudArrivalState({
-        cloudLastUserKey: lifecycleSnapshot.cloudLastUserKey
-      }, state)
-    : (function() {
-        var newUserKey = (state.user ? state.user.id : '') + '|' + (state.viewingUserId || '');
-        var first = newUserKey !== (lifecycleSnapshot.cloudLastUserKey || '');
-        return {
-          cloudLastUserKey: first ? newUserKey : (lifecycleSnapshot.cloudLastUserKey || ''),
-          firstAuthForThisUser: first,
-          hasUser: !!state.user,
-          isViewingUser: !!state.viewingUserId
-        };
-      })();
-  applyCloudLifecycleState(arrivalState);
-
-  // 2. 已登录：第一次到达本用户的状态
-  if (arrivalState.firstAuthForThisUser && !state.viewingUserId) {
-    // URL ?admin 参数：管理员直接从首页进入管理后台
-    var adminEntryState = window.GrammarAppState
-      ? window.GrammarAppState.buildCloudAdminEntryState({
-          firstAuthForThisUser: arrivalState.firstAuthForThisUser,
-          viewingUserId: state.viewingUserId,
-          cloudAdminParamChecked: getCloudLifecycleSnapshot().cloudAdminParamChecked,
-          isAdmin: state.isAdmin,
-          hasAdminParam: /[?&]admin/.test(location.search)
-        })
-      : {
-          cloudAdminParamChecked: true,
-          shouldOpenAdmin: !getCloudLifecycleSnapshot().cloudAdminParamChecked && state.isAdmin && /[?&]admin/.test(location.search)
-        };
-    applyCloudLifecycleState(adminEntryState);
-    if (adminEntryState.shouldOpenAdmin) {
-      switchPage('admin');
-    }
-  }
-
-  if (!arrivalState.firstAuthForThisUser) return;
-
-  // 拉云端数据
-  setSyncStatus('syncing');
-  try {
-    var [errors, preps] = await Promise.all([
-      window.cloud.pullErrorBook(),
-      window.cloud.pullLessonPrep()
-    ]);
-    var pullPlan = window.GrammarSavedMaterialsModel.buildCloudPullResultPlan(errors, preps);
-    if (pullPlan.shouldCheckLocalCloudMigration) {
-      // 第一次登录的迁移提示：云端空 + 本地非空
-      var migrationPromptState = window.GrammarAppState
-        ? window.GrammarAppState.buildLocalCloudMigrationPromptState({
-            viewingUserId: state.viewingUserId,
-            cloudMigrationPromptShown: getCloudLifecycleSnapshot().cloudMigrationPromptShown,
-            cloudErrorCount: pullPlan.cloudErrorCount,
-            cloudPrepCount: pullPlan.cloudPrepCount,
-            localErrorCount: errorBookQuestions.length,
-            localPrepCount: prepPassages.length
-          })
-        : {
-            cloudMigrationPromptShown: true,
-            shouldPrompt: !state.viewingUserId && !getCloudLifecycleSnapshot().cloudMigrationPromptShown
-              && pullPlan.cloudErrorCount === 0 && pullPlan.cloudPrepCount === 0
-              && (errorBookQuestions.length > 0 || prepPassages.length > 0),
-            localErrorCount: errorBookQuestions.length,
-            localPrepCount: prepPassages.length
-          };
-      applyCloudLifecycleState(migrationPromptState);
-      if (migrationPromptState.shouldPrompt) {
-        if (confirm(window.GrammarSavedMaterialsModel.buildLocalCloudMigrationConfirmMessage(
-          migrationPromptState.localErrorCount,
-          migrationPromptState.localPrepCount
-        ))) {
-          setSyncStatus(null);
-          await uploadLocalToCloud();
-          return; // uploadLocalToCloud 会重新拉取并 render
-        }
-      }
-    }
-    if (pullPlan.shouldApplyCloudData) {
-      errorBookQuestions = pullPlan.nextErrorItems;
-      prepPassages = pullPlan.nextPrepItems;
-      if (pullPlan.shouldRenderErrorBook) renderErrorBook();
-      if (pullPlan.shouldRenderPrepList) renderPrepList();
-      if (pullPlan.shouldRenderBankStat) renderBankStat();
-      setSyncStatus(pullPlan.syncStatus, pullPlan.syncMessage);
-    } else {
-      setSyncStatus(pullPlan.syncStatus, pullPlan.syncMessage);
-    }
-  } catch (e) {
-    var failurePlan = window.GrammarSavedMaterialsModel.buildCloudPullFailurePlan(e);
-    console.error(failurePlan.consoleMessage, e);
-    if (window.seeklumeObservability) window.seeklumeObservability.recordError(failurePlan.failureEvent, failurePlan.syncMessage || e, { module: failurePlan.failureModule });
-    setSyncStatus(failurePlan.syncStatus, failurePlan.syncMessage);
-    alert(failurePlan.alertMessage);
-  }
-}
-
-async function uploadLocalToCloud() {
-  try {
-    var plan = window.GrammarSavedMaterialsModel.buildLocalCloudUploadPlan(errorBookQuestions, prepPassages);
-    for (var p = 0; p < plan.syncPlans.length; p++) {
-      var syncPlan = plan.syncPlans[p];
-      for (var i = 0; i < syncPlan.upsertItems.length; i++) {
-        await window.cloud[syncPlan.cloudUpsertMethod](syncPlan.upsertItems[i]);
-      }
-    }
-    alert(plan.successMessage);
-    // 重新拉一次，状态以云端为准
-    var pulledErrors = await window.cloud[plan.errorPullMethod]();
-    var pulledPreps = await window.cloud[plan.prepPullMethod]();
-    var pullResultPlan = window.GrammarSavedMaterialsModel.buildLocalCloudUploadPullResultPlan(
-      pulledErrors,
-      pulledPreps,
-      errorBookQuestions,
-      prepPassages,
-      plan
-    );
-    errorBookQuestions = pullResultPlan.nextErrorItems;
-    prepPassages = pullResultPlan.nextPrepItems;
-    if (pullResultPlan.shouldSaveErrorBook) {
-      saveErrorBook();
-    }
-    if (pullResultPlan.shouldSavePrepPassages) {
-      savePrepPassages();
-    }
-    if (pullResultPlan.shouldRenderErrorBook) {
-      renderErrorBook();
-    }
-    if (pullResultPlan.shouldRenderPrepList) {
-      renderPrepList();
-    }
-    if (pullResultPlan.shouldRenderBankStat) {
-      renderBankStat();
-    }
-	  } catch (e) {
-	    var errorPlan = window.GrammarSavedMaterialsModel.buildLocalCloudUploadFailurePlan(e);
-	    if (window.seeklumeObservability) window.seeklumeObservability.recordError(errorPlan.failureEvent, errorPlan.message || e, errorPlan.observabilityPayload);
-	    alert(errorPlan.alertMessage);
-	  }
-	}
-
-// 用户信息条 + 登录/注册/设置弹窗 + doLogout 已全部抽到 shared/auth-ui.js
-// 云生命周期状态通过 applyCloudLifecycleState / setCloudLoggingOutState 同步。
-
-// 拦截原始 save 函数，写本地后异步推到云
-var _origSaveError = saveErrorBook;
-saveErrorBook = function() {
-  _origSaveError();
-  var plan = window.GrammarAppState
-    ? window.GrammarAppState.buildSavedMaterialsSaveCloudPlan('error', window.cloud && window.cloud.state)
-    : { shouldSyncCloud: !!(window.cloud && window.cloud.state && window.cloud.state.user && !window.cloud.state.viewingUserId) };
-  if (plan.shouldSyncCloud) {
-    // 全量同步：每次保存都把本地全量推一遍（小数据量场景没问题）
-    syncErrorBookToCloud();
-  }
-};
-var _origSavePrep = savePrepPassages;
-savePrepPassages = function() {
-  _origSavePrep();
-  var plan = window.GrammarAppState
-    ? window.GrammarAppState.buildSavedMaterialsSaveCloudPlan('prep', window.cloud && window.cloud.state)
-    : { shouldSyncCloud: !!(window.cloud && window.cloud.state && window.cloud.state.user && !window.cloud.state.viewingUserId) };
-  if (plan.shouldSyncCloud) {
-    syncPrepToCloud();
-  }
-};
-
-// ─── 同步状态指示 ───
-var _syncOkTimer = null;
-function setSyncStatus(state, msg) {
-  var el = document.getElementById('syncStatus');
-  var model = window.GrammarAppState
-    ? window.GrammarAppState.buildSyncStatusViewModel(state, msg)
-    : {
-        status: state || null,
-        message: msg || '',
-        visible: false,
-        display: 'none',
-        background: '',
-        color: '',
-        title: '',
-        cursor: '',
-        html: '',
-        alertMessage: '',
-        autoHideMs: 0
-      };
-  if (window.GrammarAppState) {
-    window.GrammarAppState.patch({
-      syncStatus: model.status,
-      syncStatusMessage: model.message || ''
-    });
-  }
-  if (!el) return;
-  if (_syncOkTimer) { clearTimeout(_syncOkTimer); _syncOkTimer = null; }
-  el.style.display = model.display;
-  el.style.background = model.background;
-  el.style.color = model.color;
-  el.title = model.title;
-  el.style.cursor = model.cursor;
-  el.onclick = model.alertMessage ? function(){ alert(model.alertMessage); } : null;
-  el.innerHTML = model.html;
-  if (model.autoHideMs) _syncOkTimer = setTimeout(function(){ el.style.display = 'none'; }, model.autoHideMs);
-}
-
-// 计数同步引用计数，让两个同步函数共用一个状态
-var _syncInflight = 0;
-function syncBegin() {
-  var state = window.GrammarAppState
-    ? window.GrammarAppState.buildSyncBeginState(_syncInflight)
-    : { syncInflight: _syncInflight + 1, syncStatus: 'syncing', syncStatusMessage: '', shouldUpdateStatus: true };
-  _syncInflight = state.syncInflight;
-  if (window.GrammarAppState) window.GrammarAppState.patch({
-    syncInflight: state.syncInflight,
-    syncStatus: state.syncStatus,
-    syncStatusMessage: state.syncStatusMessage
-  });
-  if (state.shouldUpdateStatus) setSyncStatus(state.syncStatus, state.syncStatusMessage);
-}
-function syncEnd(err) {
-  var state = window.GrammarAppState
-    ? window.GrammarAppState.buildSyncEndState(_syncInflight, err)
-    : {
-        syncInflight: Math.max(0, _syncInflight - 1),
-        syncStatus: Math.max(0, _syncInflight - 1) === 0 ? (err ? 'error' : 'ok') : 'syncing',
-        syncStatusMessage: err ? (err.message || String(err)) : '',
-        shouldUpdateStatus: Math.max(0, _syncInflight - 1) === 0
-      };
-  _syncInflight = state.syncInflight;
-  if (window.GrammarAppState) window.GrammarAppState.patch({
-    syncInflight: state.syncInflight,
-    syncStatus: state.syncStatus,
-    syncStatusMessage: state.syncStatusMessage
-  });
-  if (state.shouldUpdateStatus) setSyncStatus(state.syncStatus, state.syncStatusMessage);
-}
-
-var _syncQueueFallbacks = {
-  errorSyncQueue: { pending: false, rerunRequested: false },
-  prepSyncQueue: { pending: false, rerunRequested: false }
-};
-
-function getSavedMaterialsSyncQueueKey(kind) {
-  return window.GrammarAppState
-    ? window.GrammarAppState.getSavedMaterialsSyncQueueKey(kind)
-    : (kind === 'prep' || kind === 'lessonPrep' ? 'prepSyncQueue' : 'errorSyncQueue');
-}
-
-function getSavedMaterialsSyncQueue(kind) {
-  var key = getSavedMaterialsSyncQueueKey(kind);
-  var queue = window.GrammarAppState && window.GrammarAppState.state
-    ? window.GrammarAppState.state[key]
-    : _syncQueueFallbacks[key];
-  return window.GrammarAppState
-    ? window.GrammarAppState.normalizeSyncQueueState(queue)
-    : {
-        pending: !!(queue && queue.pending),
-        rerunRequested: !!(queue && queue.rerunRequested)
-      };
-}
-
-function applySavedMaterialsSyncQueue(kind, queue) {
-  var key = getSavedMaterialsSyncQueueKey(kind);
-  var normalized = window.GrammarAppState
-    ? window.GrammarAppState.normalizeSyncQueueState(queue)
-    : {
-        pending: !!(queue && queue.pending),
-        rerunRequested: !!(queue && queue.rerunRequested)
-      };
-  _syncQueueFallbacks[key] = normalized;
-  if (window.GrammarAppState) {
-    var patch = {};
-    patch[key] = normalized;
-    window.GrammarAppState.patch(patch);
-  }
-  return normalized;
-}
-
-function requestSavedMaterialsSync(kind) {
-  var state = window.GrammarAppState
-    ? window.GrammarAppState.buildSyncQueueRequestState(getSavedMaterialsSyncQueue(kind))
-    : (function(queue) {
-        return queue.pending
-          ? { queue: { pending: true, rerunRequested: true }, shouldRun: false }
-          : { queue: { pending: true, rerunRequested: false }, shouldRun: true };
-      })(getSavedMaterialsSyncQueue(kind));
-  applySavedMaterialsSyncQueue(kind, state.queue);
-  return !!state.shouldRun;
-}
-
-function finishSavedMaterialsSync(kind) {
-  var state = window.GrammarAppState
-    ? window.GrammarAppState.buildSyncQueueEndState(getSavedMaterialsSyncQueue(kind))
-    : (function(queue) {
-        return {
-          queue: { pending: false, rerunRequested: false },
-          shouldRunAgain: !!queue.rerunRequested
-        };
-      })(getSavedMaterialsSyncQueue(kind));
-  applySavedMaterialsSyncQueue(kind, state.queue);
-  return !!state.shouldRunAgain;
-}
-
-async function runSavedMaterialsCloudSync(kind, getLocalItems, rerun) {
-  if (!requestSavedMaterialsSync(kind)) return;
-  syncBegin();
-  var caught = null;
-  try {
-    var runPlan = window.GrammarSavedMaterialsModel.buildSavedMaterialsCloudSyncRunPlan(kind, getLocalItems());
-    var upsertPhase = runPlan.upsertPhase || {};
-    for (var i = 0; i < (upsertPhase.items || []).length; i++) {
-      await window.cloud[upsertPhase.method](upsertPhase.items[i]);
-    }
-    var cloudItems = await window.cloud[runPlan.pullPhase.method]();
-    var cleanupPlan = window.GrammarSavedMaterialsModel.buildSavedMaterialsCloudSyncCleanupPlan(kind, getLocalItems(), cloudItems || []);
-    var cleanupPhase = cleanupPlan.cleanupPhase || {};
-    for (var j = 0; j < (cleanupPhase.ids || []).length; j++) {
-      await window.cloud[cleanupPhase.method](cleanupPhase.ids[j]);
-    }
-  } catch (e) {
-    var errorPlan = window.GrammarSavedMaterialsModel.buildSavedMaterialsCloudSyncFailurePlan(kind, e);
-    console.error(errorPlan.syncFailureConsoleMessage, e);
-    if (window.seeklumeObservability) window.seeklumeObservability.recordError(errorPlan.syncFailureEvent, errorPlan.message || e, errorPlan.observabilityPayload);
-    caught = e;
-  }
-  finally {
-    var shouldRunAgain = finishSavedMaterialsSync(kind);
-    syncEnd(caught);
-    if (shouldRunAgain) rerun();
-  }
-}
-
-async function syncErrorBookToCloud() {
-  return runSavedMaterialsCloudSync('error', function() { return errorBookQuestions; }, syncErrorBookToCloud);
-}
-
-async function syncPrepToCloud() {
-  return runSavedMaterialsCloudSync('prep', function() { return prepPassages; }, syncPrepToCloud);
-}
+// 外部模块以 window.* 调用的入口，显式挂到 window（薄壳本身是函数声明，已是全局，
+// 这里保险地确保 window.X 指向薄壳，方便 auth-ui/admin-ui/word-import 调用）。
+window.getCloudLifecycleSnapshot = getCloudLifecycleSnapshot;
+window.setCloudLoggingOutState = setCloudLoggingOutState;
+window.clearCloudLifecycleState = clearCloudLifecycleState;
+window.onCloudStateChange = onCloudStateChange;
+window.uploadLocalToCloud = uploadLocalToCloud;
 
 // ========== 管理员页 ==========
 // 管理员页面（用户列表 / 审批 / 删除 / 改名审批 / 查看别人数据）已抽到 shared/admin-ui.js
