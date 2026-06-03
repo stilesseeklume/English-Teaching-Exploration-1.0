@@ -5,16 +5,6 @@
 
 /* eslint-disable */
 (function(){
-  var BOOK_ORDER = ['必修一', '必修二', '必修三', '选必一', '选必二', '选必三', '选必四'];
-  var COVER_MAP = {
-    '必修一': 'images/textbook-covers/bixiu-1.jpg',
-    '必修二': 'images/textbook-covers/bixiu-2.jpg',
-    '必修三': 'images/textbook-covers/bixiu-3.jpg',
-    '选必一': 'images/textbook-covers/xuanbi-1.jpg',
-    '选必二': 'images/textbook-covers/xuanbi-2.jpg',
-    '选必三': 'images/textbook-covers/xuanbi-3.jpg',
-    '选必四': 'images/textbook-covers/xuanbi-4.jpg'
-  };
   var CATEGORY_STAT_COLORS = {
     predicate: { bg: '#ffd60a', color: '#947000' },
     nonpredicate: { bg: 'var(--green-bg)', color: 'var(--green)' },
@@ -441,177 +431,6 @@
       },
       legend: buildFineCategoryLegendModel(),
       groups: groups
-    };
-  }
-
-  function buildTextbookUnitModel(unit, fineTags, bankQuestions, errorQuestions) {
-    fineTags = fineTags || {};
-    unit = unit || {};
-    var mapsTo = asArray(unit.maps_to);
-    var tagIds = mapsTo.map(normalizeTagId).filter(function(id) {
-      return !!((fineTags.tags_by_id || {})[id]);
-    });
-    var tags = tagIds.map(function(id) {
-      var tag = fineTags.tags_by_id[id] || {};
-      var counts = countByFineTag(id, bankQuestions, errorQuestions);
-      return {
-        id: id,
-        name: tag.name || id,
-        counts: counts
-      };
-    });
-    var totalQuestions = tags.reduce(function(sum, tag) { return sum + tag.counts.total; }, 0);
-    var errorCount = asArray(errorQuestions).filter(function(q) {
-      return q && tagIds.indexOf(q.fine_category) !== -1;
-    }).length;
-    return {
-      book: unit.book || '',
-      unit: unit.unit || '',
-      topic: unit.topic || '',
-      grammar_zh: unit.grammar_zh || '',
-      grammar_en: unit.grammar_en || '',
-      mapsTo: mapsTo,
-      tagIds: tagIds,
-      tags: tags,
-      totalQuestions: totalQuestions,
-      errorCount: errorCount,
-      frequencyStyle: getFrequencyStyle(totalQuestions),
-      unitLabel: (unit.unit || '') + (unit.topic ? ' · ' + unit.topic : '')
-    };
-  }
-
-  function groupTextbookUnitsByBook(textbookUnits) {
-    var byBook = {};
-    asArray(textbookUnits).forEach(function(unit) {
-      var book = (unit && unit.book) || '';
-      if (!book) return;
-      (byBook[book] = byBook[book] || []).push(unit);
-    });
-    return byBook;
-  }
-
-  function buildTextbookModeToggleModel(mode) {
-    var activeMode = mode === 'list' ? 'list' : 'gallery';
-    return {
-      activeMode: activeMode,
-      options: [
-        { mode: 'gallery', label: '🎨 画廊', active: activeMode === 'gallery' },
-        { mode: 'list', label: '📋 列表', active: activeMode === 'list' }
-      ]
-    };
-  }
-
-  function buildTextbookModalModel(bookModel) {
-    bookModel = bookModel || {};
-    return {
-      book: bookModel.book || '',
-      cover: bookModel.cover || '',
-      titleText: '人教版 · 英语 · ' + (bookModel.book || ''),
-      subtitleText: (Number(bookModel.unitCount || 0) || 0) + ' 个 Grammar 单元 · '
-        + (Number(bookModel.totalQuestions || 0) || 0) + ' 道关联真题'
-    };
-  }
-
-  function buildTextbookModalViewModel(bookModel) {
-    var modal = buildTextbookModalModel(bookModel);
-    return Object.assign({}, modal, {
-      closeLabel: '×',
-      closeTitle: '关闭 (Esc)'
-    });
-  }
-
-  function buildTextbookModalOpenPlan(book, mode, booksById) {
-    book = String(book || '');
-    var activeMode = mode === 'list' ? 'list' : 'gallery';
-    if (activeMode === 'list') {
-      return {
-        action: 'scroll-to-book',
-        book: book,
-        elementId: 'book-' + book,
-        scrollOptions: { behavior: 'smooth', block: 'start' },
-        shouldRenderModal: false
-      };
-    }
-    var bookModel = booksById && booksById[book] ? booksById[book] : {
-      book: book,
-      cover: '',
-      units: [],
-      unitCount: 0,
-      totalQuestions: 0
-    };
-    return {
-      action: 'open-modal',
-      book: book,
-      bookModel: bookModel,
-      modalModel: buildTextbookModalViewModel(bookModel),
-      shouldRenderModal: true,
-      shouldBindEsc: true
-    };
-  }
-
-  function buildTextbookModel(fineTags, bankQuestions, errorQuestions) {
-    fineTags = fineTags || {};
-    var rawByBook = groupTextbookUnitsByBook(fineTags.textbook_units || []);
-    var books = BOOK_ORDER.map(function(book, idx) {
-      var units = asArray(rawByBook[book]).map(function(unit) {
-        var unitModel = buildTextbookUnitModel(unit, fineTags, bankQuestions, errorQuestions);
-        return Object.assign({}, unitModel, {
-          titleText: unitModel.unit + (unitModel.topic ? ' · ' + unitModel.topic : ''),
-          questionActionText: '📋 看 ' + unitModel.totalQuestions + ' 道真题',
-          errorActionText: '📝 错题 ' + unitModel.errorCount + ' 道',
-          showQuestionAction: unitModel.tagIds.length > 0,
-          showErrorAction: unitModel.errorCount > 0
-        });
-      });
-      var totalQuestions = units.reduce(function(sum, unit) { return sum + unit.totalQuestions; }, 0);
-      var bookModel = {
-        book: book,
-        cover: COVER_MAP[book],
-        units: units,
-        unitCount: units.length,
-        totalQuestions: totalQuestions,
-        labelText: book,
-        metaText: units.length + ' 单元 · ' + totalQuestions + ' 题',
-        animationDelayMs: idx * 60
-      };
-      var modal = buildTextbookModalModel(bookModel);
-      return {
-        book: bookModel.book,
-        cover: bookModel.cover,
-        units: bookModel.units,
-        unitCount: bookModel.unitCount,
-        totalQuestions: bookModel.totalQuestions,
-        labelText: bookModel.labelText,
-        metaText: bookModel.metaText,
-        modalTitleText: modal.titleText,
-        modalSubtitleText: modal.subtitleText,
-        animationDelayMs: bookModel.animationDelayMs
-      };
-    });
-    var booksById = {};
-    books.forEach(function(book) { booksById[book.book] = book; });
-    return {
-      bookOrder: BOOK_ORDER.slice(),
-      coverMap: Object.assign({}, COVER_MAP),
-      books: books,
-      booksById: booksById
-    };
-  }
-
-  function buildTextbookViewModel(fineTags, bankQuestions, errorQuestions, mode) {
-    fineTags = fineTags || {};
-    var model = buildTextbookModel(fineTags, bankQuestions, errorQuestions);
-    var toggle = buildTextbookModeToggleModel(mode);
-    return {
-      empty: !asArray(fineTags.textbook_units).length,
-      emptyText: '教材数据未加载。',
-      activeMode: toggle.activeMode,
-      showList: toggle.activeMode === 'list',
-      toggle: toggle,
-      books: model.books,
-      booksById: model.booksById,
-      coverMap: model.coverMap,
-      bookOrder: model.bookOrder
     };
   }
 
@@ -1609,8 +1428,6 @@
     buildGuidedStepModel: buildGuidedStepModel,
     buildDecisionOutlineModel: buildDecisionOutlineModel,
     layoutDecisionTree: layoutDecisionTree,
-    BOOK_ORDER: BOOK_ORDER,
-    COVER_MAP: COVER_MAP,
     CATEGORY_STAT_COLORS: CATEGORY_STAT_COLORS,
     stripHtml: stripHtml,
     normalizeTagId: normalizeTagId,
@@ -1630,14 +1447,6 @@
     buildKnowledgeNavigationPlan: buildKnowledgeNavigationPlan,
     buildGlobalGraphSearchResetModel: buildGlobalGraphSearchResetModel,
     buildFineCategoryLegendModel: buildFineCategoryLegendModel,
-    groupTextbookUnitsByBook: groupTextbookUnitsByBook,
-    buildTextbookUnitModel: buildTextbookUnitModel,
-    buildTextbookModeToggleModel: buildTextbookModeToggleModel,
-    buildTextbookModalModel: buildTextbookModalModel,
-    buildTextbookModalViewModel: buildTextbookModalViewModel,
-    buildTextbookModalOpenPlan: buildTextbookModalOpenPlan,
-    buildTextbookModel: buildTextbookModel,
-    buildTextbookViewModel: buildTextbookViewModel,
     isMockQuestion: isMockQuestion,
     isRealQuestion: isRealQuestion,
     getUnitQuestionSourceText: getUnitQuestionSourceText,

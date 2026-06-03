@@ -1449,34 +1449,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       knowledgeData: window.KNOWLEDGE_DATA || {}
     });
     var fineCategoryLegend = knowledgeModel && knowledgeModel.buildFineCategoryLegendModel();
-    var textbookModel = knowledgeModel && knowledgeModel.buildTextbookModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      [question]
-    );
-    var textbookViewModel = knowledgeModel && knowledgeModel.buildTextbookViewModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      [question],
-      'list'
-    );
-    var textbookModeToggle = knowledgeModel && knowledgeModel.buildTextbookModeToggleModel('list');
-    var textbookModalModel = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalModel(textbookModel.books[0]);
-    var textbookModalViewModel = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalViewModel(textbookModel.books[0]);
-    var textbookModalOpenGalleryPlan = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalOpenPlan(
-      textbookModel.books[0].book,
-      'gallery',
-      textbookModel.booksById
-    );
-    var textbookModalOpenListPlan = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalOpenPlan(
-      textbookModel.books[0].book,
-      'list',
-      textbookModel.booksById
-    );
-    var firstTextbookUnit = textbookModel && textbookModel.books
-      && textbookModel.books.reduce(function(found, book) {
-        return found || (book.units && book.units.find(function(unit) { return unit.tagIds && unit.tagIds.length; }));
-      }, null);
+    // 教材视图已删除：直接用一个真实考点的 tag 构造 unit 上下文，覆盖仍保留的 unit-question / drawer-return 构造器
+    var firstTextbookUnit = { unitLabel: 'Smoke Unit', tagIds: [question.fine_category] };
     var unitQuestionList = knowledgeModel && knowledgeModel.buildUnitQuestionListModel(
       { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' },
       window.GRAMMAR_BANK.questions || [],
@@ -2458,29 +2432,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && fallbackKnowledgeViewChrome && fallbackKnowledgeViewChrome.routeView === 'book'
       && fallbackKnowledgeViewChrome.bookKey
       && fineCategoryLegend && fineCategoryLegend.items[0].text.indexOf('高频') === 0
-      && textbookModel && textbookModel.books && textbookModel.books.length === 7
-      && textbookModel.booksById['必修一'] && textbookModel.booksById['必修一'].cover.indexOf('bixiu-1.jpg') !== -1
-      && textbookModel.booksById['必修一'].metaText.indexOf('单元') !== -1
-      && textbookViewModel && textbookViewModel.empty === false
-      && textbookViewModel.showList === true
-      && textbookViewModel.toggle && textbookViewModel.toggle.activeMode === 'list'
-      && textbookViewModel.books.length === 7
-      && textbookModeToggle && textbookModeToggle.activeMode === 'list'
-      && textbookModeToggle.options.some(function(option) { return option.mode === 'list' && option.active; })
-      && textbookModalModel && textbookModalModel.titleText.indexOf('人教版 · 英语') === 0
-      && textbookModalModel.subtitleText.indexOf('Grammar 单元') !== -1
-      && textbookModalViewModel && textbookModalViewModel.closeTitle.indexOf('Esc') !== -1
-      && textbookModalViewModel.cover
-      && textbookModalOpenGalleryPlan && textbookModalOpenGalleryPlan.action === 'open-modal'
-      && textbookModalOpenGalleryPlan.shouldRenderModal === true
-      && textbookModalOpenGalleryPlan.modalModel.titleText === textbookModalViewModel.titleText
-      && textbookModalOpenListPlan && textbookModalOpenListPlan.action === 'scroll-to-book'
-      && textbookModalOpenListPlan.elementId.indexOf('book-') === 0
-      && textbookModalOpenListPlan.shouldRenderModal === false
-      && firstTextbookUnit && firstTextbookUnit.tagIds.length && firstTextbookUnit.totalQuestions >= 0
-      && firstTextbookUnit.titleText
-      && firstTextbookUnit.questionActionText.indexOf('看 ') !== -1
-      && firstTextbookUnit.showQuestionAction === true
+      && firstTextbookUnit && firstTextbookUnit.tagIds.length
       && unitQuestionList && unitQuestionList.counts && unitQuestionList.counts.all >= unitQuestionList.visibleItems.length
       && unitQuestionList.countText.indexOf('道') !== -1
       && unitQuestionList.filterChips.length === 3
