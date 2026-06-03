@@ -38,7 +38,6 @@
       focusMode: 'overview',
       ready: false
     },
-    textbookViewMode: 'gallery',
     errorBulkMode: false,
     prepBulkMode: false,
     drawerReturnTo: null,
@@ -629,17 +628,6 @@
     next.focusMode = focusMode || 'overview';
     return {
       globalGraphState: next
-    };
-  }
-
-  function normalizeTextbookViewMode(mode) {
-    if (mode === 'list') return 'list';
-    return 'gallery';
-  }
-
-  function buildTextbookViewModeState(mode) {
-    return {
-      textbookViewMode: normalizeTextbookViewMode(mode)
     };
   }
 
@@ -1700,8 +1688,6 @@
     buildGlobalGraphFitBoundsState: buildGlobalGraphFitBoundsState,
     buildGlobalGraphCenterNodeState: buildGlobalGraphCenterNodeState,
     buildGlobalGraphFocusState: buildGlobalGraphFocusState,
-    normalizeTextbookViewMode: normalizeTextbookViewMode,
-    buildTextbookViewModeState: buildTextbookViewModeState,
     getDockBackLabel: getDockBackLabel,
     getDockBackAction: getDockBackAction,
     buildPreviousViewReturn: buildPreviousViewReturn,

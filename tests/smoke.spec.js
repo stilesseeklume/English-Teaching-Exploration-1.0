@@ -821,8 +821,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       ['node-b', 'node-c'],
       'predicate'
     );
-    var normalizedTextbookViewMode = stateModel && stateModel.normalizeTextbookViewMode('bad-mode');
-    var textbookListModeState = stateModel && stateModel.buildTextbookViewModeState('list');
     var axis = module && module.getNonpAxis(question);
     var focusFromModule = focusModel && focusModel.getQuestionFocus(question, {
       extractSentence: window.GrammarPassageUtils && window.GrammarPassageUtils.extractSentence,
@@ -2222,8 +2220,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && focusedGlobalGraphState && focusedGlobalGraphState.globalGraphState.selectedId === 'node-b'
       && focusedGlobalGraphState.globalGraphState.focusIds.length === 2
       && focusedGlobalGraphState.globalGraphState.focusMode === 'predicate'
-      && normalizedTextbookViewMode === 'gallery'
-      && textbookListModeState && textbookListModeState.textbookViewMode === 'list'
       && examGrid && examGrid.groups && examGrid.groups.length === 3
       && examGrid.groups[0].year === '2026'
       && examGrid.groups[0].titleText === '2026 年 · 1 套'
