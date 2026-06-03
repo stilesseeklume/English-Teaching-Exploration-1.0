@@ -1394,10 +1394,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       type: 'switch-page',
       value: 'knowledge'
     });
-    var textbookActionPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
-      type: 'open-textbook',
-      value: '必修一'
-    });
     var unknownActionPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
       type: 'unknown',
       value: 'x'
@@ -1891,10 +1887,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && knowledgeModel.getKnowledgeRootColorStyle({ color: 'green' }) === '#34c759'
       && knowledgeModel.getKnowledgeCategoryLabel(question.category, knowledgeModelDeps)
       && globalGraphPageModel && globalGraphPageModel.titleText
-      && globalGraphPageModel.actionButtons.length === 3
+      && globalGraphPageModel.actionButtons.length === 2
       && globalGraphPageModel.focusButtons.some(function(item) { return item.id === 'verb' && item.active; })
       && globalGraphInspectorModel && globalGraphInspectorModel.titleText
-      && globalGraphInspectorModel.resourceSection && globalGraphInspectorModel.resourceSection.viewButtons.length === 2
+      && globalGraphInspectorModel.resourceSection && globalGraphInspectorModel.resourceSection.viewButtons.length === 1
       && dmTree && dmTree.rootId === 'root' && dmTree.childrenOf['root'].length === 2
       && dmStep && dmStep.title === '有提示词' && dmStep.options.length === 1 && dmStep.options[0].id === 'a1'
       && dmStep.breadcrumb.length === 2 && dmStep.breadcrumb[0].id === 'root' && dmStep.isLeaf === false
@@ -2404,9 +2400,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && uploadActionPlan.delayedSteps[0].delayMs === 120
       && switchActionPlan && switchActionPlan.immediateSteps[0].page === 'knowledge'
       && switchActionPlan.delayedSteps.length === 0
-      && textbookActionPlan && textbookActionPlan.immediateSteps[0].page === 'knowledge'
-      && textbookActionPlan.delayedSteps[0].kind === 'set-knowledge-view'
-      && textbookActionPlan.delayedSteps[1].book === '必修一'
       && unknownActionPlan && unknownActionPlan.immediateSteps.length === 0
       && unknownActionPlan.delayedSteps.length === 0
       && categoryStatsModel && categoryStatsModel.items && categoryStatsModel.items.length
@@ -2518,9 +2511,8 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && unitQuestionErrorNavigationPlan.teachingOptions.showAnswer === false
       && unitDrawerReturnPlan && unitDrawerReturnPlan.action === 'unit-question-list'
       && unitDrawerReturnPlan.shouldSwitchPage === true
-      && unitDrawerReturnPlan.knowledgeView === 'textbook'
-      && unitDrawerReturnPlan.shouldOpenTextbookModal === true
-      && unitDrawerReturnPlan.book
+      && unitDrawerReturnPlan.knowledgeView === ''
+      && unitDrawerReturnPlan.shouldOpenTextbookModal === false
       && missingUnitDrawerReturnPlan && missingUnitDrawerReturnPlan.shouldSwitchPage === true
       && missingUnitDrawerReturnPlan.shouldOpenTextbookModal === false
       && emptyDrawerReturnPlan && emptyDrawerReturnPlan.action === 'none'
@@ -2833,21 +2825,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && activeDock
       && activeDock.dataset.dockKey === 'knowledge');
   })).toBe(true);
-  await page.locator('#knowledgeTextbookBtn').click();
-  await expect(page.locator('#knowledgeTextbookBtn')).toHaveClass(/active/);
-  await expect(await page.evaluate(() => {
-    var snapshot = window.getKnowledgeViewSnapshot && window.getKnowledgeViewSnapshot();
-    return window.GrammarAppState
-      && window.GrammarAppState.state.currentKnowledgeView === 'textbook'
-      && window.GrammarAppState.state.currentKnowledgeNodeId === ''
-      && window.GrammarAppState.state.textbookViewMode === 'gallery'
-      && snapshot
-      && snapshot.currentKnowledgeView === window.GrammarAppState.state.currentKnowledgeView
-      && snapshot.currentKnowledgeNodeId === window.GrammarAppState.state.currentKnowledgeNodeId;
-  })).toBe(true);
-  await expect(page.locator('#knowledgeContent')).toContainText(/必修一/);
-  // 教材视图已搁置：仅展示"开发中"提示 + 封面画廊（不可点），无列表切换/单元交互
-  await expect(page.locator('#knowledgeContent')).toContainText(/开发中|敬请期待/);
   // Task 4 迁移：#knowledgeFineCatBtn(考点视图) 已移至「考点训练」dock 页，知识库不再有该按钮（见专门的考点训练页测试）
   await page.locator('#knowledgeBookBtn').click();
   await expect(page.locator('#knowledgeSidebar')).toBeVisible();

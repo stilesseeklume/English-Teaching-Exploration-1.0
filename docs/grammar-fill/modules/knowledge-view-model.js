@@ -885,12 +885,12 @@
       shouldCloseDrawer: true,
       shouldSwitchPage: isUnitReturn,
       page: isUnitReturn ? 'knowledge' : '',
-      knowledgeView: isUnitReturn ? 'textbook' : '',
+      knowledgeView: '',
       unitLabel: context ? context.unitLabel : '',
       unitContext: context,
       matchUnit: matchUnit,
       book: matchUnit ? (matchUnit.book || '') : '',
-      shouldOpenTextbookModal: !!matchUnit,
+      shouldOpenTextbookModal: false,
       shouldRestoreUnitContext: !!matchUnit,
       shouldShowUnitModal: !!matchUnit,
       actionDelayMs: Number(options.actionDelayMs || 180) || 180,
@@ -1034,7 +1034,6 @@
       titleText: graph.title || '语法填空讲题路径图谱',
       descText: graph.desc || '把知识可视化成一张可拖动的大图谱。',
       actionButtons: [
-        { labelText: '教材进度', view: 'textbook' },
         { labelText: '考点视图', view: 'fine-cat' },
         { labelText: '书本速查', view: 'book' }
       ],
@@ -1114,8 +1113,7 @@
           };
         }),
         viewButtons: [
-          { labelText: '考点视图', view: 'fine-cat' },
-          { labelText: '教材视图', view: 'textbook' }
+          { labelText: '考点视图', view: 'fine-cat' }
         ]
       }
     };
@@ -1365,7 +1363,6 @@
       routeView !== 'map'
       && routeView !== 'book'
       && routeView !== 'fine-cat'
-      && routeView !== 'textbook'
       && routeView !== 'system'
     ) {
       routeView = 'book';
@@ -1374,7 +1371,6 @@
       { view: 'map', elementId: 'knowledgeMapBtn' },
       { view: 'book', elementId: 'knowledgeBookBtn' },
       { view: 'fine-cat', elementId: 'knowledgeFineCatBtn' },
-      { view: 'textbook', elementId: 'knowledgeTextbookBtn' },
       { view: 'system', elementId: 'knowledgeSystemBtn' }
     ].map(function(button) {
       return Object.assign({}, button, {

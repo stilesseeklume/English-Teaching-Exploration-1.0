@@ -305,7 +305,6 @@
       <!-- 视图切换 tab bar：教材视图作为默认首页（最美观、最直观） -->
       <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
         <button class="knowledge-view-btn active" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
-        <button class="knowledge-view-btn" id="knowledgeTextbookBtn" onclick="setKnowledgeView('textbook')">📚 教材视图</button>
         <button class="knowledge-view-btn" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
       </div>
       <div class="knowledge-layout" id="knowledgeLayout">
@@ -1732,7 +1731,6 @@ function homeDashboardDeps() {
     switchPage: switchPage,
     navigateHome: navigateHome,
     setKnowledgeView: setKnowledgeView,
-    openTextbookModal: openTextbookModal,
     getCurrentQuestionIndex: getCurrentQuestionIndex,
     getPracticeContextSnapshot: getPracticeContextSnapshot,
     getSelectedQuestionSnapshot: getSelectedQuestionSnapshot,
@@ -3673,8 +3671,6 @@ function setKnowledgeView(view) {
     renderKnowledgeMap();
   } else if (chromeModel.renderAction === 'fine-cat') {
     renderFineCategoryView();
-  } else if (chromeModel.renderAction === 'textbook') {
-    renderTextbookView();
   } else if (chromeModel.renderAction === 'system') {
     renderSystemView();
   } else {
@@ -4210,27 +4206,11 @@ function executeDrawerReturn() {
   setTimeout(function() {
     if (returnPlan.shouldCloseDrawer && typeof closeDrawer === 'function') closeDrawer();
 
-    function fadeOutMask() {
-      mask.style.opacity = '0';
-      setTimeout(function() { mask.remove(); }, returnPlan.maskRemoveMs);
-    }
-
     if (returnPlan.shouldSwitchPage) {
       switchPage(returnPlan.page);
       setKnowledgeView(returnPlan.knowledgeView);
-      if (returnPlan.shouldOpenTextbookModal) {
-        openTextbookModal(returnPlan.book);
-        setTimeout(function() {
-          if (returnPlan.shouldRestoreUnitContext) {
-            applyUnitMiniContextState(window.GrammarAppState.buildUnitMiniContextState(returnPlan.unitContext));
-          }
-          if (returnPlan.shouldShowUnitModal) _showUnitQuestionsMiniModal();
-          setTimeout(fadeOutMask, returnPlan.maskFadeOutDelayMs);
-        }, returnPlan.textbookModalDelayMs);
-      } else {
-        mask.style.opacity = '0';
-        setTimeout(function() { mask.remove(); }, returnPlan.maskRemoveMs);
-      }
+      mask.style.opacity = '0';
+      setTimeout(function() { mask.remove(); }, returnPlan.maskRemoveMs);
     } else {
       mask.style.opacity = '0';
       setTimeout(function() { mask.remove(); }, returnPlan.maskRemoveMs);
