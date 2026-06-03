@@ -440,6 +440,7 @@
 <script src="./modules/sidebar-render.js"></script>
 <script src="./modules/home-render.js"></script>
 <script src="./modules/home-dashboard.js"></script>
+<script src="./modules/lesson-prep-controller.js"></script>
 
 <script>
 
@@ -1542,134 +1543,40 @@ function renderErrorBook() {
 }
 
 // ────────── 备课资料 ──────────
-function togglePrepBatchImport(force) {
-  var form = document.getElementById('prepBatchForm');
-  var plan = window.GrammarSavedMaterialsModel.buildBatchImportFormTogglePlan(
-    'prep',
-    form && form.classList.contains('show'),
-    force
-  );
-  applyBatchImportFormTogglePlan(plan);
-}
-
-function handlePrepFileImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    document.getElementById('prepBatchJson').value = e.target.result;
-    batchImportPrepJson();
+// 控制器已抽到 modules/lesson-prep-controller.js（window.GrammarLessonPrep）。
+// 下面是同名薄壳：onclick / 内联裸名调用走薄壳，薄壳注入 lessonPrepDeps()。
+function lessonPrepDeps() {
+  return {
+    getPrepPassages: function() { return prepPassages; },
+    setPrepPassages: function(v) { prepPassages = v; },
+    savePrepPassages: savePrepPassages,
+    renderBankStat: renderBankStat,
+    closeDrawer: closeDrawer,
+    resetPracticeDisplayState: resetPracticeDisplayState,
+    applyPracticeContextState: applyPracticeContextState,
+    setPreviousView: setPreviousView,
+    getPracticeEntryPreviousView: getPracticeEntryPreviousView,
+    syncAppState: syncAppState,
+    switchPage: switchPage,
+    renderExam: renderExam,
+    getSavedMaterialBulkModeSnapshot: getSavedMaterialBulkModeSnapshot,
+    renderPageSidebar: renderPageSidebar,
+    syncPrepBulkInfo: syncPrepBulkInfo,
+    deleteSavedMaterialItem: deleteSavedMaterialItem,
+    applyBatchImportFormTogglePlan: applyBatchImportFormTogglePlan,
+    escapeHtml: escapeHtml,
+    CATEGORY_MAP: CATEGORY_MAP,
+    CATEGORY_TIPS: CATEGORY_TIPS
   };
-  reader.readAsText(file);
 }
 
-function setupPrepDrop() {
-  var form = document.getElementById('prepBatchForm');
-  if (!form) return;
-  form.addEventListener('dragover', function(e) { e.preventDefault(); });
-  form.addEventListener('drop', function(e) {
-    e.preventDefault();
-    var file = e.dataTransfer.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      document.getElementById('prepBatchJson').value = ev.target.result;
-      batchImportPrepJson();
-    };
-    reader.readAsText(file);
-  });
-}
-
-function batchImportPrepJson() {
-  var raw = document.getElementById('prepBatchJson').value.trim();
-  var parsed = window.GrammarSavedMaterialsModel.parseBatchImportJson(raw, 'prep');
-  if (parsed.empty) return;
-  if (!parsed.ok) {
-    alert(parsed.errorMessage);
-    return;
-  }
-  var result = window.GrammarSavedMaterialsModel.importPrepItems(parsed.list, prepPassages, {
-    now: Date.now(),
-    createdAt: new Date().toISOString()
-  });
-  prepPassages = result.nextItems;
-  savePrepPassages();
-  renderPrepList();
-  renderBankStat();
-  togglePrepBatchImport();
-  document.getElementById('prepBatchJson').value = '';
-  alert(window.GrammarSavedMaterialsModel.buildImportResultMessage(result, 'prep'));
-}
-
-async function deletePrepPassage(id) {
-  return deleteSavedMaterialItem('prep', id, prepPassages, function(nextItems) {
-    prepPassages = nextItems;
-    savePrepPassages();
-    renderPrepList();
-  });
-}
-
-function viewPrepPassage(id, preserveDrawerReturn) {
-  var p = prepPassages.find(function(item) { return item.id === id; });
-  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialPracticeEntryPlan('prep', p, {
-    preserveDrawerReturn: preserveDrawerReturn
-  });
-  if (plan.action === 'none') return;
-  if (plan.shouldCloseDrawer) closeDrawer(plan.preserveDrawerReturn);
-  if (plan.shouldResetPracticeDisplay) resetPracticeDisplayState();
-  var state = window.GrammarSavedMaterialsModel.createPrepStateForPassage(p, CATEGORY_MAP, CATEGORY_TIPS);
-  if (plan.shouldApplyPracticeContext) applyPracticeContextState(state);
-  setPreviousView(getPracticeEntryPreviousView(plan.previousViewSource));
-  if (plan.shouldSyncAppState) syncAppState();
-  if (plan.shouldSwitchPage) switchPage(plan.page);
-  if (plan.shouldRenderExam) renderExam();
-}
-
-function renderPrepList() {
-  var el = document.getElementById('prepList');
-  if (!el) return;
-  var model = window.GrammarSavedMaterialsModel.buildPrepListModel(prepPassages, CATEGORY_MAP, {
-    bulkMode: getSavedMaterialBulkModeSnapshot('prep')
-  });
-
-  document.getElementById('prepStat').textContent = model.statText;
-
-  if (model.empty) {
-    el.innerHTML = '<div class="error-empty">' + escapeHtml(model.emptyText) + '</div>';
-    return;
-  }
-
-  var html = '';
-  model.items.forEach(function(p) {
-    html += '<div class="prep-list-item" onclick="viewPrepPassage(\'' + escapeHtml(p.id) + '\')">'
-          + '<div class="prep-list-title">' + escapeHtml(p.title) + '</div>'
-          + (p.showBulkCheck ? '<label style="display:block;margin-bottom:8px;"><input type="checkbox" class="bulk-item-check prep-bulk-check" data-id="' + escapeHtml(p.id) + '" onchange="syncPrepBulkInfo()" onclick="event.stopPropagation()"></label>' : '')
-          + '<div class="prep-list-preview">' + escapeHtml(p.preview) + '</div>'
-          + '<div class="prep-list-meta">'
-          + '<span>' + escapeHtml(p.metaText) + '</span>'
-          + '<span style="display:flex;gap:6px;">'
-          + '<button class="prep-list-rename" onclick="event.stopPropagation();renamePrepPassage(\'' + escapeHtml(p.id) + '\')" title="改名">✎ 改名</button>'
-          + '<button class="prep-list-delete" onclick="event.stopPropagation();deletePrepPassage(\'' + escapeHtml(p.id) + '\')">删除</button>'
-          + '</span>'
-          + '</div>'
-          + '</div>';
-  });
-  el.innerHTML = html;
-  renderPageSidebar('lesson-prep');
-  syncPrepBulkInfo();
-}
-
-function renamePrepPassage(id) {
-  var item = (prepPassages || []).filter(function(p) { return String(p.id) === String(id); })[0];
-  if (!item) return;
-  var next = prompt('改名（建议：年份+考试名称+主题）：', item.title || '');
-  if (next === null) return;
-  next = String(next).trim();
-  if (!next || next === item.title) return;
-  item.title = next;
-  savePrepPassages();
-  renderPrepList();
-}
+function togglePrepBatchImport(force) { return window.GrammarLessonPrep.togglePrepBatchImport(force, lessonPrepDeps()); }
+function setupPrepDrop() { return window.GrammarLessonPrep.setupPrepDrop(lessonPrepDeps()); }
+function batchImportPrepJson() { return window.GrammarLessonPrep.batchImportPrepJson(lessonPrepDeps()); }
+function deletePrepPassage(id) { return window.GrammarLessonPrep.deletePrepPassage(id, lessonPrepDeps()); }
+function viewPrepPassage(id, preserveDrawerReturn) { return window.GrammarLessonPrep.viewPrepPassage(id, preserveDrawerReturn, lessonPrepDeps()); }
+function renderPrepList() { return window.GrammarLessonPrep.renderPrepList(lessonPrepDeps()); }
+function renamePrepPassage(id) { return window.GrammarLessonPrep.renamePrepPassage(id, lessonPrepDeps()); }
 
 
 function setupPassageClickDelegation() {
