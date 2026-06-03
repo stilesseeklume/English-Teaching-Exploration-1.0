@@ -439,6 +439,7 @@
 <script src="./modules/teaching-render.js"></script>
 <script src="./modules/sidebar-render.js"></script>
 <script src="./modules/home-render.js"></script>
+<script src="./modules/home-dashboard.js"></script>
 
 <script>
 
@@ -2189,57 +2190,38 @@ function renderBankStat() {
 }
 
 // ─── Sprint 1.6 · 智能 Dashboard 主页 ─────────────
-// 按用户数据状态自适应：新用户引导 / 活跃用户行动入口
-function inlineHomeDashboardAction(action) {
-  action = action || {};
-  return escapeHtml('runHomeDashboardAction('
-    + JSON.stringify(String(action.type || '')) + ','
-    + JSON.stringify(String(action.value == null ? '' : action.value)) + ')');
+// 逻辑已搬至 modules/home-dashboard.js，此处为薄壳 + 依赖注入。
+// 数组型依赖（prepPassages / errorBookQuestions）用 getter 注入，避免拿到旧引用。
+function homeDashboardDeps() {
+  return {
+    escapeHtml: window.escapeHtml,
+    switchPage: switchPage,
+    navigateHome: navigateHome,
+    setKnowledgeView: setKnowledgeView,
+    openTextbookModal: openTextbookModal,
+    getCurrentQuestionIndex: getCurrentQuestionIndex,
+    getPracticeContextSnapshot: getPracticeContextSnapshot,
+    getSelectedQuestionSnapshot: getSelectedQuestionSnapshot,
+    getTeachingSessionSnapshot: getTeachingSessionSnapshot,
+    getPracticeDisplaySnapshot: getPracticeDisplaySnapshot,
+    findBlankIndex: findBlankIndex,
+    startByExam: startByExam,
+    showAnalysisByIdx: showAnalysisByIdx,
+    inlineSidebarAction: inlineSidebarAction,
+    getPrepPassages: function(){ return prepPassages; },
+    getErrorBookQuestions: function(){ return errorBookQuestions; },
+    BANK: BANK,
+    CATEGORY_MAP: CATEGORY_MAP
+  };
 }
-
-function runHomeDashboardAction(type, value) {
-  var plan = window.GrammarHomeDashboardModel.buildDashboardActionExecutionPlan({ type: type, value: value });
-  function runStep(step) {
-    step = step || {};
-    if (step.kind === 'switch-page') {
-      switchPage(step.page);
-    } else if (step.kind === 'navigate-home') {
-      navigateHome(step.view);
-    } else if (step.kind === 'click-upload-button') {
-      var btn = document.querySelector(step.selector);
-      if (btn) btn.click();
-    } else if (step.kind === 'set-knowledge-view') {
-      setKnowledgeView(step.view);
-    } else if (step.kind === 'open-textbook-modal') {
-      openTextbookModal(step.book);
-    }
-  }
-  (plan.immediateSteps || []).forEach(runStep);
-  (plan.delayedSteps || []).forEach(function(step) {
-    setTimeout(function() {
-      runStep(step);
-    }, Number(step.delayMs) || 0);
-  });
-}
-
-function renderHomeDashboard() {
-  var el = document.getElementById('homeDashboardContent');
-  if (!el) return;
-
-  var prepCount = (typeof prepPassages !== 'undefined') ? prepPassages.length : 0;
-  var errCount  = (typeof errorBookQuestions !== 'undefined') ? errorBookQuestions.length : 0;
-  var dashboardModel = window.GrammarHomeDashboardModel.buildDashboardModel({
-    prepCount: prepCount,
-    errorCount: errCount,
-    textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units
-  });
-  var html = window.GrammarHomeRender.homeDashboardHtml(dashboardModel, { inlineHomeDashboardAction: inlineHomeDashboardAction });
-  el.innerHTML = html;
-}
-
-function getOrderedExams() {
-  return window.GrammarQuestionModel.getOrderedExams(BANK.exams);
-}
+function runHomeDashboardAction(type, value){ return window.GrammarHomeDashboard.runHomeDashboardAction(type, value, homeDashboardDeps()); }
+function renderHomeDashboard(){ return window.GrammarHomeDashboard.renderHomeDashboard(homeDashboardDeps()); }
+function renderClassroomSwitcher(){ return window.GrammarHomeDashboard.renderClassroomSwitcher(homeDashboardDeps()); }
+function navigateExam(delta){ return window.GrammarHomeDashboard.navigateExam(delta, homeDashboardDeps()); }
+function jumpToExamFromSwitcher(examId){ return window.GrammarHomeDashboard.jumpToExamFromSwitcher(examId, homeDashboardDeps()); }
+function jumpToQuestionFromSwitcher(value){ return window.GrammarHomeDashboard.jumpToQuestionFromSwitcher(value, homeDashboardDeps()); }
+function jumpQuestionFromSwitcher(delta){ return window.GrammarHomeDashboard.jumpQuestionFromSwitcher(delta, homeDashboardDeps()); }
+function renderExamGrid(){ return window.GrammarHomeDashboard.renderExamGrid(homeDashboardDeps()); }
 
 function getCurrentQuestionIndex() {
   var practiceContext = getPracticeContextSnapshot();
@@ -2252,91 +2234,6 @@ function getCurrentQuestionIndex() {
   }, {
     findSelectedIndex: function() { return findBlankIndex(); }
   });
-}
-
-function renderClassroomSwitcher() {
-  var bar = document.getElementById('classroomSwitcher');
-  if (!bar) return;
-  var practiceContext = getPracticeContextSnapshot();
-  var idx = getCurrentQuestionIndex();
-  var displayState = getPracticeDisplaySnapshot();
-  var model = window.GrammarClassroomSwitcherModel.buildClassroomSwitcherModel({
-    currentExam: practiceContext.currentExam,
-    currentQuestions: practiceContext.currentQuestions,
-    currentQuestionIndex: idx,
-    orderedExams: getOrderedExams(),
-    categoryMap: CATEGORY_MAP,
-    showAnswers: displayState.showAnswers
-  });
-  if (!model.visible) {
-    bar.style.display = 'none';
-    return;
-  }
-  bar.style.display = '';
-
-  var examSelect = document.getElementById('classroomExamSelect');
-  if (examSelect) {
-    examSelect.innerHTML = model.examSelect.options.map(function(option) {
-      return '<option value="' + escapeHtml(option.value) + '"' + (option.selected ? ' selected' : '') + '>' + escapeHtml(option.label) + '</option>';
-    }).join('');
-    examSelect.disabled = model.examSelect.disabled;
-    examSelect.title = model.examSelect.title;
-  }
-
-  var questionSelect = document.getElementById('classroomQuestionSelect');
-  if (questionSelect) {
-    questionSelect.innerHTML = model.questionSelect.options.map(function(option) {
-      return '<option value="' + option.value + '"' + (option.selected ? ' selected' : '') + '>' + escapeHtml(option.label) + '</option>';
-    }).join('');
-    questionSelect.disabled = model.questionSelect.disabled;
-  }
-
-  var answerBtn = document.getElementById('classroomAnswerBtn');
-  if (answerBtn) {
-    answerBtn.textContent = model.answerButton.label;
-    answerBtn.classList.toggle('primary', model.answerButton.primary);
-  }
-
-  var progress = document.getElementById('classroomProgress');
-  if (progress) {
-    progress.textContent = model.progressText;
-  }
-}
-
-function navigateExam(delta) {
-  var practiceContext = getPracticeContextSnapshot();
-  var plan = window.GrammarClassroomSwitcherModel.buildExamNavigationPlan(practiceContext.currentExam, getOrderedExams(), delta);
-  if (plan.action === 'start-exam' && plan.examId) startByExam(plan.examId);
-}
-
-function jumpToExamFromSwitcher(examId) {
-  var practiceContext = getPracticeContextSnapshot();
-  var plan = window.GrammarClassroomSwitcherModel.buildExamSelectPlan(practiceContext.currentExam, examId);
-  if (plan.action === 'start-exam' && plan.examId) startByExam(plan.examId);
-}
-
-function jumpToQuestionFromSwitcher(value) {
-  var practiceContext = getPracticeContextSnapshot();
-  var plan = window.GrammarClassroomSwitcherModel.buildQuestionSelectPlan(practiceContext.currentQuestions, value);
-  if (plan.action === 'show-analysis') showAnalysisByIdx(plan.index);
-}
-
-function jumpQuestionFromSwitcher(delta) {
-  var practiceContext = getPracticeContextSnapshot();
-  var plan = window.GrammarClassroomSwitcherModel.buildQuestionNavigationPlan(
-    practiceContext.currentQuestions,
-    getCurrentQuestionIndex(),
-    delta
-  );
-  if (plan.action === 'show-analysis') showAnalysisByIdx(plan.index);
-}
-
-function renderExamGrid() {
-  const grid = document.getElementById('examGrid');
-  if (!grid) return;
-  const model = window.GrammarExamGridModel.buildExamGridModel(BANK.exams);
-  const html = window.GrammarHomeRender.examGridHtml(model, { inlineSidebarAction: inlineSidebarAction });
-  grid.innerHTML = html;
 }
 
 function getSidebarModelDeps(extra) {
