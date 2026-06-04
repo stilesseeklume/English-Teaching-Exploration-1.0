@@ -2103,6 +2103,40 @@ function startByCategory(cat) {
   renderExam();
 }
 
+// 随机训练：从一个大类里随机抽 RANDOM_CATEGORY_COUNT 题（不足则全抽），打乱顺序进训练。
+var RANDOM_CATEGORY_COUNT = 10;
+
+function shuffleQuestionsInPlace(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+function startRandomCategory(cat) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var rules = window.GrammarCategoryRules;
+  var pool = rules.selectCategoryQuestions(ALL_QUESTIONS, cat);
+  if (!pool.length) {
+    alert(rules.getEmptyCategoryMessage(cat));
+    return;
+  }
+  var picked = shuffleQuestionsInPlace(pool.slice()).slice(0, RANDOM_CATEGORY_COUNT);
+  var catName = CATEGORY_MAP[cat] || cat;
+  var label = '🎲 随机训练 · ' + catName + ' · ' + picked.length + '题';
+  var entryModel = rules.buildCategoryPracticeEntryModel(cat, picked, CATEGORY_MAP, label);
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
 function startByFineTag(fine) {
   closeDrawer();
   resetPracticeDisplayState();
@@ -3710,9 +3744,16 @@ function renderFineCategoryView() {
   model.groups.forEach(function(group) {
     var gc = group.frequencyStyle;
     html += '<section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">';
     html += '<h3 style="margin:0;color:var(--text);">' + escapeHtml(group.titleText) + '</h3>';
-    html += '<span style="background:' + gc.bg + ';color:' + gc.color + ';padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;flex-shrink:0;">' + escapeHtml(group.total + ' 题') + '</span>';
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">';
+    if (group.total > 0) {
+      html += '<button onclick="startRandomCategory(\'' + graphEscapeAttr(group.id) + '\')" title="从本大类随机抽 ' + RANDOM_CATEGORY_COUNT + ' 题做一组" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);padding:3px 10px;border-radius:12px;font-size:12px;font-family:inherit;cursor:pointer;">🎲 随机训练</button>';
+    } else {
+      html += '<span style="background:var(--surface-2);color:var(--text-3);padding:3px 10px;border-radius:12px;font-size:12px;opacity:0.5;">🎲 随机训练</span>';
+    }
+    html += '<span style="background:' + gc.bg + ';color:' + gc.color + ';padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">' + escapeHtml(group.total + ' 题') + '</span>';
+    html += '</div>';
     html += '</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
     group.leaves.forEach(function(leaf) {
@@ -4871,6 +4912,7 @@ Object.assign(window, {
   showGlobalKnowledgeNode: showGlobalKnowledgeNode,
   showAnalysisByIdx: showAnalysisByIdx,
   startByCategory: startByCategory,
+  startRandomCategory: startRandomCategory,
   startByFineTag: startByFineTag,
   startByExam: startByExam,
   submitAuth: submitAuth,
