@@ -795,11 +795,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var knowledgeSearchStateSource = [{ catKey: 'smoke-node' }];
     var normalizedKnowledgeSearchIndex = stateModel && stateModel.normalizeKnowledgeSearchIndex(knowledgeSearchStateSource);
     var knowledgeSearchIndexState = stateModel && stateModel.buildKnowledgeSearchIndexState(knowledgeSearchStateSource);
-    var unitMiniContextSource = { unitLabel: 'Unit Smoke', tagIds: ['tag-a'], source: 'bank' };
-    var unitMiniContextState = stateModel && stateModel.buildUnitMiniContextState(unitMiniContextSource);
-    var unitMiniFilterState = stateModel && stateModel.buildUnitMiniFilterState(unitMiniContextState.unitMiniContext, '模拟');
-    var errorUnitMiniContext = stateModel && stateModel.normalizeUnitMiniContext({ unitLabel: 'Errors', tagIds: ['tag-b'], source: 'errors', filter: '真题' });
-    var clearedUnitMiniContext = stateModel && stateModel.clearUnitMiniContextState();
     var globalGraphFocusSource = ['node-a'];
     var normalizedGlobalGraphState = stateModel && stateModel.normalizeGlobalGraphState({ scale: 'bad', tx: 10, selectedId: 'node-a', focusIds: globalGraphFocusSource });
     var pannedGlobalGraphState = stateModel && stateModel.buildGlobalGraphPanState({ scale: 1, tx: 10, ty: 20 }, 5, -8);
@@ -1447,50 +1442,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       knowledgeData: window.KNOWLEDGE_DATA || {}
     });
     var fineCategoryLegend = knowledgeModel && knowledgeModel.buildFineCategoryLegendModel();
-    // 教材视图已删除：直接用一个真实考点的 tag 构造 unit 上下文，覆盖仍保留的 unit-question / drawer-return 构造器
-    var firstTextbookUnit = { unitLabel: 'Smoke Unit', tagIds: [question.fine_category] };
-    var unitQuestionList = knowledgeModel && knowledgeModel.buildUnitQuestionListModel(
-      { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' },
-      window.GRAMMAR_BANK.questions || [],
-      [question],
-      { limit: 3 }
-    );
-    var unitQuestionModalModel = knowledgeModel && knowledgeModel.buildUnitQuestionModalViewModel(
-      { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' },
-      window.GRAMMAR_BANK.questions || [],
-      [question],
-      { limit: 3 }
-    );
-    var unitQuestionListOpenPlan = knowledgeModel && knowledgeModel.buildUnitQuestionListOpenPlan(
-      'Smoke Unit',
-      [question.fine_category],
-      'bank'
-    );
-    var unitErrorListOpenPlan = knowledgeModel && knowledgeModel.buildUnitQuestionListOpenPlan(
-      'Smoke Error Unit',
-      [question.fine_category],
-      'errors'
-    );
-    var unitQuestionFilterChangePlan = knowledgeModel && knowledgeModel.buildUnitQuestionFilterChangePlan(
-      unitQuestionListOpenPlan && unitQuestionListOpenPlan.context,
-      '模拟'
-    );
-    var emptyUnitQuestionFilterChangePlan = knowledgeModel && knowledgeModel.buildUnitQuestionFilterChangePlan(null, '模拟');
-    var unitQuestionBankNavigationPlan = knowledgeModel && knowledgeModel.buildUnitQuestionNavigationPlan({
-      examId: exam && exam.exam_id,
-      no: question.no,
-      source: 'bank',
-      autoProjection: true
-    }, { unitLabel: 'Smoke Unit', tagIds: [question.fine_category], source: 'bank', filter: '模拟' });
-    var unitQuestionErrorNavigationPlan = knowledgeModel && knowledgeModel.buildUnitQuestionNavigationPlan({
-      examId: '',
-      no: question.no,
-      source: 'errors',
-      autoProjection: false
-    }, { unitLabel: 'Smoke Error Unit', tagIds: [question.fine_category], source: 'errors', filter: '真题' });
+    // 教材视图已删除：仅保留通用的抽屉返回构造器（dock 返回按钮在用）
     var unitDrawerReturnPlan = knowledgeModel && knowledgeModel.buildUnitQuestionDrawerReturnPlan({
       type: 'unit-question-list',
-      context: { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' }
+      context: { unitLabel: 'Smoke Unit', tagIds: [question.fine_category], source: 'bank', filter: 'all' }
     }, (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units) || []);
     var missingUnitDrawerReturnPlan = knowledgeModel && knowledgeModel.buildUnitQuestionDrawerReturnPlan({
       type: 'unit-question-list',
@@ -1500,19 +1455,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       type: 'other',
       context: null
     }, (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units) || []);
-    var unitFilterChips = knowledgeModel && knowledgeModel.buildUnitFilterChips('bank', '模拟', {
-      real: 2,
-      mock: 1,
-      all: 3
-    });
-    var unitQuestionItemModel = knowledgeModel && knowledgeModel.buildUnitQuestionItemModel({
-      id: 'err_smoke',
-      exam: '错题本',
-      no: 1,
-      answer: 'learn',
-      type: '真题',
-      analysis: 'a'.repeat(120)
-    }, 'errors');
     var parsedErrorBatchJson = savedModel && savedModel.parseBatchImportJson('[{"answer":"learn"}]', 'error');
     var parsedEmptyBatchJson = savedModel && savedModel.parseBatchImportJson('[]', 'prep');
     var parsedErrorBadJson = savedModel && savedModel.parseBatchImportJson('{bad', 'error');
@@ -2202,11 +2144,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && normalizedKnowledgeSearchIndex !== knowledgeSearchStateSource
       && knowledgeSearchIndexState && knowledgeSearchIndexState.knowledgeSearchIndex.length === 1
       && knowledgeSearchIndexState.knowledgeSearchIndex !== knowledgeSearchStateSource
-      && unitMiniContextState && unitMiniContextState.unitMiniContext.filter === '真题'
-      && unitMiniContextState.unitMiniContext.tagIds !== unitMiniContextSource.tagIds
-      && unitMiniFilterState && unitMiniFilterState.unitMiniContext.filter === '模拟'
-      && errorUnitMiniContext && errorUnitMiniContext.source === 'errors' && errorUnitMiniContext.filter === 'all'
-      && clearedUnitMiniContext && clearedUnitMiniContext.unitMiniContext === null
       && normalizedGlobalGraphState && normalizedGlobalGraphState.scale === 0.72
       && normalizedGlobalGraphState.tx === 10
       && normalizedGlobalGraphState.focusIds !== globalGraphFocusSource
@@ -2428,48 +2365,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && fallbackKnowledgeViewChrome && fallbackKnowledgeViewChrome.routeView === 'book'
       && fallbackKnowledgeViewChrome.bookKey
       && fineCategoryLegend && fineCategoryLegend.items[0].text.indexOf('高频') === 0
-      && firstTextbookUnit && firstTextbookUnit.tagIds.length
-      && unitQuestionList && unitQuestionList.counts && unitQuestionList.counts.all >= unitQuestionList.visibleItems.length
-      && unitQuestionList.countText.indexOf('道') !== -1
-      && unitQuestionList.filterChips.length === 3
-      && unitQuestionList.visibleItemModels.length === unitQuestionList.visibleItems.length
-      && unitQuestionList.visibleItemModels.every(function(item) { return item.lectureActionText && item.projectionActionText; })
-      && unitQuestionModalModel && unitQuestionModalModel.header.titleText === unitQuestionList.title
-      && unitQuestionModalModel.filterVisible === true
-      && unitQuestionModalModel.itemCards.length === unitQuestionModalModel.visibleItemModels.length
-      && unitQuestionModalModel.itemCards.every(function(item) {
-        return item.actions && item.actions.length === 2 && item.actions[1].autoProjection === true;
-      })
-      && unitQuestionListOpenPlan && unitQuestionListOpenPlan.source === 'bank'
-      && unitQuestionListOpenPlan.context.filter === '真题'
-      && unitQuestionListOpenPlan.shouldShowModal === true
-      && unitErrorListOpenPlan && unitErrorListOpenPlan.source === 'errors'
-      && unitErrorListOpenPlan.context.filter === 'all'
-      && unitQuestionFilterChangePlan && unitQuestionFilterChangePlan.context.filter === '模拟'
-      && unitQuestionFilterChangePlan.shouldCloseModal === true
-      && unitQuestionFilterChangePlan.reopenDelayMs >= 200
-      && emptyUnitQuestionFilterChangePlan && emptyUnitQuestionFilterChangePlan.action === 'none'
-      && unitQuestionBankNavigationPlan && unitQuestionBankNavigationPlan.source === 'bank'
-      && unitQuestionBankNavigationPlan.previousViewSource === 'exam'
-      && unitQuestionBankNavigationPlan.teachingOptions.showAnswer === true
-      && unitQuestionBankNavigationPlan.returnContext && unitQuestionBankNavigationPlan.returnContext.context.filter === '模拟'
-      && unitQuestionErrorNavigationPlan && unitQuestionErrorNavigationPlan.source === 'errors'
-      && unitQuestionErrorNavigationPlan.fallbackPage === 'error-book'
-      && unitQuestionErrorNavigationPlan.returnContext && unitQuestionErrorNavigationPlan.returnContext.context.filter === 'all'
-      && unitQuestionErrorNavigationPlan.teachingOptions.showAnswer === false
       && unitDrawerReturnPlan && unitDrawerReturnPlan.action === 'unit-question-list'
       && unitDrawerReturnPlan.shouldSwitchPage === true
+      && unitDrawerReturnPlan.shouldCloseDrawer === true
+      && unitDrawerReturnPlan.page === 'knowledge'
       && unitDrawerReturnPlan.knowledgeView === ''
-      && unitDrawerReturnPlan.shouldOpenTextbookModal === false
       && missingUnitDrawerReturnPlan && missingUnitDrawerReturnPlan.shouldSwitchPage === true
-      && missingUnitDrawerReturnPlan.shouldOpenTextbookModal === false
       && emptyDrawerReturnPlan && emptyDrawerReturnPlan.action === 'none'
       && emptyDrawerReturnPlan.shouldSwitchPage === false
-      && unitFilterChips && unitFilterChips[1].active === true
-      && unitFilterChips[2].text === '全部 3'
-      && unitQuestionItemModel && unitQuestionItemModel.sourceText === '📝 我的错题'
-      && unitQuestionItemModel.typeTag && unitQuestionItemModel.typeTag.label === '真题'
-      && unitQuestionItemModel.analysisTruncated === true
       && parsedErrorBatchJson && parsedErrorBatchJson.ok === true
       && parsedErrorBatchJson.count === 1
       && parsedEmptyBatchJson && parsedEmptyBatchJson.errorMessage === '请输入一个非空 JSON 数组'

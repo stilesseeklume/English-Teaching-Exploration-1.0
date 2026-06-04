@@ -941,7 +941,7 @@ function buildKnowledgeViewState(values) {
   if (typeof values === 'string') values = { currentKnowledgeView: values };
   values = values || {};
   var view = values.currentKnowledgeView || values.view || 'map';
-  var valid = ['map', 'book', 'fine-cat', 'textbook', 'system', 'map-node', 'system-node'];
+  var valid = ['map', 'book', 'fine-cat', 'system', 'map-node', 'system-node'];
   if (valid.indexOf(view) === -1) view = 'map';
   return {
     currentKnowledgeView: view,
