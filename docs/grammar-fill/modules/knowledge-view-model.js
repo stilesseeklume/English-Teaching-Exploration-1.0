@@ -5,16 +5,6 @@
 
 /* eslint-disable */
 (function(){
-  var BOOK_ORDER = ['必修一', '必修二', '必修三', '选必一', '选必二', '选必三', '选必四'];
-  var COVER_MAP = {
-    '必修一': 'images/textbook-covers/bixiu-1.jpg',
-    '必修二': 'images/textbook-covers/bixiu-2.jpg',
-    '必修三': 'images/textbook-covers/bixiu-3.jpg',
-    '选必一': 'images/textbook-covers/xuanbi-1.jpg',
-    '选必二': 'images/textbook-covers/xuanbi-2.jpg',
-    '选必三': 'images/textbook-covers/xuanbi-3.jpg',
-    '选必四': 'images/textbook-covers/xuanbi-4.jpg'
-  };
   var CATEGORY_STAT_COLORS = {
     predicate: { bg: '#ffd60a', color: '#947000' },
     nonpredicate: { bg: 'var(--green-bg)', color: 'var(--green)' },
@@ -444,327 +434,6 @@
     };
   }
 
-  function buildTextbookUnitModel(unit, fineTags, bankQuestions, errorQuestions) {
-    fineTags = fineTags || {};
-    unit = unit || {};
-    var mapsTo = asArray(unit.maps_to);
-    var tagIds = mapsTo.map(normalizeTagId).filter(function(id) {
-      return !!((fineTags.tags_by_id || {})[id]);
-    });
-    var tags = tagIds.map(function(id) {
-      var tag = fineTags.tags_by_id[id] || {};
-      var counts = countByFineTag(id, bankQuestions, errorQuestions);
-      return {
-        id: id,
-        name: tag.name || id,
-        counts: counts
-      };
-    });
-    var totalQuestions = tags.reduce(function(sum, tag) { return sum + tag.counts.total; }, 0);
-    var errorCount = asArray(errorQuestions).filter(function(q) {
-      return q && tagIds.indexOf(q.fine_category) !== -1;
-    }).length;
-    return {
-      book: unit.book || '',
-      unit: unit.unit || '',
-      topic: unit.topic || '',
-      grammar_zh: unit.grammar_zh || '',
-      grammar_en: unit.grammar_en || '',
-      mapsTo: mapsTo,
-      tagIds: tagIds,
-      tags: tags,
-      totalQuestions: totalQuestions,
-      errorCount: errorCount,
-      frequencyStyle: getFrequencyStyle(totalQuestions),
-      unitLabel: (unit.unit || '') + (unit.topic ? ' · ' + unit.topic : '')
-    };
-  }
-
-  function groupTextbookUnitsByBook(textbookUnits) {
-    var byBook = {};
-    asArray(textbookUnits).forEach(function(unit) {
-      var book = (unit && unit.book) || '';
-      if (!book) return;
-      (byBook[book] = byBook[book] || []).push(unit);
-    });
-    return byBook;
-  }
-
-  function buildTextbookModeToggleModel(mode) {
-    var activeMode = mode === 'list' ? 'list' : 'gallery';
-    return {
-      activeMode: activeMode,
-      options: [
-        { mode: 'gallery', label: '🎨 画廊', active: activeMode === 'gallery' },
-        { mode: 'list', label: '📋 列表', active: activeMode === 'list' }
-      ]
-    };
-  }
-
-  function buildTextbookModalModel(bookModel) {
-    bookModel = bookModel || {};
-    return {
-      book: bookModel.book || '',
-      cover: bookModel.cover || '',
-      titleText: '人教版 · 英语 · ' + (bookModel.book || ''),
-      subtitleText: (Number(bookModel.unitCount || 0) || 0) + ' 个 Grammar 单元 · '
-        + (Number(bookModel.totalQuestions || 0) || 0) + ' 道关联真题'
-    };
-  }
-
-  function buildTextbookModalViewModel(bookModel) {
-    var modal = buildTextbookModalModel(bookModel);
-    return Object.assign({}, modal, {
-      closeLabel: '×',
-      closeTitle: '关闭 (Esc)'
-    });
-  }
-
-  function buildTextbookModalOpenPlan(book, mode, booksById) {
-    book = String(book || '');
-    var activeMode = mode === 'list' ? 'list' : 'gallery';
-    if (activeMode === 'list') {
-      return {
-        action: 'scroll-to-book',
-        book: book,
-        elementId: 'book-' + book,
-        scrollOptions: { behavior: 'smooth', block: 'start' },
-        shouldRenderModal: false
-      };
-    }
-    var bookModel = booksById && booksById[book] ? booksById[book] : {
-      book: book,
-      cover: '',
-      units: [],
-      unitCount: 0,
-      totalQuestions: 0
-    };
-    return {
-      action: 'open-modal',
-      book: book,
-      bookModel: bookModel,
-      modalModel: buildTextbookModalViewModel(bookModel),
-      shouldRenderModal: true,
-      shouldBindEsc: true
-    };
-  }
-
-  function buildTextbookModel(fineTags, bankQuestions, errorQuestions) {
-    fineTags = fineTags || {};
-    var rawByBook = groupTextbookUnitsByBook(fineTags.textbook_units || []);
-    var books = BOOK_ORDER.map(function(book, idx) {
-      var units = asArray(rawByBook[book]).map(function(unit) {
-        var unitModel = buildTextbookUnitModel(unit, fineTags, bankQuestions, errorQuestions);
-        return Object.assign({}, unitModel, {
-          titleText: unitModel.unit + (unitModel.topic ? ' · ' + unitModel.topic : ''),
-          questionActionText: '📋 看 ' + unitModel.totalQuestions + ' 道真题',
-          errorActionText: '📝 错题 ' + unitModel.errorCount + ' 道',
-          showQuestionAction: unitModel.tagIds.length > 0,
-          showErrorAction: unitModel.errorCount > 0
-        });
-      });
-      var totalQuestions = units.reduce(function(sum, unit) { return sum + unit.totalQuestions; }, 0);
-      var bookModel = {
-        book: book,
-        cover: COVER_MAP[book],
-        units: units,
-        unitCount: units.length,
-        totalQuestions: totalQuestions,
-        labelText: book,
-        metaText: units.length + ' 单元 · ' + totalQuestions + ' 题',
-        animationDelayMs: idx * 60
-      };
-      var modal = buildTextbookModalModel(bookModel);
-      return {
-        book: bookModel.book,
-        cover: bookModel.cover,
-        units: bookModel.units,
-        unitCount: bookModel.unitCount,
-        totalQuestions: bookModel.totalQuestions,
-        labelText: bookModel.labelText,
-        metaText: bookModel.metaText,
-        modalTitleText: modal.titleText,
-        modalSubtitleText: modal.subtitleText,
-        animationDelayMs: bookModel.animationDelayMs
-      };
-    });
-    var booksById = {};
-    books.forEach(function(book) { booksById[book.book] = book; });
-    return {
-      bookOrder: BOOK_ORDER.slice(),
-      coverMap: Object.assign({}, COVER_MAP),
-      books: books,
-      booksById: booksById
-    };
-  }
-
-  function buildTextbookViewModel(fineTags, bankQuestions, errorQuestions, mode) {
-    fineTags = fineTags || {};
-    var model = buildTextbookModel(fineTags, bankQuestions, errorQuestions);
-    var toggle = buildTextbookModeToggleModel(mode);
-    return {
-      empty: !asArray(fineTags.textbook_units).length,
-      emptyText: '教材数据未加载。',
-      activeMode: toggle.activeMode,
-      showList: toggle.activeMode === 'list',
-      toggle: toggle,
-      books: model.books,
-      booksById: model.booksById,
-      coverMap: model.coverMap,
-      bookOrder: model.bookOrder
-    };
-  }
-
-  function isMockQuestion(q) {
-    q = q || {};
-    return q.type === '模拟卷' || q.type === '模拟题';
-  }
-
-  function isRealQuestion(q) {
-    return (q || {}).type === '真题';
-  }
-
-  function getUnitQuestionSourceText(q) {
-    q = q || {};
-    if (q.exam === '错题本' || (q.id && String(q.id).indexOf('err_') === 0)) return '📝 我的错题';
-    return q.exam || q.exam_id || '';
-  }
-
-  function getUnitQuestionTypeTag(q) {
-    q = q || {};
-    if (isRealQuestion(q)) {
-      return {
-        visible: true,
-        label: '真题',
-        style: { bg: 'var(--green-bg)', color: 'var(--green)' }
-      };
-    }
-    if (isMockQuestion(q)) {
-      return {
-        visible: true,
-        label: '模拟',
-        style: { bg: 'var(--orange-bg)', color: 'var(--orange)' }
-      };
-    }
-    return { visible: false, label: '', style: {} };
-  }
-
-  function buildUnitFilterChips(source, filter, counts) {
-    if (source !== 'bank') return [];
-    counts = counts || {};
-    return [
-      { key: '真题', label: '真题', count: Number(counts.real || 0) || 0, active: filter === '真题' },
-      { key: '模拟', label: '模拟', count: Number(counts.mock || 0) || 0, active: filter === '模拟' },
-      { key: 'all', label: '全部', count: Number(counts.all || 0) || 0, active: filter === 'all' }
-    ].map(function(chip) {
-      return Object.assign({}, chip, {
-        text: chip.label + ' ' + chip.count
-      });
-    });
-  }
-
-  function buildUnitQuestionItemModel(q, source) {
-    q = q || {};
-    var analysis = String(q.analysis || '');
-    return {
-      source: source || 'bank',
-      examId: q.exam_id || q.exam || '',
-      no: String(q.no || ''),
-      noText: '第 ' + (q.no || '') + ' 题',
-      sourceText: getUnitQuestionSourceText(q),
-      typeTag: getUnitQuestionTypeTag(q),
-      answerText: q.answer || '',
-      analysisPreview: analysis ? analysis.slice(0, 100) : '',
-      analysisTruncated: analysis.length > 100,
-      lectureActionText: '▶ 讲题',
-      projectionActionText: '📺 投影讲'
-    };
-  }
-
-  function buildUnitQuestionListModel(context, bankQuestions, errorQuestions, options) {
-    context = context || {};
-    options = options || {};
-    var source = context.source || 'bank';
-    var tagIds = asArray(context.tagIds);
-    var rawItems = source === 'errors'
-      ? asArray(errorQuestions).filter(function(q) { return q && tagIds.indexOf(q.fine_category) !== -1; })
-      : asArray(bankQuestions).filter(function(q) { return q && tagIds.indexOf(q.fine_category) !== -1; });
-
-    var filter = context.filter || (source === 'errors' ? 'all' : '真题');
-    var items;
-    if (filter === '真题') items = rawItems.filter(function(q) { return q.type === '真题'; });
-    else if (filter === '模拟') items = rawItems.filter(function(q) { return q.type === '模拟卷' || q.type === '模拟题'; });
-    else items = rawItems.slice();
-
-    var limit = Number(options.limit || 50) || 50;
-    var visibleItems = items.slice(0, limit);
-    var counts = {
-      real: rawItems.filter(isRealQuestion).length,
-      mock: rawItems.filter(isMockQuestion).length,
-      all: rawItems.length
-    };
-    var hiddenCount = Math.max(0, items.length - limit);
-    return {
-      source: source,
-      filter: filter,
-      title: (source === 'errors' ? '📝 ' : '📋 ') + (context.unitLabel || '') + (source === 'errors' ? ' · 我的错题' : ' · 关联真题'),
-      countText: items.length + ' 道',
-      counts: counts,
-      showFilterChips: source === 'bank',
-      filterChips: buildUnitFilterChips(source, filter, counts),
-      items: items,
-      visibleItems: visibleItems,
-      visibleItemModels: visibleItems.map(function(q) { return buildUnitQuestionItemModel(q, source); }),
-      hiddenCount: hiddenCount,
-      hiddenText: hiddenCount > 0 ? '仅显示前 ' + limit + ' 道（共 ' + items.length + ' 道）' : '',
-      emptyText: source === 'errors'
-        ? '该单元对应考点你还没有错题。'
-        : '该单元对应考点暂无真题。',
-      emptyHelpText: source === 'errors' ? '上传 Word 时勾选错题可加入。' : ''
-    };
-  }
-
-  function buildUnitQuestionModalViewModel(context, bankQuestions, errorQuestions, options) {
-    var list = buildUnitQuestionListModel(context, bankQuestions, errorQuestions, options);
-    var itemCards = asArray(list.visibleItemModels).map(function(item) {
-      item = item || {};
-      return Object.assign({}, item, {
-        typeTagVisible: !!(item.typeTag && item.typeTag.visible),
-        actions: [
-          {
-            kind: 'lecture',
-            labelText: item.lectureActionText || '▶ 讲题',
-            examId: item.examId || '',
-            no: item.no || '',
-            source: list.source,
-            autoProjection: false
-          },
-          {
-            kind: 'projection',
-            labelText: item.projectionActionText || '📺 投影讲',
-            examId: item.examId || '',
-            no: item.no || '',
-            source: list.source,
-            autoProjection: true
-          }
-        ]
-      });
-    });
-    return Object.assign({}, list, {
-      closeLabel: '×',
-      closeTitle: '关闭',
-      header: {
-        titleText: list.title || '',
-        countText: list.countText || ''
-      },
-      filterVisible: !!list.showFilterChips,
-      empty: itemCards.length === 0,
-      showEmptyHelp: !!list.emptyHelpText,
-      itemCards: itemCards,
-      hasHiddenItems: !!list.hiddenText
-    });
-  }
-
   function normalizeUnitQuestionNavigationSource(source) {
     return source === 'errors' ? 'errors' : 'bank';
   }
@@ -787,115 +456,18 @@
     };
   }
 
-  function buildUnitQuestionListOpenPlan(unitLabel, tagIds, source) {
-    source = normalizeUnitQuestionNavigationSource(source);
-    return {
-      action: 'open-unit-question-list',
-      source: source,
-      shouldShowModal: true,
-      context: normalizeUnitQuestionReturnContext({
-        unitLabel: unitLabel,
-        tagIds: tagIds,
-        source: source,
-        filter: source === 'errors' ? 'all' : '真题'
-      })
-    };
-  }
-
-  function buildUnitQuestionFilterChangePlan(context, filter, options) {
-    options = options || {};
-    var reopenDelayMs = Number(options.reopenDelayMs || 220) || 220;
-    var currentContext = normalizeUnitQuestionReturnContext(context);
-    if (!currentContext) {
-      return {
-        action: 'none',
-        context: null,
-        shouldCloseModal: false,
-        shouldShowModal: false,
-        reopenDelayMs: reopenDelayMs
-      };
-    }
-    var nextContext = normalizeUnitQuestionReturnContext(Object.assign({}, currentContext, {
-      filter: filter
-    }));
-    return {
-      action: 'change-unit-question-filter',
-      context: nextContext,
-      shouldCloseModal: true,
-      shouldShowModal: true,
-      reopenDelayMs: reopenDelayMs
-    };
-  }
-
-  function buildUnitQuestionNavigationPlan(action, context) {
-    action = action || {};
-    var source = normalizeUnitQuestionNavigationSource(action.source);
-    var autoProjection = !!action.autoProjection;
-    var returnContext = normalizeUnitQuestionReturnContext(context);
-    return {
-      action: 'unit-question-navigation',
-      source: source,
-      examId: action.examId == null ? '' : String(action.examId),
-      no: action.no == null ? '' : String(action.no),
-      autoProjection: autoProjection,
-      isErrorSource: source === 'errors',
-      previousViewSource: source === 'errors' ? 'error' : 'exam',
-      fallbackPage: source === 'errors' ? 'error-book' : '',
-      practicePage: 'practice',
-      shouldRequestTeachingFullscreen: true,
-      shouldCloseUnitModal: true,
-      shouldCloseTextbookModal: true,
-      shouldKeepTeachingOnPageSwitch: true,
-      delayMs: Number(action.delayMs || 250) || 250,
-      teachingOptions: {
-        tab: 'guide',
-        source: 'knowledge',
-        showAnswer: autoProjection
-      },
-      returnContext: returnContext ? {
-        type: 'unit-question-list',
-        label: '返回「' + (returnContext.unitLabel || '') + '」',
-        context: returnContext,
-        tab: 'guide',
-        showAnswer: autoProjection
-      } : null,
-      shouldPushReturnContext: !!returnContext,
-      shouldRenderTeachingDock: !!returnContext
-    };
-  }
-
-  function getTextbookUnitLabel(unit) {
-    unit = unit || {};
-    return (unit.unit || '') + (unit.topic ? ' · ' + unit.topic : '');
-  }
-
   function buildUnitQuestionDrawerReturnPlan(returnInfo, textbookUnits, options) {
     returnInfo = returnInfo || {};
     options = options || {};
     var context = normalizeUnitQuestionReturnContext(returnInfo.context);
     var isUnitReturn = returnInfo.type === 'unit-question-list' && !!context;
-    var matchUnit = null;
-    if (isUnitReturn) {
-      matchUnit = asArray(textbookUnits).find(function(unit) {
-        return getTextbookUnitLabel(unit) === context.unitLabel;
-      }) || null;
-    }
     return {
       action: isUnitReturn ? 'unit-question-list' : 'none',
       shouldCloseDrawer: true,
       shouldSwitchPage: isUnitReturn,
       page: isUnitReturn ? 'knowledge' : '',
-      knowledgeView: isUnitReturn ? 'textbook' : '',
-      unitLabel: context ? context.unitLabel : '',
-      unitContext: context,
-      matchUnit: matchUnit,
-      book: matchUnit ? (matchUnit.book || '') : '',
-      shouldOpenTextbookModal: !!matchUnit,
-      shouldRestoreUnitContext: !!matchUnit,
-      shouldShowUnitModal: !!matchUnit,
+      knowledgeView: '',
       actionDelayMs: Number(options.actionDelayMs || 180) || 180,
-      textbookModalDelayMs: Number(options.textbookModalDelayMs || 350) || 350,
-      maskFadeOutDelayMs: Number(options.maskFadeOutDelayMs || 100) || 100,
       maskRemoveMs: Number(options.maskRemoveMs || 200) || 200
     };
   }
@@ -1034,7 +606,6 @@
       titleText: graph.title || '语法填空讲题路径图谱',
       descText: graph.desc || '把知识可视化成一张可拖动的大图谱。',
       actionButtons: [
-        { labelText: '教材进度', view: 'textbook' },
         { labelText: '考点视图', view: 'fine-cat' },
         { labelText: '书本速查', view: 'book' }
       ],
@@ -1114,8 +685,7 @@
           };
         }),
         viewButtons: [
-          { labelText: '考点视图', view: 'fine-cat' },
-          { labelText: '教材视图', view: 'textbook' }
+          { labelText: '考点视图', view: 'fine-cat' }
         ]
       }
     };
@@ -1365,7 +935,6 @@
       routeView !== 'map'
       && routeView !== 'book'
       && routeView !== 'fine-cat'
-      && routeView !== 'textbook'
       && routeView !== 'system'
     ) {
       routeView = 'book';
@@ -1374,7 +943,6 @@
       { view: 'map', elementId: 'knowledgeMapBtn' },
       { view: 'book', elementId: 'knowledgeBookBtn' },
       { view: 'fine-cat', elementId: 'knowledgeFineCatBtn' },
-      { view: 'textbook', elementId: 'knowledgeTextbookBtn' },
       { view: 'system', elementId: 'knowledgeSystemBtn' }
     ].map(function(button) {
       return Object.assign({}, button, {
@@ -1613,8 +1181,6 @@
     buildGuidedStepModel: buildGuidedStepModel,
     buildDecisionOutlineModel: buildDecisionOutlineModel,
     layoutDecisionTree: layoutDecisionTree,
-    BOOK_ORDER: BOOK_ORDER,
-    COVER_MAP: COVER_MAP,
     CATEGORY_STAT_COLORS: CATEGORY_STAT_COLORS,
     stripHtml: stripHtml,
     normalizeTagId: normalizeTagId,
@@ -1634,25 +1200,6 @@
     buildKnowledgeNavigationPlan: buildKnowledgeNavigationPlan,
     buildGlobalGraphSearchResetModel: buildGlobalGraphSearchResetModel,
     buildFineCategoryLegendModel: buildFineCategoryLegendModel,
-    groupTextbookUnitsByBook: groupTextbookUnitsByBook,
-    buildTextbookUnitModel: buildTextbookUnitModel,
-    buildTextbookModeToggleModel: buildTextbookModeToggleModel,
-    buildTextbookModalModel: buildTextbookModalModel,
-    buildTextbookModalViewModel: buildTextbookModalViewModel,
-    buildTextbookModalOpenPlan: buildTextbookModalOpenPlan,
-    buildTextbookModel: buildTextbookModel,
-    buildTextbookViewModel: buildTextbookViewModel,
-    isMockQuestion: isMockQuestion,
-    isRealQuestion: isRealQuestion,
-    getUnitQuestionSourceText: getUnitQuestionSourceText,
-    getUnitQuestionTypeTag: getUnitQuestionTypeTag,
-    buildUnitFilterChips: buildUnitFilterChips,
-    buildUnitQuestionItemModel: buildUnitQuestionItemModel,
-    buildUnitQuestionListModel: buildUnitQuestionListModel,
-    buildUnitQuestionModalViewModel: buildUnitQuestionModalViewModel,
-    buildUnitQuestionListOpenPlan: buildUnitQuestionListOpenPlan,
-    buildUnitQuestionFilterChangePlan: buildUnitQuestionFilterChangePlan,
-    buildUnitQuestionNavigationPlan: buildUnitQuestionNavigationPlan,
     buildUnitQuestionDrawerReturnPlan: buildUnitQuestionDrawerReturnPlan,
     getKnowledgeRootColorStyle: getKnowledgeRootColorStyle,
     getKnowledgeCategoryLabel: getKnowledgeCategoryLabel,

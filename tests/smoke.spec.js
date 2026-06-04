@@ -795,11 +795,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var knowledgeSearchStateSource = [{ catKey: 'smoke-node' }];
     var normalizedKnowledgeSearchIndex = stateModel && stateModel.normalizeKnowledgeSearchIndex(knowledgeSearchStateSource);
     var knowledgeSearchIndexState = stateModel && stateModel.buildKnowledgeSearchIndexState(knowledgeSearchStateSource);
-    var unitMiniContextSource = { unitLabel: 'Unit Smoke', tagIds: ['tag-a'], source: 'bank' };
-    var unitMiniContextState = stateModel && stateModel.buildUnitMiniContextState(unitMiniContextSource);
-    var unitMiniFilterState = stateModel && stateModel.buildUnitMiniFilterState(unitMiniContextState.unitMiniContext, '模拟');
-    var errorUnitMiniContext = stateModel && stateModel.normalizeUnitMiniContext({ unitLabel: 'Errors', tagIds: ['tag-b'], source: 'errors', filter: '真题' });
-    var clearedUnitMiniContext = stateModel && stateModel.clearUnitMiniContextState();
     var globalGraphFocusSource = ['node-a'];
     var normalizedGlobalGraphState = stateModel && stateModel.normalizeGlobalGraphState({ scale: 'bad', tx: 10, selectedId: 'node-a', focusIds: globalGraphFocusSource });
     var pannedGlobalGraphState = stateModel && stateModel.buildGlobalGraphPanState({ scale: 1, tx: 10, ty: 20 }, 5, -8);
@@ -821,8 +816,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       ['node-b', 'node-c'],
       'predicate'
     );
-    var normalizedTextbookViewMode = stateModel && stateModel.normalizeTextbookViewMode('bad-mode');
-    var textbookListModeState = stateModel && stateModel.buildTextbookViewModeState('list');
     var axis = module && module.getNonpAxis(question);
     var focusFromModule = focusModel && focusModel.getQuestionFocus(question, {
       extractSentence: window.GrammarPassageUtils && window.GrammarPassageUtils.extractSentence,
@@ -1394,10 +1387,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       type: 'switch-page',
       value: 'knowledge'
     });
-    var textbookActionPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
-      type: 'open-textbook',
-      value: '必修一'
-    });
     var unknownActionPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
       type: 'unknown',
       value: 'x'
@@ -1453,76 +1442,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       knowledgeData: window.KNOWLEDGE_DATA || {}
     });
     var fineCategoryLegend = knowledgeModel && knowledgeModel.buildFineCategoryLegendModel();
-    var textbookModel = knowledgeModel && knowledgeModel.buildTextbookModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      [question]
-    );
-    var textbookViewModel = knowledgeModel && knowledgeModel.buildTextbookViewModel(
-      window.GRAMMAR_FINE_TAGS || {},
-      window.GRAMMAR_BANK.questions || [],
-      [question],
-      'list'
-    );
-    var textbookModeToggle = knowledgeModel && knowledgeModel.buildTextbookModeToggleModel('list');
-    var textbookModalModel = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalModel(textbookModel.books[0]);
-    var textbookModalViewModel = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalViewModel(textbookModel.books[0]);
-    var textbookModalOpenGalleryPlan = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalOpenPlan(
-      textbookModel.books[0].book,
-      'gallery',
-      textbookModel.booksById
-    );
-    var textbookModalOpenListPlan = textbookModel && textbookModel.books && knowledgeModel && knowledgeModel.buildTextbookModalOpenPlan(
-      textbookModel.books[0].book,
-      'list',
-      textbookModel.booksById
-    );
-    var firstTextbookUnit = textbookModel && textbookModel.books
-      && textbookModel.books.reduce(function(found, book) {
-        return found || (book.units && book.units.find(function(unit) { return unit.tagIds && unit.tagIds.length; }));
-      }, null);
-    var unitQuestionList = knowledgeModel && knowledgeModel.buildUnitQuestionListModel(
-      { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' },
-      window.GRAMMAR_BANK.questions || [],
-      [question],
-      { limit: 3 }
-    );
-    var unitQuestionModalModel = knowledgeModel && knowledgeModel.buildUnitQuestionModalViewModel(
-      { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' },
-      window.GRAMMAR_BANK.questions || [],
-      [question],
-      { limit: 3 }
-    );
-    var unitQuestionListOpenPlan = knowledgeModel && knowledgeModel.buildUnitQuestionListOpenPlan(
-      'Smoke Unit',
-      [question.fine_category],
-      'bank'
-    );
-    var unitErrorListOpenPlan = knowledgeModel && knowledgeModel.buildUnitQuestionListOpenPlan(
-      'Smoke Error Unit',
-      [question.fine_category],
-      'errors'
-    );
-    var unitQuestionFilterChangePlan = knowledgeModel && knowledgeModel.buildUnitQuestionFilterChangePlan(
-      unitQuestionListOpenPlan && unitQuestionListOpenPlan.context,
-      '模拟'
-    );
-    var emptyUnitQuestionFilterChangePlan = knowledgeModel && knowledgeModel.buildUnitQuestionFilterChangePlan(null, '模拟');
-    var unitQuestionBankNavigationPlan = knowledgeModel && knowledgeModel.buildUnitQuestionNavigationPlan({
-      examId: exam && exam.exam_id,
-      no: question.no,
-      source: 'bank',
-      autoProjection: true
-    }, { unitLabel: 'Smoke Unit', tagIds: [question.fine_category], source: 'bank', filter: '模拟' });
-    var unitQuestionErrorNavigationPlan = knowledgeModel && knowledgeModel.buildUnitQuestionNavigationPlan({
-      examId: '',
-      no: question.no,
-      source: 'errors',
-      autoProjection: false
-    }, { unitLabel: 'Smoke Error Unit', tagIds: [question.fine_category], source: 'errors', filter: '真题' });
+    // 教材视图已删除：仅保留通用的抽屉返回构造器（dock 返回按钮在用）
     var unitDrawerReturnPlan = knowledgeModel && knowledgeModel.buildUnitQuestionDrawerReturnPlan({
       type: 'unit-question-list',
-      context: { unitLabel: firstTextbookUnit && firstTextbookUnit.unitLabel, tagIds: firstTextbookUnit && firstTextbookUnit.tagIds, source: 'bank', filter: 'all' }
+      context: { unitLabel: 'Smoke Unit', tagIds: [question.fine_category], source: 'bank', filter: 'all' }
     }, (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units) || []);
     var missingUnitDrawerReturnPlan = knowledgeModel && knowledgeModel.buildUnitQuestionDrawerReturnPlan({
       type: 'unit-question-list',
@@ -1532,19 +1455,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       type: 'other',
       context: null
     }, (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units) || []);
-    var unitFilterChips = knowledgeModel && knowledgeModel.buildUnitFilterChips('bank', '模拟', {
-      real: 2,
-      mock: 1,
-      all: 3
-    });
-    var unitQuestionItemModel = knowledgeModel && knowledgeModel.buildUnitQuestionItemModel({
-      id: 'err_smoke',
-      exam: '错题本',
-      no: 1,
-      answer: 'learn',
-      type: '真题',
-      analysis: 'a'.repeat(120)
-    }, 'errors');
     var parsedErrorBatchJson = savedModel && savedModel.parseBatchImportJson('[{"answer":"learn"}]', 'error');
     var parsedEmptyBatchJson = savedModel && savedModel.parseBatchImportJson('[]', 'prep');
     var parsedErrorBadJson = savedModel && savedModel.parseBatchImportJson('{bad', 'error');
@@ -1891,10 +1801,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && knowledgeModel.getKnowledgeRootColorStyle({ color: 'green' }) === '#34c759'
       && knowledgeModel.getKnowledgeCategoryLabel(question.category, knowledgeModelDeps)
       && globalGraphPageModel && globalGraphPageModel.titleText
-      && globalGraphPageModel.actionButtons.length === 3
+      && globalGraphPageModel.actionButtons.length === 2
       && globalGraphPageModel.focusButtons.some(function(item) { return item.id === 'verb' && item.active; })
       && globalGraphInspectorModel && globalGraphInspectorModel.titleText
-      && globalGraphInspectorModel.resourceSection && globalGraphInspectorModel.resourceSection.viewButtons.length === 2
+      && globalGraphInspectorModel.resourceSection && globalGraphInspectorModel.resourceSection.viewButtons.length === 1
       && dmTree && dmTree.rootId === 'root' && dmTree.childrenOf['root'].length === 2
       && dmStep && dmStep.title === '有提示词' && dmStep.options.length === 1 && dmStep.options[0].id === 'a1'
       && dmStep.breadcrumb.length === 2 && dmStep.breadcrumb[0].id === 'root' && dmStep.isLeaf === false
@@ -2234,11 +2144,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && normalizedKnowledgeSearchIndex !== knowledgeSearchStateSource
       && knowledgeSearchIndexState && knowledgeSearchIndexState.knowledgeSearchIndex.length === 1
       && knowledgeSearchIndexState.knowledgeSearchIndex !== knowledgeSearchStateSource
-      && unitMiniContextState && unitMiniContextState.unitMiniContext.filter === '真题'
-      && unitMiniContextState.unitMiniContext.tagIds !== unitMiniContextSource.tagIds
-      && unitMiniFilterState && unitMiniFilterState.unitMiniContext.filter === '模拟'
-      && errorUnitMiniContext && errorUnitMiniContext.source === 'errors' && errorUnitMiniContext.filter === 'all'
-      && clearedUnitMiniContext && clearedUnitMiniContext.unitMiniContext === null
       && normalizedGlobalGraphState && normalizedGlobalGraphState.scale === 0.72
       && normalizedGlobalGraphState.tx === 10
       && normalizedGlobalGraphState.focusIds !== globalGraphFocusSource
@@ -2252,8 +2157,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && focusedGlobalGraphState && focusedGlobalGraphState.globalGraphState.selectedId === 'node-b'
       && focusedGlobalGraphState.globalGraphState.focusIds.length === 2
       && focusedGlobalGraphState.globalGraphState.focusMode === 'predicate'
-      && normalizedTextbookViewMode === 'gallery'
-      && textbookListModeState && textbookListModeState.textbookViewMode === 'list'
       && examGrid && examGrid.groups && examGrid.groups.length === 3
       && examGrid.groups[0].year === '2026'
       && examGrid.groups[0].titleText === '2026 年 · 1 套'
@@ -2404,9 +2307,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && uploadActionPlan.delayedSteps[0].delayMs === 120
       && switchActionPlan && switchActionPlan.immediateSteps[0].page === 'knowledge'
       && switchActionPlan.delayedSteps.length === 0
-      && textbookActionPlan && textbookActionPlan.immediateSteps[0].page === 'knowledge'
-      && textbookActionPlan.delayedSteps[0].kind === 'set-knowledge-view'
-      && textbookActionPlan.delayedSteps[1].book === '必修一'
       && unknownActionPlan && unknownActionPlan.immediateSteps.length === 0
       && unknownActionPlan.delayedSteps.length === 0
       && categoryStatsModel && categoryStatsModel.items && categoryStatsModel.items.length
@@ -2465,71 +2365,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && fallbackKnowledgeViewChrome && fallbackKnowledgeViewChrome.routeView === 'book'
       && fallbackKnowledgeViewChrome.bookKey
       && fineCategoryLegend && fineCategoryLegend.items[0].text.indexOf('高频') === 0
-      && textbookModel && textbookModel.books && textbookModel.books.length === 7
-      && textbookModel.booksById['必修一'] && textbookModel.booksById['必修一'].cover.indexOf('bixiu-1.jpg') !== -1
-      && textbookModel.booksById['必修一'].metaText.indexOf('单元') !== -1
-      && textbookViewModel && textbookViewModel.empty === false
-      && textbookViewModel.showList === true
-      && textbookViewModel.toggle && textbookViewModel.toggle.activeMode === 'list'
-      && textbookViewModel.books.length === 7
-      && textbookModeToggle && textbookModeToggle.activeMode === 'list'
-      && textbookModeToggle.options.some(function(option) { return option.mode === 'list' && option.active; })
-      && textbookModalModel && textbookModalModel.titleText.indexOf('人教版 · 英语') === 0
-      && textbookModalModel.subtitleText.indexOf('Grammar 单元') !== -1
-      && textbookModalViewModel && textbookModalViewModel.closeTitle.indexOf('Esc') !== -1
-      && textbookModalViewModel.cover
-      && textbookModalOpenGalleryPlan && textbookModalOpenGalleryPlan.action === 'open-modal'
-      && textbookModalOpenGalleryPlan.shouldRenderModal === true
-      && textbookModalOpenGalleryPlan.modalModel.titleText === textbookModalViewModel.titleText
-      && textbookModalOpenListPlan && textbookModalOpenListPlan.action === 'scroll-to-book'
-      && textbookModalOpenListPlan.elementId.indexOf('book-') === 0
-      && textbookModalOpenListPlan.shouldRenderModal === false
-      && firstTextbookUnit && firstTextbookUnit.tagIds.length && firstTextbookUnit.totalQuestions >= 0
-      && firstTextbookUnit.titleText
-      && firstTextbookUnit.questionActionText.indexOf('看 ') !== -1
-      && firstTextbookUnit.showQuestionAction === true
-      && unitQuestionList && unitQuestionList.counts && unitQuestionList.counts.all >= unitQuestionList.visibleItems.length
-      && unitQuestionList.countText.indexOf('道') !== -1
-      && unitQuestionList.filterChips.length === 3
-      && unitQuestionList.visibleItemModels.length === unitQuestionList.visibleItems.length
-      && unitQuestionList.visibleItemModels.every(function(item) { return item.lectureActionText && item.projectionActionText; })
-      && unitQuestionModalModel && unitQuestionModalModel.header.titleText === unitQuestionList.title
-      && unitQuestionModalModel.filterVisible === true
-      && unitQuestionModalModel.itemCards.length === unitQuestionModalModel.visibleItemModels.length
-      && unitQuestionModalModel.itemCards.every(function(item) {
-        return item.actions && item.actions.length === 2 && item.actions[1].autoProjection === true;
-      })
-      && unitQuestionListOpenPlan && unitQuestionListOpenPlan.source === 'bank'
-      && unitQuestionListOpenPlan.context.filter === '真题'
-      && unitQuestionListOpenPlan.shouldShowModal === true
-      && unitErrorListOpenPlan && unitErrorListOpenPlan.source === 'errors'
-      && unitErrorListOpenPlan.context.filter === 'all'
-      && unitQuestionFilterChangePlan && unitQuestionFilterChangePlan.context.filter === '模拟'
-      && unitQuestionFilterChangePlan.shouldCloseModal === true
-      && unitQuestionFilterChangePlan.reopenDelayMs >= 200
-      && emptyUnitQuestionFilterChangePlan && emptyUnitQuestionFilterChangePlan.action === 'none'
-      && unitQuestionBankNavigationPlan && unitQuestionBankNavigationPlan.source === 'bank'
-      && unitQuestionBankNavigationPlan.previousViewSource === 'exam'
-      && unitQuestionBankNavigationPlan.teachingOptions.showAnswer === true
-      && unitQuestionBankNavigationPlan.returnContext && unitQuestionBankNavigationPlan.returnContext.context.filter === '模拟'
-      && unitQuestionErrorNavigationPlan && unitQuestionErrorNavigationPlan.source === 'errors'
-      && unitQuestionErrorNavigationPlan.fallbackPage === 'error-book'
-      && unitQuestionErrorNavigationPlan.returnContext && unitQuestionErrorNavigationPlan.returnContext.context.filter === 'all'
-      && unitQuestionErrorNavigationPlan.teachingOptions.showAnswer === false
       && unitDrawerReturnPlan && unitDrawerReturnPlan.action === 'unit-question-list'
       && unitDrawerReturnPlan.shouldSwitchPage === true
-      && unitDrawerReturnPlan.knowledgeView === 'textbook'
-      && unitDrawerReturnPlan.shouldOpenTextbookModal === true
-      && unitDrawerReturnPlan.book
+      && unitDrawerReturnPlan.shouldCloseDrawer === true
+      && unitDrawerReturnPlan.page === 'knowledge'
+      && unitDrawerReturnPlan.knowledgeView === ''
       && missingUnitDrawerReturnPlan && missingUnitDrawerReturnPlan.shouldSwitchPage === true
-      && missingUnitDrawerReturnPlan.shouldOpenTextbookModal === false
       && emptyDrawerReturnPlan && emptyDrawerReturnPlan.action === 'none'
       && emptyDrawerReturnPlan.shouldSwitchPage === false
-      && unitFilterChips && unitFilterChips[1].active === true
-      && unitFilterChips[2].text === '全部 3'
-      && unitQuestionItemModel && unitQuestionItemModel.sourceText === '📝 我的错题'
-      && unitQuestionItemModel.typeTag && unitQuestionItemModel.typeTag.label === '真题'
-      && unitQuestionItemModel.analysisTruncated === true
       && parsedErrorBatchJson && parsedErrorBatchJson.ok === true
       && parsedErrorBatchJson.count === 1
       && parsedEmptyBatchJson && parsedEmptyBatchJson.errorMessage === '请输入一个非空 JSON 数组'
@@ -2833,21 +2676,6 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && activeDock
       && activeDock.dataset.dockKey === 'knowledge');
   })).toBe(true);
-  await page.locator('#knowledgeTextbookBtn').click();
-  await expect(page.locator('#knowledgeTextbookBtn')).toHaveClass(/active/);
-  await expect(await page.evaluate(() => {
-    var snapshot = window.getKnowledgeViewSnapshot && window.getKnowledgeViewSnapshot();
-    return window.GrammarAppState
-      && window.GrammarAppState.state.currentKnowledgeView === 'textbook'
-      && window.GrammarAppState.state.currentKnowledgeNodeId === ''
-      && window.GrammarAppState.state.textbookViewMode === 'gallery'
-      && snapshot
-      && snapshot.currentKnowledgeView === window.GrammarAppState.state.currentKnowledgeView
-      && snapshot.currentKnowledgeNodeId === window.GrammarAppState.state.currentKnowledgeNodeId;
-  })).toBe(true);
-  await expect(page.locator('#knowledgeContent')).toContainText(/必修一/);
-  // 教材视图已搁置：仅展示"开发中"提示 + 封面画廊（不可点），无列表切换/单元交互
-  await expect(page.locator('#knowledgeContent')).toContainText(/开发中|敬请期待/);
   // Task 4 迁移：#knowledgeFineCatBtn(考点视图) 已移至「考点训练」dock 页，知识库不再有该按钮（见专门的考点训练页测试）
   await page.locator('#knowledgeBookBtn').click();
   await expect(page.locator('#knowledgeSidebar')).toBeVisible();

@@ -122,18 +122,6 @@
         delayedSteps: []
       };
     }
-    if (action.type === 'open-textbook') {
-      return {
-        action: action,
-        immediateSteps: [
-          { kind: 'switch-page', page: 'knowledge' }
-        ],
-        delayedSteps: [
-          { kind: 'set-knowledge-view', view: 'textbook', delayMs: 80 },
-          { kind: 'open-textbook-modal', book: action.value || '', delayMs: 130 }
-        ]
-      };
-    }
     return {
       action: action,
       immediateSteps: [],

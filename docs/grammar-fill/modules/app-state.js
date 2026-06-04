@@ -28,7 +28,6 @@
     currentKnowledgeNodeId: '',
     currentIsPattern: false,
     knowledgeSearchIndex: [],
-    unitMiniContext: null,
     globalGraphState: {
       scale: 0.72,
       tx: 40,
@@ -38,7 +37,6 @@
       focusMode: 'overview',
       ready: false
     },
-    textbookViewMode: 'gallery',
     errorBulkMode: false,
     prepBulkMode: false,
     drawerReturnTo: null,
@@ -455,7 +453,6 @@
       view === 'map'
       || view === 'book'
       || view === 'fine-cat'
-      || view === 'textbook'
       || view === 'system'
       || view === 'map-node'
       || view === 'system-node'
@@ -483,49 +480,6 @@
   function buildKnowledgeSearchIndexState(index) {
     return {
       knowledgeSearchIndex: normalizeKnowledgeSearchIndex(index)
-    };
-  }
-
-  function normalizeUnitMiniSource(source) {
-    return source === 'errors' ? 'errors' : 'bank';
-  }
-
-  function normalizeUnitMiniFilter(filter, source) {
-    source = normalizeUnitMiniSource(source);
-    if (source === 'errors') return 'all';
-    if (filter === '模拟' || filter === 'all') return filter;
-    return '真题';
-  }
-
-  function normalizeUnitMiniContext(context) {
-    if (!context || typeof context !== 'object') return null;
-    var source = normalizeUnitMiniSource(context.source);
-    return {
-      unitLabel: context.unitLabel || '',
-      tagIds: Array.isArray(context.tagIds) ? context.tagIds.slice() : [],
-      source: source,
-      filter: normalizeUnitMiniFilter(context.filter, source)
-    };
-  }
-
-  function buildUnitMiniContextState(context) {
-    return {
-      unitMiniContext: normalizeUnitMiniContext(context)
-    };
-  }
-
-  function buildUnitMiniFilterState(context, filter) {
-    var nextContext = normalizeUnitMiniContext(context);
-    if (!nextContext) return { unitMiniContext: null };
-    nextContext.filter = normalizeUnitMiniFilter(filter, nextContext.source);
-    return {
-      unitMiniContext: nextContext
-    };
-  }
-
-  function clearUnitMiniContextState() {
-    return {
-      unitMiniContext: null
     };
   }
 
@@ -629,17 +583,6 @@
     next.focusMode = focusMode || 'overview';
     return {
       globalGraphState: next
-    };
-  }
-
-  function normalizeTextbookViewMode(mode) {
-    if (mode === 'list') return 'list';
-    return 'gallery';
-  }
-
-  function buildTextbookViewModeState(mode) {
-    return {
-      textbookViewMode: normalizeTextbookViewMode(mode)
     };
   }
 
@@ -1687,12 +1630,6 @@
     buildKnowledgeViewState: buildKnowledgeViewState,
     normalizeKnowledgeSearchIndex: normalizeKnowledgeSearchIndex,
     buildKnowledgeSearchIndexState: buildKnowledgeSearchIndexState,
-    normalizeUnitMiniSource: normalizeUnitMiniSource,
-    normalizeUnitMiniFilter: normalizeUnitMiniFilter,
-    normalizeUnitMiniContext: normalizeUnitMiniContext,
-    buildUnitMiniContextState: buildUnitMiniContextState,
-    buildUnitMiniFilterState: buildUnitMiniFilterState,
-    clearUnitMiniContextState: clearUnitMiniContextState,
     normalizeGlobalGraphState: normalizeGlobalGraphState,
     buildGlobalGraphState: buildGlobalGraphState,
     buildGlobalGraphPanState: buildGlobalGraphPanState,
@@ -1700,8 +1637,6 @@
     buildGlobalGraphFitBoundsState: buildGlobalGraphFitBoundsState,
     buildGlobalGraphCenterNodeState: buildGlobalGraphCenterNodeState,
     buildGlobalGraphFocusState: buildGlobalGraphFocusState,
-    normalizeTextbookViewMode: normalizeTextbookViewMode,
-    buildTextbookViewModeState: buildTextbookViewModeState,
     getDockBackLabel: getDockBackLabel,
     getDockBackAction: getDockBackAction,
     buildPreviousViewReturn: buildPreviousViewReturn,

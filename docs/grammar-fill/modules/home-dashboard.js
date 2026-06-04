@@ -10,7 +10,6 @@
 //   switchPage(page)                   切换页面
 //   navigateHome(view)                 切换 home 子视图
 //   setKnowledgeView(view)             切换知识库视图
-//   openTextbookModal(book)            打开教材弹窗
 //   getCurrentQuestionIndex()          当前题序号（共享访问器，留在 index.html 顶层）
 //   getPracticeContextSnapshot()       读练习上下文快照
 //   getSelectedQuestionSnapshot()      读选中题快照
@@ -54,8 +53,6 @@
         if (btn) btn.click();
       } else if (step.kind === 'set-knowledge-view') {
         _d.setKnowledgeView(step.view);
-      } else if (step.kind === 'open-textbook-modal') {
-        _d.openTextbookModal(step.book);
       }
     }
     (plan.immediateSteps || []).forEach(runStep);
