@@ -315,18 +315,20 @@ EXPECTED_MODULES = [
         "path": "knowledge-view-model.js",
         "namespace": "GrammarKnowledgeViewModel",
         "exports": [
-            "BOOK_ORDER",
-            "COVER_MAP",
-            "CATEGORY_STAT_COLORS",
             "buildDecisionTree",
             "buildPointBreadcrumb",
             "buildPointsLeafListModel",
+            "buildMigrationPointTitle",
             "buildGuidedStepModel",
             "buildDecisionOutlineModel",
             "layoutDecisionTree",
+            "CATEGORY_STAT_COLORS",
             "stripHtml",
             "normalizeTagId",
             "countByFineTag",
+            "countByPoint",
+            "formatCountBadge",
+            "buildLeafWordBreakdown",
             "getFrequencyStyle",
             "buildCategoryStatsModel",
             "buildSearchIndex",
@@ -339,25 +341,6 @@ EXPECTED_MODULES = [
             "buildKnowledgeNavigationPlan",
             "buildGlobalGraphSearchResetModel",
             "buildFineCategoryLegendModel",
-            "groupTextbookUnitsByBook",
-            "buildTextbookUnitModel",
-            "buildTextbookModeToggleModel",
-            "buildTextbookModalModel",
-            "buildTextbookModalViewModel",
-            "buildTextbookModalOpenPlan",
-            "buildTextbookModel",
-            "buildTextbookViewModel",
-            "isMockQuestion",
-            "isRealQuestion",
-            "getUnitQuestionSourceText",
-            "getUnitQuestionTypeTag",
-            "buildUnitFilterChips",
-            "buildUnitQuestionItemModel",
-            "buildUnitQuestionListModel",
-            "buildUnitQuestionModalViewModel",
-            "buildUnitQuestionListOpenPlan",
-            "buildUnitQuestionFilterChangePlan",
-            "buildUnitQuestionNavigationPlan",
             "buildUnitQuestionDrawerReturnPlan",
             "getKnowledgeRootColorStyle",
             "getKnowledgeCategoryLabel",
@@ -373,6 +356,9 @@ EXPECTED_MODULES = [
             "buildKnowledgeSidebarModel",
             "buildKnowledgeBookContentModel",
             "buildKnowledgeViewChromeModel",
+            "searchDecisionNodes",
+            "collectDecisionAncestors",
+            "collectExpandableIds",
         ],
     },
     {
@@ -533,12 +519,6 @@ EXPECTED_MODULES = [
             "buildKnowledgeViewState",
             "normalizeKnowledgeSearchIndex",
             "buildKnowledgeSearchIndexState",
-            "normalizeUnitMiniSource",
-            "normalizeUnitMiniFilter",
-            "normalizeUnitMiniContext",
-            "buildUnitMiniContextState",
-            "buildUnitMiniFilterState",
-            "clearUnitMiniContextState",
             "normalizeGlobalGraphState",
             "buildGlobalGraphState",
             "buildGlobalGraphPanState",
@@ -546,8 +526,6 @@ EXPECTED_MODULES = [
             "buildGlobalGraphFitBoundsState",
             "buildGlobalGraphCenterNodeState",
             "buildGlobalGraphFocusState",
-            "normalizeTextbookViewMode",
-            "buildTextbookViewModeState",
             "getDockBackLabel",
             "getDockBackAction",
             "buildPreviousViewReturn",
@@ -679,6 +657,15 @@ FORBIDDEN_IN_PURE_MODULES = [
 ]
 
 
+CONTROLLER_MODULES = [
+    # 编排/控制器模块：合法触碰 DOM/storage，参与脚本顺序但不受纯模块契约约束。
+    "projection.js",
+    "home-dashboard.js",
+    "lesson-prep-controller.js",
+    "cloud-sync.js",
+]
+
+
 def fail(errors: list[str]) -> int:
     for error in errors:
         print(f"FAIL: {error}", file=sys.stderr)
@@ -745,13 +732,23 @@ def main() -> int:
         return fail(["missing docs/grammar-fill/index.html"])
 
     html = GRAMMAR_PAGE.read_text(encoding="utf-8")
-    expected_order = [str(item["path"]) for item in EXPECTED_MODULES]
+    pure_paths = [str(item["path"]) for item in EXPECTED_MODULES]
     actual_order = script_module_order(html)
 
-    if actual_order != expected_order:
+    known = set(pure_paths) | set(CONTROLLER_MODULES)
+    unregistered = [p for p in actual_order if p not in known]
+    if unregistered:
         errors.append(
-            "grammar-fill module script order mismatch: "
-            f"expected {expected_order}, got {actual_order}"
+            "unregistered grammar-fill module scripts (add to EXPECTED_MODULES if "
+            "pure, or CONTROLLER_MODULES if it uses DOM/storage): "
+            f"{unregistered}"
+        )
+
+    actual_pure_order = [p for p in actual_order if p in set(pure_paths)]
+    if actual_pure_order != pure_paths:
+        errors.append(
+            "grammar-fill pure module order mismatch: "
+            f"expected {pure_paths}, got {actual_pure_order}"
         )
 
     for module in EXPECTED_MODULES:
