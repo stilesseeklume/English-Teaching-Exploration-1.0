@@ -1,0 +1,4501 @@
+
+// ────────── 从 grammar_bank.js 加载题库 ──────────
+// 数据源：data/语法填空库/*.md  →  scripts/build_grammar_bank.py 生成
+// 新增题目时只需添加 markdown，再重新运行该脚本即可
+const BANK = window.GRAMMAR_BANK || { exams: [], questions: [] };
+const CATEGORY_MAP = window.GrammarCategoryRules
+  ? window.GrammarCategoryRules.buildCategoryMap(BANK)
+  : ((window.GRAMMAR_BANK && window.GRAMMAR_BANK.category_names) || {});
+const EXAMS_BY_ID = window.GrammarQuestionModel
+  ? window.GrammarQuestionModel.buildExamsById(BANK)
+  : Object.fromEntries(BANK.exams.map(e => [e.exam_id, e]));
+
+const CATEGORY_TIPS = window.GrammarCategoryRules
+  ? window.GrammarCategoryRules.CATEGORY_TIPS
+  : {};
+
+// 暴露给 shared/word-import.js（const 默认不挂 window）
+window.CATEGORY_MAP = CATEGORY_MAP;
+window.CATEGORY_TIPS = CATEGORY_TIPS;
+
+const TRAP_DATA = window.GRAMMAR_KNOWLEDGE_TRAPS || { trap_index: {}, traps_by_category: {} };
+
+function focusRuleDeps() {
+  return {
+    extractSentence: extractSentence,
+    trapData: TRAP_DATA,
+    categoryMap: CATEGORY_MAP,
+    categoryTips: CATEGORY_TIPS
+  };
+}
+
+function getQuestionTextBlob(q) {
+  return window.GrammarFocusRules.getQuestionTextBlob(q, focusRuleDeps());
+}
+
+function hasExplicitWordCue(text, keyword) {
+  return window.GrammarFocusRules.hasExplicitWordCue(text, keyword);
+}
+
+function hasAdverbCue(answer, blob, grammarPoint) {
+  return window.GrammarFocusRules.hasAdverbCue(answer, blob, grammarPoint);
+}
+
+function hasAdjectiveCue(answer, blob, grammarPoint) {
+  return window.GrammarFocusRules.hasAdjectiveCue(answer, blob, grammarPoint);
+}
+
+function getWordExplanationLead(q) {
+  return window.GrammarFocusRules.getWordExplanationLead(q);
+}
+
+function detectWordFormTarget(q, answer, blob, grammarPoint) {
+  return window.GrammarFocusRules.detectWordFormTarget(q, answer, blob, grammarPoint);
+}
+
+function hasBeDoneAnswer(answer) {
+  return window.GrammarFocusRules.hasBeDoneAnswer(answer);
+}
+
+function hasPredicatePassiveCue(q, answer, blob, grammarPoint) {
+  return window.GrammarFocusRules.hasPredicatePassiveCue(q, answer, blob, grammarPoint);
+}
+
+function hasPredicateAgreementCue(q, blob, grammarPoint) {
+  return window.GrammarFocusRules.hasPredicateAgreementCue(q, blob, grammarPoint);
+}
+
+function hasPredicatePerfectCue(q, blob) {
+  return window.GrammarFocusRules.hasPredicatePerfectCue(q, blob);
+}
+
+function hasPredicatePastCue(q, blob) {
+  return window.GrammarFocusRules.hasPredicatePastCue(q, blob);
+}
+
+function getTrapById(id) {
+  return window.GrammarFocusRules.getTrapById(id, focusRuleDeps());
+}
+
+function inferQuestionTrapId(q) {
+  return window.GrammarFocusRules.inferQuestionTrapId(q, focusRuleDeps());
+}
+
+function getQuestionTrap(q) {
+  return window.GrammarFocusRules.getQuestionTrap(q, focusRuleDeps());
+}
+
+function getQuestionTrapId(q) {
+  return window.GrammarFocusRules.getQuestionTrapId(q, focusRuleDeps());
+}
+
+function getQuestionFocus(q) {
+  return window.GrammarFocusRules.getQuestionFocus(q, focusRuleDeps());
+}
+
+function getQuestionFocusKey(q) {
+  return window.GrammarFocusRules.getQuestionFocusKey(q, focusRuleDeps());
+}
+
+const FOCUS_GUIDES = window.GrammarTeachingGuide.FOCUS_GUIDES;
+const TRAP_GUIDES = window.GrammarTeachingGuide.TRAP_GUIDES;
+
+function getFocusGuide(focus) {
+  return window.GrammarTeachingGuide.getFocusGuide(focus);
+}
+
+function getQuestionTeachingGuide(q) {
+  return window.GrammarTeachingGuide.getQuestionTeachingGuide(q, {
+    getQuestionFocus: getQuestionFocus,
+    getQuestionTrap: getQuestionTrap
+  });
+}
+
+function getQuestionLessonPath(q, focus, trap) {
+  return window.GrammarTeachingGuide.getQuestionLessonPath(q, focus, trap, {
+    categoryMap: CATEGORY_MAP
+  });
+}
+
+// 扁平题表（兼容旧字段）：每条带上所属套卷的 passage
+const ALL_QUESTIONS = window.GrammarQuestionModel
+  ? window.GrammarQuestionModel.buildAllQuestions(BANK, CATEGORY_TIPS)
+  : BANK.questions.map(q => ({
+    no: q.no,
+    year: q.year,
+    exam: q.exam_id,
+    exam_id: q.exam_id,
+    type: q.type,
+    answer: q.answer,
+    category: q.category,
+    category_name: q.category_name,
+    grammar_point: q.grammar_point,
+    fine_category: q.fine_category,
+    facets: q.facets,
+    nonp_function: q.nonp_function,
+    nonp_function_label: q.nonp_function_label,
+    nonp_form: q.nonp_form,
+    nonp_form_label: q.nonp_form_label,
+    nonp_rule: q.nonp_rule,
+    nonp_needs_review: q.nonp_needs_review,
+    passage: q.passage,
+    sentence: '',
+    analysis: q.explanation || ('答案：' + q.answer + '。'),
+    technique: '考点：' + (q.category_name || q.grammar_point || '语法填空') +
+               '。' + (CATEGORY_TIPS[q.category] || '先判空格成分，再确定词形。'),
+  }));
+const KNOWLEDGE_DATA = window.KNOWLEDGE_DATA || {};
+const PATTERN_DATA = window.PATTERN_DATA || {};
+const KNOWLEDGE_CORE = window.GRAMMAR_KNOWLEDGE_CORE || { roots: [], nodes: {}, learning_paths: [], category_to_nodes: {}, trap_to_nodes: {} };
+// Sprint 1 · 精细 tag 体系（来自 docs/data/grammar_fine_tags.js）
+const FINE_TAGS = window.GRAMMAR_FINE_TAGS || { tags_by_id: {}, tags_by_category: {}, categories: {}, textbook_units: [], tag_to_units: {} };
+
+// 从 fine_category id 取展示用对象（带 fine name + 教材引用）
+function getFineTagInfo(fineCategory) {
+  return window.GrammarQuestionModel.getFineTagInfo(fineCategory, FINE_TAGS);
+}
+
+function getNonpAxis(q) {
+  return window.GrammarTeachingAxes.getNonpAxis(q);
+}
+
+function sameQuestion(a, b) {
+  return window.GrammarMigrationTraining.sameQuestion(a, b);
+}
+
+function teachingViewModelDeps() {
+  return {
+    categoryMap: CATEGORY_MAP,
+    knowledgeCore: KNOWLEDGE_CORE,
+    safeQuestionFocus: safeQuestionFocus,
+    safeQuestionTrapId: safeQuestionTrapId,
+    getNonpAxis: getNonpAxis,
+    getQuestionPracticalGuide: getQuestionPracticalGuide,
+    getFineTagInfo: getFineTagInfo
+  };
+}
+let currentExam = null;
+let currentQuestions = [];
+let selectedQuestion = null;
+let teachingSession = null;
+let teachingReturnStack = [];
+let teachingBaseContext = null;
+let teachingFullscreenRequested = false;
+var _keepTeachingOnPageSwitch = false;
+let passageFontSize = 24;
+let drawerFontSize = 24;
+let showAnswers = false;
+let showChinese = false;
+let previousView = null;
+var _activePage = 'home';
+var _activeDock = 'home';
+var _currentHomeView = 'cards';
+// _loggingOut 已随 modules/cloud-sync.js 内部化（云登录退出态由 setCloudLoggingOutState 维护）
+var currentKnowledgeView = 'map';
+var currentKnowledgeKey = '';
+var currentKnowledgeNodeId = '';
+var currentIsPattern = false;
+const DRAWER_STORAGE_KEY = 'grammar-fill-drawer-height';
+let drawerHeight = null;
+
+function normalizePreviousView(previousView) {
+  if (window.GrammarAppState) return window.GrammarAppState.normalizePreviousView(previousView);
+  if (!previousView || !previousView.page) return null;
+  if (previousView.page === 'home') {
+    return {
+      page: 'home',
+      view: (previousView.view === 'exams' || previousView.view === 'categories') ? previousView.view : 'cards'
+    };
+  }
+  return { page: previousView.page };
+}
+
+function getPracticeEntryPreviousView(source) {
+  if (window.GrammarAppState) return window.GrammarAppState.getPracticeEntryPreviousView(source);
+  if (source === 'category' || source === 'categories') return { page: 'home', view: 'categories' };
+  if (source === 'exam' || source === 'exams' || source === 'bank') return { page: 'home', view: 'exams' };
+  if (source === 'error' || source === 'errors' || source === 'error-book') return { page: 'error-book' };
+  if (source === 'prep' || source === 'lesson-prep') return { page: 'lesson-prep' };
+  return null;
+}
+
+function setPreviousView(nextPreviousView) {
+  var nextState = window.GrammarAppState
+    ? window.GrammarAppState.buildPreviousViewState(nextPreviousView)
+    : { previousView: normalizePreviousView(nextPreviousView) };
+  previousView = nextState.previousView;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ previousView: previousView });
+  }
+  return previousView;
+}
+
+function getPreviousViewSnapshot() {
+  if (window.GrammarAppState && window.GrammarAppState.buildPreviousViewState) {
+    return window.GrammarAppState.buildPreviousViewState(previousView);
+  }
+  return {
+    previousView: normalizePreviousView(previousView),
+    label: ''
+  };
+}
+
+function buildActivePageState(page) {
+  if (window.GrammarAppState) return window.GrammarAppState.buildActivePageState(page);
+  return {
+    activePage: page || 'home',
+    activeDock: page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' ? page : ''
+  };
+}
+
+function buildDockActivationState(dockKey) {
+  if (window.GrammarAppState) return window.GrammarAppState.buildDockActivationState(dockKey);
+  var valid = ['home', 'exams', 'categories', 'knowledge', 'error-book', 'lesson-prep', 'ai'];
+  return {
+    activeDock: valid.indexOf(dockKey) === -1 ? '' : dockKey
+  };
+}
+
+function applyActivePageState(nextState) {
+  nextState = nextState || buildActivePageState('home');
+  _activePage = nextState.activePage || 'home';
+  _activeDock = typeof nextState.activeDock === 'string' ? nextState.activeDock : _activeDock;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      activePage: _activePage,
+      activeDock: _activeDock
+    });
+  }
+  return {
+    activePage: _activePage,
+    activeDock: _activeDock
+  };
+}
+
+function applyActiveDockState(nextState) {
+  nextState = nextState || buildDockActivationState('');
+  _activeDock = typeof nextState.activeDock === 'string' ? nextState.activeDock : '';
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ activeDock: _activeDock });
+  }
+  return {
+    activeDock: _activeDock
+  };
+}
+
+function getPageNavigationSnapshot() {
+  var activePageState = window.GrammarAppState && window.GrammarAppState.buildActivePageState
+    ? window.GrammarAppState.buildActivePageState(_activePage)
+    : buildActivePageState(_activePage);
+  var dockState = window.GrammarAppState && window.GrammarAppState.buildDockActivationState
+    ? window.GrammarAppState.buildDockActivationState(_activeDock)
+    : buildDockActivationState(_activeDock);
+  var homeState = window.GrammarAppState && window.GrammarAppState.buildHomeViewState
+    ? window.GrammarAppState.buildHomeViewState(_currentHomeView)
+    : buildHomeViewState(_currentHomeView);
+  return {
+    activePage: activePageState.activePage || 'home',
+    activeDock: typeof dockState.activeDock === 'string' ? dockState.activeDock : (activePageState.activeDock || ''),
+    currentHomeView: homeState.currentHomeView || 'cards',
+    homeDockKey: homeState.dockKey || 'home'
+  };
+}
+
+function getActivePageKey() {
+  return getPageNavigationSnapshot().activePage;
+}
+
+function applySelectedQuestionState(nextState) {
+  nextState = nextState || (window.GrammarAppState
+    ? window.GrammarAppState.clearSelectedQuestionState()
+    : { selectedQuestion: null, selectedQuestionIndex: -1 });
+  selectedQuestion = nextState.selectedQuestion || null;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ selectedQuestion: selectedQuestion });
+  }
+  return {
+    selectedQuestion: selectedQuestion,
+    selectedQuestionIndex: typeof nextState.selectedQuestionIndex === 'number' ? nextState.selectedQuestionIndex : -1
+  };
+}
+
+function getSelectedQuestionSnapshot() {
+  var practiceContext = getPracticeContextSnapshot();
+  if (window.GrammarAppState && window.GrammarAppState.buildSelectedQuestionSnapshotState) {
+    return window.GrammarAppState.buildSelectedQuestionSnapshotState(selectedQuestion, practiceContext.currentQuestions);
+  }
+  return {
+    selectedQuestion: selectedQuestion || null,
+    selectedQuestionIndex: window.GrammarAppState
+      ? window.GrammarAppState.findSelectedQuestionIndex(selectedQuestion, practiceContext.currentQuestions)
+      : -1
+  };
+}
+
+function applyTeachingSessionState(nextState) {
+  nextState = nextState || (window.GrammarAppState
+    ? window.GrammarAppState.clearTeachingSessionState()
+    : { teachingSession: null });
+  if (window.GrammarAppState && window.GrammarAppState.buildTeachingSessionState) {
+    nextState = window.GrammarAppState.buildTeachingSessionState(nextState.teachingSession);
+  }
+  teachingSession = nextState.teachingSession || null;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ teachingSession: teachingSession });
+  }
+  return teachingSession;
+}
+
+function getTeachingSessionSnapshot() {
+  if (window.GrammarAppState && window.GrammarAppState.buildTeachingSessionState) {
+    return window.GrammarAppState.buildTeachingSessionState(teachingSession);
+  }
+  return {
+    teachingSession: teachingSession || null
+  };
+}
+
+function applyTeachingReturnStackState(nextState) {
+  nextState = nextState || (window.GrammarAppState
+    ? window.GrammarAppState.buildTeachingReturnStackState(teachingReturnStack)
+    : { teachingReturnStack: Array.isArray(teachingReturnStack) ? teachingReturnStack : [] });
+  teachingReturnStack = Array.isArray(nextState.teachingReturnStack) ? nextState.teachingReturnStack : [];
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ teachingReturnStack: teachingReturnStack });
+  }
+  return {
+    teachingReturnStack: teachingReturnStack,
+    returnContext: nextState.returnContext || null,
+    hasReturn: !!nextState.hasReturn
+  };
+}
+
+function getTeachingReturnStackSnapshot() {
+  if (window.GrammarAppState && window.GrammarAppState.buildTeachingReturnStackSnapshotState) {
+    return window.GrammarAppState.buildTeachingReturnStackSnapshotState(teachingReturnStack);
+  }
+  return {
+    teachingReturnStack: Array.isArray(teachingReturnStack) ? teachingReturnStack : [],
+    returnContext: null,
+    hasReturn: false
+  };
+}
+
+function applyTeachingBaseContextState(nextState) {
+  nextState = nextState || (window.GrammarAppState
+    ? window.GrammarAppState.clearTeachingBaseContextState()
+    : { teachingBaseContext: null });
+  teachingBaseContext = nextState.teachingBaseContext || null;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ teachingBaseContext: teachingBaseContext });
+  }
+  return teachingBaseContext;
+}
+
+function getTeachingBaseContextSnapshot() {
+  if (window.GrammarAppState && window.GrammarAppState.buildTeachingBaseContextSnapshotState) {
+    return window.GrammarAppState.buildTeachingBaseContextSnapshotState(teachingBaseContext);
+  }
+  return {
+    teachingBaseContext: teachingBaseContext || null
+  };
+}
+
+function applyTeachingPageSwitchRetentionState(nextState) {
+  nextState = nextState || (window.GrammarAppState
+    ? window.GrammarAppState.buildTeachingPageSwitchRetentionState(false)
+    : { keepTeachingOnPageSwitch: false });
+  _keepTeachingOnPageSwitch = !!nextState.keepTeachingOnPageSwitch;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({ keepTeachingOnPageSwitch: _keepTeachingOnPageSwitch });
+  }
+  return {
+    keepTeachingOnPageSwitch: _keepTeachingOnPageSwitch
+  };
+}
+
+function getTeachingPageSwitchRetentionSnapshot() {
+  if (window.GrammarAppState && window.GrammarAppState.buildTeachingPageSwitchRetentionSnapshotState) {
+    return window.GrammarAppState.buildTeachingPageSwitchRetentionSnapshotState({
+      keepTeachingOnPageSwitch: _keepTeachingOnPageSwitch
+    });
+  }
+  return {
+    keepTeachingOnPageSwitch: !!_keepTeachingOnPageSwitch
+  };
+}
+
+function switchPageKeepingTeaching(page) {
+  applyTeachingPageSwitchRetentionState(window.GrammarAppState.buildTeachingPageSwitchRetentionState(true));
+  try {
+    switchPage(page);
+  } finally {
+    applyTeachingPageSwitchRetentionState(window.GrammarAppState.buildTeachingPageSwitchRetentionState(false));
+  }
+}
+
+function applyPracticeContextState(nextState) {
+  var contextState = window.GrammarAppState
+    ? window.GrammarAppState.buildPracticeContextState(nextState)
+    : {
+        currentExam: nextState && nextState.currentExam || null,
+        currentQuestions: nextState && (nextState.currentQuestions || nextState.questions) || []
+      };
+  currentExam = contextState.currentExam;
+  currentQuestions = Array.isArray(contextState.currentQuestions) ? contextState.currentQuestions : [];
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      currentExam: currentExam,
+      currentQuestions: currentQuestions
+    });
+  }
+  return {
+    currentExam: currentExam,
+    currentQuestions: currentQuestions
+  };
+}
+
+function getPracticeContextSnapshot() {
+  if (window.GrammarAppState && window.GrammarAppState.buildPracticeContextSnapshotState) {
+    return window.GrammarAppState.buildPracticeContextSnapshotState({
+      currentExam: currentExam,
+      currentQuestions: currentQuestions
+    });
+  }
+  return {
+    currentExam: currentExam || null,
+    currentQuestions: Array.isArray(currentQuestions) ? currentQuestions : []
+  };
+}
+
+function buildHomeViewState(view) {
+  if (window.GrammarAppState) return window.GrammarAppState.buildHomeViewState(view);
+  var currentHomeView = (view === 'exams' || view === 'categories') ? view : 'cards';
+  return {
+    currentHomeView: currentHomeView,
+    dockKey: currentHomeView === 'exams' ? 'exams' : currentHomeView === 'categories' ? 'categories' : 'home'
+  };
+}
+
+function applyHomeViewState(nextState) {
+  nextState = nextState || {};
+  var homeState = buildHomeViewState(nextState.currentHomeView || nextState.view);
+  _currentHomeView = homeState.currentHomeView;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      currentHomeView: _currentHomeView
+    });
+  }
+  return homeState;
+}
+
+function buildKnowledgeViewState(values) {
+  if (window.GrammarAppState) return window.GrammarAppState.buildKnowledgeViewState(values);
+  if (typeof values === 'string') values = { currentKnowledgeView: values };
+  values = values || {};
+  var view = values.currentKnowledgeView || values.view || 'map';
+  var valid = ['map', 'book', 'fine-cat', 'system', 'map-node', 'system-node'];
+  if (valid.indexOf(view) === -1) view = 'map';
+  return {
+    currentKnowledgeView: view,
+    currentKnowledgeKey: values.currentKnowledgeKey || values.key || '',
+    currentKnowledgeNodeId: values.currentKnowledgeNodeId || values.nodeId || '',
+    currentIsPattern: typeof values.currentIsPattern === 'boolean' ? values.currentIsPattern : !!values.isPattern
+  };
+}
+
+function applyKnowledgeViewState(nextState) {
+  if (typeof nextState === 'string') nextState = { currentKnowledgeView: nextState };
+  nextState = nextState || {};
+  var hasOwn = Object.prototype.hasOwnProperty;
+  var currentState = getKnowledgeViewSnapshot();
+  var mergedState = {
+    currentKnowledgeView: hasOwn.call(nextState, 'currentKnowledgeView') ? nextState.currentKnowledgeView : (nextState.view || currentState.currentKnowledgeView),
+    currentKnowledgeKey: hasOwn.call(nextState, 'currentKnowledgeKey') ? nextState.currentKnowledgeKey : (hasOwn.call(nextState, 'key') ? nextState.key : currentState.currentKnowledgeKey),
+    currentKnowledgeNodeId: hasOwn.call(nextState, 'currentKnowledgeNodeId') ? nextState.currentKnowledgeNodeId : (hasOwn.call(nextState, 'nodeId') ? nextState.nodeId : currentState.currentKnowledgeNodeId),
+    currentIsPattern: hasOwn.call(nextState, 'currentIsPattern') ? nextState.currentIsPattern : (hasOwn.call(nextState, 'isPattern') ? nextState.isPattern : currentState.currentIsPattern)
+  };
+  mergedState = buildKnowledgeViewState(mergedState);
+  currentKnowledgeView = mergedState.currentKnowledgeView;
+  currentKnowledgeKey = mergedState.currentKnowledgeKey;
+  currentKnowledgeNodeId = mergedState.currentKnowledgeNodeId;
+  currentIsPattern = mergedState.currentIsPattern;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      currentKnowledgeView: currentKnowledgeView,
+      currentKnowledgeKey: currentKnowledgeKey,
+      currentKnowledgeNodeId: currentKnowledgeNodeId,
+      currentIsPattern: currentIsPattern
+    });
+  }
+  return mergedState;
+}
+
+function getKnowledgeViewSnapshot() {
+  return buildKnowledgeViewState({
+    currentKnowledgeView: currentKnowledgeView,
+    currentKnowledgeKey: currentKnowledgeKey,
+    currentKnowledgeNodeId: currentKnowledgeNodeId,
+    currentIsPattern: currentIsPattern
+  });
+}
+
+function getPracticeDisplayState() {
+  if (window.GrammarAppState && window.GrammarAppState.buildPracticeDisplayState) {
+    return window.GrammarAppState.buildPracticeDisplayState({
+      showAnswers: showAnswers,
+      showChinese: showChinese
+    });
+  }
+  return {
+    showAnswers: !!showAnswers,
+    showChinese: !!showChinese
+  };
+}
+
+function getPracticeDisplaySnapshot() {
+  return getPracticeDisplayState();
+}
+
+function applyPracticeDisplayState(nextState) {
+  nextState = window.GrammarAppState && window.GrammarAppState.buildPracticeDisplayState
+    ? window.GrammarAppState.buildPracticeDisplayState(nextState)
+    : (nextState || {});
+  showAnswers = !!nextState.showAnswers;
+  showChinese = !!nextState.showChinese;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      showAnswers: showAnswers,
+      showChinese: showChinese
+    });
+  }
+  return getPracticeDisplayState();
+}
+
+function resetPracticeDisplayState() {
+  var nextState = window.GrammarAppState
+    ? window.GrammarAppState.resetPracticeDisplayState()
+    : { showAnswers: false, showChinese: false };
+  return applyPracticeDisplayState(nextState);
+}
+
+function togglePracticeAnswersState() {
+  var nextState = window.GrammarAppState
+    ? window.GrammarAppState.togglePracticeAnswers(getPracticeDisplayState())
+    : { showAnswers: !showAnswers, showChinese: false };
+  return applyPracticeDisplayState(nextState);
+}
+
+function togglePracticeChineseState() {
+  var nextState = window.GrammarAppState
+    ? window.GrammarAppState.togglePracticeChinese(getPracticeDisplayState())
+    : { showAnswers: showChinese ? showAnswers : false, showChinese: !showChinese };
+  return applyPracticeDisplayState(nextState);
+}
+
+function getFontScaleState() {
+  if (window.GrammarAppState && window.GrammarAppState.buildFontScaleSnapshotState) {
+    return window.GrammarAppState.buildFontScaleSnapshotState({
+      passageFontSize: passageFontSize,
+      drawerFontSize: drawerFontSize
+    });
+  }
+  return {
+    passageFontSize: passageFontSize,
+    drawerFontSize: drawerFontSize
+  };
+}
+
+function getFontScaleSnapshot() {
+  return getFontScaleState();
+}
+
+function applyFontScaleState(nextState) {
+  nextState = window.GrammarAppState && window.GrammarAppState.buildFontScaleSnapshotState
+    ? window.GrammarAppState.buildFontScaleSnapshotState(nextState)
+    : (nextState || {});
+  passageFontSize = Number(nextState.passageFontSize) || passageFontSize;
+  drawerFontSize = Number(nextState.drawerFontSize) || drawerFontSize;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      passageFontSize: passageFontSize,
+      drawerFontSize: drawerFontSize
+    });
+  }
+  return getFontScaleState();
+}
+
+function applyFontScaleViewModel(viewModel, target) {
+  viewModel = viewModel || {};
+  Object.keys(viewModel.cssVars || {}).forEach(function(name) {
+    document.documentElement.style.setProperty(name, viewModel.cssVars[name]);
+  });
+  if (target !== 'drawer') {
+    var passageEl = document.getElementById('passageFontVal');
+    if (passageEl) passageEl.textContent = viewModel.passageDisplayText || (passageFontSize + 'px');
+  }
+  if (target !== 'passage') {
+    var drawerEl = document.getElementById('drawerFontVal');
+    if (drawerEl) drawerEl.textContent = viewModel.drawerDisplayText || (drawerFontSize + 'px');
+  }
+}
+
+function syncAppState() {
+  if (!window.GrammarAppState) return;
+  var practiceContextState = getPracticeContextSnapshot();
+  var practiceDisplayState = getPracticeDisplaySnapshot();
+  var fontScaleState = getFontScaleSnapshot();
+  var selectedQuestionState = getSelectedQuestionSnapshot();
+  var teachingSessionState = getTeachingSessionSnapshot();
+  var teachingReturnStackState = getTeachingReturnStackSnapshot();
+  var teachingBaseContextState = getTeachingBaseContextSnapshot();
+  var teachingRetentionState = getTeachingPageSwitchRetentionSnapshot();
+  var cloudLifecycle = getCloudLifecycleSnapshot();
+  var migrationSourceState = getMigrationSourceSnapshot();
+  var drawerReturnState = getDrawerReturnSnapshot();
+  var knowledgeSearchIndexState = getKnowledgeSearchIndexSnapshot();
+  var globalGraphSnapshot = getGlobalGraphStateSnapshot();
+  var pageNavigationState = getPageNavigationSnapshot();
+  var knowledgeViewState = getKnowledgeViewSnapshot();
+  var previousViewState = getPreviousViewSnapshot();
+  window.GrammarAppState.patch({
+    currentExam: practiceContextState.currentExam,
+    currentQuestions: practiceContextState.currentQuestions,
+    selectedQuestion: selectedQuestionState.selectedQuestion,
+    teachingSession: teachingSessionState.teachingSession,
+    teachingReturnStack: teachingReturnStackState.teachingReturnStack,
+    teachingBaseContext: teachingBaseContextState.teachingBaseContext,
+    teachingFullscreenRequested: teachingFullscreenRequested,
+    teachingMigrationRegistry: typeof _teachingMigrationRegistry !== 'undefined' ? _teachingMigrationRegistry : {},
+    teachingMigrationCounter: typeof _teachingMigrationCounter !== 'undefined' ? _teachingMigrationCounter : 0,
+    keepTeachingOnPageSwitch: teachingRetentionState.keepTeachingOnPageSwitch,
+    passageFontSize: fontScaleState.passageFontSize,
+    drawerFontSize: fontScaleState.drawerFontSize,
+    showAnswers: practiceDisplayState.showAnswers,
+    showChinese: practiceDisplayState.showChinese,
+    previousView: previousViewState.previousView,
+    activePage: pageNavigationState.activePage,
+    activeDock: pageNavigationState.activeDock,
+    currentHomeView: pageNavigationState.currentHomeView,
+    currentKnowledgeView: knowledgeViewState.currentKnowledgeView,
+    currentKnowledgeKey: knowledgeViewState.currentKnowledgeKey,
+    currentKnowledgeNodeId: knowledgeViewState.currentKnowledgeNodeId,
+    currentIsPattern: knowledgeViewState.currentIsPattern,
+    knowledgeSearchIndex: knowledgeSearchIndexState.knowledgeSearchIndex,
+    globalGraphState: globalGraphSnapshot,
+    errorBulkMode: getSavedMaterialBulkModeSnapshot('error'),
+    prepBulkMode: getSavedMaterialBulkModeSnapshot('prep'),
+    drawerReturnTo: drawerReturnState.drawerReturnTo,
+    migrationSource: migrationSourceState.migrationSource,
+    compactMode: document.body.classList.contains('compact'),
+    projectionMode: document.body.classList.contains('projection-mode'),
+    drawerHeight: drawerHeight,
+    cloudLastUserKey: cloudLifecycle.cloudLastUserKey,
+    cloudMigrationPromptShown: cloudLifecycle.cloudMigrationPromptShown,
+    cloudAdminParamChecked: cloudLifecycle.cloudAdminParamChecked,
+    cloudLoggingOut: cloudLifecycle.cloudLoggingOut
+  });
+}
+syncAppState();
+
+// errorBookQuestions / loadErrorBook / saveErrorBook / runErrorBookCleanup / getErrorFingerprint
+// 已抽到 shared/error-book.js（含 _owner 跨账号隔离机制）
+//
+// prepPassages / loadPrepPassages / savePrepPassages / getPrepFingerprint
+// 已抽到 shared/lesson-prep.js（同样的 _owner 机制）
+
+function loadDrawerHeight() {
+  drawerHeight = window.GrammarAppState.normalizeDrawerHeight(localStorage.getItem(DRAWER_STORAGE_KEY));
+  if (window.GrammarAppState) window.GrammarAppState.patch({ drawerHeight: drawerHeight });
+}
+
+function applyDrawerHeight() {
+  var state = window.GrammarAppState.buildDrawerHeightState(drawerHeight, window.innerHeight);
+  drawerHeight = state.drawerHeight;
+  if (window.GrammarAppState) window.GrammarAppState.patch({ drawerHeight: drawerHeight });
+  var drawer = document.getElementById('drawer');
+  if (drawer && state.styleHeight) drawer.style.height = state.styleHeight;
+}
+
+function setupDrawerResize() {
+  var drawer = document.getElementById('drawer');
+  var handle = document.getElementById('drawerHandle');
+  if (!drawer || !handle || handle.dataset.resizeBound === '1') return;
+  handle.dataset.resizeBound = '1';
+  var startY, startHeight, newHeight;
+
+  function onStart(e) {
+    e.preventDefault();
+    drawer.style.transition = 'none';
+    startY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+    startHeight = drawer.getBoundingClientRect().height;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    handle.querySelector('.drawer-handle-hint').style.opacity = '0';
+  }
+
+  function onMove(e) {
+    e.preventDefault();
+    var y = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
+    var state = window.GrammarAppState.buildDrawerResizeState(startHeight, startY, y, window.innerHeight);
+    newHeight = state.drawerHeight;
+    if (state.styleHeight) drawer.style.height = state.styleHeight;
+  }
+
+  function onEnd() {
+    drawer.style.transition = '';
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+    handle.querySelector('.drawer-handle-hint').style.opacity = '';
+    if (newHeight) {
+      drawerHeight = newHeight;
+      if (window.GrammarAppState) window.GrammarAppState.patch({ drawerHeight: drawerHeight });
+      localStorage.setItem(DRAWER_STORAGE_KEY, drawerHeight);
+    }
+  }
+
+  handle.addEventListener('mousedown', onStart);
+  handle.addEventListener('touchstart', onStart, { passive: false });
+
+  loadDrawerHeight();
+  applyDrawerHeight();
+}
+
+function applyBatchImportFormTogglePlan(plan) {
+  var form = plan && document.getElementById(plan.formId);
+  if (form) form.classList.toggle(plan.showClass, plan.shouldShow);
+}
+
+function toggleBatchImport(force) {
+  var form = document.getElementById('batchImportForm');
+  var plan = window.GrammarSavedMaterialsModel.buildBatchImportFormTogglePlan(
+    'error',
+    form && form.classList.contains('show'),
+    force
+  );
+  applyBatchImportFormTogglePlan(plan);
+}
+
+function handleFileImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('batchJson').value = e.target.result;
+    batchImportJson();
+  };
+  reader.readAsText(file);
+}
+
+function setupBatchDrop() {
+  var form = document.getElementById('batchImportForm');
+  if (!form) return;
+  form.addEventListener('dragover', function(e) { e.preventDefault(); });
+  form.addEventListener('drop', function(e) {
+    e.preventDefault();
+    var file = e.dataTransfer.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById('batchJson').value = ev.target.result;
+      batchImportJson();
+    };
+    reader.readAsText(file);
+  });
+}
+
+// getErrorFingerprint 已抽到 shared/error-book.js
+
+// getPrepFingerprint 已抽到 shared/lesson-prep.js
+
+
+function batchImportJson() {
+  var raw = document.getElementById('batchJson').value.trim();
+  var parsed = window.GrammarSavedMaterialsModel.parseBatchImportJson(raw, 'error');
+  if (parsed.empty) return;
+  if (!parsed.ok) {
+    alert(parsed.errorMessage);
+    return;
+  }
+  var result = window.GrammarSavedMaterialsModel.importErrorItems(parsed.list, errorBookQuestions, {
+    categoryMap: CATEGORY_MAP,
+    categoryTips: CATEGORY_TIPS,
+    extractSentence: extractSentence,
+    now: Date.now(),
+    createdAt: new Date().toISOString()
+  });
+  errorBookQuestions = result.nextItems;
+  saveErrorBook();
+  renderErrorBook();
+  renderBankStat();
+  toggleBatchImport();
+  document.getElementById('batchJson').value = '';
+  alert(window.GrammarSavedMaterialsModel.buildImportResultMessage(result, 'error'));
+}
+
+async function deleteSavedMaterialItem(kind, id, items, applyLocalDelete) {
+  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialDeletePlan(kind, items, [id]);
+  if (!plan.shouldDelete) return;
+  if (!confirm(plan.confirmMessage)) return;
+  applyLocalDelete(plan.nextItems);
+  renderBankStat();
+  if (window.cloud && window.cloud[plan.cloudDeleteMethod]) {
+    try {
+      await window.cloud[plan.cloudDeleteMethod](id);
+    } catch (e) {
+      var failurePlan = window.GrammarSavedMaterialsModel.buildSavedMaterialCloudDeleteFailurePlan(kind, id, e);
+      console.warn(failurePlan.consoleMessage, failurePlan.id, e);
+      if (window.seeklumeObservability) {
+        window.seeklumeObservability.recordError(
+          failurePlan.observabilityEvent,
+          failurePlan.message || e,
+          failurePlan.observabilityPayload
+        );
+      }
+      alert(failurePlan.alertMessage);
+    }
+  }
+}
+
+async function deleteErrorQuestion(id) {
+  return deleteSavedMaterialItem('error', id, errorBookQuestions, function(nextItems) {
+    errorBookQuestions = nextItems;
+    saveErrorBook();
+    renderErrorBook();
+  });
+}
+
+var _errorBulkMode = false;
+var _prepBulkMode = false;
+
+function getSavedMaterialBulkModeSnapshot(kind) {
+  var isPrep = kind === 'prep' || kind === 'lessonPrep';
+  var current = isPrep
+    ? (typeof _prepBulkMode !== 'undefined' && !!_prepBulkMode)
+    : (typeof _errorBulkMode !== 'undefined' && !!_errorBulkMode);
+  if (window.GrammarSavedMaterialsModel && window.GrammarSavedMaterialsModel.buildBulkModeState) {
+    return window.GrammarSavedMaterialsModel.buildBulkModeState(current, current).bulkMode;
+  }
+  return current;
+}
+
+function toggleErrorBulkMode(force) {
+  var state = window.GrammarSavedMaterialsModel.buildBulkModeState(getSavedMaterialBulkModeSnapshot('error'), force);
+  _errorBulkMode = state.bulkMode;
+  if (window.GrammarAppState) window.GrammarAppState.patch({ errorBulkMode: _errorBulkMode });
+  var bar = document.getElementById('errorBulkBar');
+  if (bar) bar.classList.toggle('show', getSavedMaterialBulkModeSnapshot('error'));
+  renderErrorBook();
+}
+
+function togglePrepBulkMode(force) {
+  var state = window.GrammarSavedMaterialsModel.buildBulkModeState(getSavedMaterialBulkModeSnapshot('prep'), force);
+  _prepBulkMode = state.bulkMode;
+  if (window.GrammarAppState) window.GrammarAppState.patch({ prepBulkMode: _prepBulkMode });
+  var bar = document.getElementById('prepBulkBar');
+  if (bar) bar.classList.toggle('show', getSavedMaterialBulkModeSnapshot('prep'));
+  renderPrepList();
+}
+
+function syncErrorBulkInfo() {
+  var config = window.GrammarSavedMaterialsModel.getBulkSelectionDomConfig('error');
+  var plan = window.GrammarSavedMaterialsModel.buildBulkSelectionInfoPlan(
+    'error',
+    document.querySelectorAll(config.checkboxSelector + ':checked').length
+  );
+  var el = document.getElementById(plan.infoId);
+  if (el) el.textContent = plan.text;
+}
+
+function syncPrepBulkInfo() {
+  var config = window.GrammarSavedMaterialsModel.getBulkSelectionDomConfig('prep');
+  var plan = window.GrammarSavedMaterialsModel.buildBulkSelectionInfoPlan(
+    'prep',
+    document.querySelectorAll(config.checkboxSelector + ':checked').length
+  );
+  var el = document.getElementById(plan.infoId);
+  if (el) el.textContent = plan.text;
+}
+
+function selectAllErrorBulk(checked) {
+  var plan = window.GrammarSavedMaterialsModel.buildBulkSelectAllPlan('error', checked);
+  document.querySelectorAll(plan.checkboxSelector).forEach(function(cb) { cb.checked = plan.checked; });
+  syncErrorBulkInfo();
+}
+
+function selectAllPrepBulk(checked) {
+  var plan = window.GrammarSavedMaterialsModel.buildBulkSelectAllPlan('prep', checked);
+  document.querySelectorAll(plan.checkboxSelector).forEach(function(cb) { cb.checked = plan.checked; });
+  syncPrepBulkInfo();
+}
+
+async function deleteSelectedErrors() {
+  var config = window.GrammarSavedMaterialsModel.getBulkSelectionDomConfig('error');
+  var ids = Array.from(document.querySelectorAll(config.checkboxSelector + ':checked')).map(function(cb) { return cb.dataset.id; });
+  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialDeletePlan('error', errorBookQuestions, ids, { bulk: true });
+  if (!plan.hasSelection) { alert(plan.emptySelectionMessage); return; }
+  if (!confirm(plan.confirmMessage)) return;
+  errorBookQuestions = plan.nextItems;
+  saveErrorBook();
+  renderErrorBook();
+  renderBankStat();
+  var failures = [];
+  if (window.cloud && window.cloud[plan.cloudDeleteMethod]) {
+    for (var i = 0; i < plan.ids.length; i++) {
+      try {
+        await window.cloud[plan.cloudDeleteMethod](plan.ids[i]);
+      } catch (e) {
+        failures.push(window.GrammarSavedMaterialsModel.buildCloudDeleteFailure(plan.ids[i], e, 'error'));
+        console.warn(plan.cloudFailureConsolePrefix, plan.ids[i], e);
+      }
+    }
+  }
+  reportSavedMaterialCloudDeleteFailures('error', failures);
+  syncErrorBulkInfo();
+}
+
+async function deleteSelectedPreps() {
+  var config = window.GrammarSavedMaterialsModel.getBulkSelectionDomConfig('prep');
+  var ids = Array.from(document.querySelectorAll(config.checkboxSelector + ':checked')).map(function(cb) { return cb.dataset.id; });
+  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialDeletePlan('prep', prepPassages, ids, { bulk: true });
+  if (!plan.hasSelection) { alert(plan.emptySelectionMessage); return; }
+  if (!confirm(plan.confirmMessage)) return;
+  prepPassages = plan.nextItems;
+  savePrepPassages();
+  renderPrepList();
+  renderBankStat();
+  var failures = [];
+  if (window.cloud && window.cloud[plan.cloudDeleteMethod]) {
+    for (var j = 0; j < plan.ids.length; j++) {
+      try {
+        await window.cloud[plan.cloudDeleteMethod](plan.ids[j]);
+      } catch (e) {
+        failures.push(window.GrammarSavedMaterialsModel.buildCloudDeleteFailure(plan.ids[j], e, 'prep'));
+        console.warn(plan.cloudFailureConsolePrefix, plan.ids[j], e);
+      }
+    }
+  }
+  reportSavedMaterialCloudDeleteFailures('prep', failures);
+  syncPrepBulkInfo();
+}
+
+function reportSavedMaterialCloudDeleteFailures(kind, failures) {
+  var summary = window.GrammarSavedMaterialsModel.buildCloudDeleteFailureSummary(kind, failures);
+  if (!summary.hasFailures) return;
+  console.warn(summary.consoleMessage, summary.failures);
+  if (window.seeklumeObservability) {
+    window.seeklumeObservability.recordError(
+      summary.observabilityEvent,
+      summary.message,
+      summary.observabilityPayload
+    );
+  }
+}
+
+var _teachingExitToErrorBook = false;  // 从错题本直接进讲题：退出讲题时回错题本而非练习页
+function viewErrorQuestion(id, preserveDrawerReturn) {
+  var q = errorBookQuestions.find(function(item) { return item.id === id; });
+  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialPracticeEntryPlan('error', q, {
+    preserveDrawerReturn: preserveDrawerReturn
+  });
+  if (plan.action === 'none') return;
+  if (plan.shouldCloseDrawer) closeDrawer(plan.preserveDrawerReturn);
+  if (plan.shouldResetPracticeDisplay) resetPracticeDisplayState();
+  var state = createErrorStateForQuestion(q);
+  if (plan.shouldApplyPracticeContext) applyPracticeContextState(state);
+  setPreviousView(getPracticeEntryPreviousView(plan.previousViewSource));
+  if (plan.shouldSyncAppState) syncAppState();
+  // 点错题直接进全局讲题（练习页只作底座、不停留）；退出讲题回错题本
+  _teachingExitToErrorBook = true;
+  switchPageKeepingTeaching(plan.page);
+  renderExam();
+  openTeachingStageByIdx(0, { tab: 'guide', source: 'practice' });
+}
+
+var _errorCatFilter = '';
+var _errorExpanded = {};   // 考点折叠：默认全折叠，点考点卡片头展开看该考点全部题
+function setErrorCategoryFilter(cat) {
+  _errorCatFilter = (_errorCatFilter === cat) ? '' : cat;
+  if (_errorCatFilter) _errorExpanded[_errorCatFilter] = true; // 点 chip 直接展开该考点
+  renderErrorBook();
+}
+function toggleErrorCategory(cat) {
+  _errorExpanded[cat] = !_errorExpanded[cat];
+  renderErrorBook();
+}
+function revealErrorAnswer(id) {   // 错题卡片答案默认隐藏，点「显示答案」才揭晓（想直接做题就先不看）
+  var meta = document.getElementById('errAns-' + id);
+  var btn = document.getElementById('errAnsBtn-' + id);
+  if (meta) meta.style.display = '';
+  if (btn) btn.style.display = 'none';
+}
+
+function renderErrorBook() {
+  var el = document.getElementById('errorBookList');
+  if (!el) return;
+  var model = window.GrammarSavedMaterialsModel.buildErrorListModel(errorBookQuestions, CATEGORY_MAP, {
+    bulkMode: getSavedMaterialBulkModeSnapshot('error')
+  });
+
+  document.getElementById('errorBookStat').textContent = model.statText;
+
+  if (model.empty) {
+    el.innerHTML = '<div class="error-empty">' + escapeHtml(model.emptyText) + '</div>';
+    return;
+  }
+
+  // 按考点筛选 chip：点一个考点只看该题型，方便按题型连着练
+  var cats = model.categories || [];
+  if (_errorCatFilter && !cats.some(function(c) { return c.category === _errorCatFilter; })) _errorCatFilter = '';
+  var html = '<div class="error-cat-chips">'
+    + '<button class="error-cat-chip' + (_errorCatFilter === '' ? ' active' : '') + '" onclick="setErrorCategoryFilter(\'\')">全部 ' + model.count + '</button>';
+  cats.forEach(function(c) {
+    html += '<button class="error-cat-chip' + (_errorCatFilter === c.category ? ' active' : '') + '" onclick="setErrorCategoryFilter(\'' + escapeHtml(c.category) + '\')">'
+      + escapeHtml(c.label) + ' ' + c.count + '</button>';
+  });
+  html += '</div>';
+
+  model.groups.forEach(function(group) {
+    if (_errorCatFilter && group.category !== _errorCatFilter) return;
+    var expanded = !!_errorExpanded[group.category];
+    html += '<div class="category-section">'
+          + '<div class="category-section-title" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px;" onclick="toggleErrorCategory(\'' + escapeHtml(group.category) + '\')">'
+          + '<span style="display:inline-block;width:14px;color:var(--text-3);transition:transform .15s;">' + (expanded ? '▾' : '▸') + '</span>'
+          + escapeHtml(group.titleText) + '</div>'
+          + '<div class="error-cat-items"' + (expanded ? '' : ' style="display:none;"') + '>';
+    (group.items || []).forEach(function(item) {
+      var sent = item.passage.replace(item.blankMarker,
+        '<span style="display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-bottom:2px dashed var(--accent);background:var(--accent-bg);border-radius:3px;font-weight:600;color:var(--accent);">' + escapeHtml(item.blankMarker) + '</span>');
+      var truncateCls = item.sentenceTruncated ? ' error-list-sentence-truncated' : '';
+      html += '<div class="error-list-item" onclick="viewErrorQuestion(\'' + escapeHtml(item.id) + '\')">'
+            + '<div class="error-list-left">'
+            + (item.showBulkCheck ? '<label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;"><input type="checkbox" class="bulk-item-check error-bulk-check" data-id="' + escapeHtml(item.id) + '" onchange="syncErrorBulkInfo()" onclick="event.stopPropagation()"></label>' : '')
+            + '<div class="error-list-sentence' + truncateCls + '">' + sent + '</div>'
+            + (item.source ? '<div class="error-list-source">📄 ' + escapeHtml(item.source) + '</div>' : '')
+            + '<button class="error-show-answer" id="errAnsBtn-' + escapeHtml(item.id) + '" onclick="event.stopPropagation();revealErrorAnswer(\'' + escapeHtml(item.id) + '\')" style="margin-top:6px;font-size:13px;padding:3px 12px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;">显示答案</button>'
+            + '<div class="error-list-meta" id="errAns-' + escapeHtml(item.id) + '" style="display:none;">答案：' + escapeHtml(item.answer) + ' · ' + escapeHtml(item.analysisPreview) + '</div>'
+            + '</div>'
+            + '<button class="error-list-delete" onclick="event.stopPropagation();deleteErrorQuestion(\'' + escapeHtml(item.id) + '\')" title="删除">✕</button>'
+            + '</div>';
+    });
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+  renderPageSidebar('error-book');
+  syncErrorBulkInfo();
+}
+
+// ────────── 备课资料 ──────────
+// 控制器已抽到 modules/lesson-prep-controller.js（window.GrammarLessonPrep）。
+// 下面是同名薄壳：onclick / 内联裸名调用走薄壳，薄壳注入 lessonPrepDeps()。
+function lessonPrepDeps() {
+  return {
+    getPrepPassages: function() { return prepPassages; },
+    setPrepPassages: function(v) { prepPassages = v; },
+    savePrepPassages: savePrepPassages,
+    renderBankStat: renderBankStat,
+    closeDrawer: closeDrawer,
+    resetPracticeDisplayState: resetPracticeDisplayState,
+    applyPracticeContextState: applyPracticeContextState,
+    setPreviousView: setPreviousView,
+    getPracticeEntryPreviousView: getPracticeEntryPreviousView,
+    syncAppState: syncAppState,
+    switchPage: switchPage,
+    renderExam: renderExam,
+    getSavedMaterialBulkModeSnapshot: getSavedMaterialBulkModeSnapshot,
+    renderPageSidebar: renderPageSidebar,
+    syncPrepBulkInfo: syncPrepBulkInfo,
+    deleteSavedMaterialItem: deleteSavedMaterialItem,
+    applyBatchImportFormTogglePlan: applyBatchImportFormTogglePlan,
+    escapeHtml: escapeHtml,
+    CATEGORY_MAP: CATEGORY_MAP,
+    CATEGORY_TIPS: CATEGORY_TIPS
+  };
+}
+
+function togglePrepBatchImport(force) { return window.GrammarLessonPrep.togglePrepBatchImport(force, lessonPrepDeps()); }
+function setupPrepDrop() { return window.GrammarLessonPrep.setupPrepDrop(lessonPrepDeps()); }
+function batchImportPrepJson() { return window.GrammarLessonPrep.batchImportPrepJson(lessonPrepDeps()); }
+function deletePrepPassage(id) { return window.GrammarLessonPrep.deletePrepPassage(id, lessonPrepDeps()); }
+function viewPrepPassage(id, preserveDrawerReturn) { return window.GrammarLessonPrep.viewPrepPassage(id, preserveDrawerReturn, lessonPrepDeps()); }
+function renderPrepList() { return window.GrammarLessonPrep.renderPrepList(lessonPrepDeps()); }
+function renamePrepPassage(id) { return window.GrammarLessonPrep.renamePrepPassage(id, lessonPrepDeps()); }
+
+
+function setupPassageClickDelegation() {
+  var box = document.getElementById('passageBox');
+  if (!box || box.dataset.clickDelegated === '1') return;
+  box.dataset.clickDelegated = '1';
+  box.addEventListener('click', function(e) {
+    var target = e.target && e.target.closest ? e.target.closest('.blank-inline, .answer-filled') : null;
+    if (!target) return;
+    var idx = parseInt(target.getAttribute('data-blank-idx'), 10);
+    if (!isNaN(idx)) {
+      e.preventDefault();
+      showAnalysisByIdx(idx);
+    }
+  });
+}
+
+// ── 浮动回到顶部 ──
+function init() {
+  if (window.GrammarAppState) {
+    applyFontScaleViewModel(window.GrammarAppState.buildFontScaleViewModel(getFontScaleState()));
+  }
+  loadErrorBook();
+  loadPrepPassages();
+  runErrorBookCleanup();
+  // Clean up old sidebar collapsed state
+  try { localStorage.removeItem('grammar-context-sidebar-collapsed'); } catch(e) {}
+  renderBankStat();
+  renderExamGrid();
+  updateCounts();
+  renderKnowledgePage();
+  renderErrorBook();
+  renderPrepList();
+  try { localStorage.removeItem(DRAWER_STORAGE_KEY); } catch(e) {}
+  setupBatchDrop();
+  setupPrepDrop();
+  setupDocxDrop();
+  setupPassageClickDelegation();
+  try { localStorage.removeItem('grammar-home-mode'); } catch(e) {}
+
+  // 紧凑模式（白板/投影）从 localStorage 恢复
+  try {
+    if (localStorage.getItem(COMPACT_KEY) === '1') {
+      applyCompactModeState(window.GrammarAppState.buildCompactModeState(false, true), false);
+    }
+  } catch(e) {}
+
+  // ========== 云同步启动 ==========
+  if (window.cloud && window.cloud.isConfigured()) {
+    // 已登录直接进 home；未登录进入访客模式（也可浏览首页/考点/套卷/知识库）
+    if (document.documentElement.classList.contains('has-session')) {
+      document.body.classList.remove('guest');
+      switchPage('home');
+    } else {
+      document.body.classList.remove('guest');
+      switchPage('home');
+    }
+    window.cloud.onChange(onCloudStateChange);
+    window.cloud.init();
+  } else {
+    // 本地模式（未配 Supabase）：跳过登录墙，直接进 home
+    document.body.classList.remove('guest');
+    switchPage('home');
+    renderUserPill({ user: null, isAdmin: false });
+  }
+
+  // 视图就位，揭开 body
+  document.documentElement.classList.add('ready');
+}
+
+// ========== 云同步：UI + 数据 ==========
+// 已抽到 modules/cloud-sync.js（IIFE → window.GrammarCloudSync）。
+// 该模块加载时即对 window.saveErrorBook / window.savePrepPassages 打猴补丁
+//（写本地后异步推云），故装配清单中必须排在 shared/error-book.js、
+// shared/lesson-prep.js、shared/cloud.js 之后。
+// 跨模块共享：auth-ui.js 的 doLogout 调用 window.clearCloudLifecycleState() /
+// window.setCloudLoggingOutState()；admin-ui.js / cloud.onChange 调用
+// window.onCloudStateChange()；word-import.js 调用 window.uploadLocalToCloud()。
+// 顶层状态变量（_lastCloudUser/_migrationPromptShown/_adminParamChecked/_loggingOut/
+// _syncOkTimer/_syncInflight/_syncQueueFallbacks/_origSaveError/_origSavePrep）已
+// 随模块内部化。
+
+// 下面是同名薄壳：内联裸名调用 / 外部 window.* 调用走薄壳，注入 cloudSyncDeps()。
+function cloudSyncDeps() {
+  return {
+    renderUserPill: renderUserPill,
+    switchPage: switchPage,
+    renderErrorBook: renderErrorBook,
+    renderPrepList: renderPrepList,
+    renderBankStat: renderBankStat
+  };
+}
+
+function getCloudLifecycleSnapshot() { return window.GrammarCloudSync.getCloudLifecycleSnapshot(); }
+function setCloudLoggingOutState(loggingOut) { return window.GrammarCloudSync.setCloudLoggingOutState(loggingOut); }
+function applyCloudLifecycleState(nextState) { return window.GrammarCloudSync.applyCloudLifecycleState(nextState); }
+function clearCloudLifecycleState() { return window.GrammarCloudSync.clearCloudLifecycleState(); }
+function onCloudStateChange(state) { return window.GrammarCloudSync.onCloudStateChange(state, cloudSyncDeps()); }
+function uploadLocalToCloud() { return window.GrammarCloudSync.uploadLocalToCloud(cloudSyncDeps()); }
+function setSyncStatus(state, msg) { return window.GrammarCloudSync.setSyncStatus(state, msg); }
+function syncBegin() { return window.GrammarCloudSync.syncBegin(); }
+function syncEnd(err) { return window.GrammarCloudSync.syncEnd(err); }
+function getSavedMaterialsSyncQueueKey(kind) { return window.GrammarCloudSync.getSavedMaterialsSyncQueueKey(kind); }
+function getSavedMaterialsSyncQueue(kind) { return window.GrammarCloudSync.getSavedMaterialsSyncQueue(kind); }
+function applySavedMaterialsSyncQueue(kind, queue) { return window.GrammarCloudSync.applySavedMaterialsSyncQueue(kind, queue); }
+function requestSavedMaterialsSync(kind) { return window.GrammarCloudSync.requestSavedMaterialsSync(kind); }
+function finishSavedMaterialsSync(kind) { return window.GrammarCloudSync.finishSavedMaterialsSync(kind); }
+function runSavedMaterialsCloudSync(kind, getLocalItems, rerun) { return window.GrammarCloudSync.runSavedMaterialsCloudSync(kind, getLocalItems, rerun); }
+function syncErrorBookToCloud() { return window.GrammarCloudSync.syncErrorBookToCloud(); }
+function syncPrepToCloud() { return window.GrammarCloudSync.syncPrepToCloud(); }
+
+// 外部模块以 window.* 调用的入口，显式挂到 window（薄壳本身是函数声明，已是全局，
+// 这里保险地确保 window.X 指向薄壳，方便 auth-ui/admin-ui/word-import 调用）。
+window.getCloudLifecycleSnapshot = getCloudLifecycleSnapshot;
+window.setCloudLoggingOutState = setCloudLoggingOutState;
+window.clearCloudLifecycleState = clearCloudLifecycleState;
+window.onCloudStateChange = onCloudStateChange;
+window.uploadLocalToCloud = uploadLocalToCloud;
+
+// ========== 管理员页 ==========
+// 管理员页面（用户列表 / 审批 / 删除 / 改名审批 / 查看别人数据）已抽到 shared/admin-ui.js
+
+function renderBankStat() {
+  const el = document.getElementById('bankStat');
+  var summary = window.GrammarHomeDashboardModel.buildHomeSummaryModel({
+    examCount: BANK.exams.length,
+    questionCount: ALL_QUESTIONS.length,
+    errorCount: errorBookQuestions.length,
+    prepCount: prepPassages.length
+  });
+  if (el) el.textContent = summary.bankStatText;
+  ['homeErrorCount'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.textContent = summary.errorCountText;
+  });
+  ['homePrepCount'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.textContent = summary.prepCountText;
+  });
+  // 同步刷新新版 dashboard
+  if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+}
+
+// ─── Sprint 1.6 · 智能 Dashboard 主页 ─────────────
+// 逻辑已搬至 modules/home-dashboard.js，此处为薄壳 + 依赖注入。
+// 数组型依赖（prepPassages / errorBookQuestions）用 getter 注入，避免拿到旧引用。
+function homeDashboardDeps() {
+  return {
+    escapeHtml: window.escapeHtml,
+    switchPage: switchPage,
+    navigateHome: navigateHome,
+    setKnowledgeView: setKnowledgeView,
+    getCurrentQuestionIndex: getCurrentQuestionIndex,
+    getPracticeContextSnapshot: getPracticeContextSnapshot,
+    getSelectedQuestionSnapshot: getSelectedQuestionSnapshot,
+    getTeachingSessionSnapshot: getTeachingSessionSnapshot,
+    getPracticeDisplaySnapshot: getPracticeDisplaySnapshot,
+    findBlankIndex: findBlankIndex,
+    startByExam: startByExam,
+    showAnalysisByIdx: showAnalysisByIdx,
+    inlineSidebarAction: inlineSidebarAction,
+    getPrepPassages: function(){ return prepPassages; },
+    getErrorBookQuestions: function(){ return errorBookQuestions; },
+    BANK: BANK,
+    CATEGORY_MAP: CATEGORY_MAP
+  };
+}
+function runHomeDashboardAction(type, value){ return window.GrammarHomeDashboard.runHomeDashboardAction(type, value, homeDashboardDeps()); }
+function renderHomeDashboard(){ return window.GrammarHomeDashboard.renderHomeDashboard(homeDashboardDeps()); }
+function renderClassroomSwitcher(){ return window.GrammarHomeDashboard.renderClassroomSwitcher(homeDashboardDeps()); }
+function navigateExam(delta){ return window.GrammarHomeDashboard.navigateExam(delta, homeDashboardDeps()); }
+function jumpToExamFromSwitcher(examId){ return window.GrammarHomeDashboard.jumpToExamFromSwitcher(examId, homeDashboardDeps()); }
+function jumpToQuestionFromSwitcher(value){ return window.GrammarHomeDashboard.jumpToQuestionFromSwitcher(value, homeDashboardDeps()); }
+function jumpQuestionFromSwitcher(delta){ return window.GrammarHomeDashboard.jumpQuestionFromSwitcher(delta, homeDashboardDeps()); }
+function renderExamGrid(){ return window.GrammarHomeDashboard.renderExamGrid(homeDashboardDeps()); }
+
+function getCurrentQuestionIndex() {
+  var practiceContext = getPracticeContextSnapshot();
+  var selectedState = getSelectedQuestionSnapshot();
+  var sessionState = getTeachingSessionSnapshot();
+  return window.GrammarAppState.getCurrentQuestionIndex({
+    currentQuestions: practiceContext.currentQuestions,
+    selectedQuestion: selectedState.selectedQuestion,
+    teachingSession: sessionState.teachingSession
+  }, {
+    findSelectedIndex: function() { return findBlankIndex(); }
+  });
+}
+
+function getSidebarModelDeps(extra) {
+  var values = {
+    exams: BANK.exams,
+    allQuestions: ALL_QUESTIONS,
+    categoryMap: CATEGORY_MAP,
+    errorQuestions: errorBookQuestions,
+    prepPassages: prepPassages
+  };
+  Object.keys(extra || {}).forEach(function(key) {
+    values[key] = extra[key];
+  });
+  return values;
+}
+
+function inlineSidebarCall(fnName, value) {
+  return escapeHtml(fnName + '(' + JSON.stringify(String(value == null ? '' : value)) + ')');
+}
+
+function inlineSidebarAction(action, fallbackFn, fallbackValue) {
+  action = action || {};
+  return inlineSidebarCall(action.fn || fallbackFn, action.value == null ? fallbackValue : action.value);
+}
+
+// ────────── 页面侧边栏：home / 错题本 / 备课资料 / 练习通用 ──────────
+function renderPageSidebar(page) {
+  var el = document.getElementById('contextSidebar');
+  if (!el) return;
+
+  // 智能 Dashboard 模式不显示 sidebar（roadmap §6 line 139「sidebar 在新视图收起」）
+  // 注意：只在 cards 视图才检测 dashboard 可见性；exams/categories 子视图时父容器
+  // homeCards 已被隐藏，但 homeDashboard.style.display 仍是 ''，不能用它判断。
+  var pageNavigationState = getPageNavigationSnapshot();
+  var currentHomeView = pageNavigationState.currentHomeView;
+  var dashboardVisible = false;
+  if (page === 'home' && currentHomeView === 'cards') {
+    var _dash = document.getElementById('homeDashboard');
+    dashboardVisible = !!(_dash && _dash.style.display !== 'none');
+  }
+
+  var model = window.GrammarSidebarViewModel.buildPageSidebarModel(page, getSidebarModelDeps({
+    homeView: currentHomeView,
+    dashboardVisible: dashboardVisible
+  }));
+
+  if (model.delegateToContext) {
+    renderContextSidebar();
+    return;
+  }
+  if (model.hidden) {
+    el.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('contextSidebarContent').innerHTML = window.GrammarSidebarRender.sidebarHtml(model, { inlineSidebarAction: inlineSidebarAction });
+  el.style.display = '';
+}
+
+// ────────── 套卷侧边栏（macOS Dock 风格 auto-hide）──────────
+function renderContextSidebar() {
+  var el = document.getElementById('contextSidebar');
+  if (!el) return;
+
+  var practiceContext = getPracticeContextSnapshot();
+  var activeQuestionId = practiceContext.currentQuestions[0] && practiceContext.currentQuestions[0].id;
+  var model = window.GrammarSidebarViewModel.buildContextSidebarModel(getSidebarModelDeps({
+    currentExam: practiceContext.currentExam,
+    activeQuestionId: activeQuestionId
+  }));
+  if (model.hidden) {
+    el.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('contextSidebarContent').innerHTML = window.GrammarSidebarRender.sidebarHtml(model, { inlineSidebarAction: inlineSidebarAction });
+  el.style.display = '';
+}
+
+// 统一管理 dock 圆点显示：根据当前 dock key 高亮对应 item
+function setActiveDock(dockKey) {
+  var dockState = applyActiveDockState(buildDockActivationState(dockKey));
+  document.querySelectorAll('.dock-item:not(.dock-back)').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.dockKey === dockState.activeDock);
+  });
+}
+
+function getPreviousViewLabel() {
+  return window.GrammarAppState.getPreviousViewLabel(getPreviousViewSnapshot().previousView);
+}
+
+function getDockBackLabel() {
+  var drawerReturnState = getDrawerReturnSnapshot();
+  var pageNavigationState = getPageNavigationSnapshot();
+  var knowledgeViewState = getKnowledgeViewSnapshot();
+  return window.GrammarAppState.getDockBackLabel({
+    drawerReturnTo: drawerReturnState.drawerReturnTo,
+    activePage: pageNavigationState.activePage,
+    currentHomeView: pageNavigationState.currentHomeView,
+    previousView: getPreviousViewSnapshot().previousView,
+    currentKnowledgeView: knowledgeViewState.currentKnowledgeView
+  });
+}
+
+function updateDockBackButton() {
+  var btn = document.getElementById('dockBackBtn');
+  var divider = document.getElementById('dockBackDivider');
+  if (!btn) return;
+  var label = getDockBackLabel();
+  btn.classList.toggle('show', !!label);
+  btn.setAttribute('data-label', label || '返回上一页');
+  btn.setAttribute('title', label || '返回上一页');
+  btn.setAttribute('aria-label', label || '返回上一页');
+  if (divider) divider.classList.toggle('show', !!label);
+}
+
+function handleDockBack() {
+  var drawerReturnState = getDrawerReturnSnapshot();
+  var pageNavigationState = getPageNavigationSnapshot();
+  var knowledgeViewState = getKnowledgeViewSnapshot();
+  var action = window.GrammarAppState.getDockBackAction({
+    drawerReturnTo: drawerReturnState.drawerReturnTo,
+    activePage: pageNavigationState.activePage,
+    currentHomeView: pageNavigationState.currentHomeView,
+    previousView: getPreviousViewSnapshot().previousView,
+    currentKnowledgeView: knowledgeViewState.currentKnowledgeView
+  });
+  if (action.type === 'drawer-return') {
+    executeDrawerReturn();
+    return;
+  }
+  if (action.type === 'home-view') {
+    navigateHome(action.view || 'cards');
+    return;
+  }
+  if (action.type === 'previous-view') {
+    goBack();
+    return;
+  }
+  if (action.type === 'knowledge-map') {
+    renderKnowledgeMap();
+    return;
+  }
+  if (action.type === 'knowledge-system') {
+    renderSystemView();
+  }
+}
+
+function switchPage(page) {
+  var sessionState = getTeachingSessionSnapshot();
+  var retentionState = getTeachingPageSwitchRetentionSnapshot();
+  var pageSwitchPlan = window.GrammarAppState && window.GrammarAppState.buildPageSwitchPlan
+    ? window.GrammarAppState.buildPageSwitchPlan(page, {
+        teachingSession: sessionState.teachingSession,
+        keepTeachingOnPageSwitch: retentionState.keepTeachingOnPageSwitch,
+        isAuthenticated: !!(window.cloud && window.cloud.state && window.cloud.state.user)
+      })
+    : {
+        page: page || 'home',
+        shouldRequireAuth: page === 'error-book' || page === 'lesson-prep' || page === 'admin',
+        shouldCloseTeaching: !!sessionState.teachingSession && !retentionState.keepTeachingOnPageSwitch,
+        pageState: buildActivePageState(page),
+        shellState: {
+          guestMode: page === 'welcome',
+          modulesMode: page === 'modules',
+          shouldRefreshModulesGreeting: page === 'modules'
+        },
+        renderPlan: { page: page, renderAction: page, homeView: 'cards', trackModule: true, renderSidebar: true, updateDockBackButton: true }
+      };
+  if (pageSwitchPlan.shouldCloseTeaching) {
+    closeTeachingStage({ fromPageSwitch: true });
+  }
+  if (pageSwitchPlan.shouldRequireAuth && !requireAuth()) return;
+  var pageState = pageSwitchPlan.pageState || buildActivePageState(pageSwitchPlan.page);
+  page = pageState.activePage;
+  var shellState = pageSwitchPlan.shellState || (
+    window.GrammarAppState && window.GrammarAppState.buildPageShellState
+      ? window.GrammarAppState.buildPageShellState(page)
+      : {
+          guestMode: page === 'welcome',
+          modulesMode: page === 'modules',
+          shouldRefreshModulesGreeting: page === 'modules'
+        }
+  );
+  var renderPlan = pageSwitchPlan.renderPlan || (
+    window.GrammarAppState && window.GrammarAppState.buildPageRenderPlan
+      ? window.GrammarAppState.buildPageRenderPlan(page)
+      : { page: page, renderAction: page, homeView: 'cards', trackModule: true, renderSidebar: true, updateDockBackButton: true }
+  );
+  // body class 状态机（先于 DOM 操作，避免中间态 layout）
+  document.body.classList.toggle('guest', !!shellState.guestMode);
+  document.body.classList.toggle('in-modules', !!shellState.modulesMode);
+  if (shellState.shouldRefreshModulesGreeting) refreshModulesGreeting();
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Update dock active state — 用 data-dock-key 而不是 data-page，精确匹配
+  applyActivePageState(pageState);
+  setActiveDock(pageState.activeDock);
+  var pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.add('active');
+  if (page === 'knowledge') setKnowledgeView('map');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  if (renderPlan.renderAction === 'navigate-home-cards') navigateHome(renderPlan.homeView || 'cards');
+  if (renderPlan.renderAction === 'render-error-book') renderErrorBook();
+  if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
+  if (renderPlan.renderAction === 'render-admin') renderAdminPage();
+  if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
+  if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
+  // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
+  // 错题本/备课/讲题显示）
+  if (renderPlan.renderSidebar && typeof renderPageSidebar === 'function') renderPageSidebar(renderPlan.page);
+  if (renderPlan.updateDockBackButton) updateDockBackButton();
+}
+
+function recordUsageEvent(eventType, moduleName, context) {
+  if (!window.seeklumeObservability) return;
+  window.seeklumeObservability.recordEvent({
+    event_type: eventType,
+    severity: 'info',
+    module: moduleName || '',
+    message: eventType,
+    context: context || {}
+  });
+}
+
+// 顶部 logo 点击：回到首页
+function logoClick() {
+  window.location.href = '/';
+}
+
+// 模块卡点击 → 进入该模块
+function enterModule(moduleId) {
+  var plan = window.GrammarAppState && window.GrammarAppState.buildModuleEntryPlan
+    ? window.GrammarAppState.buildModuleEntryPlan(moduleId)
+    : { supported: moduleId === 'grammar', shouldSwitchPage: moduleId === 'grammar', page: 'home' };
+  if (plan.shouldSwitchPage) switchPage(plan.page || 'home');
+  // 其它模块都还没做，不响应
+}
+
+function refreshModulesGreeting() {
+  var el = document.getElementById('modulesGreeting');
+  if (!el) return;
+  var name = '';
+  if (window.cloud && window.cloud.state && window.cloud.state.user) {
+    name = getUserDisplayName(window.cloud.state.user);
+  }
+  el.textContent = window.GrammarHomeDashboardModel.buildModulesGreetingText(name);
+}
+
+function updateBackButton() {
+  updateDockBackButton();
+}
+
+function getUserDisplayName(user) {
+  if (!user) return '';
+  return (user.user_metadata && user.user_metadata.username) || (user.email || '').split('@')[0] || '';
+}
+
+function goHome() {
+  var plan = window.GrammarAppState && window.GrammarAppState.buildGoHomePlan
+    ? window.GrammarAppState.buildGoHomePlan()
+    : { shouldSwitchPage: true, shouldNavigateHome: true, page: 'home', homeView: 'cards' };
+  if (plan.shouldSwitchPage) switchPage(plan.page || 'home');
+  if (plan.shouldNavigateHome) navigateHome(plan.homeView || 'cards');
+}
+
+function goBack() {
+  var returnState = window.GrammarAppState.buildPreviousViewReturn(getPreviousViewSnapshot().previousView);
+  setPreviousView(returnState.nextPreviousView);
+  if (returnState.type === 'home') {
+    switchPage('home');
+    navigateHome(returnState.homeView || 'cards');
+  } else {
+    switchPage(returnState.page);
+  }
+  updateDockBackButton();
+}
+
+function navigateHome(view) {
+  if (!document.getElementById('page-home').classList.contains('active')) {
+    switchPage('home');
+  }
+  var homeState = applyHomeViewState(buildHomeViewState(view));
+  view = homeState.currentHomeView;
+  document.getElementById('homeCards').style.display = view === 'cards' ? '' : 'none';
+  document.getElementById('homeExams').classList.toggle('active', view === 'exams');
+  // 同步 dock 圆点：cards→home / exams→exams
+  setActiveDock(homeState.dockKey);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  renderPageSidebar('home');
+  updateDockBackButton();
+}
+
+function adjustFont(target, delta) {
+  var fontState = window.GrammarAppState
+    ? window.GrammarAppState.buildFontScaleState(getFontScaleState(), target, delta)
+    : {
+        passageFontSize: target === 'passage' ? Math.max(12, Math.min(48, passageFontSize + delta)) : passageFontSize,
+        drawerFontSize: target === 'drawer' ? Math.max(12, Math.min(48, drawerFontSize + delta)) : drawerFontSize
+      };
+  applyFontScaleState(fontState);
+  if (window.GrammarAppState) {
+    applyFontScaleViewModel(window.GrammarAppState.buildFontScaleViewModel(getFontScaleState(), target), target);
+  }
+}
+
+function toggleExamYear(titleEl) {
+  const arrow = titleEl.querySelector('.year-arrow');
+  const body = titleEl.nextElementSibling;
+  var plan = window.GrammarExamGridModel.buildExamYearTogglePlan(body && body.style.display);
+  if (body) body.style.display = plan.bodyDisplay;
+  if (arrow) arrow.style.transform = plan.arrowTransform;
+}
+
+function updateCounts() {
+  var counts = window.GrammarCategoryRules.countQuestionsByCategory(ALL_QUESTIONS);
+  Object.keys(CATEGORY_MAP).forEach(cat => {
+    const el = document.getElementById('count-' + cat);
+    if (el) el.textContent = window.GrammarCategoryRules.getCategoryCountText(counts[cat] || 0);
+  });
+}
+
+function startByCategory(cat) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var entryModel = window.GrammarCategoryRules.buildCategoryPracticePlan(cat, ALL_QUESTIONS, CATEGORY_MAP);
+  if (!entryModel.hasQuestions) {
+    alert(entryModel.emptyMessage);
+    return;
+  }
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
+// 随机训练：从一个大类里随机抽 RANDOM_CATEGORY_COUNT 题（不足则全抽），打乱顺序进训练。
+var RANDOM_CATEGORY_COUNT = 10;
+
+function shuffleQuestionsInPlace(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+function startRandomCategory(cat) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var rules = window.GrammarCategoryRules;
+  var pool = rules.selectCategoryQuestions(ALL_QUESTIONS, cat);
+  if (!pool.length) {
+    alert(rules.getEmptyCategoryMessage(cat));
+    return;
+  }
+  var picked = shuffleQuestionsInPlace(pool.slice()).slice(0, RANDOM_CATEGORY_COUNT);
+  var catName = CATEGORY_MAP[cat] || cat;
+  var label = '🎲 随机训练 · ' + catName + ' · ' + picked.length + '题';
+  var entryModel = rules.buildCategoryPracticeEntryModel(cat, picked, CATEGORY_MAP, label);
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
+function startByFineTag(fine) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var fineTag = (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.tags_by_id && window.GRAMMAR_FINE_TAGS.tags_by_id[fine]) || {};
+  var fineName = fineTag.name || fine;
+  var catName = fineTag.category ? (CATEGORY_MAP[fineTag.category] || fineTag.category) : '';
+  var label = '按考点' + (catName ? ' · ' + catName : '') + ' · ' + fineName;
+  var entryModel = window.GrammarCategoryRules.buildFineTagPracticePlan(fine, ALL_QUESTIONS, CATEGORY_MAP, label);
+  if (!entryModel.hasQuestions) {
+    alert(entryModel.emptyMessage);
+    return;
+  }
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
+// 决策地图叶子→「按考点 · 粗类 · 父分组 · 叶子」面包屑。父分组与粗类同名时省略。
+function dmBreadcrumb(full, node) {
+  return node ? window.GrammarKnowledgeViewModel.buildPointBreadcrumb(full, node.id, CATEGORY_MAP) : '';
+}
+
+function startByPoint(tag, keys, sourceLabel) {
+  closeDrawer();
+  resetPracticeDisplayState();
+  var entryModel = window.GrammarCategoryRules.buildPointPracticePlan(tag, keys, ALL_QUESTIONS, CATEGORY_MAP, sourceLabel);
+  if (!entryModel.hasQuestions) {
+    alert(entryModel.emptyMessage);
+    return;
+  }
+  applyPracticeContextState({
+    currentQuestions: entryModel.questions,
+    currentExam: entryModel.currentExam
+  });
+  setPreviousView(getPracticeEntryPreviousView('category'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
+function startByExam(examId, preserveDrawerReturn) {
+  closeDrawer(!!preserveDrawerReturn);
+  resetPracticeDisplayState();
+  var examState = createExamStateFromId(examId);
+  if (!examState) {
+    alert(window.GrammarQuestionModel.getMissingExamMessage(examId));
+    return;
+  }
+  applyPracticeContextState(examState);
+  setPreviousView(getPracticeEntryPreviousView('exam'));
+  syncAppState();
+  switchPage('practice');
+  renderExam();
+}
+
+function renderPracticeBlankSlot(slot) {
+  slot = slot || {};
+  var index = Number(slot.index) || 0;
+  if (slot.kind === 'answer') {
+    return '<span class="answer-filled" data-blank-idx="' + index + '">' + escapeHtml(slot.text || '') + '</span>';
+  }
+  return '<span class="blank-inline" data-blank-idx="' + index + '" onclick="showAnalysisByIdx(' + index + ')">' + escapeHtml(slot.text || '') + '</span>';
+}
+
+function renderUnmatchedBlankWarning(model) {
+  if (!model || !model.visible) return '';
+  return '<div style="margin-top:16px;padding:12px;border:1px dashed var(--orange);border-radius:8px;background:var(--orange-bg);">'
+    + '<div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:6px;">' + escapeHtml(model.title || '') + '</div>'
+    + (model.items || []).map(function(item) {
+      var slot = window.GrammarPracticeViewModel.buildBlankSlotModel(item.question, item.index, item.no, false);
+      return '<span style="display:inline-block;margin:3px 8px 3px 0;font-size:14px;">' + renderPracticeBlankSlot(slot) + '</span>';
+    }).join('')
+    + '</div>';
+}
+
+function toggleCatItemAnswer(btn) {
+  // 考点练习列表：逐条显示/隐藏该题答案（不必进全屏）
+  var span = btn.nextElementSibling;
+  if (!span) return;
+  var show = span.style.display === 'none';
+  span.style.display = show ? 'inline' : 'none';
+  btn.textContent = show ? '隐藏答案' : '显示答案';
+}
+function renderExam() {
+  var practiceContext = getPracticeContextSnapshot();
+  var displayState = getPracticeDisplaySnapshot();
+  var shellModel = window.GrammarPracticeViewModel.buildPracticeShellModel(practiceContext.currentExam, practiceContext.currentQuestions, displayState.showAnswers, displayState.showChinese);
+  var bodyKind = shellModel.bodyKind;
+  document.getElementById('sourceName').textContent = shellModel.header.sourceName;
+  document.getElementById('sourceCount').textContent = shellModel.header.sourceCountText;
+  var hintEl = document.getElementById('practiceHintText');
+  if (hintEl) hintEl.textContent = shellModel.hintText;
+  syncAppState();
+
+  renderContextSidebar();
+  renderClassroomSwitcher();
+
+  var toggleModel = shellModel.toggle;
+  var btnToggle = document.getElementById('btnToggleAnswers');
+  if (btnToggle) {
+    btnToggle.textContent = toggleModel.answerText;
+    btnToggle.style.display = shellModel.answerToggleVisible ? '' : 'none';
+  }
+
+  renderCategoryStats();
+
+  var btnChinese = document.getElementById('btnToggleChinese');
+  if (bodyKind === 'chinese') {
+    if (btnChinese) btnChinese.textContent = toggleModel.chineseText;
+
+    var chineseModel = window.GrammarPracticeViewModel.buildChinesePassageModel(practiceContext.currentExam, practiceContext.currentQuestions, EXAMS_BY_ID);
+    if (chineseModel.hasText) {
+      var chineseHtml = chineseModel.paragraphs.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+      document.getElementById('passageBox').innerHTML = chineseHtml;
+    } else {
+      document.getElementById('passageBox').innerHTML = '<p style="color:var(--text-3);">' + escapeHtml(chineseModel.placeholderText) + '</p>';
+      doAiTranslation();
+    }
+    return;
+  }
+  if (btnChinese) btnChinese.textContent = toggleModel.chineseText;
+
+  if (bodyKind === 'error') {
+    var q = practiceContext.currentQuestions[0] || {};
+    var replacement = renderPracticeBlankSlot(window.GrammarPracticeViewModel.buildBlankSlotModel(q, 0, q.no, displayState.showAnswers));
+    var passage = window.GrammarPracticeViewModel.replaceBlankMarker(q.passage, q.no, replacement);
+    document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
+    return;
+  }
+
+  if (bodyKind === 'category') {
+    var categoryModel = window.GrammarPracticeViewModel.buildCategoryPracticeModel(practiceContext.currentQuestions, {
+      extractSentence: extractSentence
+    });
+    var hint = categoryModel.hint;
+    var html = '<div class="cat-hint">' +
+               escapeHtml(hint.prefix) +
+               '<span class="blank-hl">' + escapeHtml(hint.actionLabel) + '</span>' +
+               escapeHtml(hint.suffix) +
+               '</div>';
+    categoryModel.groups.forEach(function(group) {
+      html += '<div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);">'
+            + '<div class="cat-exam-title">' + escapeHtml(group.examId) + '</div>';
+      group.items.forEach(function(item) {
+        var repl = renderPracticeBlankSlot(window.GrammarPracticeViewModel.buildBlankSlotModel(item.question, item.index, item.no, displayState.showAnswers));
+        var sent = window.GrammarPracticeViewModel.replaceBlankMarker(item.sentence, item.no, repl);
+        var ans = escapeHtml((item.question && item.question.answer) || '');
+        html += '<div class="cat-sentence">' + sent
+          + ' <button type="button" class="cat-ans-btn" onclick="toggleCatItemAnswer(this)">显示答案</button>'
+          + '<span class="cat-ans" style="display:none;"> 答案：<b>' + ans + '</b></span>'
+          + '</div>';
+      });
+      html += '</div>';
+    });
+    document.getElementById('passageBox').innerHTML = html;
+  } else if (bodyKind === 'sequential') {
+    var sequentialModel = window.GrammarPracticeViewModel.applySequentialBlankReplacements(practiceContext.currentExam, practiceContext.currentQuestions, function(q, idx, numStr) {
+      return renderPracticeBlankSlot(window.GrammarPracticeViewModel.buildBlankSlotModel(q, idx, numStr, displayState.showAnswers));
+    });
+    var passage = sequentialModel.paragraphs.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+    passage += renderUnmatchedBlankWarning(window.GrammarPracticeViewModel.buildUnmatchedBlankWarningModel(sequentialModel.unmatchedItems));
+    document.getElementById('passageBox').innerHTML = passage;
+  }
+}
+
+// --- 中文翻译 ---
+
+function getTranslationCache() {
+  try { return JSON.parse(localStorage.getItem('grammar-translation-cache') || '{}'); } catch (e) { return {}; }
+}
+
+function setTranslationCache(hash, text) {
+  var cache = getTranslationCache();
+  cache[hash] = text;
+  var keys = Object.keys(cache);
+  while (keys.length > 50) { delete cache[keys[0]]; keys = Object.keys(cache); }
+  localStorage.setItem('grammar-translation-cache', JSON.stringify(cache));
+}
+
+function hashPassage(passage) {
+  var s = passage.trim().substring(0, 80);
+  var h = 0;
+  for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+  return Math.abs(h).toString(36);
+}
+
+// doAiTranslation: triggered when user toggles 中/英 and no pre-stored translation exists
+async function doAiTranslation() {
+  var passageBox = document.getElementById('passageBox');
+  var text = getPassageText(true);
+  var hash = hashPassage(text);
+  var cache = getTranslationCache();
+  if (cache[hash]) {
+    var cachedHtml = cache[hash].split('\n\n').filter(function(p) { return p.trim(); }).map(function(p) {
+      return '<p>' + p + '</p>';
+    }).join('');
+    passageBox.innerHTML = cachedHtml;
+    return;
+  }
+  try {
+    var token = window._sb ? (await window._sb.auth.getSession()).data.session?.access_token : null;
+    if (!token) {
+      passageBox.innerHTML = '<p style="color:var(--text-3);">请先登录以使用翻译功能。</p>';
+      return;
+    }
+    var res = await fetch('https://zwbvcqkfbndgmyfxtkyl.supabase.co/functions/v1/translate-passage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ text: text })
+    });
+    var data = await res.json();
+    if (data.error) {
+      passageBox.innerHTML = '<p style="color:var(--text-3);">翻译失败：' + data.error + '</p>';
+      return;
+    }
+    var chinese = data.chinese || '';
+    setTranslationCache(hash, chinese);
+    var chineseHtml = chinese.split('\n\n').filter(function(p) { return p.trim(); }).map(function(p) {
+      return '<p>' + p + '</p>';
+    }).join('');
+    passageBox.innerHTML = chineseHtml;
+  } catch (e) {
+    passageBox.innerHTML = '<p style="color:var(--text-3);">翻译请求失败，请检查网络后重试。</p>';
+  }
+}
+
+function getPassageText(fillAnswers) {
+  var practiceContext = getPracticeContextSnapshot();
+  return window.GrammarPracticeViewModel.getPracticePassageText(practiceContext.currentExam, practiceContext.currentQuestions, fillAnswers);
+}
+
+// 讲题舞台：翻译当前题所在句子（优先预存中文，否则 AI 翻译并缓存）
+async function translateStageSentence() {
+  var ctx = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var q = (session && ctx.currentQuestions) ? ctx.currentQuestions[session.idx] : null;
+  var body = document.getElementById('stageZhBody');
+  if (!q || !body) return;
+  var zh = getQuestionChineseSentence(q);
+  if (zh) { body.textContent = zh; return; }
+  var sent = '';
+  try { sent = String(window.GrammarPassageUtils.getQuestionSentence(q) || '').replace(/<[^>]+>/g, '').replace(/_{2,}\s*\d*\s*_{2,}/g, ' ____ ').trim(); } catch (e) {}
+  if (!sent) { body.textContent = '没有可翻译的句子。'; return; }
+  var hash = hashPassage(sent);
+  var cache = getTranslationCache();
+  if (cache[hash]) { body.textContent = cache[hash]; return; }
+  body.textContent = '翻译中…';
+  try {
+    var session2 = window._sb ? (await window._sb.auth.getSession()).data.session : null;
+    var token = session2 ? session2.access_token : null;
+    if (!token) { body.textContent = '请先登录以使用翻译。'; return; }
+    var res = await fetch('https://zwbvcqkfbndgmyfxtkyl.supabase.co/functions/v1/translate-passage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ text: sent })
+    });
+    var data = await res.json();
+    if (data.error || !data.chinese) { body.textContent = '翻译失败，请稍后再试。'; return; }
+    setTranslationCache(hash, data.chinese);
+    body.textContent = data.chinese;
+  } catch (e) {
+    body.textContent = '翻译请求失败，请检查网络后重试。';
+  }
+}
+
+// 按考点模式：根据题在 currentQuestions 数组中的下标取题
+function showAnalysisByIdx(idx) {
+  var practiceContext = getPracticeContextSnapshot();
+  var q = practiceContext.currentQuestions[idx];
+  if (!q) return;
+  openTeachingStageByIdx(idx, { tab: 'guide', source: 'practice' });
+}
+
+function closeDrawer(preserveDrawerReturn) {
+  var plan = window.GrammarAppState.buildDrawerClosePlan(!!preserveDrawerReturn);
+  var drawer = document.getElementById('drawer');
+  var overlay = document.getElementById('drawerOverlay');
+  if (plan.shouldCloseDrawer && drawer) drawer.classList.remove('open');
+  if (plan.shouldCloseOverlay && overlay) overlay.classList.remove('show');
+  applySelectedQuestionState(plan.selectedState);
+  if (plan.shouldSyncAppState) syncAppState();
+  if (plan.shouldCloseAnalysisFloat) closeAnalysisFloat();
+  if (plan.shouldClearBlankHighlight) clearBlankHighlight();
+  if (plan.shouldRenderClassroomSwitcher) renderClassroomSwitcher();
+  // 手动关闭抽屉清返回上下文（避免下次打开抽屉残留过期的"返回"按钮）
+  if (plan.shouldClearDrawerReturn && typeof setDrawerReturnTo === 'function') setDrawerReturnTo(null);
+}
+
+function switchDrawerTab(tab) {
+  var selectedState = getSelectedQuestionSnapshot();
+  var sessionState = getTeachingSessionSnapshot();
+  var plan = window.GrammarAppState.buildDrawerTabSwitchPlan(tab, {
+    teachingSession: sessionState.teachingSession,
+    selectedQuestion: selectedState.selectedQuestion
+  });
+  if (plan.shouldUseTeachingTab) {
+    setTeachingTab(plan.tab);
+    return;
+  }
+  document.querySelectorAll(plan.tabSelector).forEach(function(item) {
+    item.classList.remove(plan.tabActiveClass);
+  });
+  var activeTab = document.querySelector(plan.activeTabSelector);
+  if (activeTab) activeTab.classList.add(plan.tabActiveClass);
+  if (plan.shouldRenderContent) {
+    try {
+      var content = document.getElementById(plan.contentElementId);
+      if (!content) return;
+      if (plan.contentType === 'analysis') {
+        content.innerHTML = buildAnalysisContent(selectedState.selectedQuestion);
+      } else if (plan.contentType === 'theory') {
+        content.innerHTML = buildTheoryContent(selectedState.selectedQuestion);
+      } else {
+        content.innerHTML = buildMigrationContent(selectedState.selectedQuestion);
+      }
+    } catch (e) {
+      console.error('抽屉标签渲染失败：', e);
+      var fallbackContent = document.getElementById(plan.contentElementId);
+      if (fallbackContent) fallbackContent.innerHTML = plan.errorHtml;
+    }
+  }
+}
+
+function asText(value, fallback) {
+  return window.GrammarPassageUtils.asText(value, fallback);
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value.filter(function(item) {
+    return item !== null && item !== undefined && String(item).trim() !== '';
+  }) : [];
+}
+
+function escapeRegExpText(value) {
+  return window.GrammarPassageUtils.escapeRegExpText(value);
+}
+
+function safeQuestionNo(q) {
+  return window.GrammarPassageUtils.safeQuestionNo(q);
+}
+
+function renderSentenceWithBlank(q, revealAnswer) {
+  q = q || {};
+  var no = safeQuestionNo(q);
+  var raw = window.GrammarPassageUtils.getQuestionSentenceFallback(q);
+
+  var escaped = escapeHtml(raw);
+  if (no) {
+    var token = '[[BLANK_' + no + ']]';
+    var prefix = window.GrammarPassageUtils.getBlankPrefix(raw, no);
+    var replacement = revealAnswer
+      ? prefix + '<span class="hl">' + escapeHtml(q.answer || '') + '</span>'
+      : prefix + '<span class="blank-hl">___' + escapeHtml(no) + '___</span>';
+    escaped = escaped.replace(new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}'), token);
+    escaped = escaped.replace('___' + escapeHtml(no) + '___', token);
+    escaped = escaped.replace(token, replacement);
+  }
+  return escaped;
+}
+
+function renderTeachingMigrationSentence(q, id) {
+  q = q || {};
+  var no = safeQuestionNo(q);
+  var raw = window.GrammarPassageUtils.getQuestionSentenceFallback(q);
+
+  var escaped = escapeHtml(raw);
+  if (no) {
+    var token = '[[MIGRATION_BLANK_' + no + ']]';
+    var prefix = window.GrammarPassageUtils.getBlankPrefix(raw, no);
+    var blank = prefix
+      + '<span class="blank-hl" role="button" tabindex="0" data-migration-answer-id="' + escapeHtml(id) + '"'
+      + ' data-blank-label="___' + escapeHtml(no) + '___"'
+      + ' data-answer="' + escapeHtml(q.answer || '') + '"'
+      + ' onclick="toggleTeachingMigrationAnswer(\'' + escapeHtml(id) + '\')"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleTeachingMigrationAnswer(\'' + escapeHtml(id) + '\');}">'
+      + '___' + escapeHtml(no) + '___'
+      + '</span>';
+    escaped = escaped.replace(new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}'), token);
+    escaped = escaped.replace('___' + escapeHtml(no) + '___', token);
+    escaped = escaped.replace(token, blank);
+  }
+  return escaped;
+}
+
+function renderTeachingQuestionSentence(q) {
+  q = q || {};
+  var no = safeQuestionNo(q);
+  var raw = window.GrammarPassageUtils.getQuestionSentenceFallback(q);
+
+  var escaped = escapeHtml(raw);
+  if (no) {
+    var token = '[[TEACHING_BLANK_' + no + ']]';
+    var prefix = window.GrammarPassageUtils.getBlankPrefix(raw, no);
+    var blank = prefix
+      + '<span class="blank-hl" role="button" tabindex="0"'
+      + ' data-blank-label="___' + escapeHtml(no) + '___"'
+      + ' data-answer="' + escapeHtml(q.answer || '') + '"'
+      + ' onclick="toggleTeachingQuestionBlank(this)"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleTeachingQuestionBlank(this);}">'
+      + '___' + escapeHtml(no) + '___'
+      + '</span>';
+    escaped = escaped.replace(new RegExp('_{2,}\\s*' + escapeRegExpText(no) + '\\s*_{2,}'), token);
+    escaped = escaped.replace('___' + escapeHtml(no) + '___', token);
+    escaped = escaped.replace(token, blank);
+  }
+  return escaped;
+}
+
+function splitTextParagraphs(text) {
+  return window.GrammarPassageUtils.splitTextParagraphs(text);
+}
+
+function findQuestionBlankMatch(q) {
+  q = q || {};
+  return window.GrammarPassageUtils.findBlankMatch(q.passage, safeQuestionNo(q));
+}
+
+function findParagraphIndexAtOffset(text, offset) {
+  return window.GrammarPassageUtils.findParagraphIndexAtOffset(text, offset);
+}
+
+function splitEnglishSentences(paragraph) {
+  return window.GrammarPassageUtils.splitEnglishSentences(paragraph);
+}
+
+function splitChineseSentences(paragraph) {
+  return window.GrammarPassageUtils.splitChineseSentences(paragraph);
+}
+
+function getQuestionTranslationText(q) {
+  q = q || {};
+  var practiceContext = getPracticeContextSnapshot();
+  if (q.chinese_translation) return q.chinese_translation;
+  if (practiceContext.currentExam && practiceContext.currentExam.chinese_translation) return practiceContext.currentExam.chinese_translation;
+  var examId = q.exam_id || q.exam;
+  var ex = examId && EXAMS_BY_ID[examId];
+  return ex && ex.chinese_translation ? ex.chinese_translation : '';
+}
+
+function getQuestionChineseSentence(q) {
+  var practiceContext = getPracticeContextSnapshot();
+  return window.GrammarPassageUtils.getQuestionChineseSentence(q, {
+    currentPassage: practiceContext.currentExam && practiceContext.currentExam.passage,
+    getQuestionTranslationText: getQuestionTranslationText
+  });
+}
+
+function safeQuestionFocus(q) {
+  try {
+    return getQuestionFocus(q);
+  } catch (e) {
+    console.warn('小考点识别失败：', e, q);
+    var category = q && q.category;
+    return {
+      key: category || 'other',
+      label: CATEGORY_MAP[category] || category || '语法填空',
+      note: CATEGORY_TIPS[category] || '先判空格成分，再确定答案方向。'
+    };
+  }
+}
+
+function safeQuestionTrap(q) {
+  try {
+    return getQuestionTrap(q);
+  } catch (e) {
+    console.warn('陷阱识别失败：', e, q);
+    return null;
+  }
+}
+
+function safeQuestionTrapId(q) {
+  var trap = safeQuestionTrap(q);
+  return trap ? trap.id : '';
+}
+
+function safeQuestionFocusKey(q) {
+  return safeQuestionFocus(q).key;
+}
+
+function safeTeachingGuide(q, focus, trap) {
+  var guide;
+  try {
+    guide = getQuestionTeachingGuide(q);
+  } catch (e) {
+    console.warn('讲题引导生成失败：', e, q);
+  }
+  guide = guide || {};
+  return {
+    headline: guide.headline || (trap && trap.one_liner) || '这题先问：空格在句子里承担什么功能？',
+    questions: asArray(guide.questions).length ? asArray(guide.questions) : [
+      '先找句子主干：主语、谓语、宾语在哪里？',
+      '再看空格成分：作谓语、非谓语，还是词性转换？',
+      '最后结合固定搭配和上下文语义确定答案。'
+    ],
+    wrong: guide.wrong || '常错：先背规则，后看句子；正确顺序应该是先看结构。',
+    theory: asArray(guide.theory).length ? asArray(guide.theory) : [focus && focus.note ? focus.note : '先判空格成分，再确定答案方向。'],
+    trap: guide.trap || trap,
+    focus: guide.focus || focus
+  };
+}
+
+function teachingGuideDeps(focus, nonpAxis) {
+  return {
+    focus: focus,
+    nonpAxis: nonpAxis,
+    categoryMap: CATEGORY_MAP,
+    categoryTips: CATEGORY_TIPS,
+    getQuestionTextBlob: getQuestionTextBlob,
+    detectWordFormTarget: detectWordFormTarget,
+    hasPredicatePassiveCue: hasPredicatePassiveCue,
+    hasPredicateAgreementCue: hasPredicateAgreementCue,
+    hasPredicatePerfectCue: hasPredicatePerfectCue,
+    hasPredicatePastCue: hasPredicatePastCue
+  };
+}
+
+function normalizeTeachingAxes(raw) {
+  return window.GrammarTeachingGuide.normalizeTeachingAxes(raw);
+}
+
+function detectPredicateForm(q, blob, answer) {
+  return window.GrammarTeachingGuide.detectPredicateForm(q, blob, answer, teachingGuideDeps());
+}
+
+function getArticleGuide(q, blob, answer) {
+  return window.GrammarTeachingGuide.getArticleGuide(q, blob, answer);
+}
+
+function getLogicRelation(answer, blob) {
+  return window.GrammarTeachingGuide.getLogicRelation(answer, blob);
+}
+
+function getClauseRole(blob, fallback) {
+  return window.GrammarTeachingGuide.getClauseRole(blob, fallback);
+}
+
+function getQuestionPracticalGuide(q, focus, nonpAxis) {
+  return window.GrammarTeachingGuide.getQuestionPracticalGuide(q, teachingGuideDeps(focus, nonpAxis));
+}
+
+function buildPracticalGuideHtml(guide) { return window.GrammarTeachingRender.practicalGuideHtml(guide); }
+
+function renderSolutionCard(model) { return window.GrammarTeachingRender.solutionCard(model); }
+
+function setSolutionView(mode) {
+  var point = mode === 'point';
+  if (document.body) document.body.classList.toggle('solution-view-point', point);
+  try { localStorage.setItem('grammar-solution-view', point ? 'point' : 'solve'); } catch (e) {}
+}
+(function () {
+  try { if (localStorage.getItem('grammar-solution-view') === 'point' && document.body) document.body.classList.add('solution-view-point'); } catch (e) {}
+})();
+
+function buildSolutionPanelHtml(q) { return window.GrammarTeachingRender.solutionPanelHtml(q); }
+
+function closeAnalysisFloat() {
+  var plan = window.GrammarTeachingGuide.buildAnalysisFloatClosePlan();
+  document.querySelectorAll(plan.panelSelector).forEach(function(panel) {
+    panel.classList.remove(plan.panelClass);
+  });
+  document.querySelectorAll(plan.activeButtonSelector).forEach(function(btn) {
+    btn.classList.remove(plan.buttonClass);
+  });
+}
+
+function toggleAnalysisFloat(kind, btn) {
+  var content = btn && btn.closest ? btn.closest('.analysis-answer-row-lg, .teaching-answer-row') : null;
+  if (!content) content = document.getElementById('drawerContent') || document;
+  var probe = window.GrammarTeachingGuide.buildAnalysisFloatTogglePlan(kind, false);
+  if (!probe.active) return;
+  var panel = content.querySelector ? content.querySelector(probe.panelSelector) : document.querySelector(probe.panelSelector);
+  if (!panel) return;
+  var plan = window.GrammarTeachingGuide.buildAnalysisFloatTogglePlan(kind, panel.classList.contains(probe.panelClass));
+  if (plan.shouldCloseExisting) closeAnalysisFloat();
+  if (plan.shouldOpen) {
+    panel.classList.add(plan.panelClass);
+    if (btn && btn.classList) btn.classList.add(plan.buttonClass);
+  }
+}
+
+function buildAnalysisContent(q) {
+  q = q || {};
+  var sent = renderSentenceWithBlank(q, true);
+  var zhSentence = getQuestionChineseSentence(q);
+  var focus = safeQuestionFocus(q);
+  var nonpAxis = getNonpAxis(q);
+  var practicalGuide = getQuestionPracticalGuide(q, focus, nonpAxis);
+  var migrationCount = 0;
+  try {
+    migrationCount = window.GrammarMigrationTraining.countAnalysisMigrationCandidates(q, {
+      bankQuestions: ALL_QUESTIONS,
+      focus: focus,
+      nonpAxis: nonpAxis,
+      practicalGuide: practicalGuide,
+      safeQuestionFocus: safeQuestionFocus,
+      safeQuestionFocusKey: safeQuestionFocusKey,
+      getNonpAxis: getNonpAxis,
+      getQuestionPracticalGuide: getQuestionPracticalGuide
+    });
+  } catch(e) {}
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var model = window.GrammarTeachingGuide.buildAnalysisPanelModel(q, {
+    zhSentence: zhSentence,
+    practicalGuide: practicalGuide,
+    teachingSession: session,
+    migrationCount: migrationCount
+  });
+  return window.GrammarTeachingRender.analysisHtml(model, {
+    sentHtml: sent,
+    guideHtml: buildPracticalGuideHtml(model.practicalGuide),
+    solutionHtml: renderSolutionCard(model.solution)
+  });
+}
+
+// ─── 迁移训练数据源（持久化，登出不清空，方便老师习惯固定一种）───
+var MIGRATION_SOURCE_KEY = 'grammar-migration-source';
+var _migrationSource = (function(){
+  try {
+    return window.GrammarAppState
+      ? window.GrammarAppState.normalizeMigrationSource(localStorage.getItem(MIGRATION_SOURCE_KEY))
+      : (localStorage.getItem(MIGRATION_SOURCE_KEY) || 'bank');
+  }
+  catch(e) { return 'bank'; }
+})(); // 'bank' | 'mock' | 'errors'
+
+function getMigrationSourceSnapshot() {
+  var current = (typeof _migrationSource !== 'undefined' && _migrationSource)
+    || (window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.migrationSource)
+    || 'bank';
+  if (window.GrammarAppState && window.GrammarAppState.buildMigrationSourceState) {
+    return window.GrammarAppState.buildMigrationSourceState(current);
+  }
+  return {
+    migrationSource: current === 'errors' || current === 'mock' ? current : 'bank'
+  };
+}
+
+function applyMigrationSourceState(nextState) {
+  if (typeof nextState === 'string') nextState = { migrationSource: nextState };
+  nextState = nextState || getMigrationSourceSnapshot();
+  var source = nextState.migrationSource || nextState.source || 'bank';
+  var state = window.GrammarAppState && window.GrammarAppState.buildMigrationSourceState
+    ? window.GrammarAppState.buildMigrationSourceState(source)
+    : { migrationSource: source === 'errors' || source === 'mock' ? source : 'bank' };
+  _migrationSource = state.migrationSource;
+  if (window.GrammarAppState) window.GrammarAppState.patch(state);
+  return state;
+}
+
+applyMigrationSourceState(_migrationSource);
+
+function setMigrationSource(src) {
+  _migrationShowAll = false;
+  var practiceContext = getPracticeContextSnapshot();
+  var sessionState = getTeachingSessionSnapshot();
+  var session = sessionState.teachingSession;
+  var selectedState = getSelectedQuestionSnapshot();
+  var q = session && practiceContext.currentQuestions ? practiceContext.currentQuestions[session.idx] : selectedState.selectedQuestion;
+  var plan = window.GrammarAppState
+    ? window.GrammarAppState.buildMigrationSourceChangePlan(src, {
+        question: q,
+        hasTeachingSession: !!session,
+        hasSelectedQuestion: !!selectedState.selectedQuestion
+      })
+    : {
+        migrationSource: src || 'bank',
+        storageValue: src || 'bank',
+        eventName: 'migration_source_selected',
+        eventModule: 'migration-training',
+        eventContext: {
+          source: src || 'bank',
+          question_no: q ? (q.no || null) : null,
+          category: q ? (q.category || '') : '',
+          fine_category: q ? (q.fine_category || '') : ''
+        },
+        shouldCloseTeachingExamMenu: !!session,
+        renderTarget: session ? 'teaching-stage' : (selectedState.selectedQuestion ? 'drawer' : 'none'),
+        drawerErrorHtml: '<div class="empty-hint">迁移训练暂时加载失败，但当前题解析不受影响。请回到“解析”页签继续讲题。</div>'
+      };
+  applyMigrationSourceState(plan);
+  try { localStorage.setItem(MIGRATION_SOURCE_KEY, plan.storageValue); } catch(e) {}
+  recordUsageEvent(plan.eventName, plan.eventModule, plan.eventContext);
+  if (plan.renderTarget === 'teaching-stage') {
+    if (plan.shouldCloseTeachingExamMenu) closeTeachingExamMenu();
+    renderTeachingStage();
+    return;
+  }
+  if (plan.renderTarget === 'drawer') {
+    try {
+      document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedState.selectedQuestion);
+    } catch (e) {
+      console.error('迁移训练切换失败：', e);
+      document.getElementById('drawerContent').innerHTML = plan.drawerErrorHtml;
+    }
+  }
+}
+
+function toggleMigrationShowAll() {
+  _migrationShowAll = !_migrationShowAll;
+  var sessionState = getTeachingSessionSnapshot();
+  var selectedState = getSelectedQuestionSnapshot();
+  if (sessionState.teachingSession) {
+    renderTeachingStage();
+  } else if (selectedState.selectedQuestion) {
+    try {
+      document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedState.selectedQuestion);
+    } catch (e) { console.error('迁移展开失败：', e); }
+  }
+}
+
+function setMigrationPoint(idx) {
+  _migrationPointIdx = idx;
+  _migrationShowAll = false;   // 切考点复位"显示全部"
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (session) { renderTeachingStage(); return; }
+  var selectedState = getSelectedQuestionSnapshot();
+  if (selectedState.selectedQuestion) {
+    try {
+      document.getElementById('drawerContent').innerHTML = buildMigrationContent(selectedState.selectedQuestion);
+    } catch (e) {
+      console.error('迁移考点切换失败：', e);
+    }
+  }
+}
+
+var _teachingMigrationRegistry = {};
+var _teachingMigrationCounter = 0;
+
+function clearTeachingMigrationRegistry() {
+  var state = window.GrammarAppState.clearTeachingMigrationRegistryState(_teachingMigrationCounter);
+  _teachingMigrationRegistry = state.teachingMigrationRegistry;
+  _teachingMigrationCounter = state.teachingMigrationCounter;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      teachingMigrationRegistry: _teachingMigrationRegistry,
+      teachingMigrationCounter: _teachingMigrationCounter
+    });
+  }
+}
+
+function registerTeachingMigrationItem(item) {
+  var state = window.GrammarAppState.registerTeachingMigrationItemState(
+    _teachingMigrationRegistry,
+    _teachingMigrationCounter,
+    item
+  );
+  _teachingMigrationRegistry = state.teachingMigrationRegistry;
+  _teachingMigrationCounter = state.teachingMigrationCounter;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch({
+      teachingMigrationRegistry: _teachingMigrationRegistry,
+      teachingMigrationCounter: _teachingMigrationCounter
+    });
+  }
+  return state.id;
+}
+
+function getTeachingMigrationItem(id) {
+  return window.GrammarAppState.getTeachingMigrationRegistryItem(_teachingMigrationRegistry, id);
+}
+
+function isErrorQuestionItem(item) {
+  return window.GrammarMigrationTraining.isErrorQuestionItem(item);
+}
+
+function createExamQuestionFromRaw(raw, exam) {
+  return window.GrammarQuestionModel.createExamQuestionFromRaw(raw, exam, CATEGORY_TIPS);
+}
+
+function buildExamQuestions(exam) {
+  return window.GrammarQuestionModel.buildExamQuestions(exam, CATEGORY_TIPS);
+}
+
+function createExamStateFromId(examId) {
+  return window.GrammarQuestionModel.createExamStateFromId(examId, EXAMS_BY_ID, CATEGORY_TIPS);
+}
+
+function createErrorStateForQuestion(q) {
+  return window.GrammarQuestionModel.createErrorStateForQuestion(q, CATEGORY_MAP);
+}
+
+function captureTeachingContext() {
+  var practiceContext = getPracticeContextSnapshot();
+  var previousViewState = getPreviousViewSnapshot();
+  var displayState = getPracticeDisplaySnapshot();
+  var selectedState = getSelectedQuestionSnapshot();
+  var sessionState = getTeachingSessionSnapshot();
+  return window.GrammarAppState.createTeachingContextSnapshot({
+    currentExam: practiceContext.currentExam,
+    currentQuestions: practiceContext.currentQuestions,
+    selectedQuestion: selectedState.selectedQuestion,
+    idx: getCurrentQuestionIndex(),
+    teachingSession: sessionState.teachingSession,
+    previousView: previousViewState.previousView,
+    showAnswers: displayState.showAnswers,
+    showChinese: displayState.showChinese
+  });
+}
+
+function isSameTeachingExamContext(a, b) {
+  return window.GrammarAppState.isSameTeachingExamContext(a, b, { sameQuestion: sameQuestion });
+}
+
+function restoreTeachingContext(ctx) {
+  if (!ctx || !ctx.currentExam) return false;
+  applyPracticeContextState({
+    currentExam: ctx.currentExam,
+    currentQuestions: ctx.currentQuestions || []
+  });
+  applySelectedQuestionState(window.GrammarAppState.buildSelectedQuestionFromContext(getPracticeContextSnapshot().currentQuestions, ctx));
+  setPreviousView(ctx.previousView || getPreviousViewSnapshot().previousView);
+  applyPracticeDisplayState({
+    showAnswers: !!ctx.showAnswers,
+    showChinese: !!ctx.showChinese
+  });
+  syncAppState();
+  switchPageKeepingTeaching('practice');
+  renderExam();
+  return true;
+}
+
+function applyTeachingContext(ctx) {
+  if (!ctx) return;
+  restoreTeachingContext(ctx);
+}
+
+function syncTeachingQuestion(idx) {
+  var practiceContext = getPracticeContextSnapshot();
+  if (!practiceContext.currentQuestions || practiceContext.currentQuestions.length === 0) return null;
+  var selectedState = window.GrammarAppState.buildSelectedQuestionState(practiceContext.currentQuestions, idx);
+  idx = selectedState.selectedQuestionIndex;
+  if (idx < 0 || !selectedState.selectedQuestion) return null;
+  var q = selectedState.selectedQuestion;
+  applySelectedQuestionState(selectedState);
+  syncAppState();
+  clearBlankHighlight();
+  highlightBlankByIdx(idx);
+  renderClassroomSwitcher();
+  return q;
+}
+
+function normalizeTeachingTab(tab) {
+  return window.GrammarTeachingViewModel.normalizeTab(tab);
+}
+
+function getTeachingTabLabel(tab) {
+  return window.GrammarTeachingViewModel.getTabLabel(tab);
+}
+
+function getTeachingHeaderInfo(q) {
+  return window.GrammarTeachingViewModel.buildHeaderInfo(q, teachingViewModelDeps());
+}
+
+function openTeachingStageByIdx(idx, options) {
+  _migrationShowAll = false;   // 切换题目时复位"显示全部"，避免状态串到下一题
+  _migrationPointIdx = 0;       // 切题复位到默认考点(时态), 避免串到下一题
+  options = options || {};
+  var practiceContext = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var plan = window.GrammarAppState.buildTeachingStageOpenPlan(practiceContext.currentQuestions, idx, options, session, {
+    normalizeTab: normalizeTeachingTab
+  });
+  if (!plan.active) return;
+  idx = plan.selectedState.selectedQuestionIndex;
+  var q = syncTeachingQuestion(idx);
+  if (!q) return;
+  if (plan.shouldCloseAnalysisFloat) closeAnalysisFloat();
+  if (plan.shouldCaptureBaseContext) {
+    applyTeachingBaseContextState(window.GrammarAppState.buildTeachingBaseContextState(
+      captureTeachingContext(),
+      plan.baseContextValues
+    ));
+  }
+  applyTeachingSessionState(plan.sessionState);
+  syncAppState();
+  if (plan.usageEvent) {
+    recordUsageEvent(plan.usageEvent.type, plan.usageEvent.module, plan.usageEvent.payload);
+  }
+  if (plan.shouldAddTeachingMode) document.body.classList.add('teaching-mode');
+  var stage = document.getElementById('teachingStage');
+  if (stage && plan.shouldOpenStage) stage.classList.add('open');
+  if (plan.shouldRequestFullscreen) {
+    requestTeachingFullscreen();
+  }
+  if (plan.shouldCloseDrawer) {
+    var drawer = document.getElementById('drawer');
+    var overlay = document.getElementById('drawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('show');
+  }
+  if (plan.shouldRenderTeachingStage) renderTeachingStage();
+}
+
+function renderTeachingStage() {
+  var practiceContext = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (!session) return;
+  var idx = session.idx;
+  var q = practiceContext.currentQuestions && practiceContext.currentQuestions[idx];
+  if (!q) {
+    closeTeachingStage();
+    return;
+  }
+  applySelectedQuestionState(window.GrammarAppState.buildSelectedQuestionState(practiceContext.currentQuestions, idx));
+  clearTeachingMigrationRegistry();
+  syncAppState();
+  var main = document.getElementById('teachingStageMain');
+  if (!main) return;
+  applyTeachingSessionState(window.GrammarAppState.buildTeachingTabState(session, session.tab, {
+    normalizeTab: normalizeTeachingTab
+  }));
+  session = getTeachingSessionSnapshot().teachingSession;
+  var stageDeps = teachingViewModelDeps();
+  stageDeps.getQuestionChineseSentence = getQuestionChineseSentence;
+  var stageModel = window.GrammarTeachingViewModel.buildTeachingStageShellModel(q, practiceContext.currentExam, session, stageDeps);
+  var practicalGuide = stageModel.practicalGuide;
+  var contentHtml = '';
+  try {
+    if (stageModel.tab === 'migration') {
+      contentHtml = buildTeachingMigrationHtml(q);
+    } else {
+      contentHtml = buildTeachingGuideHtml(q, practicalGuide);
+    }
+  } catch (e) {
+    console.error('演示台渲染失败：', e);
+    contentHtml = '<div class="empty-hint">当前题内容加载失败，请退出后重新进入。</div>';
+  }
+  main.innerHTML = window.GrammarTeachingRender.teachingStageHtml(stageModel, {
+    questionSentenceHtml: renderTeachingQuestionSentence(q),
+    contentHtml: contentHtml
+  });
+  main.scrollTop = 0;
+  renderTeachingDock();
+  requestAnimationFrame(function() {
+    var active = document.querySelector('.teaching-q-btn.active');
+    if (active) {
+      try { active.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch(e) {}
+    }
+  });
+}
+
+function buildTeachingGuideHtml(q, practicalGuide) { return window.GrammarTeachingRender.teachingGuideHtml(q, practicalGuide, { getTeachingHeaderInfo: getTeachingHeaderInfo }); }
+
+function buildTeachingMigrationHtml(q) {
+  var data = getMigrationData(q);
+  var migrationSource = getMigrationSourceSnapshot().migrationSource;
+  var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource, _migrationShowAll);
+  recordUsageEvent('migration_training_viewed', 'migration-training', {
+    source: migrationSource,
+    question_no: q ? (q.no || null) : null,
+    category: q ? (q.category || '') : '',
+    fine_category: q ? (q.fine_category || '') : '',
+    pool_count: contentModel.poolCount || 0,
+    shown_count: contentModel.shownCount || 0
+  });
+  contentModel.entries.forEach(function(e) { e.stageSentenceHtml = renderTeachingMigrationSentence(e.item, e.id); });
+  return window.GrammarTeachingRender.migrationStageHtml(contentModel);
+}
+
+
+function renderTeachingDock() {
+  var practiceContext = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (!session) return;
+  var dock = document.getElementById('teachingDock');
+  if (!dock) return;
+  var returnStackState = getTeachingReturnStackSnapshot();
+  var model = window.GrammarAppState.buildTeachingDockModel(session, practiceContext.currentQuestions, returnStackState.teachingReturnStack, {
+    normalizeTab: normalizeTeachingTab
+  });
+  dock.innerHTML = window.GrammarTeachingRender.teachingDockHtml(model);
+}
+
+function setTeachingTab(tab) {
+  var practiceContext = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (!session) return;
+  applyTeachingSessionState(window.GrammarAppState.buildTeachingTabState(session, tab, {
+    normalizeTab: normalizeTeachingTab
+  }));
+  syncAppState();
+  session = getTeachingSessionSnapshot().teachingSession;
+  var q = practiceContext.currentQuestions && practiceContext.currentQuestions[session.idx];
+  recordUsageEvent('teaching_tab_selected', 'teaching-stage', {
+    tab: session.tab,
+    source: session.source,
+    question_no: q ? (q.no || null) : null,
+    category: q ? (q.category || '') : '',
+    fine_category: q ? (q.fine_category || '') : ''
+  });
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  renderTeachingStage();
+}
+
+function closeTeachingExamMenu() {
+  var menu = document.getElementById('teachingExamMenu');
+  if (menu) {
+    menu.classList.remove('show');
+    menu.innerHTML = '';
+  }
+}
+
+function toggleTeachingAnswer() {
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (!session) return;
+  applyTeachingSessionState(window.GrammarAppState.buildTeachingAnswerState(session));
+  syncAppState();
+  renderTeachingStage();
+}
+
+function toggleTeachingMigrationAnswer(id) {
+  if (!id) return;
+  var blank = document.querySelector('.teaching-migration-sentence [data-migration-answer-id="' + id + '"]');
+  if (!blank) return;
+  var plan = window.GrammarAppState.buildTeachingBlankRevealPlan(
+    blank.classList.contains('revealed'),
+    blank.getAttribute('data-answer') || '',
+    blank.getAttribute('data-blank-label') || '___ ___'
+  );
+  blank.classList.toggle('revealed', plan.revealed);
+  blank.textContent = plan.text;
+}
+
+function toggleTeachingQuestionBlank(blank) {
+  if (!blank) return;
+  var plan = window.GrammarAppState.buildTeachingBlankRevealPlan(
+    blank.classList.contains('revealed'),
+    blank.getAttribute('data-answer') || '',
+    blank.getAttribute('data-blank-label') || '___ ___'
+  );
+  blank.classList.toggle('revealed', plan.revealed);
+  blank.textContent = plan.text;
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (session) {
+    applyTeachingSessionState(window.GrammarAppState.buildTeachingAnswerState(session, plan.showAnswer));
+    syncAppState();
+  }
+}
+
+function jumpTeachingQuestion(deltaOrIdx, isDelta) {
+  var practiceContext = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var plan = window.GrammarAppState.buildTeachingQuestionJumpPlan(
+    session,
+    practiceContext.currentQuestions,
+    deltaOrIdx,
+    isDelta
+  );
+  if (plan.shouldCloseTeachingExamMenu) closeTeachingExamMenu();
+  if (plan.shouldCloseAnalysisFloat) closeAnalysisFloat();
+  if (!plan.active) return;
+  openTeachingStageByIdx(plan.targetIndex, plan.teachingOptions);
+}
+
+function jumpToMigrationQuestionById(id) {
+  var item = getTeachingMigrationItem(id);
+  if (item) jumpToMigrationQuestion(item);
+}
+
+function jumpToMigrationQuestion(item) {
+  if (!item) return;
+  closeAnalysisFloat();
+  var returnCtx = captureTeachingContext();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var tab = session ? session.tab : 'migration';
+  var showAnswer = session ? session.showAnswer : false;
+  var state = null;
+  var targetIdx = 0;
+  var isError = isErrorQuestionItem(item);
+  if (isError) {
+    state = createErrorStateForQuestion(item);
+    setPreviousView(getPracticeEntryPreviousView('error'));
+  } else {
+    var examId = item.exam_id || item.exam;
+    state = createExamStateFromId(examId);
+    if (!state) {
+      var raw = ALL_QUESTIONS.find(function(q) {
+        return sameQuestion(q, item) || (String(q.exam_id || q.exam) === String(examId) && String(q.no) === String(item.no));
+      });
+      if (raw) state = createExamStateFromId(raw.exam_id || raw.exam);
+    }
+    setPreviousView(getPracticeEntryPreviousView('exam'));
+  }
+  if (!state) return;
+  applyPracticeContextState(state);
+  applySelectedQuestionState(window.GrammarAppState.clearSelectedQuestionState());
+  resetPracticeDisplayState();
+  syncAppState();
+  var foundIdx = getPracticeContextSnapshot().currentQuestions.findIndex(function(q) {
+    return sameQuestion(q, item) || String(q.no) === String(item.no);
+  });
+  targetIdx = foundIdx === -1 ? 0 : foundIdx;
+  var returnState = applyTeachingReturnStackState(
+    window.GrammarAppState.pushTeachingReturnContext(getTeachingReturnStackSnapshot().teachingReturnStack, returnCtx)
+  );
+  syncAppState();
+  switchPageKeepingTeaching('practice');
+  renderExam();
+  openTeachingStageByIdx(targetIdx, {
+    tab: tab,
+    showAnswer: showAnswer,
+    source: 'migration'
+  });
+}
+
+function returnTeachingQuestion() {
+  var returnState = applyTeachingReturnStackState(
+    window.GrammarAppState.popTeachingReturnContext(getTeachingReturnStackSnapshot().teachingReturnStack)
+  );
+  var ctx = returnState.returnContext;
+  var action = window.GrammarAppState.buildTeachingReturnAction(ctx);
+  syncAppState();
+  if (action.action === 'none') return;
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  if (action.shouldSetDrawerReturn) {
+    teardownTeachingStage(action.teardownOptions);
+    setDrawerReturnTo(ctx);
+    executeDrawerReturn();
+    return;
+  }
+  applyTeachingContext(action.returnContext);
+  openTeachingStageByIdx(action.targetIndex, {
+    tab: action.tab,
+    showAnswer: action.showAnswer,
+    source: action.source
+  });
+}
+
+function teardownTeachingStage(options) {
+  options = options || {};
+  closeTeachingExamMenu();
+  closeAnalysisFloat();
+  var practiceContext = getPracticeContextSnapshot();
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var teardownPlan = window.GrammarAppState.buildTeachingStageTeardownPlan({
+    skipRestore: !!options.skipRestore,
+    currentExam: practiceContext.currentExam,
+    teachingBaseContext: getTeachingBaseContextSnapshot().teachingBaseContext,
+    teachingSession: session,
+    currentQuestionIndex: getCurrentQuestionIndex()
+  }, {
+    isSameTeachingExamContext: isSameTeachingExamContext
+  });
+  applyTeachingSessionState(window.GrammarAppState.clearTeachingSessionState());
+  applyTeachingReturnStackState(window.GrammarAppState.clearTeachingReturnStack());
+  syncAppState();
+  if (teardownPlan.shouldRestoreBase) {
+    restoreTeachingContext(teardownPlan.restoreContext);
+  }
+  applyTeachingBaseContextState(window.GrammarAppState.clearTeachingBaseContextState());
+  document.body.classList.remove('teaching-mode');
+  exitTeachingFullscreen();
+  var stage = document.getElementById('teachingStage');
+  if (stage) stage.classList.remove('open');
+  var main = document.getElementById('teachingStageMain');
+  var dock = document.getElementById('teachingDock');
+  if (main) main.innerHTML = '';
+  if (dock) dock.innerHTML = '';
+  if (teardownPlan.shouldSelectQuestion && practiceContext.currentQuestions && practiceContext.currentQuestions[teardownPlan.selectedIndex]) {
+    applySelectedQuestionState(window.GrammarAppState.buildSelectedQuestionState(practiceContext.currentQuestions, teardownPlan.selectedIndex));
+    syncAppState();
+    renderExam();
+    clearBlankHighlight();
+    highlightBlankByIdx(teardownPlan.selectedIndex);
+  } else {
+    applySelectedQuestionState(window.GrammarAppState.clearSelectedQuestionState());
+    syncAppState();
+    clearBlankHighlight();
+  }
+  renderClassroomSwitcher();
+}
+
+function closeTeachingStage(opts) {
+  teardownTeachingStage();
+  // 从错题本进来的讲题，退出时直接回错题本（练习页只是底座）；页面切换触发的关闭不在此跳转
+  var goErrorBook = _teachingExitToErrorBook && !(opts && opts.fromPageSwitch);
+  _teachingExitToErrorBook = false;
+  if (goErrorBook) switchPage('error-book');
+}
+
+var _migrationShowAll = false;
+var _migrationPointIdx = 0;
+
+function getMigrationData(q) {
+  var migrationSource = getMigrationSourceSnapshot().migrationSource;
+  var data = window.GrammarMigrationTraining.buildMigrationData(q, {
+    source: migrationSource,
+    bankQuestions: ALL_QUESTIONS,
+    errorQuestions: errorBookQuestions.map(function(it){
+      var c = (window.GrammarQuestionCorrection ? window.GrammarQuestionCorrection.correctClassification(it) : it);
+      return Object.assign({}, c, { points: window.GrammarQuestionPoints.buildQuestionPoints(c) });
+    }),
+    categoryMap: CATEGORY_MAP,
+    getFineTagInfo: getFineTagInfo,
+    getPointTitle: function(points) {
+      return window.GrammarKnowledgeViewModel.buildMigrationPointTitle(
+        (window.GRAMMAR_DECISION_MAP || {}).nodes || [],
+        window.GRAMMAR_FINE_TAGS || {},
+        CATEGORY_MAP,
+        points
+      );
+    },
+    pointIdx: _migrationPointIdx,
+    limit: _migrationShowAll ? 9999 : 6
+  });
+  data.migration = data.migration.map(function(entry) {
+    entry.id = registerTeachingMigrationItem(entry.item);
+    entry.sentenceHtml = renderSentenceWithBlank(entry.item, false);
+    return entry;
+  });
+  return data;
+}
+
+function buildMigrationContent(q) {
+  clearTeachingMigrationRegistry();
+  var data = getMigrationData(q);
+  var migrationSource = getMigrationSourceSnapshot().migrationSource;
+  var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource, _migrationShowAll);
+  return window.GrammarTeachingRender.migrationDrawerHtml(contentModel);
+}
+
+function buildTheoryContent(q) { return window.GrammarTeachingRender.theoryContent(q, { knowledgeData: KNOWLEDGE_DATA, categoryMap: CATEGORY_MAP, safeQuestionFocus: safeQuestionFocus, getFineTagInfo: getFineTagInfo }); }
+
+function showAnalysis(no) {
+  var practiceContext = getPracticeContextSnapshot();
+  var plan = window.GrammarPracticeViewModel.buildQuestionNoNavigationPlan(practiceContext.currentQuestions, no);
+  if (plan.action !== 'show-analysis') return;
+  showAnalysisByIdx(plan.index);
+}
+
+function findBlankIndex() {
+  return getSelectedQuestionSnapshot().selectedQuestionIndex;
+}
+
+function highlightBlankByIdx(idx) {
+  var box = document.getElementById('passageBox');
+  if (!box) return;
+  var target = box.querySelector('.blank-inline[data-blank-idx="' + idx + '"], .answer-filled[data-blank-idx="' + idx + '"]');
+  if (target) {
+    target.classList.add('highlight');
+    var p = target.closest('p');
+    if (p) p.classList.add('paragraph-active');
+    try { target.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }); } catch(e) {}
+  }
+}
+
+function highlightBlankInPassage(no) {
+  var box = document.getElementById('passageBox');
+  if (!box) return;
+  // Highlight the blank-inline span
+  var blanks = box.querySelectorAll('.blank-inline');
+  blanks.forEach(function(b) {
+    if (b.textContent.trim() === String(no)) {
+      b.classList.add('highlight');
+    }
+  });
+  // Highlight the containing paragraph
+  var highlighted = box.querySelector('.blank-inline.highlight');
+  if (highlighted) {
+    var p = highlighted.closest('p');
+    if (p) p.classList.add('paragraph-active');
+  }
+}
+
+function clearBlankHighlight() {
+  var box = document.getElementById('passageBox');
+  if (!box) return;
+  box.querySelectorAll('.blank-inline.highlight, .answer-filled.highlight').forEach(function(b) { b.classList.remove('highlight'); });
+  box.querySelectorAll('.paragraph-active').forEach(function(p) { p.classList.remove('paragraph-active'); });
+}
+
+function navigateBlank(delta) {
+  var practiceContext = getPracticeContextSnapshot();
+  if (!practiceContext.currentQuestions || practiceContext.currentQuestions.length === 0) return;
+  var session = getTeachingSessionSnapshot().teachingSession;
+  var selectedState = getSelectedQuestionSnapshot();
+  if (session) {
+    jumpTeachingQuestion(delta, true);
+    return;
+  }
+  var newIdx = window.GrammarAppState.getBlankNavigationIndex({
+    delta: delta,
+    currentIdx: findBlankIndex(),
+    total: practiceContext.currentQuestions.length,
+    hasSelectedQuestion: !!selectedState.selectedQuestion
+  });
+  if (newIdx < 0) return;
+  showAnalysisByIdx(newIdx);
+}
+
+function toggleAnswers() {
+  if (getTeachingSessionSnapshot().teachingSession) {
+    toggleTeachingAnswer();
+    return;
+  }
+  var displayState = togglePracticeAnswersState();
+  var btn = document.getElementById('btnToggleAnswers');
+  if (btn) btn.textContent = displayState.showAnswers ? '👁 显示空格' : '👁 显示答案';
+  renderExam();
+}
+
+function toggleChinese() {
+  togglePracticeChineseState();
+  renderExam();
+}
+
+var COMPACT_KEY = 'grammar-compact';
+function applyCompactModeState(state, persist) {
+  state = state || window.GrammarAppState.buildCompactModeState(false, false);
+  document.body.classList.toggle('compact', !!state.compactMode);
+  var btn = document.getElementById('btnCompact');
+  if (btn) btn.textContent = state.buttonText;
+  if (btn) btn.title = state.buttonTitle;
+  if (window.GrammarAppState) window.GrammarAppState.patch({ compactMode: !!state.compactMode });
+  if (persist !== false) {
+    try { localStorage.setItem(COMPACT_KEY, state.storageValue); } catch(e) {}
+  }
+  return state;
+}
+
+function toggleCompact() {
+  applyCompactModeState(window.GrammarAppState.buildCompactModeState(document.body.classList.contains('compact')));
+}
+
+// ─── 投影模式 ─────────────────────────
+// 逻辑已搬至 modules/projection.js，此处为薄壳 + 依赖注入
+function projectionDeps() {
+  return {
+    setTeachingFullscreenRequested: function(v){ teachingFullscreenRequested = v; },
+    getPracticeContextSnapshot: getPracticeContextSnapshot,
+    getCurrentQuestionIndex: getCurrentQuestionIndex,
+    recordUsageEvent: recordUsageEvent,
+    openTeachingStageByIdx: openTeachingStageByIdx,
+    getTeachingSessionSnapshot: getTeachingSessionSnapshot,
+    closeTeachingStage: closeTeachingStage,
+    getDrawerReturnSnapshot: getDrawerReturnSnapshot,
+    executeDrawerReturn: executeDrawerReturn
+  };
+}
+function getFullscreenElement(){ return window.GrammarProjection.getFullscreenElement(); }
+function applyProjectionState(state){ return window.GrammarProjection.applyProjectionState(state, projectionDeps()); }
+function requestTeachingFullscreen(){ return window.GrammarProjection.requestTeachingFullscreen(projectionDeps()); }
+function exitTeachingFullscreen(){ return window.GrammarProjection.exitTeachingFullscreen(projectionDeps()); }
+function enterProjectionMode(){ return window.GrammarProjection.enterProjectionMode(projectionDeps()); }
+function exitProjectionMode(){ return window.GrammarProjection.exitProjectionMode(projectionDeps()); }
+function _onProjectionFullscreenChange(){ return window.GrammarProjection._onProjectionFullscreenChange(); }
+function setDrawerProjectionSize(size){ return window.GrammarProjection.setDrawerProjectionSize(size, projectionDeps()); }
+
+function renderCategoryStats() {
+  var el = document.getElementById('categoryStats');
+  if (!el) return;
+  var practiceContext = getPracticeContextSnapshot();
+  var model = window.GrammarKnowledgeViewModel.buildCategoryStatsModel(practiceContext.currentExam, practiceContext.currentQuestions, CATEGORY_MAP);
+  if (model.hidden) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = '';
+
+  var html = '<span class="category-stats-label">' + escapeHtml(model.label || '') + '</span>';
+  model.items.forEach(function(item) {
+    var colors = item.style;
+    html += '<span class="category-stats-tag" style="background:' + colors.bg + ';color:' + colors.color + ';" onclick="jumpToCategory(\'' + escapeHtml(item.category) + '\')">' + escapeHtml(item.text) + '</span>';
+  });
+  el.innerHTML = html;
+}
+
+function jumpToCategory(cat) {
+  var practiceContext = getPracticeContextSnapshot();
+  var plan = window.GrammarPracticeViewModel.buildCategoryJumpPlan(practiceContext.currentQuestions, cat);
+  if (plan.action !== 'show-analysis') return;
+  showAnalysisByIdx(plan.index);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+  var session = getTeachingSessionSnapshot().teachingSession;
+  if (session) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      jumpTeachingQuestion(-1, true);
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      jumpTeachingQuestion(1, true);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeTeachingStage();
+    }
+    return;
+  }
+  var drawerOpen = document.getElementById('drawer').classList.contains('open');
+  if (!drawerOpen) return;
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    navigateBlank(-1);
+  } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    navigateBlank(1);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    closeDrawer();
+  }
+});
+
+// ─── 考点速查：侧边栏 + 知识地图/书本速查 ───
+var knowledgeSearchIndex = [];
+
+function getKnowledgeSearchIndexSnapshot() {
+  var current = (typeof knowledgeSearchIndex !== 'undefined' && Array.isArray(knowledgeSearchIndex))
+    ? knowledgeSearchIndex
+    : ((window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.knowledgeSearchIndex) || []);
+  if (window.GrammarAppState && window.GrammarAppState.buildKnowledgeSearchIndexState) {
+    return window.GrammarAppState.buildKnowledgeSearchIndexState(current);
+  }
+  return {
+    knowledgeSearchIndex: Array.isArray(current) ? current.slice() : []
+  };
+}
+
+function applyKnowledgeSearchIndexState(indexOrState) {
+  var index = indexOrState && Array.isArray(indexOrState.knowledgeSearchIndex)
+    ? indexOrState.knowledgeSearchIndex
+    : indexOrState;
+  var state = window.GrammarAppState && window.GrammarAppState.buildKnowledgeSearchIndexState
+    ? window.GrammarAppState.buildKnowledgeSearchIndexState(index)
+    : { knowledgeSearchIndex: Array.isArray(index) ? index.slice() : [] };
+  knowledgeSearchIndex = state.knowledgeSearchIndex;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch(state);
+  }
+  return state;
+}
+
+function buildSearchIndex() {
+  var index = window.GrammarKnowledgeViewModel.buildSearchIndex(KNOWLEDGE_DATA, PATTERN_DATA);
+  return applyKnowledgeSearchIndexState(index).knowledgeSearchIndex;
+}
+
+function renderSearchSnippet(parts) {
+  return (parts || []).map(function(part) {
+    return part.match ? '<mark>' + escapeHtml(part.text) + '</mark>' : escapeHtml(part.text);
+  }).join('');
+}
+
+function onKnowledgeSearch(query) {
+  var container = document.getElementById('searchResults');
+  var catNav = document.getElementById('categoryNav');
+  var patNav = document.getElementById('patternNav');
+  var divider = document.querySelector('.knowledge-sidebar-divider');
+  var patternTitle = document.querySelectorAll('.knowledge-sidebar-title')[1];
+  var searchIndex = getKnowledgeSearchIndexSnapshot().knowledgeSearchIndex;
+  var searchModel = window.GrammarKnowledgeViewModel.buildKnowledgeSearchPanelModel(searchIndex, query, { limit: 20 });
+
+  if (!searchModel.active) {
+    container.innerHTML = '';
+    catNav.style.display = searchModel.categoryNavVisible ? '' : 'none';
+    if (patNav) patNav.style.display = searchModel.patternNavVisible ? '' : 'none';
+    if (divider) divider.style.display = searchModel.dividerVisible ? '' : 'none';
+    if (patternTitle) patternTitle.style.display = searchModel.patternTitleVisible ? '' : 'none';
+    return;
+  }
+
+  catNav.style.display = searchModel.categoryNavVisible ? '' : 'none';
+  if (patNav) patNav.style.display = searchModel.patternNavVisible ? '' : 'none';
+  if (divider) divider.style.display = searchModel.dividerVisible ? '' : 'none';
+  if (patternTitle) patternTitle.style.display = searchModel.patternTitleVisible ? '' : 'none';
+  var results = searchModel.results;
+
+  if (results.length === 0) {
+    container.innerHTML = '<div class="search-no-results">' + escapeHtml(searchModel.emptyText) + '</div>';
+    return;
+  }
+
+  var html = '';
+  results.forEach(function(r) {
+    var escKey = r.catKey.replace(/'/g, "\\'");
+    var escSub = r.subKey.replace(/'/g, "\\'");
+    html += '<button class="search-result-item" onclick="navigateToKnowledge(\'' + escKey + '\', \'' + escSub + '\', ' + r.isPattern + ')">';
+    html += '<span class="sr-title">' + escapeHtml(r.label) + '</span>';
+    html += '<span class="sr-snippet">' + renderSearchSnippet(r.snippetParts) + '</span>';
+    html += '</button>';
+  });
+  if (searchModel.overflowText) {
+    html += '<div class="search-no-results">' + escapeHtml(searchModel.overflowText) + '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function navigateToKnowledge(catKey, subKey, isPattern) {
+  var plan = window.GrammarKnowledgeViewModel.buildKnowledgeNavigationPlan(catKey, subKey, isPattern);
+  var reset = plan.searchReset || {};
+  var searchInput = document.getElementById('knowledgeSearch');
+  if (searchInput) searchInput.value = reset.inputValue || '';
+  var searchResults = document.getElementById('searchResults');
+  if (searchResults) searchResults.innerHTML = reset.resultsContent || '';
+  document.getElementById('categoryNav').style.display = reset.categoryNavVisible ? '' : 'none';
+  var patNav = document.getElementById('patternNav');
+  if (patNav) patNav.style.display = reset.patternNavVisible ? '' : 'none';
+  var divider = document.querySelector('.knowledge-sidebar-divider');
+  if (divider) divider.style.display = reset.dividerVisible ? '' : 'none';
+  var patternTitle = document.querySelectorAll('.knowledge-sidebar-title')[1];
+  if (patternTitle) patternTitle.style.display = reset.patternTitleVisible ? '' : 'none';
+
+  selectKnowledgeCategory(plan.selectAction.catKey, plan.selectAction.isPattern);
+
+  var subsection = plan.subsection || {};
+  if (subsection.active) {
+    setTimeout(function() {
+      var subEl = document.getElementById(subsection.elementId);
+      if (subEl) {
+        if (subsection.shouldExpand) subEl.classList.remove(subsection.collapsedClass);
+        if (subsection.shouldScroll) subEl.scrollIntoView(subsection.scrollOptions);
+        subEl.classList.add(subsection.highlightClass);
+        setTimeout(function() { subEl.classList.remove(subsection.highlightClass); }, subsection.highlightMs);
+      }
+    }, subsection.delayMs);
+  }
+}
+
+function toggleSubsection(subKey) {
+  var probe = window.GrammarKnowledgeViewModel.buildKnowledgeSubsectionTogglePlan(subKey, false);
+  var el = document.getElementById(probe.elementId);
+  if (!el) return;
+  var plan = window.GrammarKnowledgeViewModel.buildKnowledgeSubsectionTogglePlan(
+    subKey,
+    el.classList.contains(probe.collapsedClass)
+  );
+  el.classList.toggle(plan.collapsedClass, plan.nextCollapsed);
+}
+
+function setKnowledgeView(view) {
+  _knowledgeRenderTarget = 'knowledgeContent';
+  var knowledgeState = applyKnowledgeViewState({
+    currentKnowledgeView: view,
+    currentKnowledgeNodeId: ''
+  });
+  view = knowledgeState.currentKnowledgeView;
+  var chromeModel = window.GrammarKnowledgeViewModel.buildKnowledgeViewChromeModel(view, {
+    currentKey: knowledgeState.currentKnowledgeKey,
+    currentIsPattern: knowledgeState.currentIsPattern,
+    knowledgeData: KNOWLEDGE_DATA
+  });
+  chromeModel.buttons.forEach(function(button) {
+    var el = document.getElementById(button.elementId);
+    if (el) el.classList.toggle('active', button.active);
+  });
+
+  // Sidebar 整体收起：只有"书本速查"模式才显示 sidebar，其他视图主面板全屏
+  var sidebar = document.getElementById('knowledgeSidebar');
+  if (sidebar) {
+    sidebar.style.display = chromeModel.sidebarVisible ? '' : 'none';
+  }
+
+  if (chromeModel.renderAction === 'map') {
+    renderKnowledgeMap();
+  } else if (chromeModel.renderAction === 'fine-cat') {
+    renderFineCategoryView();
+  } else if (chromeModel.renderAction === 'system') {
+    renderSystemView();
+  } else {
+    selectKnowledgeCategory(chromeModel.bookKey, chromeModel.isPattern);
+  }
+  updateDockBackButton();
+}
+
+// ─── Sprint 1 · Task 9：三视图可视化（Tier 1.5）─────────────────────
+
+// 工具：统计某 fine tag 下的题数（真题库 + 我的错题）
+function _countByFineTag(fineCategory) {
+  return window.GrammarKnowledgeViewModel.countByFineTag(fineCategory, ALL_QUESTIONS, errorBookQuestions);
+}
+
+// 频次着色：根据题数返回颜色（高频红 / 中频黄 / 低频灰）
+function _freqColor(total) {
+  return window.GrammarKnowledgeViewModel.getFrequencyStyle(total);
+}
+
+// ─── 视图 A · 考点视图（13 主类 + fine tag 子节点 + 题数 badge）────
+function renderFineCategoryView() {
+  applyKnowledgeViewState({ currentKnowledgeView: 'fine-cat', currentKnowledgeNodeId: '' });
+  var content = document.getElementById(_knowledgeRenderTarget);
+  if (!content) { updateDockBackButton(); return; }
+  var model = window.GrammarKnowledgeViewModel.buildPointsLeafListModel(
+    (window.GRAMMAR_DECISION_MAP || {}).nodes || [],
+    window.GRAMMAR_FINE_TAGS || {},
+    ALL_QUESTIONS, errorBookQuestions, CATEGORY_MAP);
+  if (model.empty) {
+    content.innerHTML = '<div class="empty-hint">' + escapeHtml(model.emptyText) + '</div>';
+    updateDockBackButton();
+    return;
+  }
+  var html = '<div class="knowledge-section">';
+  html += '<div style="padding:20px 24px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;">';
+  html += '<h2 style="margin:0 0 6px 0;">' + escapeHtml(model.header.titleText) + '</h2>';
+  html += '<p style="margin:0;color:var(--text-2);">' + escapeHtml(model.header.descriptionText) + '</p>';
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">';
+  model.groups.forEach(function(group) {
+    var gc = group.frequencyStyle;
+    html += '<section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">';
+    html += '<h3 style="margin:0;color:var(--text);">' + escapeHtml(group.titleText) + '</h3>';
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">';
+    if (group.total > 0) {
+      html += '<button onclick="startRandomCategory(\'' + graphEscapeAttr(group.id) + '\')" title="从本大类随机抽 ' + RANDOM_CATEGORY_COUNT + ' 题做一组" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);padding:3px 10px;border-radius:12px;font-size:12px;font-family:inherit;cursor:pointer;">🎲 随机训练</button>';
+    } else {
+      html += '<span style="background:var(--surface-2);color:var(--text-3);padding:3px 10px;border-radius:12px;font-size:12px;opacity:0.5;">🎲 随机训练</span>';
+    }
+    html += '<span style="background:' + gc.bg + ';color:' + gc.color + ';padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">' + escapeHtml(group.total + ' 题') + '</span>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    group.leaves.forEach(function(leaf) {
+      var c = leaf.frequencyStyle;
+      var label = escapeHtml(leaf.title) + ' <span style="opacity:0.7;margin-left:2px;">' + escapeHtml(leaf.badge) + '</span>';
+      var baseStyle = 'background:' + c.bg + ';color:' + c.color + ';border:1px solid color-mix(in srgb, ' + c.color + ' 30%, transparent);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;';
+      if (!leaf.clickable) {
+        html += '<span style="' + baseStyle + 'opacity:0.4;">' + label + '</span>';
+      } else if (leaf.action.kind === 'point') {
+        html += '<button onclick="startByPointFromMap(\'' + graphEscapeAttr(leaf.action.tag) + '\',' + dmKeysLiteral(leaf.action.keys) + ',\'' + graphEscapeAttr(leaf.breadcrumb) + '\')" style="' + baseStyle + 'cursor:pointer;">' + label + '</button>';
+      } else {
+        html += '<button onclick="startMigrationFromMap(\'' + graphEscapeAttr(leaf.action.fine) + '\')" style="' + baseStyle + 'cursor:pointer;">' + label + '</button>';
+      }
+    });
+    html += '</div></section>';
+  });
+  html += '</div>';
+  var legend = model.legend || {};
+  html += '<div style="margin-top:24px;padding:14px 18px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-2);">';
+  html += '<b>' + escapeHtml(legend.labelText || '') + '</b> ';
+  (legend.items || []).forEach(function(item) {
+    var style = item.style || {};
+    html += '<span style="background:' + style.bg + ';color:' + style.color + ';padding:2px 8px;border-radius:10px;margin:0 4px;">' + escapeHtml(item.text || '') + '</span>';
+  });
+  html += '<br><span style="color:var(--text-3);">' + escapeHtml(legend.noteText || '') + '</span>';
+  html += '</div></div>';
+  content.innerHTML = html;
+  updateDockBackButton();
+}
+
+// ─── 抽屉返回机制 ─────────────────────────
+var _drawerReturnTo = null;
+
+function getDrawerReturnSnapshot() {
+  var current = (typeof _drawerReturnTo !== 'undefined' && _drawerReturnTo)
+    || (window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.drawerReturnTo)
+    || null;
+  if (window.GrammarAppState && window.GrammarAppState.buildDrawerReturnState) {
+    return window.GrammarAppState.buildDrawerReturnState(current);
+  }
+  return {
+    drawerReturnTo: current || null
+  };
+}
+
+function applyDrawerReturnState(nextState) {
+  nextState = nextState || getDrawerReturnSnapshot();
+  var info = Object.prototype.hasOwnProperty.call(nextState, 'drawerReturnTo')
+    ? nextState.drawerReturnTo
+    : nextState;
+  var state = window.GrammarAppState && window.GrammarAppState.buildDrawerReturnState
+    ? window.GrammarAppState.buildDrawerReturnState(info)
+    : { drawerReturnTo: info || null };
+  _drawerReturnTo = state.drawerReturnTo;
+  if (window.GrammarAppState) window.GrammarAppState.patch(state);
+  return state;
+}
+
+function setDrawerReturnTo(info) {
+  var state = applyDrawerReturnState(window.GrammarAppState.buildDrawerReturnState(info));
+  updateDockBackButton();
+  return state;
+}
+
+function executeDrawerReturn() {
+  var currentState = getDrawerReturnSnapshot();
+  if (!currentState.drawerReturnTo) return;
+  var state = window.GrammarAppState.consumeDrawerReturn(currentState.drawerReturnTo);
+  var info = state.returnInfo;
+  var returnPlan = window.GrammarKnowledgeViewModel.buildUnitQuestionDrawerReturnPlan(
+    info,
+    (window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units) || []
+  );
+  applyDrawerReturnState(state);
+  updateDockBackButton();
+
+  // 加全屏遮罩，过渡期间遮住所有跳闪
+  var mask = document.createElement('div');
+  mask.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:5000;opacity:0;transition:opacity .15s ease;pointer-events:all;';
+  document.body.appendChild(mask);
+  requestAnimationFrame(function() { mask.style.opacity = '1'; });
+
+  // 等遮罩淡入完成后，再做所有跳转动作
+  setTimeout(function() {
+    if (returnPlan.shouldCloseDrawer && typeof closeDrawer === 'function') closeDrawer();
+
+    if (returnPlan.shouldSwitchPage) {
+      switchPage(returnPlan.page);
+      setKnowledgeView(returnPlan.knowledgeView);
+      mask.style.opacity = '0';
+      setTimeout(function() { mask.remove(); }, returnPlan.maskRemoveMs);
+    } else {
+      mask.style.opacity = '0';
+      setTimeout(function() { mask.remove(); }, returnPlan.maskRemoveMs);
+    }
+  }, returnPlan.actionDelayMs);
+}
+
+// ─── 视图 C · 全局图谱（知识库总览）──────────────────
+var globalGraphState = window.GrammarAppState.normalizeGlobalGraphState();
+
+function getGlobalGraphStateSnapshot() {
+  var current = (typeof globalGraphState !== 'undefined' && globalGraphState)
+    || (window.GrammarAppState && window.GrammarAppState.state && window.GrammarAppState.state.globalGraphState)
+    || null;
+  if (window.GrammarAppState && window.GrammarAppState.buildGlobalGraphState) {
+    return window.GrammarAppState.buildGlobalGraphState(current).globalGraphState;
+  }
+  current = current || {};
+  var scale = Number(current.scale);
+  var tx = Number(current.tx);
+  var ty = Number(current.ty);
+  return {
+    scale: isFinite(scale) && scale > 0 ? scale : 0.72,
+    tx: isFinite(tx) ? tx : 40,
+    ty: isFinite(ty) ? ty : 48,
+    selectedId: current.selectedId || '',
+    focusIds: Array.isArray(current.focusIds) ? current.focusIds.slice() : [],
+    focusMode: current.focusMode || 'overview',
+    ready: !!current.ready
+  };
+}
+
+function applyGlobalGraphState(nextState) {
+  var graphState = nextState && nextState.globalGraphState ? nextState.globalGraphState : nextState;
+  var state = window.GrammarAppState && window.GrammarAppState.buildGlobalGraphState
+    ? window.GrammarAppState.buildGlobalGraphState(graphState || getGlobalGraphStateSnapshot())
+    : { globalGraphState: graphState || getGlobalGraphStateSnapshot() };
+  globalGraphState = state.globalGraphState;
+  if (window.GrammarAppState) {
+    window.GrammarAppState.patch(state);
+  }
+  return globalGraphState;
+}
+
+function getTeachingGraph() {
+  var graph = KNOWLEDGE_CORE && KNOWLEDGE_CORE.teaching_graph;
+  return graph || { nodes: [], edges: [] };
+}
+
+function getGraphNodeIndex() {
+  var graph = getTeachingGraph();
+  return window.GrammarTeachingViewModel.buildGraphNodeIndex(graph, KNOWLEDGE_CORE.nodes || {});
+}
+
+function getGraphNodeTypeLabel(type) {
+  return window.GrammarTeachingViewModel.getGraphNodeTypeLabel(type);
+}
+
+function getGraphTypeColor(type) {
+  return window.GrammarTeachingViewModel.getGraphTypeColor(type);
+}
+
+function getGraphNodeSize(node) {
+  return window.GrammarTeachingViewModel.getGraphNodeSize(node);
+}
+
+function getGraphRelevantIds(nodeId) {
+  var graph = getTeachingGraph();
+  var nodes = getGraphNodeIndex();
+  return window.GrammarTeachingViewModel.getGraphRelevantIds(nodeId, graph, nodes);
+}
+
+function graphHasFocus(id) {
+  var graphState = getGlobalGraphStateSnapshot();
+  return window.GrammarTeachingViewModel.graphHasFocus(id, graphState.focusIds);
+}
+
+function graphEdgeActive(edge) {
+  var graphState = getGlobalGraphStateSnapshot();
+  return window.GrammarTeachingViewModel.graphEdgeActive(edge, graphState.focusIds);
+}
+
+function getGlobalGraphFocusPresets() {
+  return window.GrammarTeachingViewModel.getGlobalGraphFocusPresets();
+}
+
+function getGlobalGraphFocusPreset(id) {
+  return window.GrammarTeachingViewModel.getGlobalGraphFocusPreset(id);
+}
+
+function getGraphBoundsForNodes(ids) {
+  var nodes = getGraphNodeIndex();
+  return window.GrammarTeachingViewModel.getGraphBoundsForNodes(ids, nodes);
+}
+
+function graphEscapeAttr(text) {
+  return escapeHtml(String(text || '')).replace(/"/g, '&quot;');
+}
+
+function renderGraphTextLines(text, maxChars, maxLines) {
+  return window.GrammarTeachingViewModel.renderGraphTextLines(text, maxChars, maxLines);
+}
+
+function graphLabelDeps() {
+  return {
+    categoryMap: CATEGORY_MAP,
+    knowledgeData: KNOWLEDGE_DATA,
+    fineTags: FINE_TAGS,
+    getTrapById: getTrapById
+  };
+}
+
+function graphModelDeps(extra) {
+  var deps = graphLabelDeps();
+  extra = extra || {};
+  deps.nodes = extra.nodes || getGraphNodeIndex();
+  deps.getGraphNodeLabelGroups = window.GrammarTeachingViewModel.getGraphNodeLabelGroups;
+  deps.getGraphNodePath = window.GrammarTeachingViewModel.getGraphNodePath;
+  deps.getGraphNodeTypeLabel = window.GrammarTeachingViewModel.getGraphNodeTypeLabel;
+  deps.getGraphTypeColor = window.GrammarTeachingViewModel.getGraphTypeColor;
+  deps.getGraphNodeSize = window.GrammarTeachingViewModel.getGraphNodeSize;
+  deps.graphHasFocus = window.GrammarTeachingViewModel.graphHasFocus;
+  deps.graphEdgeActive = window.GrammarTeachingViewModel.graphEdgeActive;
+  deps.renderGraphTextLines = window.GrammarTeachingViewModel.renderGraphTextLines;
+  deps.searchGraphNodes = window.GrammarTeachingViewModel.searchGraphNodes;
+  return deps;
+}
+
+function getGraphNodeLabelGroups(node) {
+  return window.GrammarTeachingViewModel.getGraphNodeLabelGroups(node, graphLabelDeps());
+}
+
+function getGraphNodePath(node, nodes, maxDepth) {
+  return window.GrammarTeachingViewModel.getGraphNodePath(node, nodes, maxDepth);
+}
+
+function buildGraphSvg() {
+  var graph = getTeachingGraph();
+  var nodes = getGraphNodeIndex();
+  var graphState = getGlobalGraphStateSnapshot();
+  var model = window.GrammarKnowledgeViewModel.buildGlobalGraphSvgModel(
+    graph,
+    nodes,
+    graphState,
+    graphModelDeps({ nodes: nodes })
+  );
+  var svg = '<svg class="global-graph-svg" id="globalGraphSvg" viewBox="' + graphEscapeAttr(model.viewBox) + '" role="img" aria-label="' + escapeHtml(model.ariaLabel) + '">';
+  svg += '<defs><marker id="globalGraphArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path></marker></defs>';
+  svg += '<g id="globalGraphViewport" transform="' + graphEscapeAttr(model.viewportTransform) + '">';
+  if (model.clusters && model.clusters.length) {
+    svg += '<g class="global-graph-clusters">';
+    model.clusters.forEach(function(cluster) {
+      svg += '<g class="global-graph-cluster">';
+      svg += '<rect x="' + cluster.x + '" y="' + cluster.y + '" width="' + cluster.w + '" height="' + cluster.h + '" rx="16" style="stroke:' + graphEscapeAttr(cluster.color) + ';"></rect>';
+      svg += '<text x="' + (cluster.x + 18) + '" y="' + (cluster.y + 32) + '">' + escapeHtml(cluster.titleText) + '</text>';
+      svg += '</g>';
+    });
+    svg += '</g>';
+  }
+  svg += '<g class="global-graph-edges">';
+  model.edges.forEach(function(edge) {
+    svg += '<g class="global-graph-edge' + (edge.active ? ' active' : '') + (edge.dim ? ' dim' : '') + '">';
+    svg += '<path d="' + edge.path + '" marker-end="url(#globalGraphArrow)"></path>';
+    if (edge.labelText) svg += '<text x="' + edge.labelX + '" y="' + edge.labelY + '" text-anchor="middle">' + escapeHtml(edge.labelText) + '</text>';
+    svg += '</g>';
+  });
+  svg += '</g><g class="global-graph-nodes">';
+  model.nodes.forEach(function(node) {
+    var size = node.size || {};
+    svg += '<g class="global-graph-node type-' + graphEscapeAttr(node.type) + (node.active ? ' active' : '') + (node.dim ? ' dim' : '') + '" data-node-id="' + graphEscapeAttr(node.id) + '" onclick="selectGlobalGraphNode(\'' + graphEscapeAttr(node.id) + '\')" transform="translate(' + node.x + ' ' + node.y + ')">';
+    svg += '<rect width="' + size.w + '" height="' + size.h + '" style="stroke:' + node.color + ';"></rect>';
+    svg += '<circle cx="18" cy="18" r="5" fill="' + node.color + '"></circle>';
+    svg += '<text class="node-kicker" x="32" y="22">' + escapeHtml(node.typeLabel) + '</text>';
+    node.titleLines.forEach(function(line, idx) {
+      svg += '<text class="node-title" x="18" y="' + (52 + idx * 24) + '">' + escapeHtml(line) + '</text>';
+    });
+    svg += '<text class="node-subtitle" x="18" y="' + (size.h - 18) + '">' + escapeHtml(node.subtitleText) + '</text>';
+    svg += '</g>';
+  });
+  svg += '</g></g></svg>';
+  return svg;
+}
+
+// 做题决策地图：一张可缩放定位的流程图画布（相机 = transform 平移+缩放，点节点平滑推近）
+var dmCam = { s: 0.8, tx: 0, ty: 0, focusId: '' };
+var dmCtx = null;                 // { tree, layout, width, height } —— 每次渲染时写入
+var dmDrag = { on: false, sx: 0, sy: 0, stx: 0, sty: 0 };
+var dmWindowWired = false;
+var dmExpanded = {};      // 用户点开了哪些末端考点（展开其细考点）
+var dmExpandable = {};    // 本次渲染：哪些末端考点挂着细考点、可展开（id -> 细考点数）
+var dmHoriz = false;      // 布局方向：false=竖版(自上而下)，true=横版(自左向右)
+function applyDmCamera(anim) {
+  var cv = document.getElementById('dmCanvas');
+  if (!cv) return;
+  cv.style.transition = (anim === false) ? 'none' : 'transform .5s cubic-bezier(.22,.61,.36,1)';
+  cv.style.transform = 'translate(' + dmCam.tx + 'px,' + dmCam.ty + 'px) scale(' + dmCam.s + ')';
+}
+function dmPaintFocus() {
+  if (!dmCtx) return;
+  var id = dmCam.focusId, byId = dmCtx.tree.byId;
+  Object.keys(byId).forEach(function(nid) {
+    var el = document.getElementById('dmn_' + nid);
+    if (!el) return;
+    el.classList.toggle('focus', !!id && nid === id);  // 只高亮当前，不再压暗其它（保证字始终看得清）
+    el.classList.remove('dim');
+  });
+}
+function dmFit(anim) {
+  var vp = document.getElementById('dmViewport');
+  if (!vp || !dmCtx) return;
+  dmCam.focusId = '';
+  var vw = vp.clientWidth || 800, vh = vp.clientHeight || 460;
+  var s = Math.min(vw / dmCtx.width, vh / dmCtx.height) * 0.92;
+  if (!isFinite(s) || s <= 0) s = 0.8;
+  dmCam.s = s;
+  dmCam.tx = (vw - dmCtx.width * s) / 2;
+  dmCam.ty = (vh - dmCtx.height * s) / 2;
+  applyDmCamera(anim);
+  dmPaintFocus();
+}
+function dmHome(anim) {
+  // 默认开屏：只框住顶部前几层（入口 + 有/无提示词 + 下一层），放到「读得清」的尺寸，往下钻再逐层展开
+  var vp = document.getElementById('dmViewport');
+  if (!vp || !dmCtx) return;
+  dmCam.focusId = '';
+  var pos = dmCtx.layout.pos, byId = dmCtx.tree.byId;
+  function depthOf(id) { var d = 0, n = byId[id]; while (n && n.parent && byId[n.parent]) { d++; n = byId[n.parent]; } return d; }
+  var xs = [], ys = [];
+  Object.keys(pos).forEach(function(id) { if (depthOf(id) <= 2) { xs.push(pos[id].x); ys.push(pos[id].y); } });
+  if (!xs.length) { dmFit(anim); return; }
+  var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  var bw = (maxX - minX) + 320, bh = (maxY - minY) + 240;
+  var vw = vp.clientWidth || 800, vh = vp.clientHeight || 460;
+  var s = Math.min(vw / bw, vh / bh) * 0.95;
+  if (!isFinite(s) || s <= 0) s = 0.8;
+  s = Math.min(s, 1.1);
+  dmCam.s = s;
+  dmCam.tx = vw / 2 - ((minX + maxX) / 2) * s;
+  dmCam.ty = vh * 0.32 - ((minY + maxY) / 2) * s;
+  applyDmCamera(anim);
+  dmPaintFocus();
+}
+function dmFocus(id, anim) {
+  var vp = document.getElementById('dmViewport');
+  if (!vp || !dmCtx || !dmCtx.layout.pos[id]) return;
+  dmCam.focusId = id;
+  var n = dmCtx.layout.pos[id];
+  var vw = vp.clientWidth || 800, vh = vp.clientHeight || 460;
+  dmCam.s = 1.15;
+  dmCam.tx = vw / 2 - n.x * dmCam.s;
+  dmCam.ty = vh * 0.42 - n.y * dmCam.s;
+  applyDmCamera(anim);
+  dmPaintFocus();
+}
+function dmZoom(f, anim) {
+  var vp = document.getElementById('dmViewport');
+  var oldS = dmCam.s;
+  var newS = Math.max(0.3, Math.min(2.4, oldS * f));
+  if (vp && oldS) {
+    var cx = vp.clientWidth / 2, cy = vp.clientHeight / 2;
+    dmCam.tx = cx - (cx - dmCam.tx) * (newS / oldS);
+    dmCam.ty = cy - (cy - dmCam.ty) * (newS / oldS);
+  }
+  dmCam.s = newS;
+  applyDmCamera(anim !== false);
+}
+function dmToggleExpand(id) {
+  dmExpanded[id] = !dmExpanded[id];
+  renderSystemView(id);
+}
+function dmNodeTap(id) {
+  // 点节点：有子节点→逐层展开/收起；到底层(叶子)→聚焦并显示 讲解/真题 链接
+  var full = dmCtx && dmCtx.full;
+  if (full && full.childrenOf[id] && full.childrenOf[id].length) { dmExpanded[id] = !dmExpanded[id]; renderSystemView(id); return; }
+  dmFocus(id, true);
+}
+function dmResetView() {
+  dmExpanded = {};
+  dmCam.focusId = '';
+  renderSystemView();
+}
+function dmExpandAll() {
+  if (!dmCtx || !dmCtx.full) return;
+  var ids = window.GrammarKnowledgeViewModel.collectExpandableIds(dmCtx.full.childrenOf);
+  ids.forEach(function(id) { dmExpanded[id] = true; });
+  renderSystemView();
+  dmFit(true);
+}
+function dmRevealNode(id) {
+  if (!dmCtx || !dmCtx.full) return;
+  var anc = window.GrammarKnowledgeViewModel.collectDecisionAncestors(id, dmCtx.full.byId);
+  anc.forEach(function(a) { dmExpanded[a] = true; });
+  renderSystemView(id);
+  var input = document.getElementById('dmSearch');
+  var box = document.getElementById('dmSearchResults');
+  if (box) box.innerHTML = '';
+  if (input) input.blur();
+}
+function dmSearch(value) {
+  var box = document.getElementById('dmSearchResults');
+  if (!box || !dmCtx || !dmCtx.full) return;
+  var hits = window.GrammarKnowledgeViewModel.searchDecisionNodes(value, dmCtx.full.byId);
+  if (!hits.length) { box.innerHTML = ''; return; }
+  box.innerHTML = hits.map(function(h) {
+    return '<button type="button" class="dm-search-hit" onclick="dmRevealNode(\'' + graphEscapeAttr(h.id) + '\')">' + escapeHtml(h.title) + '</button>';
+  }).join('');
+}
+function openKnowledgePoint(cat, section) {
+  // 看讲解：进「书本速查」该考点讲解；若给了 section 则展开并滚到该小节
+  if (cat && typeof selectKnowledgeCategory === 'function') {
+    selectKnowledgeCategory(cat, false, section);
+  } else if (typeof setKnowledgeView === 'function') {
+    setKnowledgeView('book');
+  }
+}
+function startMigrationFromMap(fine) {
+  // 从图谱叶子开练：按细分支(fine tag)精准筛题，"返回"指回考点训练
+  startByFineTag(fine);
+  setPreviousView({ page: 'points-training' });
+  if (typeof syncAppState === 'function') syncAppState();
+  if (typeof updateDockBackButton === 'function') updateDockBackButton();
+}
+function dmKeysLiteral(keys) {
+  // 把 keys 数组序列化成 onclick 里可嵌的 JS 数组字面量：['a','b']（值为受控的考点key，无引号/特殊字符）
+  return '[' + (keys || []).map(function(k){ return "'" + String(k) + "'"; }).join(',') + ']';
+}
+function startByPointFromMap(tag, keys, sourceLabel) {
+  // 从图谱叶子/词 chip 按 point 精准开练，"返回"指回考点训练
+  startByPoint(tag, keys, sourceLabel);
+  setPreviousView({ page: 'points-training' });
+  if (typeof syncAppState === 'function') syncAppState();
+  if (typeof updateDockBackButton === 'function') updateDockBackButton();
+}
+function ensureDmWindowListeners() {
+  if (dmWindowWired) return;
+  dmWindowWired = true;
+  window.addEventListener('mousemove', function(e) {
+    if (!dmDrag.on) return;
+    dmCam.tx = dmDrag.stx + (e.clientX - dmDrag.sx);
+    dmCam.ty = dmDrag.sty + (e.clientY - dmDrag.sy);
+    applyDmCamera(false);
+  });
+  window.addEventListener('mouseup', function() {
+    if (!dmDrag.on) return;
+    dmDrag.on = false;
+    var vp = document.getElementById('dmViewport');
+    if (vp) vp.classList.remove('drag');
+  });
+}
+
+function renderSystemView(focusNodeId) {
+  var kvs = getKnowledgeViewSnapshot();
+  applyKnowledgeViewState({
+    currentKnowledgeView: kvs.currentKnowledgeView === 'system-node' ? 'system-node' : 'system',
+    currentKnowledgeNodeId: focusNodeId || ''
+  });
+  var content = document.getElementById(_knowledgeRenderTarget);
+  if (!content) return;
+  var DM = window.GRAMMAR_DECISION_MAP;
+  if (!DM || !DM.nodes || !DM.nodes.length) {
+    content.innerHTML = '<div class="empty-hint">做题决策地图整理中。当前可以切换到“知识地图”或“书本速查”。</div>';
+    updateDockBackButton();
+    return;
+  }
+  var kvm = window.GrammarKnowledgeViewModel;
+  var full = kvm.buildDecisionTree(DM.nodes);
+  // 逐层下钻：默认只显示 入口 + 有/无提示词；只有点开过的节点才展开它的子节点
+  var visibleNodes = [];
+  (function walk(id, depth) {
+    var node = full.byId[id];
+    if (!node) return;
+    visibleNodes.push(node);
+    if (depth < 1 || dmExpanded[id]) (full.childrenOf[id] || []).forEach(function(k) { walk(k, depth + 1); });
+  })(full.rootId, 0);
+  var tree = kvm.buildDecisionTree(visibleNodes);
+  var layout = kvm.layoutDecisionTree(tree, { horizontal: dmHoriz });
+  var pos = layout.pos;
+
+  var html = '<div class="dm-wrap">';
+  html += '<div class="dm-search-wrap"><input id="dmSearch" type="text" placeholder="搜索语法考点…" autocomplete="off" oninput="dmSearch(this.value)"><div class="dm-search-results" id="dmSearchResults"></div></div>';
+  html += '<div class="dm-caption">做题决策地图 · 点节点逐层往下钻；到底层看 讲解 / 真题 · 拖动浏览 · ⤢ 收起回顶</div>';
+  html += '<div class="dm-vp" id="dmViewport"><div class="dm-cv" id="dmCanvas" style="width:' + layout.width + 'px;height:' + layout.height + 'px;">';
+  html += '<svg class="dm-edges" width="' + layout.width + '" height="' + layout.height + '">';
+  visibleNodes.forEach(function(n) {
+    if (!n.parent || !pos[n.parent] || !pos[n.id]) return;
+    var a = pos[n.parent], b = pos[n.id], path;
+    if (dmHoriz) {
+      var mx = (a.x + b.x) / 2;
+      path = 'M' + (a.x + 76) + ' ' + a.y + ' C ' + mx + ' ' + a.y + ', ' + mx + ' ' + b.y + ', ' + (b.x - 74) + ' ' + b.y;
+    } else {
+      var my = (a.y + b.y) / 2;
+      path = 'M' + a.x + ' ' + (a.y + 22) + ' C ' + a.x + ' ' + my + ', ' + b.x + ' ' + my + ', ' + b.x + ' ' + (b.y - 22);
+    }
+    html += '<path d="' + path + '" fill="none" stroke="var(--border)" stroke-width="2"/>';
+  });
+  html += '</svg>';
+  visibleNodes.forEach(function(n) {
+    var p = pos[n.id];
+    if (!p) return;
+    var nid = graphEscapeAttr(n.id);
+    var isEntry = (n.id === full.rootId);
+    var kids = full.childrenOf[n.id] || [];
+    var canExpand = kids.length > 0;
+    var isLeaf = !canExpand;
+    var open = !!dmExpanded[n.id];
+    var cue = (canExpand && !isEntry) ? '<div class="dm-cue">' + (open ? '收起 ▴' : '展开 ' + kids.length + ' 项 ▾') + '</div>' : '';
+    var tip = '';
+    if (isLeaf) {
+      var cat = n.cat || '';
+      var fine = n.fine || '';
+      var kd = n.kd || '';
+      if (!kd && n.parent && full.byId[n.parent]) kd = full.byId[n.parent].kd || '';
+      var pointTag = (n.point && n.point.tag) || fine;        // 词 chip / 跳转用的 tag
+      var c = n.point
+        ? window.GrammarKnowledgeViewModel.countByPoint(n.point.tag, n.point.keys, ALL_QUESTIONS, errorBookQuestions)
+        : ((fine && window.GrammarKnowledgeViewModel)
+          ? window.GrammarKnowledgeViewModel.countByFineTag(fine, ALL_QUESTIONS, errorBookQuestions)
+          : { total: 0, real: 0, bank: 0, error: 0 });
+      var qn = c.total || 0;
+      var badge = window.GrammarKnowledgeViewModel.formatCountBadge(c);
+      var dmBc = dmBreadcrumb(full, n);
+      var acts = '';
+      if (qn > 0 && n.point) acts += '<button type="button" onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(n.point.tag) + '\',' + dmKeysLiteral(n.point.keys) + ',\'' + graphEscapeAttr(dmBc) + '\')">🔁 迁移训练 · ' + badge + '</button>';
+      else if (qn > 0 && fine) acts += '<button type="button" onclick="event.stopPropagation();startMigrationFromMap(\'' + graphEscapeAttr(fine) + '\')">🔁 迁移训练 · ' + badge + '</button>';
+      else acts += '<span style="font-size:12px;color:var(--text-3);">暂无题 · 0 题</span>';
+      acts += '<button type="button" class="ghost" onclick="event.stopPropagation();openKnowledgePoint(\'' + graphEscapeAttr(cat) + '\',\'' + graphEscapeAttr(kd) + '\')">📖 看讲解</button>';
+      tip = '<div class="dm-see">' + acts + '</div>';
+      // 闭合类/介词叶子下钻具体词 chip（点词→按 {tag, word} 精准进迁移，which→which）
+      var words = (fine && window.GrammarKnowledgeViewModel.buildLeafWordBreakdown)
+        ? window.GrammarKnowledgeViewModel.buildLeafWordBreakdown(fine, window.GRAMMAR_FINE_TAGS, ALL_QUESTIONS, errorBookQuestions)
+        : [];
+      if (words.length) {
+        var chips = words.map(function(wd) {
+          var z = wd.total === 0 ? ' style="opacity:.4;"' : '';
+          var wmock = Math.max(0, wd.total - wd.real);
+          var rt = wmock > 0 ? ('·真' + wd.real + '·模' + wmock) : '';
+          return '<button type="button" class="dm-word-chip"' + z
+            + ' onclick="event.stopPropagation();startByPointFromMap(\'' + graphEscapeAttr(pointTag) + '\',[\'' + graphEscapeAttr(wd.word) + '\'],\'' + graphEscapeAttr(dmBc + ' · ' + wd.word) + '\')">'
+            + escapeHtml(wd.word) + ' <span style="opacity:.6;">' + wd.total + rt + '</span></button>';
+        }).join('');
+        tip += '<div class="dm-words">' + chips + '</div>';
+      }
+    }
+    html += '<div class="dm-node' + (isLeaf ? ' leaf' : '') + (isEntry ? ' entry' : '') + (open ? ' open' : '') + '" id="dmn_' + nid + '" style="left:' + p.x + 'px;top:' + p.y + 'px;" onclick="dmNodeTap(\'' + nid + '\')">'
+      + '<div class="dm-node-t">' + escapeHtml(n.title || '') + '</div>'
+      + cue
+      + (tip ? '<div class="dm-tip">' + tip + '</div>' : '')
+      + '</div>';
+  });
+  html += '</div></div>';
+  html += '<div class="dm-hud"><button type="button" class="dm-hud-wide" onclick="dmResetView()">⤢ 收起</button>'
+    + '<button type="button" class="dm-hud-wide" onclick="dmExpandAll()">⊞ 全展开</button>'
+    + '<button type="button" onclick="dmZoom(1.25)">＋</button>'
+    + '<button type="button" onclick="dmZoom(0.8)">－</button></div>';
+  html += '</div>';
+  content.innerHTML = html;
+
+  dmCtx = { full: full, tree: tree, layout: layout, width: layout.width, height: layout.height };
+  ensureDmWindowListeners();
+  var vp = document.getElementById('dmViewport');
+  if (vp) {
+    vp.addEventListener('mousedown', function(e) {
+      if (e.target.closest('.dm-node')) return;
+      dmDrag.on = true; vp.classList.add('drag');
+      dmDrag.sx = e.clientX; dmDrag.sy = e.clientY; dmDrag.stx = dmCam.tx; dmDrag.sty = dmCam.ty;
+    });
+    vp.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      var act = window.GrammarTeachingViewModel.buildDmWheelAction(e.deltaX, e.deltaY, e.ctrlKey);
+      if (act.action === 'zoom') { dmZoom(act.factor, false); }
+      else { dmCam.tx += act.dx; dmCam.ty += act.dy; applyDmCamera(false); }
+    }, { passive: false });
+  }
+  if (focusNodeId && tree.byId[focusNodeId]) dmFocus(focusNodeId, false);
+  else dmFit(false);
+  updateDockBackButton();
+}
+
+function _legacyRenderGlobalGraphSvg(focusNodeId) {
+  var knowledgeViewState = getKnowledgeViewSnapshot();
+  var targetKnowledgeView = knowledgeViewState.currentKnowledgeView === 'system-node' ? 'system-node' : 'system';
+  applyKnowledgeViewState({
+    currentKnowledgeView: targetKnowledgeView,
+    currentKnowledgeNodeId: focusNodeId || ''
+  });
+  var content = document.getElementById('knowledgeContent');
+  if (!content) return;
+  var graph = getTeachingGraph();
+  if (!graph.nodes || !graph.nodes.length) {
+    content.innerHTML = '<div class="empty-hint">全局图谱整理中。当前可以切换到“知识地图”或“书本速查”。</div>';
+    updateDockBackButton();
+    return;
+  }
+  if (focusNodeId) {
+    var focusNode = getGraphNodeIndex()[focusNodeId];
+    applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphFocusState(
+      getGlobalGraphStateSnapshot(),
+      focusNodeId,
+      getGraphRelevantIds(focusNodeId),
+      (focusNode && focusNode.focus_group) || 'overview'
+    ));
+  } else if (!getGlobalGraphStateSnapshot().selectedId || !getGraphNodeIndex()[getGlobalGraphStateSnapshot().selectedId]) {
+    applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphFocusState(
+      getGlobalGraphStateSnapshot(),
+      'teach_start',
+      getGraphRelevantIds('teach_start'),
+      'overview'
+    ));
+  }
+  var graphState = getGlobalGraphStateSnapshot();
+  var pageModel = window.GrammarKnowledgeViewModel.buildGlobalGraphPageModel(
+    graph,
+    getGlobalGraphFocusPresets(),
+    graphState
+  );
+  var html = '<div class="global-graph-page">';
+  html += '<div class="global-graph-head">';
+  html += '<div class="global-graph-title">';
+  html += '<h2>' + escapeHtml(pageModel.titleText) + '</h2>';
+  html += '<p>' + escapeHtml(pageModel.descText) + '</p>';
+  html += '</div>';
+  html += '<div class="global-graph-actions">';
+  pageModel.actionButtons.forEach(function(button) {
+    html += '<button class="node-link-chip" onclick="setKnowledgeView(\'' + graphEscapeAttr(button.view) + '\')">' + escapeHtml(button.labelText) + '</button>';
+  });
+  html += '</div></div>';
+  html += '<div class="global-graph-toolbar">';
+  html += '<div class="global-graph-search"><input id="globalGraphSearch" type="text" placeholder="' + escapeHtml(pageModel.searchPlaceholderText) + '" oninput="searchGlobalGraph(this.value)" onfocus="searchGlobalGraph(this.value)" autocomplete="off"><div class="global-graph-search-results" id="globalGraphSearchResults"></div></div>';
+  html += '<div class="global-graph-focus">';
+  pageModel.focusButtons.forEach(function(preset) {
+    html += '<button class="node-link-chip' + (preset.active ? ' active' : '') + '" onclick="focusGlobalGraphPreset(\'' + graphEscapeAttr(preset.id) + '\')">' + escapeHtml(preset.labelText) + '</button>';
+  });
+  html += '</div>';
+  html += '<div class="global-graph-controls">';
+  pageModel.controlButtons.forEach(function(button) {
+    if (button.action === 'zoom') {
+      html += '<button class="node-link-chip" onclick="zoomGlobalGraph(' + Number(button.factor || 1) + ')">' + escapeHtml(button.labelText) + '</button>';
+    } else {
+      html += '<button class="node-link-chip" onclick="resetGlobalGraphView()">' + escapeHtml(button.labelText) + '</button>';
+    }
+  });
+  html += '</div></div>';
+  html += '<div class="global-graph-workbench">';
+  html += '<div class="global-graph-canvas" id="globalGraphCanvas">' + buildGraphSvg() + '</div>';
+  html += '<aside class="global-graph-inspector" id="globalGraphInspector"></aside>';
+  html += '</div></div>';
+  content.innerHTML = html;
+  initGlobalGraphInteractions();
+  renderGlobalGraphInspector(graphState.selectedId);
+  if (focusNodeId) {
+    centerGlobalGraphOnNode(focusNodeId);
+  } else {
+    setTimeout(function() {
+      var preset = getGlobalGraphFocusPreset(getGlobalGraphStateSnapshot().focusMode || 'overview');
+      fitGlobalGraphBounds(preset.bounds);
+    }, 0);
+  }
+  updateDockBackButton();
+}
+
+function applyGlobalGraphTransform() {
+  var viewport = document.getElementById('globalGraphViewport');
+  var graphState = getGlobalGraphStateSnapshot();
+  if (viewport) {
+    viewport.setAttribute('transform', 'translate(' + graphState.tx + ' ' + graphState.ty + ') scale(' + graphState.scale + ')');
+  }
+}
+
+function repaintGlobalGraph() {
+  var canvas = document.getElementById('globalGraphCanvas');
+  if (!canvas) return;
+  canvas.innerHTML = buildGraphSvg();
+  initGlobalGraphInteractions();
+}
+
+function initGlobalGraphInteractions() {
+  var canvas = document.getElementById('globalGraphCanvas');
+  if (!canvas || canvas.dataset.ready === '1') return;
+  canvas.dataset.ready = '1';
+  var dragging = false;
+  var lastX = 0;
+  var lastY = 0;
+  canvas.addEventListener('pointerdown', function(e) {
+    if (e.target && e.target.closest && e.target.closest('.global-graph-node')) return;
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    canvas.classList.add('dragging');
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', function(e) {
+    if (!dragging) return;
+    applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphPanState(
+      getGlobalGraphStateSnapshot(),
+      e.clientX - lastX,
+      e.clientY - lastY
+    ));
+    lastX = e.clientX;
+    lastY = e.clientY;
+    applyGlobalGraphTransform();
+  });
+  canvas.addEventListener('pointerup', function(e) {
+    dragging = false;
+    canvas.classList.remove('dragging');
+    try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+  });
+  canvas.addEventListener('pointercancel', function() {
+    dragging = false;
+    canvas.classList.remove('dragging');
+  });
+  canvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    var factor = e.deltaY < 0 ? 1.12 : 0.88;
+    zoomGlobalGraph(factor, e.clientX - rect.left, e.clientY - rect.top);
+  }, { passive: false });
+}
+
+function zoomGlobalGraph(factor, originX, originY) {
+  var canvas = document.getElementById('globalGraphCanvas');
+  var rect = canvas ? canvas.getBoundingClientRect() : { width: 1000, height: 700 };
+  var ox = typeof originX === 'number' ? originX : rect.width / 2;
+  var oy = typeof originY === 'number' ? originY : rect.height / 2;
+  var graphState = getGlobalGraphStateSnapshot();
+  var prev = graphState.scale;
+  applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphZoomState(graphState, factor, ox, oy));
+  if (getGlobalGraphStateSnapshot().scale === prev) return;
+  applyGlobalGraphTransform();
+}
+
+function fitGlobalGraphBounds(bounds) {
+  var canvas = document.getElementById('globalGraphCanvas');
+  if (!canvas || !bounds) return;
+  var rect = canvas.getBoundingClientRect();
+  applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphFitBoundsState(getGlobalGraphStateSnapshot(), bounds, rect));
+  applyGlobalGraphTransform();
+}
+
+function resetGlobalGraphView() {
+  focusGlobalGraphPreset('overview');
+}
+
+function centerGlobalGraphOnNode(nodeId) {
+  var canvas = document.getElementById('globalGraphCanvas');
+  var node = getGraphNodeIndex()[nodeId];
+  if (!canvas || !node) return;
+  var rect = canvas.getBoundingClientRect();
+  var size = getGraphNodeSize(node);
+  applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphCenterNodeState(getGlobalGraphStateSnapshot(), node, size, rect));
+  applyGlobalGraphTransform();
+}
+
+function focusGlobalGraphPreset(presetId) {
+  var plan = window.GrammarTeachingViewModel.buildGlobalGraphPresetFocusPlan(
+    presetId,
+    getTeachingGraph(),
+    getGraphNodeIndex()
+  );
+  applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphFocusState(
+    getGlobalGraphStateSnapshot(),
+    plan.graphFocusState.selectedId,
+    plan.graphFocusState.focusIds,
+    plan.graphFocusState.focusMode
+  ));
+  applyKnowledgeViewState(plan.knowledgeState);
+  if (plan.shouldRepaint) repaintGlobalGraph();
+  if (plan.shouldRenderInspector) renderGlobalGraphInspector(plan.nodeId);
+  if (plan.shouldFitBounds) fitGlobalGraphBounds(plan.bounds);
+}
+
+function selectGlobalGraphNode(nodeId) {
+  var plan = window.GrammarTeachingViewModel.buildGlobalGraphNodeSelectionPlan(
+    nodeId,
+    getTeachingGraph(),
+    getGraphNodeIndex()
+  );
+  applyGlobalGraphState(window.GrammarAppState.buildGlobalGraphFocusState(
+    getGlobalGraphStateSnapshot(),
+    plan.graphFocusState.selectedId,
+    plan.graphFocusState.focusIds,
+    plan.graphFocusState.focusMode
+  ));
+  applyKnowledgeViewState(plan.knowledgeState);
+  if (plan.shouldRepaint) repaintGlobalGraph();
+  if (plan.shouldRenderInspector) renderGlobalGraphInspector(plan.nodeId);
+  if (plan.shouldCenterNode) centerGlobalGraphOnNode(plan.nodeId);
+}
+
+function showGlobalKnowledgeNode(nodeId) {
+  applyKnowledgeViewState({
+    currentKnowledgeView: 'system-node',
+    currentKnowledgeNodeId: nodeId
+  });
+  renderSystemView(nodeId);
+}
+
+function getGlobalGraphQuestionMatches(node) {
+  return window.GrammarTeachingViewModel.getGlobalGraphQuestionMatches(node, ALL_QUESTIONS, errorBookQuestions, {
+    safeQuestionTrapId: safeQuestionTrapId
+  });
+}
+
+function renderGlobalGraphInspector(nodeId) {
+  var panel = document.getElementById('globalGraphInspector');
+  if (!panel) return;
+  var node = getGraphNodeIndex()[nodeId];
+  var model = window.GrammarKnowledgeViewModel.buildGlobalGraphInspectorModel(
+    node,
+    graphModelDeps({ nodes: getGraphNodeIndex() })
+  );
+  if (model.empty) {
+    panel.innerHTML = '<div class="global-graph-empty">' + escapeHtml(model.emptyText) + '</div>';
+    return;
+  }
+  var html = '<span class="global-graph-type">' + escapeHtml(model.typeLabel) + '</span>';
+  html += '<h3>' + escapeHtml(model.titleText) + '</h3>';
+  html += '<p>' + escapeHtml(model.descText) + '</p>';
+  if (model.pathTexts && model.pathTexts.length > 1) {
+    html += '<div class="global-graph-mini-path">';
+    model.pathTexts.forEach(function(label) {
+      html += '<span>' + escapeHtml(label) + '</span>';
+    });
+    html += '</div>';
+  }
+  if (model.decisionSection && model.decisionSection.visible) {
+    html += '<div class="global-graph-inspector-section"><b>' + escapeHtml(model.decisionSection.titleText) + '</b><p>' + escapeHtml(model.decisionSection.bodyText) + '</p></div>';
+  }
+  if (model.nextStepsSection && model.nextStepsSection.visible) {
+    html += '<div class="global-graph-inspector-section"><b>' + escapeHtml(model.nextStepsSection.titleText) + '</b><div class="global-graph-chip-row">';
+    model.nextStepsSection.chips.forEach(function(label) {
+      html += '<span class="global-graph-chip">' + escapeHtml(label) + '</span>';
+    });
+    html += '</div></div>';
+  }
+  if (model.commonWrongSection && model.commonWrongSection.visible) {
+    html += '<div class="global-graph-inspector-section"><b>' + escapeHtml(model.commonWrongSection.titleText) + '</b>';
+    if (model.commonWrongSection.bodyText) {
+      html += '<p>' + escapeHtml(model.commonWrongSection.bodyText) + '</p>';
+    }
+    if (model.commonWrongSection.chips && model.commonWrongSection.chips.length) {
+      html += '<div class="global-graph-chip-row">';
+      model.commonWrongSection.chips.forEach(function(label) {
+        html += '<span class="global-graph-chip">' + escapeHtml(label) + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  if (model.tagSection && model.tagSection.visible) {
+    html += '<div class="global-graph-inspector-section"><b>' + escapeHtml(model.tagSection.titleText) + '</b><div class="global-graph-chip-row">';
+    model.tagSection.chips.forEach(function(label) {
+      html += '<span class="global-graph-chip">' + escapeHtml(label) + '</span>';
+    });
+    html += '</div></div>';
+  }
+  html += '<div class="global-graph-inspector-section"><b>' + escapeHtml(model.resourceSection.titleText) + '</b><div class="node-link-row">';
+  model.resourceSection.categoryButtons.forEach(function(button) {
+    html += '<button class="node-link-chip" onclick="selectKnowledgeCategory(\'' + graphEscapeAttr(button.category) + '\', false)">' + escapeHtml(button.labelText) + '</button>';
+  });
+  model.resourceSection.viewButtons.forEach(function(button) {
+    html += '<button class="node-link-chip" onclick="setKnowledgeView(\'' + graphEscapeAttr(button.view) + '\')">' + escapeHtml(button.labelText) + '</button>';
+  });
+  html += '</div></div>';
+  panel.innerHTML = html;
+}
+
+function searchGlobalGraph(query) {
+  var wrap = document.getElementById('globalGraphSearchResults');
+  if (!wrap) return;
+  var model = window.GrammarKnowledgeViewModel.buildGlobalGraphSearchModel(
+    query,
+    getGraphNodeIndex(),
+    graphModelDeps({ nodes: getGraphNodeIndex() }),
+    { limit: 12 }
+  );
+  if (!model.active) {
+    wrap.classList.remove('show');
+    wrap.innerHTML = '';
+    return;
+  }
+  if (model.empty) {
+    wrap.innerHTML = '<div class="search-no-results">' + escapeHtml(model.emptyText) + '</div>';
+    wrap.classList.add('show');
+    return;
+  }
+  wrap.innerHTML = model.results.map(function(item) {
+    return '<button class="global-graph-search-item" onclick="selectGlobalGraphNode(\'' + graphEscapeAttr(item.id) + '\');clearGlobalGraphSearch();"><b>' + escapeHtml(item.titleText) + '</b><span>' + escapeHtml(item.subtitleText) + '</span></button>';
+  }).join('');
+  wrap.classList.add('show');
+}
+
+function clearGlobalGraphSearch() {
+  var reset = window.GrammarKnowledgeViewModel.buildGlobalGraphSearchResetModel();
+  var input = document.getElementById('globalGraphSearch');
+  var wrap = document.getElementById('globalGraphSearchResults');
+  if (input) input.value = reset.inputValue;
+  if (wrap) {
+    wrap.innerHTML = reset.resultsContent;
+    wrap.classList.toggle(reset.visibleClass, reset.showResults);
+  }
+}
+
+function renderKnowledgePage() {
+  buildSearchIndex();
+
+  var catNav = document.getElementById('categoryNav');
+  var sidebarModel = window.GrammarKnowledgeViewModel.buildKnowledgeSidebarModel(KNOWLEDGE_DATA, PATTERN_DATA);
+  var catHtml = '';
+  sidebarModel.categoryItems.forEach(function(item) {
+    catHtml += '<button class="' + escapeHtml(item.className) + '" data-key="' + graphEscapeAttr(item.key) + '" data-pattern="false" onclick="selectKnowledgeCategory(\'' + graphEscapeAttr(item.key) + '\', false)">';
+    catHtml += escapeHtml(item.titleText);
+    catHtml += '<span class="nav-desc">' + escapeHtml(item.descText) + '</span>';
+    catHtml += '</button>';
+  });
+  catNav.innerHTML = catHtml;
+
+  var patNav = document.getElementById('patternNav');
+  if (patNav) {
+    var patHtml = '';
+    sidebarModel.patternItems.forEach(function(item) {
+      patHtml += '<button class="' + escapeHtml(item.className) + '" data-key="' + graphEscapeAttr(item.key) + '" data-pattern="true" onclick="selectKnowledgeCategory(\'' + graphEscapeAttr(item.key) + '\', true)">';
+      patHtml += escapeHtml(item.titleText);
+      patHtml += '<span class="nav-desc">' + escapeHtml(item.descText) + '</span>';
+      patHtml += '</button>';
+    });
+    patNav.innerHTML = patHtml;
+  }
+  var divider = document.querySelector('.knowledge-sidebar-divider');
+  if (divider) divider.style.display = sidebarModel.dividerVisible ? '' : 'none';
+  var patternTitle = document.querySelectorAll('.knowledge-sidebar-title')[1];
+  if (patternTitle) patternTitle.style.display = sidebarModel.patternTitleVisible ? '' : 'none';
+
+  setKnowledgeView('map');  // 知识库默认打开知识地图（全局图谱/考点视图已迁移至「考点训练」dock）
+}
+
+var _knowledgeRenderTarget = 'knowledgeContent';
+var _pointsTrainingView = 'graph';
+function setPointsTrainingView(view) {
+  _pointsTrainingView = (view === 'text') ? 'text' : 'graph';
+  var gb = document.getElementById('ptGraphBtn'); if (gb) gb.classList.toggle('active', _pointsTrainingView === 'graph');
+  var tb = document.getElementById('ptTextBtn'); if (tb) tb.classList.toggle('active', _pointsTrainingView === 'text');
+  _knowledgeRenderTarget = 'pointsTrainingContent';
+  if (_pointsTrainingView === 'graph') {
+    renderSystemView('');
+  } else {
+    renderFineCategoryView();
+  }
+}
+function renderPointsTrainingPage() {
+  setPointsTrainingView(_pointsTrainingView);
+}
+
+function renderKnowledgeMap() {
+  applyKnowledgeViewState({
+    currentKnowledgeView: 'map',
+    currentKnowledgeNodeId: ''
+  });
+  var content = document.getElementById('knowledgeContent');
+  if (!content) return;
+  var model = window.GrammarKnowledgeViewModel.buildKnowledgeMapModel(KNOWLEDGE_CORE, graphModelDeps());
+  if (model.empty) {
+    content.innerHTML = '<div class="empty-hint">' + escapeHtml(model.emptyText) + '</div>';
+    return;
+  }
+
+  var html = '';
+  html += '<div class="knowledge-section">';
+  html += '<div class="knowledge-map-hero">';
+  html += '<div class="knowledge-map-intro">';
+  html += '<h2>' + escapeHtml(model.hero.titleText) + '</h2>';
+  html += '<p>' + escapeHtml(model.hero.descText) + '</p>';
+  html += '<div class="knowledge-principles">';
+  (model.hero.principles || []).forEach(function(item) {
+    html += '<div class="knowledge-principle"><span>' + item.no + '</span><div>' + escapeHtml(item.text) + '</div></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="knowledge-path-panel"><h3>' + escapeHtml(model.pathPanelTitleText) + '</h3>';
+  (model.learningPaths || []).forEach(function(path) {
+    html += '<div class="knowledge-path-card">';
+    html += '<b>' + escapeHtml(path.titleText) + '</b>';
+    html += '<span>' + escapeHtml(path.descText) + '</span>';
+    html += '<div class="node-link-row">';
+    (path.nodeButtons || []).forEach(function(button) {
+      html += '<button class="node-link-chip" onclick="showKnowledgeNode(\'' + graphEscapeAttr(button.nodeId) + '\')">' + escapeHtml(button.labelText) + '</button>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="knowledge-map-grid">';
+  model.roots.forEach(function(root) {
+    html += '<section class="knowledge-root-band">';
+    html += '<div class="knowledge-root-head">';
+    html += '<div class="knowledge-root-title">';
+    html += '<span class="knowledge-root-dot" style="background:' + root.color + ';box-shadow:0 0 0 4px color-mix(in srgb, ' + root.color + ' 16%, transparent);"></span>';
+    html += '<div><h3>' + escapeHtml(root.titleText) + '</h3><p>' + escapeHtml(root.subtitleText || '') + '</p></div>';
+    html += '</div></div>';
+    html += '<div class="knowledge-node-grid">';
+    (root.children || []).forEach(function(node) {
+      html += '<article class="knowledge-node-card" onclick="showKnowledgeNode(\'' + graphEscapeAttr(node.id) + '\')">';
+      html += '<h4>' + escapeHtml(node.titleText) + '</h4>';
+      html += '<p>' + escapeHtml(node.descText || '') + '</p>';
+      html += '<div class="knowledge-node-tags">';
+      (node.tagTexts || []).forEach(function(label) {
+        html += '<span class="knowledge-node-tag">' + escapeHtml(label) + '</span>';
+      });
+      html += '</div></article>';
+    });
+    html += '</div></section>';
+  });
+  html += '</div></div>';
+  content.innerHTML = html;
+  updateDockBackButton();
+}
+
+function showKnowledgeNode(nodeId) {
+  applyKnowledgeViewState({
+    currentKnowledgeView: 'map-node',
+    currentKnowledgeNodeId: nodeId
+  });
+  var node = KNOWLEDGE_CORE.nodes && KNOWLEDGE_CORE.nodes[nodeId];
+  var content = document.getElementById('knowledgeContent');
+  if (!node || !content) return;
+  if (document.getElementById('knowledgeMapBtn')) {
+    document.getElementById('knowledgeMapBtn').classList.add('active');
+    document.getElementById('knowledgeBookBtn').classList.remove('active');
+  }
+  var model = window.GrammarKnowledgeViewModel.buildKnowledgeNodeDetailModel(node, graphModelDeps());
+  var html = '<div class="knowledge-node-detail">';
+  html += '<h2>' + escapeHtml(model.titleText) + '</h2>';
+  html += '<div class="node-layer">' + escapeHtml(model.layerText) + '</div>';
+  html += '<p>' + escapeHtml(model.descText) + '</p>';
+  if (model.studentGoalText) html += '<p><b>学生目标：</b>' + escapeHtml(model.studentGoalText) + '</p>';
+  if (model.teacherUseText) html += '<p><b>教师用法：</b>' + escapeHtml(model.teacherUseText) + '</p>';
+  html += '<div class="node-link-row">';
+  (model.categoryButtons || []).forEach(function(button) {
+    html += '<button class="node-link-chip" onclick="selectKnowledgeCategory(\'' + graphEscapeAttr(button.category) + '\', false)">' + escapeHtml(button.labelText) + '</button>';
+  });
+  html += '</div>';
+  html += '</div>';
+  content.innerHTML = html;
+  updateDockBackButton();
+}
+
+function selectKnowledgeCategory(key, isPattern, targetSection) {
+  applyKnowledgeViewState({
+    currentKnowledgeView: 'book',
+    currentKnowledgeNodeId: '',
+    currentKnowledgeKey: key,
+    currentIsPattern: isPattern
+  });
+  var mapBtn = document.getElementById('knowledgeMapBtn');
+  var bookBtn = document.getElementById('knowledgeBookBtn');
+  if (mapBtn) mapBtn.classList.remove('active');
+  if (bookBtn) bookBtn.classList.add('active');
+
+  document.querySelectorAll('.knowledge-nav-item').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  var activeEl = document.querySelector('.knowledge-nav-item[data-key="' + key + '"][data-pattern="' + isPattern + '"]');
+  if (activeEl) activeEl.classList.add('active');
+
+  var content = document.getElementById('knowledgeContent');
+  if (!content) return;
+
+  if (isPattern) {
+    var patternModel = window.GrammarKnowledgeViewModel.buildKnowledgeBookContentModel(key, true, KNOWLEDGE_DATA, PATTERN_DATA);
+    if (!patternModel.found) return;
+    content.innerHTML =
+      '<div class="knowledge-section">' +
+      '<div class="knowledge-section-header">' +
+      '<h2>' + escapeHtml(patternModel.titleText) + '</h2>' +
+      '<div class="section-desc">' + escapeHtml(patternModel.descText) + '</div>' +
+      '</div>' +
+      '<div class="knowledge-subsection">' +
+      '<div class="knowledge-subsection-body">' + patternModel.bodyHtml + '</div>' +
+      '</div>' +
+      '</div>';
+  } else {
+    var bookModel = window.GrammarKnowledgeViewModel.buildKnowledgeBookContentModel(key, false, KNOWLEDGE_DATA, PATTERN_DATA);
+    if (!bookModel.found) return;
+    var html = '';
+    html += '<div class="knowledge-section">';
+    html += '<div class="knowledge-section-header">';
+    html += '<h2>' + escapeHtml(bookModel.titleText) + '</h2>';
+    html += '<div class="section-desc">' + escapeHtml(bookModel.descText) + '</div>';
+    html += '</div>';
+    if (bookModel.overviewHtml) {
+      html += '<div class="knowledge-overview-box">' + bookModel.overviewHtml + '</div>';
+    }
+    if (bookModel.sections.length) {
+      bookModel.sections.forEach(function(section) {
+        html += '<div class="knowledge-subsection collapsed" id="sub-' + section.key + '">';
+        html += '<h3 class="subsection-toggle" onclick="toggleSubsection(\'' + section.key + '\')">' + escapeHtml(section.titleText) + '</h3>';
+        html += '<div class="sub-desc">' + escapeHtml(section.descText) + '</div>';
+        html += '<div class="knowledge-subsection-body">' + section.bodyHtml + '</div>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    content.innerHTML = html;
+  }
+  if (targetSection && !isPattern) {
+    var target = document.getElementById('sub-' + targetSection);
+    if (target) {
+      if (target.classList.contains('collapsed')) toggleSubsection(targetSection);
+      try { target.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch(e) {}
+    }
+  }
+  updateDockBackButton();
+}
+
+// AI 助手（DeepSeek 客服 + 助教）已抽到 shared/ai-assistant.js
+// escapeHtml 已抽到 shared/utils.js
+
+Object.assign(window, {
+  adjustFont: adjustFont,
+  adminViewUser: adminViewUser,
+  authBackToSignin: authBackToSignin,
+  batchImportJson: batchImportJson,
+  batchImportPrepJson: batchImportPrepJson,
+  cancelAiParse: cancelAiParse,
+  changeMyPassword: changeMyPassword,
+  clearAssistantHistory: clearAssistantHistory,
+  closeAuthModal: closeAuthModal,
+  closeDrawer: closeDrawer,
+  closeSettingsModal: closeSettingsModal,
+  closeUnifiedImport: closeUnifiedImport,
+  confirmUnifiedImport: confirmUnifiedImport,
+  doLogout: doLogout,
+  enterModule: enterModule,
+  exitViewAs: exitViewAs,
+  fillAndSendAssistant: fillAndSendAssistant,
+  goBack: goBack,
+  handleDockBack: handleDockBack,
+  handleDocxUpload: handleDocxUpload,
+  handleDocxUploadForError: handleDocxUploadForError,
+  jumpToCategory: jumpToCategory,
+  jumpQuestionFromSwitcher: jumpQuestionFromSwitcher,
+  jumpToExamFromSwitcher: jumpToExamFromSwitcher,
+  jumpToQuestionFromSwitcher: jumpToQuestionFromSwitcher,
+  logoClick: logoClick,
+  navigateBlank: navigateBlank,
+  navigateExam: navigateExam,
+  navigateHome: navigateHome,
+  setPointsTrainingView: setPointsTrainingView,
+  navigateToKnowledge: navigateToKnowledge,
+  openAuthModal: openAuthModal,
+  openSettingsModal: openSettingsModal,
+  requestMyUsernameChange: requestMyUsernameChange,
+  dmExpandAll: dmExpandAll,
+  dmRevealNode: dmRevealNode,
+  dmSearch: dmSearch,
+  clearGlobalGraphSearch: clearGlobalGraphSearch,
+  focusGlobalGraphPreset: focusGlobalGraphPreset,
+  selectKnowledgeCategory: selectKnowledgeCategory,
+  selectGlobalGraphNode: selectGlobalGraphNode,
+  sendAssistantMsg: sendAssistantMsg,
+  setMigrationSource: setMigrationSource,
+  toggleMigrationShowAll: toggleMigrationShowAll,
+  setMigrationPoint: setMigrationPoint,
+  setDrawerProjectionSize: setDrawerProjectionSize,
+  searchGlobalGraph: searchGlobalGraph,
+  showGlobalKnowledgeNode: showGlobalKnowledgeNode,
+  showAnalysisByIdx: showAnalysisByIdx,
+  startByCategory: startByCategory,
+  startRandomCategory: startRandomCategory,
+  startByFineTag: startByFineTag,
+  startByExam: startByExam,
+  submitAuth: submitAuth,
+  switchDrawerTab: switchDrawerTab,
+  switchPage: switchPage,
+  closeTeachingStage: closeTeachingStage,
+  jumpTeachingQuestion: jumpTeachingQuestion,
+  jumpToMigrationQuestion: jumpToMigrationQuestion,
+  jumpToMigrationQuestionById: jumpToMigrationQuestionById,
+  returnTeachingQuestion: returnTeachingQuestion,
+  setTeachingTab: setTeachingTab,
+  toggleTeachingAnswer: toggleTeachingAnswer,
+  openTeachingStageByIdx: openTeachingStageByIdx,
+  toggleAnswers: toggleAnswers,
+  toggleAssistant: toggleAssistant,
+  toggleAuthMode: toggleAuthMode,
+  toggleBatchImport: toggleBatchImport,
+  toggleChinese: toggleChinese,
+  toggleCompact: toggleCompact,
+  toggleExamYear: toggleExamYear,
+
+  togglePrepBatchImport: togglePrepBatchImport,
+  toggleSubsection: toggleSubsection,
+  unifiedSelectAll: unifiedSelectAll,
+  zoomGlobalGraph: zoomGlobalGraph,
+  resetGlobalGraphView: resetGlobalGraphView,
+  viewErrorQuestion: viewErrorQuestion,
+  viewPrepPassage: viewPrepPassage
+});
+
+if (window.__bootAssistant) window.__bootAssistant();
+
+init();
