@@ -686,7 +686,7 @@ def fail(errors: list[str]) -> int:
 
 
 def script_module_order(html: str) -> list[str]:
-    pattern = re.compile(r'<script\s+src="\.\/modules\/([^"]+)"\s*>\s*</script>')
+    pattern = re.compile(r'<script\s+(?:type="module"\s+)?src="\.\/modules\/([^"]+)"\s*>\s*</script>')
     return pattern.findall(html)
 
 
