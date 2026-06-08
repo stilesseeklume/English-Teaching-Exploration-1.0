@@ -141,24 +141,24 @@
       var actionBtns = '';
       if (!u.approved) {
         actionBtns = '<div style="margin-top:8px;display:flex;gap:8px;">'
-          + '<button onclick="event.stopPropagation();adminApproveUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✓ 通过</button>'
-          + '<button onclick="event.stopPropagation();adminRejectUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:4px 12px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ 拒绝</button>'
+          + '<button onclick="event.stopPropagation();adminApproveUser(\'' + u.id + '\',\'' + escapeAdminHtml(displayName.replace(/'/g, "\\'")) + '\')" style="padding:4px 12px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✓ 通过</button>'
+          + '<button onclick="event.stopPropagation();adminRejectUser(\'' + u.id + '\',\'' + escapeAdminHtml(displayName.replace(/'/g, "\\'")) + '\')" style="padding:4px 12px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ 拒绝</button>'
           + '</div>';
       } else if (!isSelf) {
         actionBtns = '<div style="margin-top:8px;">'
-          + '<button onclick="event.stopPropagation();adminDeleteUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')" style="padding:3px 10px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;">删除用户</button>'
+          + '<button onclick="event.stopPropagation();adminDeleteUser(\'' + u.id + '\',\'' + escapeAdminHtml(displayName.replace(/'/g, "\\'")) + '\')" style="padding:3px 10px;background:var(--red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;">删除用户</button>'
           + '</div>';
       }
       var unameChange = '';
       if (u.pending_username) {
         unameChange = '<div style="margin-top:8px;background:var(--accent-bg);border-radius:6px;padding:6px 10px;font-size:12px;">'
-          + '✏️ 申请改名为 <b>' + u.pending_username + '</b>'
-          + '<button onclick="event.stopPropagation();adminApproveUsernameChange(\'' + u.id + '\',\'' + u.pending_username.replace(/'/g, "\\'") + '\')" style="margin-left:8px;padding:2px 8px;background:var(--green);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;">✓ 通过</button>'
-          + '<button onclick="event.stopPropagation();adminRejectUsernameChange(\'' + u.id + '\',\'' + u.pending_username.replace(/'/g, "\\'") + '\')" style="margin-left:4px;padding:2px 8px;background:var(--red);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;">✕ 拒绝</button>'
+          + '✏️ 申请改名为 <b>' + escapeAdminHtml(u.pending_username) + '</b>'
+          + '<button onclick="event.stopPropagation();adminApproveUsernameChange(\'' + u.id + '\',\'' + escapeAdminHtml(u.pending_username.replace(/'/g, "\\'")) + '\')" style="margin-left:8px;padding:2px 8px;background:var(--green);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;">✓ 通过</button>'
+          + '<button onclick="event.stopPropagation();adminRejectUsernameChange(\'' + u.id + '\',\'' + escapeAdminHtml(u.pending_username.replace(/'/g, "\\'")) + '\')" style="margin-left:4px;padding:2px 8px;background:var(--red);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;">✕ 拒绝</button>'
           + '</div>';
       }
-      html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + displayName.replace(/'/g, "\\'") + '\')">'
-            + '<div class="prep-list-title">' + displayName + ' ' + approvedBadge + '</div>'
+      html += '<div class="prep-list-item" onclick="adminViewUser(\'' + u.id + '\',\'' + escapeAdminHtml(displayName.replace(/'/g, "\\'")) + '\')">'
+            + '<div class="prep-list-title">' + escapeAdminHtml(displayName) + ' ' + approvedBadge + '</div>'
             + '<div class="prep-list-meta">'
             + '<span>注册：' + created + '</span>'
             + '<span>最近登录：' + signin + '</span>'

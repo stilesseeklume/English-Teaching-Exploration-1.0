@@ -39,7 +39,7 @@
       var name = window.getUserDisplayName(state.user);
       var short = name.length > 20 ? name.slice(0, 18) + '…' : name;
       var adminTag = state.isAdmin ? '<button onclick="switchPage(\'admin\')" title="管理员面板" style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;border:none;cursor:pointer;margin-right:6px;font-family:inherit;">管理员</button>' : '';
-      el.innerHTML = adminTag + '<span title="' + name + '" style="color:var(--text);">' + short + '</span>'
+      el.innerHTML = adminTag + '<span title="' + escapeHtml(name) + '" style="color:var(--text);">' + escapeHtml(short) + '</span>'
         + '<button onclick="openSettingsModal()" title="账户设置" style="border:none;background:var(--surface-3);padding:4px 7px;border-radius:4px;font-size:13px;cursor:pointer;">⚙</button>'
         + '<button onclick="doLogout()" style="border:none;background:var(--surface-3);padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">退出</button>';
     } else {

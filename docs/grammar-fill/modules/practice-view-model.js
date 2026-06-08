@@ -276,11 +276,12 @@
     };
   }
 
-  function applySequentialBlankReplacements(currentExam, questions, replacer) {
+  function applySequentialBlankReplacements(currentExam, questions, replacer, escapeText) {
     questions = asArray(questions);
     replacer = replacer || function() { return ''; };
+    var escape = (typeof escapeText === 'function') ? escapeText : function(s) { return asText(s); };
     var qi = 0;
-    var passage = getPassageSource(currentExam, questions).replace(/_{2,}\s*(\d+)\s*_{2,}/g, function(fullMatch, numStr) {
+    var passage = escape(getPassageSource(currentExam, questions)).replace(/_{2,}\s*(\d+)\s*_{2,}/g, function(fullMatch, numStr) {
       if (qi >= questions.length) return fullMatch;
       var index = qi;
       var question = questions[qi] || {};

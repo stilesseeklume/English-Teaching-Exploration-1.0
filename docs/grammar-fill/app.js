@@ -1072,7 +1072,7 @@ function renderErrorBook() {
           + escapeHtml(group.titleText) + '</div>'
           + '<div class="error-cat-items"' + (expanded ? '' : ' style="display:none;"') + '>';
     (group.items || []).forEach(function(item) {
-      var sent = item.passage.replace(item.blankMarker,
+      var sent = escapeHtml(item.passage).replace(item.blankMarker,
         '<span style="display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-bottom:2px dashed var(--accent);background:var(--accent-bg);border-radius:3px;font-weight:600;color:var(--accent);">' + escapeHtml(item.blankMarker) + '</span>');
       var truncateCls = item.sentenceTruncated ? ' error-list-sentence-truncated' : '';
       html += '<div class="error-list-item" onclick="viewErrorQuestion(\'' + escapeHtml(item.id) + '\')">'
@@ -1807,7 +1807,7 @@ function renderExam() {
 
     var chineseModel = window.GrammarPracticeViewModel.buildChinesePassageModel(practiceContext.currentExam, practiceContext.currentQuestions, EXAMS_BY_ID);
     if (chineseModel.hasText) {
-      var chineseHtml = chineseModel.paragraphs.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+      var chineseHtml = chineseModel.paragraphs.map(function(p) { return '<p>' + escapeHtml(p) + '</p>'; }).join('');
       document.getElementById('passageBox').innerHTML = chineseHtml;
     } else {
       document.getElementById('passageBox').innerHTML = '<p style="color:var(--text-3);">' + escapeHtml(chineseModel.placeholderText) + '</p>';
@@ -1820,7 +1820,7 @@ function renderExam() {
   if (bodyKind === 'error') {
     var q = practiceContext.currentQuestions[0] || {};
     var replacement = renderPracticeBlankSlot(window.GrammarPracticeViewModel.buildBlankSlotModel(q, 0, q.no, displayState.showAnswers));
-    var passage = window.GrammarPracticeViewModel.replaceBlankMarker(q.passage, q.no, replacement);
+    var passage = window.GrammarPracticeViewModel.replaceBlankMarker(escapeHtml(q.passage), q.no, replacement);
     document.getElementById('passageBox').innerHTML = '<p>' + passage + '</p>';
     return;
   }
@@ -1840,7 +1840,7 @@ function renderExam() {
             + '<div class="cat-exam-title">' + escapeHtml(group.examId) + '</div>';
       group.items.forEach(function(item) {
         var repl = renderPracticeBlankSlot(window.GrammarPracticeViewModel.buildBlankSlotModel(item.question, item.index, item.no, displayState.showAnswers));
-        var sent = window.GrammarPracticeViewModel.replaceBlankMarker(item.sentence, item.no, repl);
+        var sent = window.GrammarPracticeViewModel.replaceBlankMarker(escapeHtml(item.sentence), item.no, repl);
         var ans = escapeHtml((item.question && item.question.answer) || '');
         html += '<div class="cat-sentence">' + sent
           + ' <button type="button" class="cat-ans-btn" onclick="toggleCatItemAnswer(this)">显示答案</button>'
@@ -1853,7 +1853,7 @@ function renderExam() {
   } else if (bodyKind === 'sequential') {
     var sequentialModel = window.GrammarPracticeViewModel.applySequentialBlankReplacements(practiceContext.currentExam, practiceContext.currentQuestions, function(q, idx, numStr) {
       return renderPracticeBlankSlot(window.GrammarPracticeViewModel.buildBlankSlotModel(q, idx, numStr, displayState.showAnswers));
-    });
+    }, escapeHtml);
     var passage = sequentialModel.paragraphs.map(function(p) { return '<p>' + p + '</p>'; }).join('');
     passage += renderUnmatchedBlankWarning(window.GrammarPracticeViewModel.buildUnmatchedBlankWarningModel(sequentialModel.unmatchedItems));
     document.getElementById('passageBox').innerHTML = passage;
@@ -1889,7 +1889,7 @@ async function doAiTranslation() {
   var cache = getTranslationCache();
   if (cache[hash]) {
     var cachedHtml = cache[hash].split('\n\n').filter(function(p) { return p.trim(); }).map(function(p) {
-      return '<p>' + p + '</p>';
+      return '<p>' + escapeHtml(p) + '</p>';
     }).join('');
     passageBox.innerHTML = cachedHtml;
     return;
@@ -1907,13 +1907,13 @@ async function doAiTranslation() {
     });
     var data = await res.json();
     if (data.error) {
-      passageBox.innerHTML = '<p style="color:var(--text-3);">翻译失败：' + data.error + '</p>';
+      passageBox.innerHTML = '<p style="color:var(--text-3);">翻译失败：' + escapeHtml(data.error) + '</p>';
       return;
     }
     var chinese = data.chinese || '';
     setTranslationCache(hash, chinese);
     var chineseHtml = chinese.split('\n\n').filter(function(p) { return p.trim(); }).map(function(p) {
-      return '<p>' + p + '</p>';
+      return '<p>' + escapeHtml(p) + '</p>';
     }).join('');
     passageBox.innerHTML = chineseHtml;
   } catch (e) {
