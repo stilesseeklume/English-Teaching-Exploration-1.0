@@ -74,32 +74,14 @@ Deno.serve(async (req: Request) => {
     }
     const token = authHeader.replace("Bearer ", "");
 
-    // 解码 JWT 拿 user id（避免新版 supabase-js getUser 兼容问题）
-    let userId = "";
-    try {
-      const payload = token.split(".")[1];
-      if (payload) {
-        let b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-        while (b64.length % 4) b64 += "=";
-        const json = atob(b64);
-        const claims = JSON.parse(json);
-        userId = claims.sub || "";
-      }
-    } catch { /* ignore decode errors */ }
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "登录已过期，请重新登录", detail: "无法解析 JWT" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // 用 getUser 校验 JWT 签名拿 user（不要手工解码未验签的 payload）。
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") || "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
     );
-    const { data: { user }, error: authError } = await supabase.auth.admin.getUserById(userId);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "登录已过期，请重新登录", detail: authError?.message || String(authError||'') }), {
+      return new Response(JSON.stringify({ error: "登录已过期，请重新登录" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -127,6 +109,16 @@ Deno.serve(async (req: Request) => {
       role: m.role === "assistant" ? "assistant" : "user",
       content: String(m.content || "").slice(0, MAX_CHAT_MESSAGE_CHARS),
     }));
+
+    // 限流：每用户每日调用/字符额度上限，超额 429（防滥用烧钱）
+    const estChars = trimmed.reduce((sum: number, m: any) => sum + (m.content ? m.content.length : 0), 0);
+    const { data: rl } = await supabase.rpc("consume_ai_quota", { p_user_id: user.id, p_est_chars: estChars });
+    if (rl && rl.allowed === false) {
+      return new Response(JSON.stringify({ error: "今日 AI 使用已达上限，请明天再试。" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const deepseekRes = await fetch(DEEPSEEK_API_URL, {
       method: "POST",
@@ -174,7 +166,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     console.error("Chat error:", err);
     return new Response(JSON.stringify({
-      error: "服务器错误：" + (err instanceof Error ? err.message : String(err)),
+      error: "服务器开小差了，请稍后再试。",
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

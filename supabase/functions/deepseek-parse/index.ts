@@ -368,6 +368,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // 限流：每用户每日调用/字符额度上限，超额 429（防滥用烧钱）
+    const { data: rl } = await supabase.rpc("consume_ai_quota", { p_user_id: user.id, p_est_chars: text.length });
+    if (rl && rl.allowed === false) {
+      return new Response(JSON.stringify({ error: "今日 AI 使用已达上限，请明天再试。" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const deepseekRes = await fetch(DEEPSEEK_API_URL, {
       method: "POST",
       headers: {
@@ -416,8 +425,7 @@ Deno.serve(async (req: Request) => {
     } catch (e) {
       console.error("Failed to parse DeepSeek response:", content.substring(0, 500));
       return new Response(JSON.stringify({
-        error: "AI 返回的内容无法解析为 JSON。",
-        rawContent: content.substring(0, 600),
+        error: "AI 返回的内容无法解析为 JSON，请稍后重试或换更清晰的格式。",
       }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -436,7 +444,6 @@ Deno.serve(async (req: Request) => {
     } else {
       return new Response(JSON.stringify({
         error: "AI 返回数据格式不正确（缺少 passages / passage 字段）。",
-        rawResult: JSON.stringify(parsed).substring(0, 600),
       }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -464,7 +471,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     console.error("Unexpected error:", err);
     return new Response(JSON.stringify({
-      error: "服务器内部错误：" + (err instanceof Error ? err.message : String(err)),
+      error: "服务器开小差了，请稍后再试。",
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

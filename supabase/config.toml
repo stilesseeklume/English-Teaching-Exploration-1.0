@@ -1,0 +1,18 @@
+# Supabase 项目配置（版本受控）。
+# 这里只固定与「安全门禁」相关的关键项；其余沿用平台默认。
+#
+# verify_jwt = true ——平台层在函数代码运行前就校验调用方的 Supabase JWT，
+# 任何无有效登录的请求一律被拒，挡在「烧钱」之前。这是防滥用的第一道门，
+# 务必保证三个 AI 函数都开着（dashboard: Edge Functions → 各函数 → Verify JWT = ON，
+# 或用 CLI `supabase functions deploy <name>` 读取本文件部署）。
+
+project_id = "zwbvcqkfbndgmyfxtkyl"
+
+[functions.deepseek-chat]
+verify_jwt = true
+
+[functions.deepseek-parse]
+verify_jwt = true
+
+[functions.translate-passage]
+verify_jwt = true
