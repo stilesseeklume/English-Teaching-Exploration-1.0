@@ -639,6 +639,30 @@ EXPECTED_MODULES = [
             "homeCategoriesHtml",
         ],
     },
+    {
+        "path": "error-profile.js",
+        "namespace": "GrammarErrorProfile",
+        "exports": [
+            "extractGrammarResults",
+            "buildErrorProfile",
+        ],
+    },
+    {
+        "path": "error-profile-view.js",
+        "namespace": "GrammarErrorProfileView",
+        "exports": [
+            "teachPriority",
+            "buildProfileViewModel",
+        ],
+    },
+    {
+        "path": "error-profile-render.js",
+        "namespace": "GrammarErrorProfileRender",
+        "exports": [
+            "uploadPanelHtml",
+            "profilePageHtml",
+        ],
+    },
 ]
 
 FORBIDDEN_IN_PURE_MODULES = [
@@ -662,6 +686,7 @@ CONTROLLER_MODULES = [
     "projection.js",
     "home-dashboard.js",
     "lesson-prep-controller.js",
+    "error-profile-controller.js",
     "cloud-sync.js",
 ]
 

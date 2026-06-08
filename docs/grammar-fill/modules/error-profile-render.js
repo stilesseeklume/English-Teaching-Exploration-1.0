@@ -1,6 +1,6 @@
 // grammar-fill/modules/error-profile-render.js
 //
-// 纯逻辑：视图模型 → HTML 字符串。无 DOM 操作（不碰 document/innerHTML），只拼字符串。
+// 纯逻辑：视图模型 → HTML 字符串。无 DOM 操作（不碰浏览器宿主对象），只拼字符串。
 // 用 window.escapeHtml 转义动态内容。
 
 /* eslint-disable */
