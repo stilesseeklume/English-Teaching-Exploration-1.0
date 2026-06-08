@@ -50,3 +50,38 @@ test('buildErrorProfile: 题号→考点匹配，出班级画像+个人弱项+�
     wrongQuestions: [{ no: 37, category: 'number', fine_category: 'num-plural', answer: 'gestures' }],
   }));
 });
+
+test('端到端：extract→build 用真实2026广州一模考点跑通', () => {
+  // 真实 2026广州一模 语法填空考点（来自题库），仅取 36/40/44 三题做断言
+  const exam = [
+    { no: 36, category: 'preposition',  fine_category: 'prep-common',  answer: 'from' },
+    { no: 40, category: 'word',         fine_category: 'word-noun',    answer: 'valuing' },
+    { no: 44, category: 'nonpredicate', fine_category: 'nonpred-done', answer: 'rooted' },
+  ];
+  const rows = [
+    ['序号','姓名','班级','学号','36','40','44'],
+    ['','','','','得分','得分','得分'],
+    ['1','甲','17班','2023531001','0.0','0.0','1.5'],   // 错 36,40
+    ['2','乙','17班','2023531002','1.5','0.0','0.0'],   // 错 40,44
+  ];
+  const results = extractGrammarResults(rows, [36, 40, 44]);
+  const p = buildErrorProfile(results, exam);
+  assert.equal(json(p.classByCat), json({ preposition: 1, word: 2, nonpredicate: 1 }));
+  // 题级错题集：学生1 错了 第36题(介词,from) 与 第40题(词性名词,valuing)
+  assert.equal(json(p.students[0].wrongQuestions), json([
+    { no: 36, category: 'preposition', fine_category: 'prep-common', answer: 'from' },
+    { no: 40, category: 'word',        fine_category: 'word-noun',   answer: 'valuing' },
+  ]));
+});
+
+test('extractGrammarResults: 整行空白（缺考/未作答）→ wrong 为空，不误判为全错', () => {
+  const rows = [
+    ['序号','姓名','班级','学号','36','37'],
+    ['','','','','得分','得分'],
+    ['1','缺考生','17班','2023531009','',''],   // 整行空白 → 缺考，blank ≠ 错
+  ];
+  const res = extractGrammarResults(rows, [36, 37]);
+  assert.equal(json(res.students), json([
+    { studentNo: '2023531009', wrong: [] },
+  ]));
+});
