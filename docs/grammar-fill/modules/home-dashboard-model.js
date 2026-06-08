@@ -155,6 +155,15 @@
     activity = activity || getUserActivityState({});
     return [
       {
+        key: 'error-profile',
+        icon: '📥',
+        label: '导入成绩 · 算考点画像',
+        subtitleText: '传网阅成绩 → 班级考点画像',
+        tone: 'primary',
+        count: null,
+        action: buildAction('switch-page', 'error-profile')
+      },
+      {
         key: 'pick-bank',
         icon: '📚',
         label: '精选题库',

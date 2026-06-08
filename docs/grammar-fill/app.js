@@ -1130,6 +1130,28 @@ function renderPrepList() { return window.GrammarLessonPrep.renderPrepList(lesso
 function renamePrepPassage(id) { return window.GrammarLessonPrep.renamePrepPassage(id, lessonPrepDeps()); }
 
 
+// ────────── 错题画像（成绩 · 考点画像） ──────────
+// 控制器在 modules/error-profile-controller.js（window.GrammarErrorProfileController）。
+function errorProfileDeps() {
+  return {
+    getExamList: function() {
+      return window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
+        .map(function(ex){ return { examId: ex.exam_id, label: ex.exam_id }; })
+        .filter(function(e){ return ALL_QUESTIONS.some(function(q){ return q.exam_id === e.examId && q.no >= 36 && q.no <= 45; }); });
+    },
+    getExamGrammarQuestions: function(examId) {
+      return ALL_QUESTIONS
+        .filter(function(q){ return q.exam_id === examId && q.no >= 36 && q.no <= 45; })
+        .map(function(q){ return { no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer }; });
+    },
+    catNames: (window.GrammarCategoryRules && window.GrammarCategoryRules.DEFAULT_CATEGORY_NAMES) || {}
+  };
+}
+function renderErrorProfilePage() {
+  return window.GrammarErrorProfileController.render(errorProfileDeps());
+}
+
+
 function setupPassageClickDelegation() {
   var box = document.getElementById('passageBox');
   if (!box || box.dataset.clickDelegated === '1') return;
@@ -1523,6 +1545,7 @@ function switchPage(page) {
   if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
   if (renderPlan.renderAction === 'render-admin') renderAdminPage();
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
+  if (page === 'error-profile') renderErrorProfilePage();
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 错题本/备课/讲题显示）

@@ -258,6 +258,7 @@
       || page === 'points-training'
       || page === 'error-book'
       || page === 'lesson-prep'
+      || page === 'error-profile'
       || page === 'admin'
     ) {
       return page;
@@ -266,7 +267,7 @@
   }
 
   function isProtectedPage(page) {
-    return page === 'error-book' || page === 'lesson-prep' || page === 'admin';
+    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile';
   }
 
   function buildPageAuthGuard(page, isAuthenticated) {
