@@ -4253,3 +4253,22 @@ test('名词叶子合并：num-plural 标题末段=名词复数，无可数/不�
     return (endsRight && noCountLeaf) ? 'ok' : 'bad: title=' + title + ' noCountLeaf=' + noCountLeaf;
   })).toBe('ok');
 });
+
+test('错题画像页（登录后）可进入并渲染上传面板', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockSignedInTeacher(page);
+
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+
+  // error-profile 是受保护页，无 dock 入口；登录态下用 switchPage 进入（同 admin 用例）。
+  await page.evaluate(() => window.switchPage('error-profile'));
+  await expect(page.locator('#page-error-profile')).toHaveClass(/active/);
+
+  // 控制器 render → 渲染模块 uploadPanelHtml 应产出选套卷下拉 + 传成绩文件框。
+  await expect(page.locator('#errorProfileExam')).toBeVisible();
+  await expect(page.locator('#errorProfileFile')).toBeVisible();
+  await expect(page.locator('#page-error-profile')).toContainText('传这次成绩');
+
+  expect(errors).toEqual([]);
+});
