@@ -14,7 +14,7 @@ function loadWindow(relPaths) {
 }
 const w = loadWindow(['docs/grammar-fill/modules/error-profile-render.js']);
 w.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const { profilePageHtml, uploadPanelHtml } = w.GrammarErrorProfileRender;
+const { profilePageHtml, uploadPanelHtml, boardListHtml } = w.GrammarErrorProfileRender;
 
 test('uploadPanelHtml: 列出套卷下拉 + 文件输入', () => {
   const html = uploadPanelHtml([{ examId: '2026广州一模', label: '2026 广州一模' }]);
@@ -39,4 +39,16 @@ test('profilePageHtml: 含考点排行+正确率+优先级标签+学生学号', 
   assert.ok(html.includes('重点讲'), '含 focus 优先级标签');
   assert.ok(html.includes('2023531001'), '含学生学号');
   assert.ok(html.includes('valuing'), '含错题答案');
+});
+
+test('boardListHtml: 空→提示；有→卷名/计数/看画像/删 按钮带 data-id', () => {
+  assert.ok(boardListHtml([]).includes('还没有导入的卷子'), '空态提示');
+  const html = boardListHtml([
+    { id: '2026广州一模', examId: '2026广州一模', examLabel: '2026广州一模', savedAtText: '6/9 12:00', studentCount: 48, focusCount: 6 },
+  ]);
+  assert.ok(html.includes('2026广州一模'), '含卷名');
+  assert.ok(html.includes('48 生'), '含人数');
+  assert.ok(html.includes('重点讲 6'), '含重点考点数');
+  assert.ok(html.includes('data-id="2026广州一模"'), '含 data-id');
+  assert.ok(html.includes('ep-board-view') && html.includes('ep-board-del'), '含看/删按钮 class');
 });

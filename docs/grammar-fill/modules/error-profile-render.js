@@ -81,8 +81,26 @@
     return head + catRankingHtml(vm.catRanking || []) + noListHtml(vm.noList || []) + studentsHtml(vm.students || []);
   }
 
+  function boardListHtml(boardModel) {
+    boardModel = boardModel || [];
+    if (!boardModel.length) {
+      return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:24px;color:#888;text-align:center;">还没有导入的卷子。去「导入成绩」传一套吧。</div>';
+    }
+    return boardModel.map(function(e){
+      return '<div class="ep-board-item" data-id="' + esc(e.id) + '" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #eee;border-radius:12px;padding:14px 18px;margin-bottom:10px;">'
+        + '<div style="flex:1;">'
+        +   '<div style="font-weight:600;">' + esc(e.examLabel) + '</div>'
+        +   '<div style="color:#888;font-size:12px;">' + esc(e.savedAtText) + ' · ' + e.studentCount + ' 生 · 重点讲 ' + e.focusCount + ' 个考点</div>'
+        + '</div>'
+        + '<button type="button" class="ep-board-view" data-id="' + esc(e.id) + '" style="padding:6px 14px;border-radius:8px;border:1px solid #ddd;background:#f7f7f7;cursor:pointer;">看画像</button>'
+        + '<button type="button" class="ep-board-del" data-id="' + esc(e.id) + '" style="padding:6px 12px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;">删</button>'
+        + '</div>';
+    }).join('');
+  }
+
   window.GrammarErrorProfileRender = {
     uploadPanelHtml: uploadPanelHtml,
-    profilePageHtml: profilePageHtml
+    profilePageHtml: profilePageHtml,
+    boardListHtml: boardListHtml
   };
 })();
