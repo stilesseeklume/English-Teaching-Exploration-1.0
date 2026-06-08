@@ -383,9 +383,15 @@
     </div>
 
     <div class="page" id="page-error-profile">
-      <h1 class="page-title">成绩 · 考点画像</h1>
-      <p class="page-desc">选题库已有套卷 + 传网阅成绩，自动算出班级考点画像</p>
+      <h1 class="page-title">考点画像</h1>
+      <p class="page-desc">历次导入的卷子 · 点开看班级考点画像</p>
       <div id="errorProfileContent">加载中…</div>
+    </div>
+
+    <div class="page" id="page-error-import">
+      <h1 class="page-title">导入成绩</h1>
+      <p class="page-desc">选题库套卷 + 传网阅成绩 .xls，算出考点画像并存入「考点画像」</p>
+      <div id="errorImportContent">加载中…</div>
     </div>
 
     <div id="dropOverlay" class="drop-overlay" aria-hidden="true">
@@ -448,6 +454,7 @@
 <script src="./modules/error-profile.js"></script>
 <script src="./modules/error-profile-view.js"></script>
 <script src="./modules/error-profile-render.js"></script>
+<script src="./modules/error-profile-store.js"></script>
 <script src="./modules/home-dashboard.js"></script>
 <script src="./modules/lesson-prep-controller.js"></script>
 <script src="./modules/error-profile-controller.js"></script>

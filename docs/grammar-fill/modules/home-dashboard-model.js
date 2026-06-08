@@ -155,12 +155,13 @@
     activity = activity || getUserActivityState({});
     return [
       {
-        key: 'error-profile',
-        icon: '📥',
-        label: '导入成绩 · 算考点画像',
-        subtitleText: '传网阅成绩 → 班级考点画像',
-        tone: 'primary',
-        count: null,
+        key: 'error-import', icon: '📥', label: '导入成绩',
+        subtitleText: '传网阅成绩 → 算考点画像', tone: 'primary', count: null,
+        action: buildAction('switch-page', 'error-import')
+      },
+      {
+        key: 'error-profile', icon: '📊', label: '考点画像',
+        subtitleText: '历次卷子 · 班级考点画像', tone: 'accent', count: null,
         action: buildAction('switch-page', 'error-profile')
       },
       {

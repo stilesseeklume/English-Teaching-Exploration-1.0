@@ -1132,23 +1132,53 @@ function renamePrepPassage(id) { return window.GrammarLessonPrep.renamePrepPassa
 
 // ────────── 错题画像（成绩 · 考点画像） ──────────
 // 控制器在 modules/error-profile-controller.js（window.GrammarErrorProfileController）。
-function errorProfileDeps() {
-  return {
-    getExamList: function() {
-      return window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
-        .map(function(ex){ return { examId: ex.exam_id, label: ex.exam_id }; })
-        .filter(function(e){ return ALL_QUESTIONS.some(function(q){ return q.exam_id === e.examId && q.no >= 36 && q.no <= 45; }); });
-    },
-    getExamGrammarQuestions: function(examId) {
-      return ALL_QUESTIONS
-        .filter(function(q){ return q.exam_id === examId && q.no >= 36 && q.no <= 45; })
-        .map(function(q){ return { no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer }; });
-    },
-    catNames: (window.GrammarCategoryRules && window.GrammarCategoryRules.DEFAULT_CATEGORY_NAMES) || {}
-  };
+function errorProfilesKey() { return 'grammar-error-profiles'; }
+function currentProfileOwnerId() {
+  return (window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.state.user.id) || 'anon';
+}
+function loadErrorProfiles() {
+  try {
+    var raw = localStorage.getItem(errorProfilesKey());
+    if (!raw) return [];
+    var data = JSON.parse(raw);
+    if (!data || data._owner !== currentProfileOwnerId()) return [];
+    return data.items || [];
+  } catch (e) { return []; }
+}
+function saveErrorProfiles(items) {
+  try { localStorage.setItem(errorProfilesKey(), JSON.stringify({ _owner: currentProfileOwnerId(), items: items || [] })); } catch (e) {}
+}
+function errorProfileExamList() {
+  return window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
+    .map(function(ex){ return { examId: ex.exam_id, label: ex.exam_id }; })
+    .filter(function(e){ return ALL_QUESTIONS.some(function(q){ return q.exam_id === e.examId && q.no >= 36 && q.no <= 45; }); });
+}
+function errorProfileExamQuestions(examId) {
+  return ALL_QUESTIONS
+    .filter(function(q){ return q.exam_id === examId && q.no >= 36 && q.no <= 45; })
+    .map(function(q){ return { no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer }; });
+}
+function errorProfileCatNames() {
+  return (window.GrammarCategoryRules && window.GrammarCategoryRules.DEFAULT_CATEGORY_NAMES) || {};
+}
+function renderErrorImportPage() {
+  return window.GrammarErrorProfileController.renderImportPage({
+    getExamList: errorProfileExamList,
+    getExamGrammarQuestions: errorProfileExamQuestions,
+    catNames: errorProfileCatNames(),
+    loadProfiles: loadErrorProfiles,
+    saveProfiles: saveErrorProfiles,
+    gotoBoard: function(){ switchPage('error-profile'); },
+    now: function(){ return Date.now(); },
+    nowText: function(){ return new Date().toLocaleString('zh-CN'); }
+  });
 }
 function renderErrorProfilePage() {
-  return window.GrammarErrorProfileController.render(errorProfileDeps());
+  return window.GrammarErrorProfileController.renderBoardPage({
+    loadProfiles: loadErrorProfiles,
+    saveProfiles: saveErrorProfiles,
+    catNames: errorProfileCatNames()
+  });
 }
 
 
@@ -1546,6 +1576,7 @@ function switchPage(page) {
   if (renderPlan.renderAction === 'render-admin') renderAdminPage();
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
   if (page === 'error-profile') renderErrorProfilePage();
+  if (page === 'error-import') renderErrorImportPage();
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 错题本/备课/讲题显示）

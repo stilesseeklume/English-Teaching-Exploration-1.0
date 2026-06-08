@@ -259,6 +259,7 @@
       || page === 'error-book'
       || page === 'lesson-prep'
       || page === 'error-profile'
+      || page === 'error-import'
       || page === 'admin'
     ) {
       return page;
@@ -267,7 +268,7 @@
   }
 
   function isProtectedPage(page) {
-    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile';
+    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import';
   }
 
   function buildPageAuthGuard(page, isAuthenticated) {
