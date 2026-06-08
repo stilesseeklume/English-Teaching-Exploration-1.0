@@ -45,11 +45,12 @@ stable
 security definer
 set search_path = public
 as $$
+  -- 安全：仅以已验证邮箱判定管理员。不要再加 user_metadata/raw_user_meta_data
+  -- 等「用户可自写」的字段——那是 2026-06-07 审计发现的越权漏洞（任何用户可经
+  -- auth.updateUser 自提升为管理员）。增减管理员改下面的邮箱白名单即可。
   select coalesce(
     (auth.jwt() ->> 'email') in (
       'liuzhenlzstiles@icloud.com'
-    ) or (auth.jwt() -> 'user_metadata' ->> 'username') in (
-      'liuzhen'
     ),
     false
   );
