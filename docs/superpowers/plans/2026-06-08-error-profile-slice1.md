@@ -241,11 +241,13 @@ git commit -m "feat(error-profile): buildErrorProfile 匹配考点→班级画�
 
 ```js
 test('端到端：extract→build 用真实2026广州一模考点跑通', () => {
-  // 真实 2026广州一模 语法填空考点（来自题库），仅取 36/40/44 三题做断言
+  // 真实 2026广州一模 语法填空考点（来自题库 data/grammar_bank.json，仅取 36/40/44）。
+  // 题库记录只有粗 category（无 fine_category 字段；细标签在 UI 层用 question-points 另算），
+  // 故此处只用 no/category/answer 三个真实字段断言。第40题 value→valuing 是动名词同位语＝非谓语。
   const exam = [
-    { no: 36, category: 'preposition',  fine_category: 'prep-common',  answer: 'from' },
-    { no: 40, category: 'word',         fine_category: 'word-noun',    answer: 'valuing' },
-    { no: 44, category: 'nonpredicate', fine_category: 'nonpred-done', answer: 'rooted' },
+    { no: 36, category: 'preposition',  answer: 'from' },
+    { no: 40, category: 'nonpredicate', answer: 'valuing' },
+    { no: 44, category: 'nonpredicate', answer: 'rooted' },
   ];
   const rows = [
     ['序号','姓名','班级','学号','36','40','44'],
@@ -255,11 +257,27 @@ test('端到端：extract→build 用真实2026广州一模考点跑通', () => 
   ];
   const results = extractGrammarResults(rows, [36, 40, 44]);
   const p = buildErrorProfile(results, exam);
-  assert.equal(json(p.classByCat), json({ preposition: 1, word: 2, nonpredicate: 1 }));
-  // 题级错题集：学生1 错了 第36题(介词,from) 与 第40题(词性名词,valuing)
+  assert.equal(json(p.classByCat), json({ preposition: 1, nonpredicate: 3 }));
+  // 题级错题集：学生1 错了 第36题(介词,from) 与 第40题(非谓语,valuing)
   assert.equal(json(p.students[0].wrongQuestions), json([
-    { no: 36, category: 'preposition', fine_category: 'prep-common', answer: 'from' },
-    { no: 40, category: 'word',        fine_category: 'word-noun',   answer: 'valuing' },
+    { no: 36, category: 'preposition',  answer: 'from' },
+    { no: 40, category: 'nonpredicate', answer: 'valuing' },
+  ]));
+});
+```
+
+并追加一条边界用例（缺考空白行 → `wrong:[]`，blank ≠ 错；保护真实数据里缺考学生不被误判全错）：
+
+```js
+test('extractGrammarResults: 整行空白（缺考/未作答）→ wrong 为空，不误判为全错', () => {
+  const rows = [
+    ['序号','姓名','班级','学号','36','37'],
+    ['','','','','得分','得分'],
+    ['1','缺考生','17班','2023531009','',''],   // 整行空白 → 缺考，blank ≠ 错
+  ];
+  const res = extractGrammarResults(rows, [36, 37]);
+  assert.equal(json(res.students), json([
+    { studentNo: '2023531009', wrong: [] },
   ]));
 });
 ```
@@ -295,3 +313,5 @@ git commit -m "test(error-profile): 真实2026广州一模端到端用例（考�
 ## 下一片预告（不在本计划）
 
 切片②：页面里用 SheetJS 读 .xls → 调本模块 → 渲染班级画像（条形 + 考点排行）。届时把 `error-profile.js` 登记进 `check_grammar_modules.py` 的 EXPECTED_MODULES + index.html 脚本清单 + 更新 PROJECT_LOG（按 AGENTS.md 加模块规矩）。
+
+> **本片暴露的一个真实数据事实（切片② / 题级画像须知）**：题库 `data/grammar_bank.json` 的题目记录**没有 `fine_category` 字段**——只有粗 `category`（如 `preposition`/`nonpredicate`/`word`）+ `category_name` + `grammar_point`（中文，如「非谓语动词」）。`buildErrorProfile` 已能容忍缺 `fine_category`（它只是原样透传，缺则 JSON 省略）。因此**考点级画像现在只能做到粗 category 粒度**；要做 spec §5 想要的「细 fine_category」迁移，切片②须先用既有 `question-points.js` / `getFineTagInfo` 在 UI 层算出细标签再喂给本模块——不能指望题库直接给。

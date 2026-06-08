@@ -52,11 +52,13 @@ test('buildErrorProfile: 题号→考点匹配，出班级画像+个人弱项+�
 });
 
 test('端到端：extract→build 用真实2026广州一模考点跑通', () => {
-  // 真实 2026广州一模 语法填空考点（来自题库），仅取 36/40/44 三题做断言
+  // 真实 2026广州一模 语法填空考点（来自题库 data/grammar_bank.json，仅取 36/40/44）。
+  // 题库记录只有粗 category（无 fine_category 字段；细标签在 UI 层用 question-points 另算），
+  // 故此处只用 no/category/answer 三个真实字段断言。第40题 value→valuing 是动名词同位语＝非谓语。
   const exam = [
-    { no: 36, category: 'preposition',  fine_category: 'prep-common',  answer: 'from' },
-    { no: 40, category: 'word',         fine_category: 'word-noun',    answer: 'valuing' },
-    { no: 44, category: 'nonpredicate', fine_category: 'nonpred-done', answer: 'rooted' },
+    { no: 36, category: 'preposition',  answer: 'from' },
+    { no: 40, category: 'nonpredicate', answer: 'valuing' },
+    { no: 44, category: 'nonpredicate', answer: 'rooted' },
   ];
   const rows = [
     ['序号','姓名','班级','学号','36','40','44'],
@@ -66,11 +68,11 @@ test('端到端：extract→build 用真实2026广州一模考点跑通', () => 
   ];
   const results = extractGrammarResults(rows, [36, 40, 44]);
   const p = buildErrorProfile(results, exam);
-  assert.equal(json(p.classByCat), json({ preposition: 1, word: 2, nonpredicate: 1 }));
-  // 题级错题集：学生1 错了 第36题(介词,from) 与 第40题(词性名词,valuing)
+  assert.equal(json(p.classByCat), json({ preposition: 1, nonpredicate: 3 }));
+  // 题级错题集：学生1 错了 第36题(介词,from) 与 第40题(非谓语,valuing)
   assert.equal(json(p.students[0].wrongQuestions), json([
-    { no: 36, category: 'preposition', fine_category: 'prep-common', answer: 'from' },
-    { no: 40, category: 'word',        fine_category: 'word-noun',   answer: 'valuing' },
+    { no: 36, category: 'preposition',  answer: 'from' },
+    { no: 40, category: 'nonpredicate', answer: 'valuing' },
   ]));
 });
 
