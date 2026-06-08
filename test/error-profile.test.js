@@ -13,7 +13,7 @@ function loadWindow(relPaths) {
   return window;
 }
 const w = loadWindow(['docs/grammar-fill/modules/error-profile.js']);
-const { extractGrammarResults } = w.GrammarErrorProfile;
+const { extractGrammarResults, buildErrorProfile } = w.GrammarErrorProfile;
 const json = (v) => JSON.stringify(v);
 
 test('extractGrammarResults: 按表头定位学号与36-45列，得分0=错，跳过非学生行', () => {
@@ -29,4 +29,24 @@ test('extractGrammarResults: 按表头定位学号与36-45列，得分0=错，�
     { studentNo: '2023531001', wrong: [37] },
     { studentNo: '2023531002', wrong: [36, 37] },
   ]));
+});
+
+test('buildErrorProfile: 题号→考点匹配，出班级画像+个人弱项+题级错题集', () => {
+  const studentResults = { students: [
+    { studentNo: '2023531001', wrong: [37] },
+    { studentNo: '2023531002', wrong: [36, 37] },
+  ]};
+  const examQuestions = [
+    { no: 36, category: 'preposition', fine_category: 'prep-common', answer: 'from' },
+    { no: 37, category: 'number',      fine_category: 'num-plural',  answer: 'gestures' },
+    { no: 38, category: 'word',        fine_category: 'word-adv',    answer: 'instantly' },
+  ];
+  const p = buildErrorProfile(studentResults, examQuestions);
+  assert.equal(json(p.classByCat), json({ number: 2, preposition: 1 }));
+  assert.equal(json(p.classByNo), json({ '37': 2, '36': 1 }));
+  assert.equal(json(p.students[0]), json({
+    studentNo: '2023531001',
+    wrongCats: ['number'],
+    wrongQuestions: [{ no: 37, category: 'number', fine_category: 'num-plural', answer: 'gestures' }],
+  }));
 });

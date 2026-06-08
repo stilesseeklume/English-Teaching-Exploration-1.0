@@ -39,7 +39,34 @@
     return { students: students };
   }
 
+  // studentResults: extractGrammarResults 的产物（{students:[{studentNo,wrong:[题号]}]}）
+  // examQuestions: 该套卷语法填空题 [{no,category,fine_category,answer}]
+  function buildErrorProfile(studentResults, examQuestions) {
+    examQuestions = examQuestions || [];
+    var list = (studentResults && studentResults.students) || studentResults || [];
+    var qByNo = {};
+    examQuestions.forEach(function(q){ qByNo[String(q.no)] = q; });
+
+    var classByCat = {};
+    var classByNo = {};
+    var students = list.map(function(s){
+      var wrongCats = [];
+      var wrongQuestions = [];
+      (s.wrong || []).forEach(function(no){
+        var q = qByNo[String(no)];
+        if (!q) return;
+        wrongCats.push(q.category);
+        wrongQuestions.push({ no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer });
+        classByCat[q.category] = (classByCat[q.category] || 0) + 1;
+        classByNo[no] = (classByNo[no] || 0) + 1;
+      });
+      return { studentNo: s.studentNo, wrongCats: wrongCats, wrongQuestions: wrongQuestions };
+    });
+    return { classByCat: classByCat, classByNo: classByNo, students: students };
+  }
+
   window.GrammarErrorProfile = {
-    extractGrammarResults: extractGrammarResults
+    extractGrammarResults: extractGrammarResults,
+    buildErrorProfile: buildErrorProfile
   };
 })();
