@@ -2278,9 +2278,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && newUserDashboard && newUserDashboard.activity.isNewUser === true
       && newUserDashboard.activity.greeting === '早上好'
       && newUserDashboard.hero && newUserDashboard.hero.titleText.indexOf('语法填空讲评工作台') !== -1
-      && newUserDashboard.actions[0].action && newUserDashboard.actions[0].action.type === 'navigate-home' && newUserDashboard.actions[0].action.value === 'exams'
-      && newUserDashboard.actions[1].action && newUserDashboard.actions[1].action.type === 'upload-word'
-      && newUserDashboard.actions[1].subtitleText.indexOf('AI 自动解析') !== -1
+      && newUserDashboard.actions[0].action && newUserDashboard.actions[0].action.type === 'switch-page' && newUserDashboard.actions[0].action.value === 'error-profile'
+      && newUserDashboard.actions[1].action && newUserDashboard.actions[1].action.type === 'navigate-home' && newUserDashboard.actions[1].action.value === 'exams'
+      && newUserDashboard.actions[2].action && newUserDashboard.actions[2].action.type === 'upload-word'
+      && newUserDashboard.actions[2].subtitleText.indexOf('AI 自动解析') !== -1
       && newUserDashboard.actions[0].chrome && newUserDashboard.actions[0].chrome.style.indexOf('box-shadow') !== -1
       && newUserDashboard.actions[0].subtitleStyle.indexOf('opacity') !== -1
       && newUserDashboard.books && newUserDashboard.books.length === 7
@@ -2294,11 +2295,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.actions && activeDashboard.actions.length === 6
+      && activeDashboard.actions && activeDashboard.actions.length === 7
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
-      && activeDashboard.actions[2].subtitleText === '2 套已入库'
-      && activeDashboard.actions[3].action && activeDashboard.actions[3].action.value === 'error-book'
-      && activeDashboard.actions[3].chrome.mouseover.indexOf('var(--red)') !== -1
+      && activeDashboard.actions[3].subtitleText === '2 套已入库'
+      && activeDashboard.actions[4].action && activeDashboard.actions[4].action.value === 'error-book'
+      && activeDashboard.actions[4].chrome.mouseover.indexOf('var(--red)') !== -1
       && homeSummary && homeSummary.bankStatText.indexOf('2 套卷 · 20 题') !== -1
       && homeSummary.errorCountText === '3 道错题'
       && homeSummary.prepCountText === '4 份资料'
