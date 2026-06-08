@@ -325,7 +325,7 @@ Expected: FAIL — `Cannot read properties of undefined (reading 'GrammarErrorPr
   function studentsHtml(students) {
     if (!students.length) return '';
     var rows = students.map(function(s){
-      var wq = (s.wrongQuestions || []).map(function(q){ return '第' + q.no + '题(' + esc(q.category) + ')'; }).join('、');
+      var wq = (s.wrongQuestions || []).map(function(q){ return '第' + q.no + '题(答案 ' + esc(q.answer) + ')'; }).join('、');
       return '<div style="padding:8px 0;border-bottom:1px solid #f4f4f4;font-size:13px;">'
         + '<span style="font-weight:600;">' + esc(s.studentNo) + '</span>'
         + '<span style="color:#888;margin-left:10px;">对' + s.rightCount + ' 错' + s.wrongCount + (s.blankCount ? ' 缺考' + s.blankCount : '') + '</span>'
