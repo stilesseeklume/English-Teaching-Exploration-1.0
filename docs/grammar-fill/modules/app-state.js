@@ -300,7 +300,10 @@
       || dockKey === 'points-training'
       || dockKey === 'knowledge'
       || dockKey === 'error-book'
-      || dockKey === 'lesson-prep'    ) {
+      || dockKey === 'lesson-prep'
+      || dockKey === 'error-import'
+      || dockKey === 'error-profile'
+    ) {
       return dockKey;
     }
     return '';
@@ -308,7 +311,7 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
-    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training') {
+    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
       return page;
     }
     return '';
