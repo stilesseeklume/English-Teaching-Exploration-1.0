@@ -2278,10 +2278,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && newUserDashboard && newUserDashboard.activity.isNewUser === true
       && newUserDashboard.activity.greeting === '早上好'
       && newUserDashboard.hero && newUserDashboard.hero.titleText.indexOf('语法填空讲评工作台') !== -1
-      && newUserDashboard.actions[0].action && newUserDashboard.actions[0].action.type === 'switch-page' && newUserDashboard.actions[0].action.value === 'error-profile'
-      && newUserDashboard.actions[1].action && newUserDashboard.actions[1].action.type === 'navigate-home' && newUserDashboard.actions[1].action.value === 'exams'
-      && newUserDashboard.actions[2].action && newUserDashboard.actions[2].action.type === 'upload-word'
-      && newUserDashboard.actions[2].subtitleText.indexOf('AI 自动解析') !== -1
+      && newUserDashboard.actions[0].action && newUserDashboard.actions[0].action.type === 'switch-page' && newUserDashboard.actions[0].action.value === 'error-import'
+      && newUserDashboard.actions[1].action && newUserDashboard.actions[1].action.type === 'switch-page' && newUserDashboard.actions[1].action.value === 'error-profile'
+      && newUserDashboard.actions[2].action && newUserDashboard.actions[2].action.type === 'navigate-home' && newUserDashboard.actions[2].action.value === 'exams'
+      && newUserDashboard.actions[3].action && newUserDashboard.actions[3].action.type === 'upload-word'
+      && newUserDashboard.actions[3].subtitleText.indexOf('AI 自动解析') !== -1
       && newUserDashboard.actions[0].chrome && newUserDashboard.actions[0].chrome.style.indexOf('box-shadow') !== -1
       && newUserDashboard.actions[0].subtitleStyle.indexOf('opacity') !== -1
       && newUserDashboard.books && newUserDashboard.books.length === 7
@@ -2295,11 +2296,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.actions && activeDashboard.actions.length === 7
+      && activeDashboard.actions && activeDashboard.actions.length === 8
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
-      && activeDashboard.actions[3].subtitleText === '2 套已入库'
-      && activeDashboard.actions[4].action && activeDashboard.actions[4].action.value === 'error-book'
-      && activeDashboard.actions[4].chrome.mouseover.indexOf('var(--red)') !== -1
+      && activeDashboard.actions[4].subtitleText === '2 套已入库'
+      && activeDashboard.actions[5].action && activeDashboard.actions[5].action.value === 'error-book'
+      && activeDashboard.actions[5].chrome.mouseover.indexOf('var(--red)') !== -1
       && homeSummary && homeSummary.bankStatText.indexOf('2 套卷 · 20 题') !== -1
       && homeSummary.errorCountText === '3 道错题'
       && homeSummary.prepCountText === '4 份资料'
@@ -4255,21 +4256,29 @@ test('名词叶子合并：num-plural 标题末段=名词复数，无可数/不�
   })).toBe('ok');
 });
 
-test('错题画像页（登录后）可进入并渲染上传面板', async ({ page }) => {
+test('错题画像：导入页可进 + 画像板块列出并展开', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
-
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  // error-profile 是受保护页，无 dock 入口；登录态下用 switchPage 进入（同 admin 用例）。
-  await page.evaluate(() => window.switchPage('error-profile'));
-  await expect(page.locator('#page-error-profile')).toHaveClass(/active/);
-
-  // 控制器 render → 渲染模块 uploadPanelHtml 应产出选套卷下拉 + 传成绩文件框。
+  await page.evaluate(() => window.switchPage('error-import'));
+  await expect(page.locator('#page-error-import')).toHaveClass(/active/);
   await expect(page.locator('#errorProfileExam')).toBeVisible();
   await expect(page.locator('#errorProfileFile')).toBeVisible();
-  await expect(page.locator('#page-error-profile')).toContainText('传这次成绩');
 
+  await page.evaluate(() => {
+    const entry = { id: 'X卷', examId: 'X卷', examLabel: 'X卷', savedAt: 1, savedAtText: '刚刚',
+      summary: { studentCount: 2, questionCount: 1, focusCount: 1 },
+      profile: { byCat: { preposition: { right: 1, wrong: 1, rate: 50 } },
+                 byNo: { '36': { right: 1, wrong: 1, blank: 0 } },
+                 students: [{ studentNo: 'S1', right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'preposition', answer: 'from' }] }] } };
+    const list = window.GrammarErrorProfileStore.upsertEntry([], entry);
+    localStorage.setItem('grammar-error-profiles', JSON.stringify({ _owner: 'smoke-user-1', items: list }));
+  });
+  await page.evaluate(() => window.switchPage('error-profile'));
+  await expect(page.locator('#page-error-profile')).toHaveClass(/active/);
+  await expect(page.locator('#errorProfileContent')).toContainText('X卷');
+  await expect(page.locator('#epBoardDetail')).toContainText('考点画像');
   expect(errors).toEqual([]);
 });

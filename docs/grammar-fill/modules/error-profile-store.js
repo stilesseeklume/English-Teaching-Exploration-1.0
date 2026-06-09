@@ -1,6 +1,6 @@
 // grammar-fill/modules/error-profile-store.js
 //
-// 纯逻辑：「我的卷子」画像存储的数组增删/排序。无 localStorage（I/O 在 app.js），无 DOM。
+// 纯逻辑：「我的卷子」画像存储的数组增删/排序。不碰本机存储（I/O 在 app.js），不碰 DOM。
 
 /* eslint-disable */
 (function(){

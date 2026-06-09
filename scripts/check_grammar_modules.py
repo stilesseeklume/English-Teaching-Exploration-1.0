@@ -661,6 +661,17 @@ EXPECTED_MODULES = [
         "exports": [
             "uploadPanelHtml",
             "profilePageHtml",
+            "boardListHtml",
+        ],
+    },
+    {
+        "path": "error-profile-store.js",
+        "namespace": "GrammarErrorProfileStore",
+        "exports": [
+            "upsertEntry",
+            "removeEntry",
+            "getEntry",
+            "buildBoardModel",
         ],
     },
 ]
