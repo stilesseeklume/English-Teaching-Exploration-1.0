@@ -300,9 +300,7 @@
       || dockKey === 'points-training'
       || dockKey === 'knowledge'
       || dockKey === 'error-book'
-      || dockKey === 'lesson-prep'
-      || dockKey === 'ai'
-    ) {
+      || dockKey === 'lesson-prep'    ) {
       return dockKey;
     }
     return '';

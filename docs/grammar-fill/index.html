@@ -423,9 +423,7 @@
 <script src="../shared/utils.js"></script>
 <script src="../shared/error-book.js"></script>
 <script src="../shared/lesson-prep.js"></script>
-<script src="../shared/auth-ui.js"></script>
-<script src="../shared/ai-assistant.js"></script>
-<script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
+<script src="../shared/auth-ui.js"></script><script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
 <script src="../shared/admin-ui.js"></script>
 <script src="../shared/observability.js"></script>
 <script src="./modules/passage-utils.js"></script>
@@ -494,32 +492,8 @@
     📁
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-divider"></div>
-  <div class="dock-item ai-dock" data-label="AI 助手" data-dock-key="ai" onclick="toggleAssistant()">
-    ✨
-    <div class="dock-dot"></div>
-  </div>
 </div>
 
-<!-- AI 助手 -->
-<div class="assistant-backdrop" onclick="toggleAssistant(false)"></div>
-<div class="assistant-panel" id="assistantPanel">
-  <div class="assistant-head">
-    <h3><span class="dot"></span>Seeklume · 语法讲评助手</h3>
-    <div class="assistant-head-actions">
-      <button onclick="clearAssistantHistory()" title="清空对话">🗑</button>
-      <button onclick="toggleAssistant(false)" title="关闭">×</button>
-    </div>
-  </div>
-  <div class="assistant-msgs" id="assistantMsgs"></div>
-  <div class="assistant-input-row">
-    <textarea id="assistantInput" placeholder="问问网站怎么用，或者语法填空相关的问题…" rows="1"
-      onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendAssistantMsg();}"
-      oninput="autoGrowAssistantInput(this)"></textarea>
-    <button class="send" onclick="sendAssistantMsg()" id="assistantSendBtn">发送</button>
-  </div>
-  <div class="assistant-disclaimer">仅回答网站使用 + 语法填空相关 · AI 也会出错，请独立判断</div>
-</div>
 
 <!-- 反馈与报错入口 -->
 <button class="feedback-fab" onclick="openFeedbackModal()" title="提交问题或建议">反馈</button>

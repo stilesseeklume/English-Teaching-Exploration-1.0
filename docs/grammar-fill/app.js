@@ -4464,8 +4464,6 @@ function selectKnowledgeCategory(key, isPattern, targetSection) {
   }
   updateDockBackButton();
 }
-
-// AI 助手（DeepSeek 客服 + 助教）已抽到 shared/ai-assistant.js
 // escapeHtml 已抽到 shared/utils.js
 
 Object.assign(window, {
@@ -4475,18 +4473,14 @@ Object.assign(window, {
   batchImportJson: batchImportJson,
   batchImportPrepJson: batchImportPrepJson,
   cancelAiParse: cancelAiParse,
-  changeMyPassword: changeMyPassword,
-  clearAssistantHistory: clearAssistantHistory,
-  closeAuthModal: closeAuthModal,
+  changeMyPassword: changeMyPassword,  closeAuthModal: closeAuthModal,
   closeDrawer: closeDrawer,
   closeSettingsModal: closeSettingsModal,
   closeUnifiedImport: closeUnifiedImport,
   confirmUnifiedImport: confirmUnifiedImport,
   doLogout: doLogout,
   enterModule: enterModule,
-  exitViewAs: exitViewAs,
-  fillAndSendAssistant: fillAndSendAssistant,
-  goBack: goBack,
+  exitViewAs: exitViewAs,  goBack: goBack,
   handleDockBack: handleDockBack,
   handleDocxUpload: handleDocxUpload,
   handleDocxUploadForError: handleDocxUploadForError,
@@ -4509,9 +4503,7 @@ Object.assign(window, {
   clearGlobalGraphSearch: clearGlobalGraphSearch,
   focusGlobalGraphPreset: focusGlobalGraphPreset,
   selectKnowledgeCategory: selectKnowledgeCategory,
-  selectGlobalGraphNode: selectGlobalGraphNode,
-  sendAssistantMsg: sendAssistantMsg,
-  setMigrationSource: setMigrationSource,
+  selectGlobalGraphNode: selectGlobalGraphNode,  setMigrationSource: setMigrationSource,
   toggleMigrationShowAll: toggleMigrationShowAll,
   setMigrationPoint: setMigrationPoint,
   setDrawerProjectionSize: setDrawerProjectionSize,
@@ -4533,9 +4525,7 @@ Object.assign(window, {
   setTeachingTab: setTeachingTab,
   toggleTeachingAnswer: toggleTeachingAnswer,
   openTeachingStageByIdx: openTeachingStageByIdx,
-  toggleAnswers: toggleAnswers,
-  toggleAssistant: toggleAssistant,
-  toggleAuthMode: toggleAuthMode,
+  toggleAnswers: toggleAnswers,  toggleAuthMode: toggleAuthMode,
   toggleBatchImport: toggleBatchImport,
   toggleChinese: toggleChinese,
   toggleCompact: toggleCompact,
@@ -4549,7 +4539,5 @@ Object.assign(window, {
   viewErrorQuestion: viewErrorQuestion,
   viewPrepPassage: viewPrepPassage
 });
-
-if (window.__bootAssistant) window.__bootAssistant();
 
 init();
