@@ -151,7 +151,7 @@
     };
   }
 
-  function getDashboardActions(activity) {
+  function getCoreActions(activity) {
     activity = activity || getUserActivityState({});
     return [
       {
@@ -165,57 +165,39 @@
         action: buildAction('switch-page', 'error-profile')
       },
       {
-        key: 'pick-bank',
-        icon: '📚',
-        label: '精选题库',
-        subtitleText: '真题 + 模拟 · 直接开讲',
-        tone: 'primary',
-        count: null,
+        key: 'points-training', icon: '🎯', label: '去练',
+        subtitleText: '挑弱考点集中练', tone: 'primary', count: null,
+        action: buildAction('switch-page', 'points-training')
+      }
+    ];
+  }
+
+  function getToolActions(activity) {
+    activity = activity || getUserActivityState({});
+    return [
+      {
+        key: 'pick-bank', icon: '📚', label: '精选题库',
+        subtitleText: '真题 + 模拟 · 直接开讲', tone: 'accent', count: null,
         action: buildAction('navigate-home', 'exams')
       },
       {
-        key: 'upload-word',
-        icon: '📤',
-        label: '上传我的卷子',
-        subtitleText: 'AI 自动解析 + 入库',
-        tone: 'primary',
-        count: null,
+        key: 'upload-word', icon: '📤', label: '导入试题',
+        subtitleText: 'Word → AI 解析入库', tone: 'accent', count: null,
         action: buildAction('upload-word', 'lesson-prep')
       },
       {
-        key: 'my-papers',
-        icon: '📁',
-        label: '我做过的题',
-        subtitleText: activity.prepCount + ' 套已入库',
-        tone: 'accent',
-        count: activity.prepCount,
+        key: 'my-papers', icon: '📁', label: '我做过的题',
+        subtitleText: activity.prepCount + ' 套已入库', tone: 'accent', count: activity.prepCount,
         action: buildAction('switch-page', 'lesson-prep')
       },
       {
-        key: 'error-book',
-        icon: '🎯',
-        label: '错题本',
-        subtitleText: activity.errorCount + ' 道待复习',
-        tone: 'red',
-        count: activity.errorCount,
+        key: 'error-book', icon: '📕', label: '错题本',
+        subtitleText: activity.errorCount + ' 道待复习', tone: 'red', count: activity.errorCount,
         action: buildAction('switch-page', 'error-book')
       },
       {
-        key: 'points-training',
-        icon: '🏷️',
-        label: '考点训练',
-        subtitleText: '挑考点集中练',
-        tone: 'accent',
-        count: null,
-        action: buildAction('switch-page', 'points-training')
-      },
-      {
-        key: 'knowledge',
-        icon: '📖',
-        label: '知识库',
-        subtitleText: '教材 · 按考点分类',
-        tone: 'purple',
-        count: null,
+        key: 'knowledge', icon: '📖', label: '知识库',
+        subtitleText: '教材 · 按考点分类', tone: 'purple', count: null,
         action: buildAction('switch-page', 'knowledge')
       }
     ];
@@ -283,7 +265,8 @@
       hero: getHeroModel(activity),
       books: books,
       textbookSection: getTextbookSectionModel(books),
-      actions: getDashboardActions(activity).map(buildDashboardActionButtonModel)
+      coreActions: getCoreActions(activity).map(buildDashboardActionButtonModel),
+      toolActions: getToolActions(activity).map(buildDashboardActionButtonModel)
     };
   }
 

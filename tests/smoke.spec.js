@@ -2278,13 +2278,13 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && newUserDashboard && newUserDashboard.activity.isNewUser === true
       && newUserDashboard.activity.greeting === '早上好'
       && newUserDashboard.hero && newUserDashboard.hero.titleText.indexOf('语法填空讲评工作台') !== -1
-      && newUserDashboard.actions[0].action && newUserDashboard.actions[0].action.type === 'switch-page' && newUserDashboard.actions[0].action.value === 'error-import'
-      && newUserDashboard.actions[1].action && newUserDashboard.actions[1].action.type === 'switch-page' && newUserDashboard.actions[1].action.value === 'error-profile'
-      && newUserDashboard.actions[2].action && newUserDashboard.actions[2].action.type === 'navigate-home' && newUserDashboard.actions[2].action.value === 'exams'
-      && newUserDashboard.actions[3].action && newUserDashboard.actions[3].action.type === 'upload-word'
-      && newUserDashboard.actions[3].subtitleText.indexOf('AI 自动解析') !== -1
-      && newUserDashboard.actions[0].chrome && newUserDashboard.actions[0].chrome.style.indexOf('box-shadow') !== -1
-      && newUserDashboard.actions[0].subtitleStyle.indexOf('opacity') !== -1
+      && newUserDashboard.coreActions[0].action && newUserDashboard.coreActions[0].action.type === 'switch-page' && newUserDashboard.coreActions[0].action.value === 'error-import'
+      && newUserDashboard.coreActions[1].action && newUserDashboard.coreActions[1].action.type === 'switch-page' && newUserDashboard.coreActions[1].action.value === 'error-profile'
+      && newUserDashboard.coreActions[2].action && newUserDashboard.coreActions[2].action.value === 'points-training' && newUserDashboard.coreActions[2].label === '去练'
+      && newUserDashboard.toolActions[0].action && newUserDashboard.toolActions[0].action.type === 'navigate-home' && newUserDashboard.toolActions[0].action.value === 'exams'
+      && newUserDashboard.toolActions[1].action && newUserDashboard.toolActions[1].action.type === 'upload-word' && newUserDashboard.toolActions[1].label === '导入试题'
+      && newUserDashboard.coreActions[0].chrome && newUserDashboard.coreActions[0].chrome.style.indexOf('box-shadow') !== -1
+      && newUserDashboard.coreActions[0].subtitleStyle.indexOf('opacity') !== -1
       && newUserDashboard.books && newUserDashboard.books.length === 7
       && newUserDashboard.books[0].cover.indexOf('bixiu-1.jpg') !== -1
       && !newUserDashboard.books[0].action
@@ -2296,11 +2296,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.actions && activeDashboard.actions.length === 8
+      && activeDashboard.coreActions && activeDashboard.coreActions.length === 3 && activeDashboard.toolActions.length === 5
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
-      && activeDashboard.actions[4].subtitleText === '2 套已入库'
-      && activeDashboard.actions[5].action && activeDashboard.actions[5].action.value === 'error-book'
-      && activeDashboard.actions[5].chrome.mouseover.indexOf('var(--red)') !== -1
+      && activeDashboard.toolActions[2].subtitleText === '2 套已入库'
+      && activeDashboard.toolActions[3].action && activeDashboard.toolActions[3].action.value === 'error-book'
+      && activeDashboard.toolActions[3].chrome.mouseover.indexOf('var(--red)') !== -1
       && homeSummary && homeSummary.bankStatText.indexOf('2 套卷 · 20 题') !== -1
       && homeSummary.errorCountText === '3 道错题'
       && homeSummary.prepCountText === '4 份资料'
@@ -3781,7 +3781,7 @@ test('home-render pure html output', async ({ page }) => {
     if (!R) return { missing: true };
     const dash = R.homeDashboardHtml(
       { hero: { kickerText: 'K', titleText: 'T', bodyParts: [{ text: '正文', strong: true }] },
-        actions: [{ action: { type: 'switch-page', value: 'home' }, icon: '📘', label: '按钮', subtitleText: '副', chrome: { style: '', mouseover: '', mouseout: '' } }],
+        coreActions: [{ action: { type: 'switch-page', value: 'home' }, icon: '📘', label: '按钮', subtitleText: '副', chrome: { style: '', mouseover: '', mouseout: '' } }],
         textbookSection: { visible: true, titleText: '教材', statusText: '映射中', actionLabel: '更多', action: {} },
         books: [{ action: {}, cover: 'x.png', labelText: '必修一', animationDelayMs: 0 }] },
       { inlineHomeDashboardAction: function(a) { return 'DASH:' + (a && a.type || ''); } }
