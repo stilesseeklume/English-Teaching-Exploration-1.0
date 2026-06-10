@@ -4264,7 +4264,8 @@ test('错题画像：导入页可进 + 画像板块列出并展开', async ({ pa
 
   await page.evaluate(() => window.switchPage('error-import'));
   await expect(page.locator('#page-error-import')).toHaveClass(/active/);
-  await expect(page.locator('#errorProfileExam')).toBeVisible();
+  await expect(page.locator('#errorExamDrop')).toBeVisible();
+  await expect(page.locator('#errorExamDrop')).toContainText('把套卷 Word 拖进来');
   await expect(page.locator('#errorScoreDrop')).toBeVisible();
   await expect(page.locator('#errorScoreDrop')).toContainText('把网阅成绩');
 

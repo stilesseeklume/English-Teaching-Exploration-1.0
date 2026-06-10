@@ -16,13 +16,17 @@ const w = loadWindow(['docs/grammar-fill/modules/error-profile-render.js']);
 w.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const { profilePageHtml, uploadPanelHtml, boardListHtml } = w.GrammarErrorProfileRender;
 
-test('uploadPanelHtml: 列出套卷下拉 + 拖拽区 + 隐藏文件输入', () => {
+test('uploadPanelHtml: 套卷+成绩两个拖拽框 + 题库下拉 + 两个隐藏文件输入', () => {
   const html = uploadPanelHtml([{ examId: '2026广州一模', label: '2026 广州一模' }]);
-  assert.ok(html.includes('2026 广州一模'), '应含套卷标签');
-  assert.ok(html.includes('id="errorProfileExam"'), '应含套卷下拉 id');
-  assert.ok(html.includes('id="errorProfileFile"'), '应含文件输入 id');
-  assert.ok(html.includes('id="errorScoreDrop"'), '应含拖拽区 id');
-  assert.ok(html.includes('把网阅成绩 .xls 拖进来'), '应含拖拽区提示文字');
+  assert.ok(html.includes('2026 广州一模'), '应含题库套卷标签');
+  assert.ok(html.includes('id="errorExamDrop"'), '应含套卷拖拽区 id');
+  assert.ok(html.includes('id="errorScoreDrop"'), '应含成绩拖拽区 id');
+  assert.ok(html.includes('把套卷 Word 拖进来'), '应含套卷拖拽提示');
+  assert.ok(html.includes('把网阅成绩 .xls 拖进来'), '应含成绩拖拽提示');
+  assert.ok(html.includes('class="docx-dropzone"'), '应复用备课 docx-dropzone 样式');
+  assert.ok(html.includes('id="errorExamFile"'), '应含套卷隐藏文件输入');
+  assert.ok(html.includes('id="errorProfileFile"'), '应含成绩隐藏文件输入');
+  assert.ok(html.includes('id="errorProfileExam"'), '应含题库下拉 id');
 });
 
 test('profilePageHtml: 含考点排行+正确率+优先级标签+学生学号', () => {
