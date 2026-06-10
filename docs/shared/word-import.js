@@ -37,6 +37,7 @@
   var _aiDriftTimer = null;
   var _aiDriftTarget = 0;
   var _unifiedImportData = null;
+  var _examProfileCallback = null; // 'exam-profile' 目标：解析完把 passagesArr 交回控制器，不弹备课/错题面板
   var _splitUsedFallback = false; // 标记本次是否用了启发式兜底切割
   var BATCH_PARSE_CHAR_LIMIT = 25000;
   var MAX_BATCH_CHUNKS = 80;
@@ -397,7 +398,12 @@
       if (fallbackCount > 0) {
         console.warn('有 ' + fallbackCount + ' 篇使用了答案/空格降级导入，解析可稍后补全。');
       }
-      setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, completeModel && completeModel.openPanelDelayMs || 200);
+      if (_docxImportTarget === 'exam-profile') {
+        var _epCb = _examProfileCallback; _examProfileCallback = null;
+        if (_epCb) _epCb(passagesArr);   // 错题画像：解析结果交回控制器，不弹备课/错题面板
+      } else {
+        setTimeout(function(){ openUnifiedImportPanel(passagesArr); }, completeModel && completeModel.openPanelDelayMs || 200);
+      }
       if (window.seeklumeObservability) {
         window.seeklumeObservability.recordEvent({
           event_type: 'ai_parse_completed',
@@ -646,6 +652,12 @@
     processDocxFile(input);
   }
 
+  // 错题画像专用：拖入套卷 Word → 复用上传/AI 全流程 → 解析完把 passagesArr 交给 callback（不弹面板）
+  function parseExamWordForProfile(file, callback) {
+    _examProfileCallback = callback || null;
+    handleDroppedFile(file, 'exam-profile');
+  }
+
   // 拖拽卡片（每页一个，决定进备课还是错题）
   function wireDropZone(id, target) {
     var zone = document.getElementById(id);
@@ -716,6 +728,7 @@
   window.handleDocxUploadForError = handleDocxUploadForError;
   window.cancelAiParse = cancelAiParse;
   window.processDocxFile = processDocxFile;
+  window.parseExamWordForProfile = parseExamWordForProfile;
   window.openUnifiedImportPanel = openUnifiedImportPanel;
   window.closeUnifiedImport = closeUnifiedImport;
   window.unifiedSelectAll = unifiedSelectAll;
