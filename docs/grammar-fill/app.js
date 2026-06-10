@@ -1184,6 +1184,15 @@ function errorProfileExamQuestions(examId) {
 function errorProfileCatNames() {
   return (window.GrammarCategoryRules && window.GrammarCategoryRules.DEFAULT_CATEGORY_NAMES) || {};
 }
+// 套卷 Word → 复用备课上传/AI 解析（word-import 的 exam-profile divert）→ 语法填空题
+function parseExamWord(file) {
+  return new Promise(function(resolve, reject){
+    if (!window.parseExamWordForProfile) { reject(new Error('上传组件未加载')); return; }
+    window.parseExamWordForProfile(file, function(passages){
+      resolve(window.GrammarErrorProfile.extractGrammarBlanks(passages || []));
+    });
+  });
+}
 function renderErrorImportPage() {
   return window.GrammarErrorProfileController.renderImportPage({
     getExamList: errorProfileExamList,
@@ -1195,7 +1204,8 @@ function renderErrorImportPage() {
     now: function(){ return Date.now(); },
     nowText: function(){ return new Date().toLocaleString('zh-CN'); },
     getClasses: loadClasses,
-    createClass: createClassNamed
+    createClass: createClassNamed,
+    parseExamWord: parseExamWord
   });
 }
 function addProfileErrorToBook(examId, no) {
