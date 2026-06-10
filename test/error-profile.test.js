@@ -110,3 +110,30 @@ test('extractGrammarResults: 整行空白（缺考/未作答）→ 全进 blank�
     { studentNo: '2023531009', right: [], wrong: [], blank: [36, 37] },
   ]));
 });
+
+const { extractGrammarResults: _dup1, buildErrorProfile: _dup2, detectGrammarNos, alignExamQuestions } = w.GrammarErrorProfile;
+
+test('detectGrammarNos: 按「满分1.5/题」认语填列（含全班错的0列），跳过非1.5题型与非题号列', () => {
+  const rows = [
+    ['序号','姓名','学号','36','37','38','39'],
+    ['','','','得分','得分','得分','得分'],
+    ['1','甲','2023531001','1.5','0.0','2.5','0.0'],
+    ['2','乙','2023531002','0.0','1.5','0.0','0.0'],
+    ['3','丙','2023531003','1.5','1.5','2.5','0.0'],
+  ];
+  assert.equal(JSON.stringify(detectGrammarNos(rows)), JSON.stringify([36, 37, 39]));
+});
+
+test('alignExamQuestions: 套卷语填题号按序重映射成成绩单检出的题号', () => {
+  const exam = [
+    { no: 1, category: 'preposition', fine_category: 'p', answer: 'from' },
+    { no: 2, category: 'word', answer: 'instantly' },
+    { no: 3, category: 'nonpredicate', answer: 'rooted' },
+  ];
+  const aligned = alignExamQuestions(exam, [36, 40, 44]);
+  assert.equal(JSON.stringify(aligned), JSON.stringify([
+    { no: 36, category: 'preposition', fine_category: 'p', answer: 'from' },
+    { no: 40, category: 'word', fine_category: undefined, answer: 'instantly' },
+    { no: 44, category: 'nonpredicate', fine_category: undefined, answer: 'rooted' },
+  ]));
+});

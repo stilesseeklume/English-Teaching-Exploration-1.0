@@ -89,8 +89,49 @@
     return { byCat: byCat, byNo: byNo, students: students };
   }
 
+  // detectGrammarNos: from network-scoring rows, identify grammar-fill question numbers.
+  // Rule: a column whose header is a number 1-200, and every non-empty student score is in {0, 1.5}
+  // (the 1.5-per-question scoring signal), is treated as a grammar-fill column.
+  // Columns where every student scored 0 (all wrong) are also included.
+  // Returns question numbers in ascending order.
+  function detectGrammarNos(rows) {
+    rows = rows || [];
+    var header = rows[0] || [];
+    var out = [];
+    for (var c = 0; c < header.length; c++) {
+      var no = Number(header[c]);
+      if (!(no >= 1 && no <= 200)) continue;
+      var allOk = true, seen = false;
+      for (var r = 1; r < rows.length; r++) {
+        var v = (rows[r] || [])[c];
+        if (v === '' || v == null) continue;
+        var s = Number(v);
+        if (isNaN(s)) continue;
+        seen = true;
+        if (s !== 0 && s !== 1.5) { allOk = false; break; }
+      }
+      if (seen && allOk) out.push(no);
+    }
+    return out;
+  }
+
+  // alignExamQuestions: remap exam question numbers by position to match the detected numbers.
+  // Sorts exam questions by their original no, then replaces each no with detectedNos[i].
+  // This allows question sets numbered 1-10 in the exam bank to align with 36-45 in score sheets.
+  // category, fine_category, and answer are preserved as-is.
+  function alignExamQuestions(examQuestions, detectedNos) {
+    examQuestions = examQuestions || [];
+    detectedNos = detectedNos || [];
+    var sorted = examQuestions.slice().sort(function(a, z){ return a.no - z.no; });
+    return sorted.map(function(q, i){
+      return { no: detectedNos[i], category: q.category, fine_category: q.fine_category, answer: q.answer };
+    });
+  }
+
   window.GrammarErrorProfile = {
     extractGrammarResults: extractGrammarResults,
-    buildErrorProfile: buildErrorProfile
+    buildErrorProfile: buildErrorProfile,
+    detectGrammarNos: detectGrammarNos,
+    alignExamQuestions: alignExamQuestions
   };
 })();
