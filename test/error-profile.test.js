@@ -137,3 +137,23 @@ test('alignExamQuestions: 套卷语填题号按序重映射成成绩单检出的
     { no: 44, category: 'nonpredicate', fine_category: undefined, answer: 'rooted' },
   ]));
 });
+
+const { extractGrammarBlanks } = w.GrammarErrorProfile;
+
+test('extractGrammarBlanks: 拍平 passages 的 blanks→按题号升序去重的语填题', () => {
+  const passages = [
+    { title: 'P1', blanks: [
+      { no: 37, answer: 'instantly', category: 'word', fine_category: 'adv', analysis: 'x' },
+      { no: 36, answer: 'from', category: 'preposition', analysis: 'y' },
+    ] },
+    { title: 'P2', blanks: [
+      { no: 36, answer: 'DUP', category: 'word' },
+      { no: 38, answer: 'rooted', category: 'nonpredicate' },
+    ] },
+  ];
+  assert.equal(JSON.stringify(extractGrammarBlanks(passages)), JSON.stringify([
+    { no: 36, category: 'preposition', answer: 'from', fine_category: undefined },
+    { no: 37, category: 'word', answer: 'instantly', fine_category: 'adv' },
+    { no: 38, category: 'nonpredicate', answer: 'rooted', fine_category: undefined },
+  ]));
+});

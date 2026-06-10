@@ -128,10 +128,29 @@
     });
   }
 
+  // extractGrammarBlanks: 把 AI 解析出的 passages 拍平成语法填空题列表。
+  // passage.blanks 形状 {no, answer, category, fine_category?, analysis}；
+  // 输出 [{no, category, answer, fine_category}] 按题号升序、按题号去重（先出现者保留）。
+  function extractGrammarBlanks(passagesArr) {
+    passagesArr = passagesArr || [];
+    var seen = {}, out = [];
+    passagesArr.forEach(function(p){
+      (((p && p.blanks) || [])).forEach(function(b){
+        var no = parseInt(b && b.no, 10);
+        if (!(no >= 1)) return;
+        if (seen[no]) return;
+        seen[no] = true;
+        out.push({ no: no, category: b.category, answer: b.answer, fine_category: b.fine_category });
+      });
+    });
+    return out.sort(function(a, z){ return a.no - z.no; });
+  }
+
   window.GrammarErrorProfile = {
     extractGrammarResults: extractGrammarResults,
     buildErrorProfile: buildErrorProfile,
     detectGrammarNos: detectGrammarNos,
-    alignExamQuestions: alignExamQuestions
+    alignExamQuestions: alignExamQuestions,
+    extractGrammarBlanks: extractGrammarBlanks
   };
 })();
