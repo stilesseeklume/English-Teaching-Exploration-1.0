@@ -16,11 +16,13 @@ const w = loadWindow(['docs/grammar-fill/modules/error-profile-render.js']);
 w.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const { profilePageHtml, uploadPanelHtml, boardListHtml } = w.GrammarErrorProfileRender;
 
-test('uploadPanelHtml: 列出套卷下拉 + 文件输入', () => {
+test('uploadPanelHtml: 列出套卷下拉 + 拖拽区 + 隐藏文件输入', () => {
   const html = uploadPanelHtml([{ examId: '2026广州一模', label: '2026 广州一模' }]);
   assert.ok(html.includes('2026 广州一模'), '应含套卷标签');
-  assert.ok(html.includes('errorProfileExam'), '应含套卷下拉 id');
-  assert.ok(html.includes('errorProfileFile'), '应含文件输入 id');
+  assert.ok(html.includes('id="errorProfileExam"'), '应含套卷下拉 id');
+  assert.ok(html.includes('id="errorProfileFile"'), '应含文件输入 id');
+  assert.ok(html.includes('id="errorScoreDrop"'), '应含拖拽区 id');
+  assert.ok(html.includes('把网阅成绩 .xls 拖进来'), '应含拖拽区提示文字');
 });
 
 test('profilePageHtml: 含考点排行+正确率+优先级标签+学生学号', () => {

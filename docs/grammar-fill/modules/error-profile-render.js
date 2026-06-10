@@ -16,11 +16,12 @@
     }).join('');
     return ''
       + '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:20px;margin-bottom:16px;">'
-      +   '<div style="font-weight:600;margin-bottom:12px;">① 选这套卷　② 传这次成绩（网阅小题分 .xls）</div>'
-      +   '<select id="errorProfileExam" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;margin-right:12px;">'
+      +   '<div style="font-weight:600;margin-bottom:12px;">① 选这套卷　② 把这次成绩拖进来（网阅小题分 .xls）</div>'
+      +   '<select id="errorProfileExam" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;display:block;">'
       +     '<option value="">— 选择套卷 —</option>' + opts
       +   '</select>'
-      +   '<input type="file" id="errorProfileFile" accept=".xls,.xlsx" style="margin-top:8px;">'
+      +   '<div id="errorScoreDrop" style="border:2px dashed #cfe3ff;border-radius:12px;padding:28px 16px;text-align:center;color:#0071e3;background:#f7fbff;cursor:pointer;font-size:14px;">把网阅成绩 .xls 拖进来，或点击上传</div>'
+      +   '<input type="file" id="errorProfileFile" accept=".xls,.xlsx" style="display:none;">'
       +   '<div id="errorProfileMsg" style="color:#c0392b;font-size:13px;margin-top:8px;"></div>'
       + '</div>';
   }

@@ -25,16 +25,28 @@
     if (!window.XLSX) { setMsg('Excel 解析库未加载，请刷新重试。'); return; }
     var examQuestions = _imp.getExamGrammarQuestions(examId) || [];
     if (!examQuestions.length) { setMsg('题库里这套卷没有语法填空题。'); return; }
-    var grammarNos = examQuestions.map(function(q){ return q.no; });
     var reader = new FileReader();
     reader.onload = function(e) {
       try {
         var wb = window.XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
         var sheet = wb.SheetNames.find(function(n){ return n.indexOf('小题分') !== -1; }) || wb.SheetNames[0];
         var rows = window.XLSX.utils.sheet_to_json(wb.Sheets[sheet], { header: 1, raw: true, defval: '' });
-        var results = window.GrammarErrorProfile.extractGrammarResults(rows, grammarNos);
+        var EP = window.GrammarErrorProfile;
+        var sortedExam = examQuestions.slice().sort(function(a, z){ return a.no - z.no; });
+        var detectedNos = EP.detectGrammarNos(rows);
+        var grammarNos, examForBuild;
+        if (detectedNos.length === sortedExam.length && detectedNos.length > 0) {
+          // 按 1.5 认出的语填列数与题库套卷语填题数一致 → 用检出列 + 按序对齐（题号一致即恒等，不一致自动纠偏）
+          grammarNos = detectedNos;
+          examForBuild = EP.alignExamQuestions(sortedExam, detectedNos);
+        } else {
+          // 列数对不上 → 退回按题库题号直配
+          grammarNos = sortedExam.map(function(q){ return q.no; });
+          examForBuild = sortedExam;
+        }
+        var results = EP.extractGrammarResults(rows, grammarNos);
         if (!results.students.length) { setMsg('没读到学生行——确认这是网阅「学生小题分」导出。'); return; }
-        var profile = window.GrammarErrorProfile.buildErrorProfile(results, examQuestions);
+        var profile = EP.buildErrorProfile(results, examForBuild);
         var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(profile, _imp.catNames || {});
         var entry = {
           id: classId + '__' + examId, classId: classId, examId: examId, examLabel: examLabel,
@@ -66,6 +78,17 @@
     });
     var fileInput = document.getElementById('errorProfileFile');
     if (fileInput) fileInput.addEventListener('change', function(ev){ importOnFile(ev.target.files && ev.target.files[0]); });
+    var drop = document.getElementById('errorScoreDrop');
+    if (drop && fileInput) {
+      drop.addEventListener('click', function(){ fileInput.click(); });
+      drop.addEventListener('dragover', function(ev){ ev.preventDefault(); drop.style.background = '#eaf4ff'; });
+      drop.addEventListener('dragleave', function(){ drop.style.background = '#f7fbff'; });
+      drop.addEventListener('drop', function(ev){
+        ev.preventDefault(); drop.style.background = '#f7fbff';
+        var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+        if (f) importOnFile(f);
+      });
+    }
   }
 
   // ---------- 画像板块 ----------
