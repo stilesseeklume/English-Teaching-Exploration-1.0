@@ -101,9 +101,36 @@
     }).join('');
   }
 
+  function importClassBarHtml(classes) {
+    classes = classes || [];
+    var opts = classes.map(function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
+    return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
+      + '<div style="font-weight:600;margin-bottom:10px;">这是哪个班的成绩？</div>'
+      + '<select id="errorImportClass" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;margin-right:10px;">'
+      + '<option value="">— 选班级 —</option>' + opts + '</select>'
+      + '<button type="button" id="errorImportNewClass" style="padding:8px 12px;border-radius:8px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;">＋ 新建班级</button>'
+      + '</div>';
+  }
+
+  function classChipsHtml(classList, selectedId) {
+    classList = classList || [];
+    var chips = classList.map(function(c){
+      var active = c.id === selectedId;
+      return '<button type="button" class="ep-class-chip" data-id="' + esc(c.id) + '" style="padding:6px 14px;border-radius:999px;cursor:pointer;font-size:13px;margin:0 8px 8px 0;'
+        + (active ? 'background:#0071e3;color:#fff;border:1px solid #0071e3;' : 'background:#f7f7f7;color:#333;border:1px solid #e5e5e5;') + '">'
+        + esc(c.name) + ' <span style="opacity:0.7;">' + (c.count || 0) + '</span></button>';
+    }).join('');
+    var newChip = '<button type="button" class="ep-class-new" style="padding:6px 14px;border-radius:999px;cursor:pointer;font-size:13px;margin:0 8px 8px 0;background:#fff;color:#0071e3;border:1px dashed #cfe3ff;">＋ 新建班级</button>';
+    return '<div style="margin-bottom:14px;">'
+      + (classList.length ? '<div style="font-weight:600;margin-bottom:8px;">我的班级</div>' : '<div style="color:#888;font-size:13px;margin-bottom:8px;">还没有班级——新建一个，导入成绩时选它。</div>')
+      + chips + newChip + '</div>';
+  }
+
   window.GrammarErrorProfileRender = {
     uploadPanelHtml: uploadPanelHtml,
     profilePageHtml: profilePageHtml,
-    boardListHtml: boardListHtml
+    boardListHtml: boardListHtml,
+    importClassBarHtml: importClassBarHtml,
+    classChipsHtml: classChipsHtml
   };
 })();

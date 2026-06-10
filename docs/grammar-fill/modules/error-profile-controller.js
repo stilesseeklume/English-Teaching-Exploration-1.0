@@ -8,12 +8,15 @@
 
 /* eslint-disable */
 (function(){
-  var _imp = null, _brd = null;
+  var _imp = null, _brd = null, _boardClassId = null;
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
 
   // ---------- 导入页 ----------
   function importOnFile(file) {
     setMsg('');
+    var clsSel = document.getElementById('errorImportClass');
+    var classId = (clsSel || {}).value || '';
+    if (!classId) { setMsg('请先选班级（或新建一个）。'); return; }
     var sel = document.getElementById('errorProfileExam');
     var examId = (sel || {}).value || '';
     var examLabel = (sel && sel.selectedIndex >= 0) ? sel.options[sel.selectedIndex].text : examId;
@@ -34,7 +37,7 @@
         var profile = window.GrammarErrorProfile.buildErrorProfile(results, examQuestions);
         var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(profile, _imp.catNames || {});
         var entry = {
-          id: examId, examId: examId, examLabel: examLabel,
+          id: classId + '__' + examId, classId: classId, examId: examId, examLabel: examLabel,
           savedAt: _imp.now ? _imp.now() : 0, savedAtText: _imp.nowText ? _imp.nowText() : '',
           summary: vmodel.summary, profile: profile
         };
@@ -53,7 +56,14 @@
     var el = document.getElementById('errorImportContent');
     if (!el) return;
     var exams = (_imp.getExamList && _imp.getExamList()) || [];
-    el.innerHTML = window.GrammarErrorProfileRender.uploadPanelHtml(exams);
+    var classes = (_imp.getClasses && _imp.getClasses()) || [];
+    el.innerHTML = window.GrammarErrorProfileRender.importClassBarHtml(classes)
+      + window.GrammarErrorProfileRender.uploadPanelHtml(exams);
+    var newBtn = document.getElementById('errorImportNewClass');
+    if (newBtn) newBtn.addEventListener('click', function(){
+      var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
+      if (name && _imp.createClass) { _imp.createClass(name); renderImportPage(_imp); }
+    });
     var fileInput = document.getElementById('errorProfileFile');
     if (fileInput) fileInput.addEventListener('change', function(ev){ importOnFile(ev.target.files && ev.target.files[0]); });
   }
@@ -86,17 +96,29 @@
     _brd = deps || _brd;
     var el = document.getElementById('errorProfileContent');
     if (!el) return;
-    var list = (_brd.loadProfiles && _brd.loadProfiles()) || [];
-    var boardModel = window.GrammarErrorProfileStore.buildBoardModel(list);
-    el.innerHTML = '<div id="epBoardList">' + window.GrammarErrorProfileRender.boardListHtml(boardModel) + '</div>'
+    var profiles = (_brd.loadProfiles && _brd.loadProfiles()) || [];
+    var classes = (_brd.getClasses && _brd.getClasses()) || [];
+    var classListModel = window.GrammarErrorProfileStore.buildClassListModel(classes, profiles);
+    if (!_boardClassId && classListModel.length) _boardClassId = classListModel[0].id;   // 默认第一个班
+    var boardModel = window.GrammarErrorProfileStore.buildBoardModel(profiles, _boardClassId);
+    el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classListModel, _boardClassId)
+      + '<div id="epBoardList">' + window.GrammarErrorProfileRender.boardListHtml(boardModel) + '</div>'
       + '<div id="epBoardDetail" style="margin-top:16px;"></div>';
+    el.querySelectorAll('.ep-class-chip').forEach(function(btn){
+      btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); renderBoardPage(_brd); });
+    });
+    var newChip = el.querySelector('.ep-class-new');
+    if (newChip) newChip.addEventListener('click', function(){
+      var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
+      if (name && _brd.createClass) { var c = _brd.createClass(name); if (c) _boardClassId = c.id; renderBoardPage(_brd); }
+    });
     el.querySelectorAll('.ep-board-view').forEach(function(btn){
       btn.addEventListener('click', function(){ boardViewProfile(btn.getAttribute('data-id')); });
     });
     el.querySelectorAll('.ep-board-del').forEach(function(btn){
       btn.addEventListener('click', function(){ boardDelProfile(btn.getAttribute('data-id')); });
     });
-    if (boardModel.length) boardViewProfile(boardModel[0].id);   // 默认展开最新一套
+    if (boardModel.length) boardViewProfile(boardModel[0].id);   // 默认展开该班最新一套
   }
 
   window.GrammarErrorProfileController = {

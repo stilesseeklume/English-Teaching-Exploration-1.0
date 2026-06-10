@@ -1148,6 +1148,29 @@ function loadErrorProfiles() {
 function saveErrorProfiles(items) {
   try { localStorage.setItem(errorProfilesKey(), JSON.stringify({ _owner: currentProfileOwnerId(), items: items || [] })); } catch (e) {}
 }
+function classesKey() { return 'grammar-classes'; }
+function loadClasses() {
+  try {
+    var raw = localStorage.getItem(classesKey());
+    if (!raw) return [];
+    var data = JSON.parse(raw);
+    if (!data || data._owner !== currentProfileOwnerId()) return [];
+    return data.items || [];
+  } catch (e) { return []; }
+}
+function saveClasses(items) {
+  try { localStorage.setItem(classesKey(), JSON.stringify({ _owner: currentProfileOwnerId(), items: items || [] })); } catch (e) {}
+}
+function createClassNamed(name) {
+  name = (name || '').trim();
+  if (!name) return null;
+  var list = loadClasses();
+  var same = list.filter(function(c){ return c.name === name; });
+  if (same.length) return same[0];
+  var cls = { id: 'cls_' + Date.now() + '_' + Math.floor(Math.random() * 1000), name: name };
+  saveClasses(window.GrammarErrorProfileStore.addClass(list, cls));
+  return cls;
+}
 function errorProfileExamList() {
   return window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
     .map(function(ex){ return { examId: ex.exam_id, label: ex.exam_id }; })
@@ -1170,7 +1193,9 @@ function renderErrorImportPage() {
     saveProfiles: saveErrorProfiles,
     gotoBoard: function(){ switchPage('error-profile'); },
     now: function(){ return Date.now(); },
-    nowText: function(){ return new Date().toLocaleString('zh-CN'); }
+    nowText: function(){ return new Date().toLocaleString('zh-CN'); },
+    getClasses: loadClasses,
+    createClass: createClassNamed
   });
 }
 function addProfileErrorToBook(examId, no) {
@@ -1192,7 +1217,9 @@ function renderErrorProfilePage() {
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
     catNames: errorProfileCatNames(),
-    addExamQuestionToErrorBook: addProfileErrorToBook
+    addExamQuestionToErrorBook: addProfileErrorToBook,
+    getClasses: loadClasses,
+    createClass: createClassNamed
   });
 }
 
