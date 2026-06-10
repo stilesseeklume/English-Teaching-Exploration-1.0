@@ -648,6 +648,16 @@ EXPECTED_MODULES = [
         ],
     },
     {
+        "path": "student-tracking.js",
+        "namespace": "GrammarStudentTracking",
+        "exports": [
+            "extractStudentRoster",
+            "buildExamResultRows",
+            "buildStudentTimeline",
+            "resolveStudentName",
+        ],
+    },
+    {
         "path": "error-profile-view.js",
         "namespace": "GrammarErrorProfileView",
         "exports": [

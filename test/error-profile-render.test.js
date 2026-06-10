@@ -14,7 +14,21 @@ function loadWindow(relPaths) {
 }
 const w = loadWindow(['docs/grammar-fill/modules/error-profile-render.js']);
 w.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const { profilePageHtml, uploadPanelHtml, boardListHtml } = w.GrammarErrorProfileRender;
+const { profilePageHtml, uploadPanelHtml, boardListHtml, studentTimelineHtml } = w.GrammarErrorProfileRender;
+
+test('studentTimelineHtml: 本地显名 + 弱考点 + 每卷对错', () => {
+  const timeline = [
+    { studentNo: '2023531001', exams: [
+        { examLabel: '一模', examDate: '2026-03-01', rightCount: 8, wrongCount: 2, blankCount: 0, wrongQuestions: [] },
+      ],
+      weakCats: [{ category: 'tense', right: 1, wrong: 2 }] },
+  ];
+  const html = studentTimelineHtml(timeline, { '2023531001': '张三' });
+  assert.ok(html.includes('张三'), '应本地显名');
+  assert.ok(!html.includes('2023531001'), '不应暴露学号(有名时)');
+  assert.ok(html.includes('一模'), '应列卷子');
+  assert.ok(html.includes('tense'), '应显示弱考点');
+});
 
 test('uploadPanelHtml: 套卷+成绩两个拖拽框 + 题库下拉 + 两个隐藏文件输入', () => {
   const html = uploadPanelHtml([{ examId: '2026广州一模', label: '2026 广州一模' }]);

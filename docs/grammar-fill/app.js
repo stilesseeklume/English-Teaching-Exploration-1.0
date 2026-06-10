@@ -1161,6 +1161,26 @@ function loadClasses() {
 function saveClasses(items) {
   try { localStorage.setItem(classesKey(), JSON.stringify({ _owner: currentProfileOwnerId(), items: items || [] })); } catch (e) {}
 }
+// 本地学号→姓名（owner 隔离）：姓名只留本机，永不上云
+function studentNamesKey() { return 'grammar-student-names'; }
+function loadStudentNames() {
+  try {
+    var raw = localStorage.getItem(studentNamesKey());
+    if (!raw) return {};
+    var data = JSON.parse(raw);
+    if (data && data._owner === currentProfileOwnerId()) return data.names || {};
+    return {};
+  } catch (e) { return {}; }
+}
+function saveStudentNames(names) {
+  try { localStorage.setItem(studentNamesKey(), JSON.stringify({ _owner: currentProfileOwnerId(), names: names || {} })); } catch (e) {}
+}
+function mergeStudentNames(roster) {
+  var names = loadStudentNames();
+  (roster || []).forEach(function(s){ if (s && s.studentNo && s.name) names[s.studentNo] = s.name; });
+  saveStudentNames(names);
+  return names;
+}
 function createClassNamed(name) {
   name = (name || '').trim();
   if (!name) return null;
@@ -1205,7 +1225,11 @@ function renderErrorImportPage() {
     nowText: function(){ return new Date().toLocaleString('zh-CN'); },
     getClasses: loadClasses,
     createClass: createClassNamed,
-    parseExamWord: parseExamWord
+    parseExamWord: parseExamWord,
+    mergeStudentNames: mergeStudentNames,
+    uploadExamResults: function(rows){ return (window.cloud && window.cloud.uploadExamResults) ? window.cloud.uploadExamResults(rows) : Promise.resolve(); },
+    classNameOf: function(id){ var c = (loadClasses() || []).filter(function(x){ return x.id === id; })[0]; return c ? c.name : ''; },
+    today: function(){ var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   });
 }
 function addProfileErrorToBook(examId, no) {
@@ -1229,7 +1253,20 @@ function renderErrorProfilePage() {
     catNames: errorProfileCatNames(),
     addExamQuestionToErrorBook: addProfileErrorToBook,
     getClasses: loadClasses,
-    createClass: createClassNamed
+    createClass: createClassNamed,
+    gotoTimeline: function(){ switchPage('student-timeline'); }
+  });
+}
+function renderStudentTimelinePage() {
+  return window.GrammarErrorProfileController.renderTimelinePage({
+    getClasses: loadClasses,
+    loadProfiles: loadErrorProfiles,
+    loadStudentNames: loadStudentNames,
+    fetchExamResults: function(classId){
+      return (window.cloud && window.cloud.fetchExamResults)
+        ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
+        : Promise.resolve({ rows: [] });
+    }
   });
 }
 
@@ -1629,6 +1666,7 @@ function switchPage(page) {
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
   if (page === 'error-profile') renderErrorProfilePage();
   if (page === 'error-import') renderErrorImportPage();
+  if (page === 'student-timeline') renderStudentTimelinePage();
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 错题本/备课/讲题显示）

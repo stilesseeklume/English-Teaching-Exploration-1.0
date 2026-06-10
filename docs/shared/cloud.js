@@ -172,6 +172,29 @@
     return true;
   }
 
+  // ── exam_results：学生追踪（云端只存学号，无姓名）──────────────
+  async function uploadExamResults(rows) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var payload = (rows || []).map(function(row){ return Object.assign({ user_id: state.user.id }, row); });
+    if (!payload.length) return;
+    var r = await sb.from('exam_results').upsert(payload, { onConflict: 'user_id,client_id' });
+    if (r.error) throw r.error;
+  }
+  async function fetchExamResults(classId) {
+    if (!sb || !state.user) return [];
+    var uid = asUserId();
+    var q = sb.from('exam_results').select('*').eq('user_id', uid);
+    if (classId) q = q.eq('class_id', classId);
+    var r = await q.order('exam_date', { ascending: true });
+    if (r.error) throw r.error;
+    return r.data || [];
+  }
+  async function deleteExamResults(classId) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var r = await sb.from('exam_results').delete().eq('user_id', state.user.id).eq('class_id', classId);
+    if (r.error) throw r.error;
+  }
+
   function isSensitiveContextKey(key) {
     var lower = String(key || '').toLowerCase();
     return lower.indexOf('password') !== -1
@@ -324,6 +347,7 @@
     pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     clearLearningData: clearLearningData,
+    uploadExamResults: uploadExamResults, fetchExamResults: fetchExamResults, deleteExamResults: deleteExamResults,
     submitFeedback: submitFeedback, recordEvent: recordEvent,
     listFeedbackReports: listFeedbackReports, updateFeedbackStatus: updateFeedbackStatus,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,
