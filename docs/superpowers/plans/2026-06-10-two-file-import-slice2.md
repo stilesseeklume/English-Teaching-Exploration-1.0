@@ -6,6 +6,8 @@
 
 **设计依据（负责人确认）：** 语填题号不固定；成绩单中每题满分 1.5 的列即语法填空，按此自动识别，再按题号升序与套卷语填题逐一配对。套卷优先题库选（老卷不重传），新卷拖 Word 走现有 `deepseek-parse`。复用备课的 Word 上传/解析（`shared/word-import.js` + `deepseek-parse`）。
 
+> **2026-06-10 范围调整（安全先行）：** 套卷 Word→AI 拖拽（Task 2）**推迟到单独一片**——AI 解析只能线上登录后验证、且要扩大 shared/word-import.js（备课解析以 UI 面板收尾，洁净复用需新增 headless 函数）。**本片只做：成绩拖拽 + 1.5 智能匹配，套卷仍从题库选。** Task 1 已完成（bbdd135）。Task 2 标记 DEFERRED。Task 3 仅做成绩拖拽区（套卷保留题库下拉）。Task 4 用 detect/align 做稳健匹配（题号对得上直接用，对不上按 1.5 认列+按序对齐）。
+
 **Tech Stack:** vanilla JS（纯模块 + 控制器）· SheetJS · 备课现成的 word-import + deepseek-parse(AI) · node:test · smoke · 门禁。前置：slice1 的班级 + error-profile 模块已上线（main）。
 
 ---
