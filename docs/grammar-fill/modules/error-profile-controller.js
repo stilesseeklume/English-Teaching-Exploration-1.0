@@ -66,6 +66,14 @@
     if (!entry || !detail) return;
     var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(entry.profile, _brd.catNames || {});
     detail.innerHTML = window.GrammarErrorProfileRender.profilePageHtml(vmodel);
+    detail.querySelectorAll('.ep-add-error').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (!_brd.addExamQuestionToErrorBook) return;
+        var r = _brd.addExamQuestionToErrorBook(entry.examId, btn.getAttribute('data-no'));
+        btn.textContent = (r && r.ok) ? (r.added ? '已加✓' : '已在本') : '题库无';
+        btn.disabled = true; btn.style.opacity = '0.6';
+      });
+    });
   }
   function boardDelProfile(id) {
     if (window.confirm && !window.confirm('删除这套卷的画像？')) return;

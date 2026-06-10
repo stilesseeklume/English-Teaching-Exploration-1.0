@@ -1173,11 +1173,26 @@ function renderErrorImportPage() {
     nowText: function(){ return new Date().toLocaleString('zh-CN'); }
   });
 }
+function addProfileErrorToBook(examId, no) {
+  var qs = ALL_QUESTIONS.filter(function(x){ return x.exam_id === examId && Number(x.no) === Number(no); });
+  if (!qs.length) return { ok: false };
+  var result = window.GrammarSavedMaterialsModel.importErrorItems([qs[0]], errorBookQuestions, {
+    categoryMap: CATEGORY_MAP,
+    categoryTips: CATEGORY_TIPS,
+    extractSentence: extractSentence,
+    now: Date.now(),
+    createdAt: new Date().toISOString()
+  });
+  errorBookQuestions = result.nextItems;
+  saveErrorBook();
+  return { ok: true, added: result.imported.length > 0 };
+}
 function renderErrorProfilePage() {
   return window.GrammarErrorProfileController.renderBoardPage({
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
-    catNames: errorProfileCatNames()
+    catNames: errorProfileCatNames(),
+    addExamQuestionToErrorBook: addProfileErrorToBook
   });
 }
 

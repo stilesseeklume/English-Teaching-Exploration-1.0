@@ -51,11 +51,14 @@
   function noListHtml(noList) {
     if (!noList.length) return '';
     var cells = noList.map(function(n){
-      return '<span style="display:inline-block;min-width:120px;padding:6px 10px;margin:4px;border:1px solid #eee;border-radius:8px;font-size:13px;">'
-        + '第' + n.no + '题　对' + n.right + ' 错' + n.wrong + (n.blank ? ' 缺考' + n.blank : '') + '</span>';
+      var btn = n.wrong > 0
+        ? '<button type="button" class="ep-add-error" data-no="' + n.no + '" style="margin-left:6px;padding:1px 7px;border-radius:6px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:11px;">+错题本</button>'
+        : '';
+      return '<span style="display:inline-block;min-width:130px;padding:6px 10px;margin:4px;border:1px solid #eee;border-radius:8px;font-size:13px;">'
+        + '第' + n.no + '题　对' + n.right + ' 错' + n.wrong + (n.blank ? ' 缺考' + n.blank : '') + btn + '</span>';
     }).join('');
     return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
-      + '<div style="font-weight:600;margin-bottom:8px;">每题对错</div>' + cells + '</div>';
+      + '<div style="font-weight:600;margin-bottom:8px;">每题对错 <span style="font-weight:400;color:#888;font-size:12px;">· 错题可「+错题本」变迁移弹药</span></div>' + cells + '</div>';
   }
 
   function studentsHtml(students) {
