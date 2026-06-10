@@ -46,12 +46,8 @@ PATTERNS = [
     ("private Supabase key literal", re.compile(r"(^|\n)\s*SUPABASE_SERVICE_ROLE_KEY\s*=\s*['\"]?eyJ[A-Za-z0-9_-]{20,}", re.I)),
 ]
 
-ALLOWLIST = [
-    ("supabase/functions/deepseek-chat/index.ts", "SUPABASE_SERVICE_ROLE_KEY"),
-    ("supabase/functions/deepseek-parse/index.ts", "SUPABASE_SERVICE_ROLE_KEY"),
-    ("supabase/functions/translate-passage/index.ts", "SUPABASE_SERVICE_ROLE_KEY"),
-    ("supabase/functions/deepseek-chat/index.ts", "DEEPSEEK_API_KEY"),
-    ("supabase/functions/deepseek-parse/index.ts", "DEEPSEEK_API_KEY"),
+ALLOWLIST = [    ("supabase/functions/deepseek-parse/index.ts", "SUPABASE_SERVICE_ROLE_KEY"),
+    ("supabase/functions/translate-passage/index.ts", "SUPABASE_SERVICE_ROLE_KEY"),    ("supabase/functions/deepseek-parse/index.ts", "DEEPSEEK_API_KEY"),
     ("supabase/functions/translate-passage/index.ts", "DEEPSEEK_API_KEY"),
     ("supabase/SETUP.md", "service_role"),
     ("docs/config.js", "anon key"),

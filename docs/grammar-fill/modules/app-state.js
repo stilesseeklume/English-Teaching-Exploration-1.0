@@ -258,6 +258,8 @@
       || page === 'points-training'
       || page === 'error-book'
       || page === 'lesson-prep'
+      || page === 'error-profile'
+      || page === 'error-import'
       || page === 'admin'
     ) {
       return page;
@@ -266,7 +268,7 @@
   }
 
   function isProtectedPage(page) {
-    return page === 'error-book' || page === 'lesson-prep' || page === 'admin';
+    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import';
   }
 
   function buildPageAuthGuard(page, isAuthenticated) {
@@ -299,7 +301,8 @@
       || dockKey === 'knowledge'
       || dockKey === 'error-book'
       || dockKey === 'lesson-prep'
-      || dockKey === 'ai'
+      || dockKey === 'error-import'
+      || dockKey === 'error-profile'
     ) {
       return dockKey;
     }
@@ -308,7 +311,7 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
-    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training') {
+    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
       return page;
     }
     return '';

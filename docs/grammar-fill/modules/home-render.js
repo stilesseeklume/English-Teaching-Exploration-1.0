@@ -37,12 +37,22 @@
     html += '<div style="font-size:14px;color:var(--accent);margin-bottom:6px;font-weight:600;">' + window.escapeHtml(hero.kickerText || '') + '</div>';
     html += '<h2 style="margin:0 0 8px 0;font-size:26px;color:var(--text);line-height:1.4;">' + window.escapeHtml(hero.titleText || '') + '</h2>';
     html += '<p style="margin:0 0 18px;color:var(--text-2);line-height:1.7;font-size:15px;">' + textPartsHtml(hero.bodyParts) + '</p>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">';
-    (model.actions || []).forEach(function(item) {
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;">';
+    (model.coreActions || []).forEach(function(item) {
       html += actionButtonHtml(item, inlineHomeDashboardAction);
     });
     html += '</div>';
     html += '</section>';
+    if ((model.toolActions || []).length) {
+      html += '<section style="margin-bottom:22px;">';
+      html += '<h3 style="margin:0 0 12px;font-size:14px;color:var(--text-3);font-weight:600;">工具</h3>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">';
+      (model.toolActions || []).forEach(function(item) {
+        html += actionButtonHtml(item, inlineHomeDashboardAction);
+      });
+      html += '</div>';
+      html += '</section>';
+    }
     var textbookSection = model.textbookSection || {};
     if (textbookSection.visible) {
       html += '<section>';

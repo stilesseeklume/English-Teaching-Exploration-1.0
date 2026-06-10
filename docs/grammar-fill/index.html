@@ -382,6 +382,18 @@
       <div id="prepList"></div>
     </div>
 
+    <div class="page" id="page-error-profile">
+      <h1 class="page-title">考点画像</h1>
+      <p class="page-desc">历次导入的卷子 · 点开看班级考点画像</p>
+      <div id="errorProfileContent">加载中…</div>
+    </div>
+
+    <div class="page" id="page-error-import">
+      <h1 class="page-title">导入成绩</h1>
+      <p class="page-desc">选题库套卷 + 传网阅成绩 .xls，算出考点画像并存入「考点画像」</p>
+      <div id="errorImportContent">加载中…</div>
+    </div>
+
     <div id="dropOverlay" class="drop-overlay" aria-hidden="true">
       <div class="drop-overlay-inner">📄⬇<div class="drop-overlay-text">松开上传<span id="dropOverlayTarget"></span></div></div>
     </div>
@@ -406,13 +418,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../shared/cloud.js"></script>
 <script src="../shared/utils.js"></script>
 <script src="../shared/error-book.js"></script>
 <script src="../shared/lesson-prep.js"></script>
-<script src="../shared/auth-ui.js"></script>
-<script src="../shared/ai-assistant.js"></script>
-<script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
+<script src="../shared/auth-ui.js"></script><script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
 <script src="../shared/admin-ui.js"></script>
 <script src="../shared/observability.js"></script>
 <script src="./modules/passage-utils.js"></script>
@@ -438,8 +449,13 @@
 <script src="./modules/teaching-render.js"></script>
 <script src="./modules/sidebar-render.js"></script>
 <script src="./modules/home-render.js"></script>
+<script src="./modules/error-profile.js"></script>
+<script src="./modules/error-profile-view.js"></script>
+<script src="./modules/error-profile-render.js"></script>
+<script src="./modules/error-profile-store.js"></script>
 <script src="./modules/home-dashboard.js"></script>
 <script src="./modules/lesson-prep-controller.js"></script>
+<script src="./modules/error-profile-controller.js"></script>
 <!-- cloud-sync 必须在 shared/error-book.js、shared/lesson-prep.js、shared/cloud.js 之后：
      加载时即对 window.saveErrorBook / window.savePrepPassages 打猴补丁 -->
 <script src="./modules/cloud-sync.js"></script>
@@ -456,12 +472,21 @@
     <div class="dock-dot"></div>
   </div>
   <div class="dock-divider"></div>
-  <div class="dock-item" data-label="套卷" data-dock-key="exams" onclick="navigateHome('exams')">
-    📋
+  <div class="dock-item" data-label="导入成绩" data-dock-key="error-import" onclick="switchPage('error-import')">
+    📥
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="考点训练" data-dock-key="points-training" onclick="switchPage('points-training')">
-    🏷️
+  <div class="dock-item" data-label="考点画像" data-dock-key="error-profile" onclick="switchPage('error-profile')">
+    📊
+    <div class="dock-dot"></div>
+  </div>
+  <div class="dock-item" data-label="去练" data-dock-key="points-training" onclick="switchPage('points-training')">
+    🎯
+    <div class="dock-dot"></div>
+  </div>
+  <div class="dock-divider"></div>
+  <div class="dock-item" data-label="套卷" data-dock-key="exams" onclick="navigateHome('exams')">
+    📋
     <div class="dock-dot"></div>
   </div>
   <div class="dock-item" data-label="知识库" data-dock-key="knowledge" onclick="switchPage('knowledge')">
@@ -476,32 +501,8 @@
     📁
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-divider"></div>
-  <div class="dock-item ai-dock" data-label="AI 助手" data-dock-key="ai" onclick="toggleAssistant()">
-    ✨
-    <div class="dock-dot"></div>
-  </div>
 </div>
 
-<!-- AI 助手 -->
-<div class="assistant-backdrop" onclick="toggleAssistant(false)"></div>
-<div class="assistant-panel" id="assistantPanel">
-  <div class="assistant-head">
-    <h3><span class="dot"></span>Seeklume · 语法讲评助手</h3>
-    <div class="assistant-head-actions">
-      <button onclick="clearAssistantHistory()" title="清空对话">🗑</button>
-      <button onclick="toggleAssistant(false)" title="关闭">×</button>
-    </div>
-  </div>
-  <div class="assistant-msgs" id="assistantMsgs"></div>
-  <div class="assistant-input-row">
-    <textarea id="assistantInput" placeholder="问问网站怎么用，或者语法填空相关的问题…" rows="1"
-      onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendAssistantMsg();}"
-      oninput="autoGrowAssistantInput(this)"></textarea>
-    <button class="send" onclick="sendAssistantMsg()" id="assistantSendBtn">发送</button>
-  </div>
-  <div class="assistant-disclaimer">仅回答网站使用 + 语法填空相关 · AI 也会出错，请独立判断</div>
-</div>
 
 <!-- 反馈与报错入口 -->
 <button class="feedback-fab" onclick="openFeedbackModal()" title="提交问题或建议">反馈</button>
