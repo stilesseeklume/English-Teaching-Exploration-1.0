@@ -31,8 +31,8 @@ for file in "${required[@]}"; do
 done
 
 cname="$(tr -d '[:space:]' < "$ROOT/docs/CNAME")"
-if [[ "$cname" != "englishteaching.seeklume.work" ]]; then
-  echo "FAIL: docs/CNAME expected englishteaching.seeklume.work, got $cname" >&2
+if [[ "$cname" != "seeklume.work" ]]; then
+  echo "FAIL: docs/CNAME expected seeklume.work, got $cname" >&2
   exit 1
 fi
 
