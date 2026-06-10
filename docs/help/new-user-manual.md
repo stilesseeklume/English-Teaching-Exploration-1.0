@@ -26,7 +26,7 @@ Seeklume 现在只做一件事：帮助老师讲语法填空。它不是学生�
 网址：
 
 ```text
-https://englishteaching.seeklume.work/
+https://seeklume.work/
 ```
 
 进入后登录或注册，再选择“语法填空”模块。如果暂时不想注册，也可以先看部分公开题库；但上传 Word、保存资料和跨设备同步需要登录。

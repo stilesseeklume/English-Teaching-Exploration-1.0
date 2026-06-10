@@ -5,7 +5,7 @@ Seeklume 是面向高中英语教师的试卷讲评工作台。当前 v1 聚焦�
 线上入口：
 
 - GitHub Pages 发布目录：`docs/`
-- 自定义域名：`https://englishteaching.seeklume.work/`
+- 自定义域名：`https://seeklume.work/`
 - 当前主模块：`docs/grammar-fill/`
 
 ## 当前范围

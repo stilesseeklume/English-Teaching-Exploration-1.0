@@ -73,7 +73,7 @@
 3. 看 19 套公开题库里这个考点怎么考的，哪些坑反复出现
 
 ### 低频场景 #4：换设备/同事推荐（首次接触）
-1. 同事说"我用 englishteaching.seeklume.work 备课"
+1. 同事说"我用 seeklume.work 备课"
 2. 老师打开网站 → 注册（邮箱/用户名）→ 立即可用
 3. 在家 iPad 上能看到办公室加的错题（云同步）
 
@@ -120,7 +120,7 @@
 ## 6. 信息架构（当前）
 
 ```
-englishteaching.seeklume.work（GitHub Pages · docs/）
+seeklume.work（GitHub Pages · docs/）
 │
 ├── 落地页（docs/index.html）
 │   └─ 介绍 + 登录入口 + 模块导航

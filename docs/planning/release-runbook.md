@@ -45,7 +45,7 @@ supabase/migrations/2026-05-28_feedback_events.rollback.sql
 
 - 合并到 `main` 后由 GitHub Pages 发布 `docs/`。
 - Cloudflare 只负责域名和 HTTPS。
-- 发布后打开 `https://englishteaching.seeklume.work/` 和语法填空模块。
+- 发布后打开 `https://seeklume.work/` 和语法填空模块。
 
 ## 4. 回滚
 
