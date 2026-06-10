@@ -260,6 +260,7 @@
       || page === 'lesson-prep'
       || page === 'error-profile'
       || page === 'error-import'
+      || page === 'student-timeline'
       || page === 'admin'
     ) {
       return page;
@@ -268,7 +269,7 @@
   }
 
   function isProtectedPage(page) {
-    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import';
+    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import' || page === 'student-timeline';
   }
 
   function buildPageAuthGuard(page, isAuthenticated) {
@@ -311,6 +312,7 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
+    if (page === 'student-timeline') return 'error-profile';
     if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
       return page;
     }

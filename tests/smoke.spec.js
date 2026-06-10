@@ -4284,3 +4284,24 @@ test('错题画像：导入页可进 + 画像板块列出并展开', async ({ pa
   await expect(page.locator('#epBoardDetail')).toContainText('考点画像');
   expect(errors).toEqual([]);
 });
+
+test('学生时间线：选班 + 渲染(mock 云端，本地显名)', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockSignedInTeacher(page);
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.evaluate(() => {
+    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cls_x', name: '高三①班' }] }));
+    localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { S1: '张三' } }));
+    window.cloud = window.cloud || {};
+    window.cloud.fetchExamResults = async () => ([
+      { student_no: 'S1', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
+        result: { right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'tense' }], byCat: { tense: { right: 0, wrong: 1 } } } },
+    ]);
+  });
+  await page.evaluate(() => window.switchPage('student-timeline'));
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  await expect(page.locator('#studentTimelineContent')).toContainText('张三');
+  await expect(page.locator('#studentTimelineContent')).toContainText('一模');
+  expect(errors).toEqual([]);
+});

@@ -9,6 +9,7 @@
 /* eslint-disable */
 (function(){
   var _imp = null, _brd = null, _boardClassId = null;
+  var _tl = null, _tlClassId = null;
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
   function classIdNow() { var s = document.getElementById('errorImportClass'); return (s || {}).value || ''; }
@@ -176,11 +177,14 @@
     if (!_boardClassId && classListModel.length) _boardClassId = classListModel[0].id;   // 默认第一个班
     var boardModel = window.GrammarErrorProfileStore.buildBoardModel(profiles, _boardClassId);
     el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classListModel, _boardClassId)
+      + '<button id="epToTimeline" style="margin:0 0 12px;padding:6px 14px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">📈 学生时间线</button>'
       + '<div id="epBoardList">' + window.GrammarErrorProfileRender.boardListHtml(boardModel) + '</div>'
       + '<div id="epBoardDetail" style="margin-top:16px;"></div>';
     el.querySelectorAll('.ep-class-chip').forEach(function(btn){
       btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); renderBoardPage(_brd); });
     });
+    var toTl = document.getElementById('epToTimeline');
+    if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
     var newChip = el.querySelector('.ep-class-new');
     if (newChip) newChip.addEventListener('click', function(){
       var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
@@ -195,8 +199,33 @@
     if (boardModel.length) boardViewProfile(boardModel[0].id);   // 默认展开该班最新一套
   }
 
+  // ---------- 学生时间线（云端读，本地显名）----------
+  function renderTimelinePage(deps) {
+    _tl = deps || _tl;
+    var el = document.getElementById('studentTimelineContent');
+    if (!el) return;
+    var classes = (_tl.getClasses && _tl.getClasses()) || [];
+    var classListModel = window.GrammarErrorProfileStore.buildClassListModel(classes, (_tl.loadProfiles && _tl.loadProfiles()) || []);
+    if (!_tlClassId && classListModel.length) _tlClassId = classListModel[0].id;
+    el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classListModel, _tlClassId)
+      + '<div id="stTimelineList" style="margin-top:14px;color:#888;">加载中…</div>';
+    el.querySelectorAll('.ep-class-chip').forEach(function(btn){
+      btn.addEventListener('click', function(){ _tlClassId = btn.getAttribute('data-id'); renderTimelinePage(_tl); });
+    });
+    var listEl = document.getElementById('stTimelineList');
+    if (!_tlClassId) { if (listEl) listEl.textContent = '先建个班、导一次成绩，这里就有学生历程了。'; return; }
+    if (!_tl.fetchExamResults) { if (listEl) listEl.textContent = '云同步未就绪（请登录）。'; return; }
+    _tl.fetchExamResults(_tlClassId).then(function(res){
+      var rows = (res && res.rows) || [];
+      var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows);
+      var names = (_tl.loadStudentNames && _tl.loadStudentNames()) || {};
+      if (listEl) listEl.innerHTML = window.GrammarErrorProfileRender.studentTimelineHtml(timeline, names);
+    }).catch(function(){ if (listEl) listEl.textContent = '加载失败，稍后重试。'; });
+  }
+
   window.GrammarErrorProfileController = {
     renderImportPage: renderImportPage,
-    renderBoardPage: renderBoardPage
+    renderBoardPage: renderBoardPage,
+    renderTimelinePage: renderTimelinePage
   };
 })();

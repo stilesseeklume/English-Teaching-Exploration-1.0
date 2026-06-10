@@ -1253,7 +1253,20 @@ function renderErrorProfilePage() {
     catNames: errorProfileCatNames(),
     addExamQuestionToErrorBook: addProfileErrorToBook,
     getClasses: loadClasses,
-    createClass: createClassNamed
+    createClass: createClassNamed,
+    gotoTimeline: function(){ switchPage('student-timeline'); }
+  });
+}
+function renderStudentTimelinePage() {
+  return window.GrammarErrorProfileController.renderTimelinePage({
+    getClasses: loadClasses,
+    loadProfiles: loadErrorProfiles,
+    loadStudentNames: loadStudentNames,
+    fetchExamResults: function(classId){
+      return (window.cloud && window.cloud.fetchExamResults)
+        ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
+        : Promise.resolve({ rows: [] });
+    }
   });
 }
 
@@ -1653,6 +1666,7 @@ function switchPage(page) {
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
   if (page === 'error-profile') renderErrorProfilePage();
   if (page === 'error-import') renderErrorImportPage();
+  if (page === 'student-timeline') renderStudentTimelinePage();
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 错题本/备课/讲题显示）
