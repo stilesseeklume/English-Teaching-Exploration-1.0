@@ -85,6 +85,18 @@
       };
       var list = window.GrammarErrorProfileStore.upsertEntry((_imp.loadProfiles && _imp.loadProfiles()) || [], entry);
       if (_imp.saveProfiles) _imp.saveProfiles(list);
+      // 额外①：学号→姓名 写本地（名字永不上云）
+      if (_imp.mergeStudentNames) {
+        _imp.mergeStudentNames(window.GrammarStudentTracking.extractStudentRoster(_scoreRows));
+      }
+      // 额外②：每生一行 upsert 上云（非阻塞，失败不影响本地画像）
+      if (_imp.uploadExamResults) {
+        var stuRows = window.GrammarStudentTracking.buildExamResultRows(profile, examForBuild, {
+          classId: classId, className: _imp.classNameOf ? _imp.classNameOf(classId) : '',
+          examId: examId, examLabel: examLabel, examDate: _imp.today ? _imp.today() : null
+        });
+        _imp.uploadExamResults(stuRows).catch(function(){ /* 本地画像已存，静默 */ });
+      }
       _examQuestions = null; _scoreRows = null;             // 重置，避免重复触发
       if (_imp.gotoBoard) _imp.gotoBoard();
     } catch (err) {
