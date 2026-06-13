@@ -89,6 +89,27 @@
     return { byCat: byCat, byNo: byNo, students: students };
   }
 
+  // buildProfileFromExamRows: 把云端 exam_results 行(每生 result.byCat/right/wrong/blank/wrongQuestions)
+  // 重建成与 buildErrorProfile 同形状的班级画像 {byCat,byNo,students}，供画像板块云端读取。
+  function buildProfileFromExamRows(rows) {
+    rows = rows || [];
+    var byCat = {}, byNo = {};
+    function ensureCat(c){ if (!byCat[c]) byCat[c] = { right: 0, wrong: 0, rate: null }; return byCat[c]; }
+    function ensureNo(n){ if (!byNo[n]) byNo[n] = { right: 0, wrong: 0, blank: 0 }; return byNo[n]; }
+    var students = rows.map(function(r){
+      var res = r.result || {};
+      var right = res.right || [], wrong = res.wrong || [], blank = res.blank || [];
+      right.forEach(function(no){ ensureNo(no).right++; });
+      wrong.forEach(function(no){ ensureNo(no).wrong++; });
+      blank.forEach(function(no){ ensureNo(no).blank++; });
+      var bc = res.byCat || {};
+      Object.keys(bc).forEach(function(c){ var e = ensureCat(c); e.right += bc[c].right || 0; e.wrong += bc[c].wrong || 0; });
+      return { studentNo: r.student_no, right: right, wrong: wrong, blank: blank, wrongQuestions: res.wrongQuestions || [] };
+    });
+    Object.keys(byCat).forEach(function(c){ var b = byCat[c]; var ans = b.right + b.wrong; b.rate = ans > 0 ? Math.round(b.right / ans * 100) : null; });
+    return { byCat: byCat, byNo: byNo, students: students };
+  }
+
   // detectGrammarNos: from network-scoring rows, identify grammar-fill question numbers.
   // Rule: a column whose header is a number 1-200, and every non-empty student score is in {0, 1.5}
   // (the 1.5-per-question scoring signal), is treated as a grammar-fill column.
@@ -151,6 +172,7 @@
     buildErrorProfile: buildErrorProfile,
     detectGrammarNos: detectGrammarNos,
     alignExamQuestions: alignExamQuestions,
-    extractGrammarBlanks: extractGrammarBlanks
+    extractGrammarBlanks: extractGrammarBlanks,
+    buildProfileFromExamRows: buildProfileFromExamRows
   };
 })();

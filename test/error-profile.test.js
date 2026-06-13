@@ -157,3 +157,18 @@ test('extractGrammarBlanks: 拍平 passages 的 blanks→按题号升序去重�
     { no: 38, category: 'nonpredicate', answer: 'rooted', fine_category: undefined },
   ]));
 });
+
+const { buildProfileFromExamRows } = w.GrammarErrorProfile;
+
+test('buildProfileFromExamRows: 云端行重建班级画像(byCat正确率/byNo/students)', () => {
+  const rows = [
+    { student_no: 'S1', result: { right: [37], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'preposition', fine_category: null, answer: 'from' }], byCat: { preposition: { right: 0, wrong: 1 }, tense: { right: 1, wrong: 0 } } } },
+    { student_no: 'S2', result: { right: [36, 37], wrong: [], blank: [], wrongQuestions: [], byCat: { preposition: { right: 1, wrong: 0 }, tense: { right: 1, wrong: 0 } } } },
+  ];
+  const p = buildProfileFromExamRows(rows);
+  assert.equal(JSON.stringify(p.byCat), JSON.stringify({ preposition: { right: 1, wrong: 1, rate: 50 }, tense: { right: 2, wrong: 0, rate: 100 } }));
+  assert.equal(JSON.stringify(p.byNo['36']), JSON.stringify({ right: 1, wrong: 1, blank: 0 }));
+  assert.equal(p.students.length, 2);
+  assert.equal(p.students[0].studentNo, 'S1');
+  assert.equal(JSON.stringify(p.students[0].wrongQuestions), JSON.stringify([{ no: 36, category: 'preposition', fine_category: null, answer: 'from' }]));
+});
