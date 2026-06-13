@@ -74,3 +74,19 @@ test('buildExamResultRows: 行里绝不含姓名（隐私红线）', () => {
   Object.keys(rows[0]).forEach((k) => assert.ok(allowed.includes(k), '意外字段(疑似姓名): ' + k));
   assert.ok(!JSON.stringify(rows).includes('"name"'), '行 JSON 不应有 name 键（class_name 不算）');
 });
+
+test('buildStudentTimeline: 名单里没成绩的学生也列出 + 缺考次数', () => {
+  const rows = [
+    { student_no: 'S1', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
+      result: { right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'tense' }], byCat: { tense: { right: 0, wrong: 1 } } } },
+  ];
+  const tl = buildStudentTimeline(rows, ['S1', 'S2']);
+  const byNo = {};
+  tl.forEach((s) => { byNo[s.studentNo] = s; });
+  assert.equal(tl.length, 2);
+  assert.equal(byNo.S1.examCount, 1);
+  assert.equal(byNo.S1.missedCount, 0);
+  assert.equal(byNo.S2.examCount, 0);
+  assert.equal(byNo.S2.missedCount, 1);
+  assert.equal(JSON.stringify(byNo.S2.exams), JSON.stringify([]));
+});
