@@ -30,6 +30,16 @@ test('studentTimelineHtml: 本地显名 + 弱考点 + 每卷对错', () => {
   assert.ok(html.includes('tense'), '应显示弱考点');
 });
 
+test('studentTimelineHtml: 名单里没成绩的学生显示「暂无成绩」+ 缺考徽章', () => {
+  const timeline = [
+    { studentNo: 'S2', exams: [], weakCats: [], examCount: 0, missedCount: 1 },
+  ];
+  const html = studentTimelineHtml(timeline, { S2: '李四' });
+  assert.ok(html.includes('李四'), '应显名');
+  assert.ok(html.includes('暂无成绩'), '无成绩应标暂无成绩');
+  assert.ok(html.includes('缺考 1'), '应显示缺考次数');
+});
+
 test('uploadPanelHtml: 套卷+成绩两个拖拽框 + 题库下拉 + 两个隐藏文件输入', () => {
   const html = uploadPanelHtml([{ examId: '2026广州一模', label: '2026 广州一模' }]);
   assert.ok(html.includes('2026 广州一模'), '应含题库套卷标签');

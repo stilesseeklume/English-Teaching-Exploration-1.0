@@ -50,11 +50,13 @@
   }
 
   // 把每生一卷的行跨卷聚合成时间线：每学号 → {studentNo, exams[按日期升序], weakCats[按错次降序]}
-  function buildStudentTimeline(rows) {
-    rows = rows || [];
+  function buildStudentTimeline(rows, rosterNos) {
+    rows = rows || []; rosterNos = rosterNos || [];
     var byStu = {};
+    var examSet = {};
     rows.forEach(function(row){
       var sn = row.student_no; if (!sn) return;
+      if (row.exam_id) examSet[row.exam_id] = 1;
       if (!byStu[sn]) byStu[sn] = { studentNo: sn, exams: [], cat: {} };
       var st = byStu[sn];
       var res = row.result || {};
@@ -70,12 +72,16 @@
         st.cat[c].wrong += bc[c].wrong || 0;
       });
     });
+    rosterNos.forEach(function(sn){ if (sn && !byStu[sn]) byStu[sn] = { studentNo: sn, exams: [], cat: {} }; });
+    var totalExams = Object.keys(examSet).length;
     return Object.keys(byStu).map(function(sn){
       var st = byStu[sn];
       st.exams.sort(function(a, z){ return String(a.examDate).localeCompare(String(z.examDate)); });
       st.weakCats = Object.keys(st.cat).map(function(c){ return st.cat[c]; })
         .filter(function(x){ return x.wrong > 0; })
         .sort(function(a, z){ return z.wrong - a.wrong; });
+      st.examCount = st.exams.length;
+      st.missedCount = Math.max(0, totalExams - st.examCount);
       delete st.cat;
       return st;
     }).sort(function(a, z){

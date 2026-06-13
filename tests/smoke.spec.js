@@ -4291,8 +4291,8 @@ test('学生时间线：选班 + 渲染(mock 云端，本地显名)', async ({ p
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
   await page.evaluate(() => {
-    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cls_x', name: '高三①班' }] }));
-    localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { S1: '张三' } }));
+    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cls_x', name: '高三①班', students: ['S1', 'S2'] }] }));
+    localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { S1: '张三', S2: '李四' } }));
     window.cloud = window.cloud || {};
     window.cloud.fetchExamResults = async () => ([
       { student_no: 'S1', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
@@ -4303,5 +4303,7 @@ test('学生时间线：选班 + 渲染(mock 云端，本地显名)', async ({ p
   await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
   await expect(page.locator('#studentTimelineContent')).toContainText('张三');
   await expect(page.locator('#studentTimelineContent')).toContainText('一模');
+  await expect(page.locator('#studentTimelineContent')).toContainText('李四');
+  await expect(page.locator('#studentTimelineContent')).toContainText('暂无成绩');
   expect(errors).toEqual([]);
 });

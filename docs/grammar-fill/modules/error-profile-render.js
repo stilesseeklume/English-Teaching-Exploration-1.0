@@ -148,10 +148,14 @@
         return '<span style="display:inline-block;min-width:96px;margin:3px 6px 3px 0;padding:4px 8px;border:1px solid #eee;border-radius:8px;font-size:12px;">'
           + esc(e.examLabel) + '：对' + e.rightCount + ' 错' + e.wrongCount + (e.blankCount ? ' 缺' + e.blankCount : '') + '</span>';
       }).join('');
+      var missedBadge = (st.missedCount > 0)
+        ? ' <span style="font-weight:400;font-size:12px;color:#e67e22;background:#fff5ec;border-radius:10px;padding:1px 8px;margin-left:6px;">缺考 ' + st.missedCount + '</span>'
+        : '';
+      var examsLine = (st.exams && st.exams.length) ? exams : '<span style="color:#aaa;font-size:12px;">暂无成绩</span>';
       return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:12px;">'
-        + '<div style="font-weight:600;margin-bottom:6px;">' + name + '</div>'
+        + '<div style="font-weight:600;margin-bottom:6px;">' + name + missedBadge + '</div>'
         + (weak ? '<div style="margin-bottom:8px;">高频弱项：' + weak + '</div>' : '')
-        + '<div>' + exams + '</div>'
+        + '<div>' + examsLine + '</div>'
         + '</div>';
     }).join('');
   }
