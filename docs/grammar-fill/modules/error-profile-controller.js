@@ -218,31 +218,45 @@
     _tl = deps || _tl;
     var el = document.getElementById('studentTimelineContent');
     if (!el) return;
-    var classes = (_tl.getClasses && _tl.getClasses()) || [];
-    var classListModel = window.GrammarErrorProfileStore.buildClassListModel(classes, (_tl.loadProfiles && _tl.loadProfiles()) || []);
-    if (!_tlClassId && classListModel.length) _tlClassId = classListModel[0].id;
-    el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classListModel, _tlClassId)
-      + '<div style="margin:6px 0 4px;"><span id="stRosterDrop" style="display:inline-block;padding:6px 14px;border-radius:999px;border:1px dashed #cfe3ff;background:#f7fbff;color:#0071e3;cursor:pointer;font-size:13px;">＋ 导入名单（学号+姓名 Excel）</span><input type="file" id="stRosterFile" accept=".xls,.xlsx" style="display:none;"></div>'
-      + '<div id="stTimelineList" style="margin-top:14px;color:#888;">加载中…</div>';
-    el.querySelectorAll('.ep-class-chip').forEach(function(btn){
-      btn.addEventListener('click', function(){ _tlClassId = btn.getAttribute('data-id'); renderTimelinePage(_tl); });
-    });
-    var rosterDrop = document.getElementById('stRosterDrop');
-    var rosterFile = document.getElementById('stRosterFile');
-    if (rosterDrop && rosterFile) {
-      rosterDrop.addEventListener('click', function(){ if (!_tlClassId) { if (window.alert) window.alert('先选个班级'); return; } rosterFile.click(); });
-      rosterFile.addEventListener('change', function(ev){ stImportRoster(ev.target.files && ev.target.files[0]); });
-    }
-    var listEl = document.getElementById('stTimelineList');
-    if (!_tlClassId) { if (listEl) listEl.textContent = '先建个班、导名单或导成绩，这里就有学生了。'; return; }
-    var rosterNos = (_tl.classRoster && _tl.classRoster(_tlClassId)) || [];
-    if (!_tl.fetchExamResults) { if (listEl) listEl.textContent = '云同步未就绪（请登录）。'; return; }
-    _tl.fetchExamResults(_tlClassId).then(function(res){
-      var rows = (res && res.rows) || [];
-      var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows, rosterNos);
+    el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载云端数据…</div>';
+    var fetchAll = _tl.fetchExamResults ? _tl.fetchExamResults() : Promise.resolve({ rows: [] });
+    fetchAll.then(function(res){
+      var allRows = (res && res.rows) || [];
+      // 班级列表：云端 exam_results 的 class_id/class_name + 本地班级，合并（这样换设备登录也看得到）
+      var clsMap = {};
+      allRows.forEach(function(r){
+        if (!r.class_id) return;
+        if (!clsMap[r.class_id]) clsMap[r.class_id] = { id: r.class_id, name: r.class_name || r.class_id, stu: {} };
+        clsMap[r.class_id].stu[r.student_no] = 1;
+      });
+      ((_tl.getClasses && _tl.getClasses()) || []).forEach(function(c){
+        if (!clsMap[c.id]) clsMap[c.id] = { id: c.id, name: c.name, stu: {} };
+        (c.students || []).forEach(function(n){ clsMap[c.id].stu[n] = 1; });
+      });
+      var classList = Object.keys(clsMap).map(function(k){ return { id: clsMap[k].id, name: clsMap[k].name, count: Object.keys(clsMap[k].stu).length }; });
+      if ((!_tlClassId || !clsMap[_tlClassId]) && classList.length) _tlClassId = classList[0].id;
+      el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _tlClassId)
+        + '<div style="margin:6px 0 4px;"><span id="stRosterDrop" style="display:inline-block;padding:6px 14px;border-radius:999px;border:1px dashed #cfe3ff;background:#f7fbff;color:#0071e3;cursor:pointer;font-size:13px;">＋ 导入名单（学号+姓名 Excel）</span><input type="file" id="stRosterFile" accept=".xls,.xlsx" style="display:none;"></div>'
+        + '<div id="stTimelineList" style="margin-top:14px;color:#888;"></div>';
+      el.querySelectorAll('.ep-class-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){ _tlClassId = btn.getAttribute('data-id'); renderTimelinePage(_tl); });
+      });
+      var rosterDrop = document.getElementById('stRosterDrop');
+      var rosterFile = document.getElementById('stRosterFile');
+      if (rosterDrop && rosterFile) {
+        rosterDrop.addEventListener('click', function(){ if (!_tlClassId) { if (window.alert) window.alert('先选个班级'); return; } rosterFile.click(); });
+        rosterFile.addEventListener('change', function(ev){ stImportRoster(ev.target.files && ev.target.files[0]); });
+      }
+      var listEl = document.getElementById('stTimelineList');
+      if (!_tlClassId) { if (listEl) listEl.textContent = '先建个班、导名单或导成绩，这里就有学生了。'; return; }
+      var rows = allRows.filter(function(r){ return r.class_id === _tlClassId; });
+      var rosterSet = {};
+      rows.forEach(function(r){ rosterSet[r.student_no] = 1; });
+      ((_tl.classRoster && _tl.classRoster(_tlClassId)) || []).forEach(function(n){ rosterSet[n] = 1; });
+      var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows, Object.keys(rosterSet));
       var names = (_tl.loadStudentNames && _tl.loadStudentNames()) || {};
       if (listEl) listEl.innerHTML = window.GrammarErrorProfileRender.studentTimelineHtml(timeline, names, (_tl.catNames) || {});
-    }).catch(function(){ if (listEl) listEl.textContent = '加载失败，稍后重试。'; });
+    }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }
 
   window.GrammarErrorProfileController = {

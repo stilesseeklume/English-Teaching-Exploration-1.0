@@ -4295,7 +4295,7 @@ test('学生时间线：选班 + 渲染(mock 云端，本地显名)', async ({ p
     localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { S1: '张三', S2: '李四' } }));
     window.cloud = window.cloud || {};
     window.cloud.fetchExamResults = async () => ([
-      { student_no: 'S1', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
+      { student_no: 'S1', class_id: 'cls_x', class_name: '高三①班', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
         result: { right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'tense' }], byCat: { tense: { right: 0, wrong: 1 } } } },
     ]);
   });
