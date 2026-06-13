@@ -133,8 +133,8 @@
       + chips + newChip + '</div>';
   }
 
-  function studentTimelineHtml(timeline, nameMap) {
-    timeline = timeline || [];
+  function studentTimelineHtml(timeline, nameMap, catNames) {
+    timeline = timeline || []; catNames = catNames || {};
     var resolve = (window.GrammarStudentTracking && window.GrammarStudentTracking.resolveStudentName) || function(m, s){ return (m && m[s]) || s; };
     if (!timeline.length) {
       return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:24px;color:#888;text-align:center;">这个班还没有上过云的成绩。导一次成绩就有了。</div>';
@@ -142,7 +142,7 @@
     return timeline.map(function(st){
       var name = esc(resolve(nameMap || {}, st.studentNo));
       var weak = (st.weakCats || []).slice(0, 5).map(function(c){
-        return '<span style="display:inline-block;margin:2px 6px 2px 0;padding:2px 8px;border-radius:10px;background:#fff0f0;color:#c0392b;font-size:12px;">' + esc(c.category) + ' 错' + c.wrong + '</span>';
+        return '<span style="display:inline-block;margin:2px 6px 2px 0;padding:2px 8px;border-radius:10px;background:#fff0f0;color:#c0392b;font-size:12px;">' + esc(catNames[c.category] || c.category) + ' 错' + c.wrong + '</span>';
       }).join('');
       var exams = (st.exams || []).map(function(e){
         return '<span style="display:inline-block;min-width:96px;margin:3px 6px 3px 0;padding:4px 8px;border:1px solid #eee;border-radius:8px;font-size:12px;">'

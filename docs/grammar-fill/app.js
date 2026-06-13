@@ -1277,6 +1277,7 @@ function renderStudentTimelinePage() {
     getClasses: loadClasses,
     loadProfiles: loadErrorProfiles,
     loadStudentNames: loadStudentNames,
+    catNames: errorProfileCatNames(),
     fetchExamResults: function(classId){
       return (window.cloud && window.cloud.fetchExamResults)
         ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })

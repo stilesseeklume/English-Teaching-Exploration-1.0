@@ -241,7 +241,7 @@
       var rows = (res && res.rows) || [];
       var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows, rosterNos);
       var names = (_tl.loadStudentNames && _tl.loadStudentNames()) || {};
-      if (listEl) listEl.innerHTML = window.GrammarErrorProfileRender.studentTimelineHtml(timeline, names);
+      if (listEl) listEl.innerHTML = window.GrammarErrorProfileRender.studentTimelineHtml(timeline, names, (_tl.catNames) || {});
     }).catch(function(){ if (listEl) listEl.textContent = '加载失败，稍后重试。'; });
   }
 
