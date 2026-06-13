@@ -1269,7 +1269,15 @@ function renderErrorProfilePage() {
     addExamQuestionToErrorBook: addProfileErrorToBook,
     getClasses: loadClasses,
     createClass: createClassNamed,
-    gotoTimeline: function(){ switchPage('student-timeline'); }
+    gotoTimeline: function(){ switchPage('student-timeline'); },
+    fetchExamResults: function(classId){
+      return (window.cloud && window.cloud.fetchExamResults)
+        ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
+        : Promise.resolve({ rows: [] });
+    },
+    deleteExamResultsExam: function(classId, examId){
+      return (window.cloud && window.cloud.deleteExamResultsExam) ? window.cloud.deleteExamResultsExam(classId, examId) : Promise.resolve();
+    }
   });
 }
 function renderStudentTimelinePage() {

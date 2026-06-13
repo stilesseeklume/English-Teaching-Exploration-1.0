@@ -194,6 +194,11 @@
     var r = await sb.from('exam_results').delete().eq('user_id', state.user.id).eq('class_id', classId);
     if (r.error) throw r.error;
   }
+  async function deleteExamResultsExam(classId, examId) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var r = await sb.from('exam_results').delete().eq('user_id', state.user.id).eq('class_id', classId).eq('exam_id', examId);
+    if (r.error) throw r.error;
+  }
 
   function isSensitiveContextKey(key) {
     var lower = String(key || '').toLowerCase();
@@ -347,7 +352,7 @@
     pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     clearLearningData: clearLearningData,
-    uploadExamResults: uploadExamResults, fetchExamResults: fetchExamResults, deleteExamResults: deleteExamResults,
+    uploadExamResults: uploadExamResults, fetchExamResults: fetchExamResults, deleteExamResults: deleteExamResults, deleteExamResultsExam: deleteExamResultsExam,
     submitFeedback: submitFeedback, recordEvent: recordEvent,
     listFeedbackReports: listFeedbackReports, updateFeedbackStatus: updateFeedbackStatus,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,

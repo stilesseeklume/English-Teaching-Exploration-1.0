@@ -4270,13 +4270,12 @@ test('错题画像：导入页可进 + 画像板块列出并展开', async ({ pa
   await expect(page.locator('#errorScoreDrop')).toContainText('把网阅成绩');
 
   await page.evaluate(() => {
-    const entry = { id: 'X卷', examId: 'X卷', examLabel: 'X卷', savedAt: 1, savedAtText: '刚刚',
-      summary: { studentCount: 2, questionCount: 1, focusCount: 1 },
-      profile: { byCat: { preposition: { right: 1, wrong: 1, rate: 50 } },
-                 byNo: { '36': { right: 1, wrong: 1, blank: 0 } },
-                 students: [{ studentNo: 'S1', right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'preposition', answer: 'from' }] }] } };
-    const list = window.GrammarErrorProfileStore.upsertEntry([], entry);
-    localStorage.setItem('grammar-error-profiles', JSON.stringify({ _owner: 'smoke-user-1', items: list }));
+    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cls_x', name: '高三①班' }] }));
+    window.cloud = window.cloud || {};
+    window.cloud.fetchExamResults = async () => ([
+      { student_no: 'S1', class_id: 'cls_x', class_name: '高三①班', exam_id: 'X卷', exam_label: 'X卷', exam_date: '2026-03-01',
+        result: { right: [37], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'preposition', fine_category: null, answer: 'from' }], byCat: { preposition: { right: 0, wrong: 1 } } } },
+    ]);
   });
   await page.evaluate(() => window.switchPage('error-profile'));
   await expect(page.locator('#page-error-profile')).toHaveClass(/active/);

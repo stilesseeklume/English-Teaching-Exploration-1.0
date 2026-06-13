@@ -10,6 +10,7 @@
 (function(){
   var _imp = null, _brd = null, _boardClassId = null;
   var _tl = null, _tlClassId = null;
+  var _brdExams = {};
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
   function classIdNow() { var s = document.getElementById('errorImportClass'); return (s || {}).value || ''; }
@@ -144,59 +145,78 @@
   }
 
   // ---------- 画像板块 ----------
-  function boardViewProfile(id) {
-    var list = (_brd.loadProfiles && _brd.loadProfiles()) || [];
-    var entry = window.GrammarErrorProfileStore.getEntry(list, id);
+  function boardViewProfile(examId) {
+    var g = _brdExams[examId];
     var detail = document.getElementById('epBoardDetail');
-    if (!entry || !detail) return;
-    var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(entry.profile, _brd.catNames || {});
+    if (!g || !detail) return;
+    var profile = window.GrammarErrorProfile.buildProfileFromExamRows(g.rows);
+    var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(profile, _brd.catNames || {});
     detail.innerHTML = window.GrammarErrorProfileRender.profilePageHtml(vmodel);
     detail.querySelectorAll('.ep-add-error').forEach(function(btn){
       btn.addEventListener('click', function(){
         if (!_brd.addExamQuestionToErrorBook) return;
-        var r = _brd.addExamQuestionToErrorBook(entry.examId, btn.getAttribute('data-no'));
+        var r = _brd.addExamQuestionToErrorBook(examId, btn.getAttribute('data-no'));
         btn.textContent = (r && r.ok) ? (r.added ? '已加✓' : '已在本') : '题库无';
         btn.disabled = true; btn.style.opacity = '0.6';
       });
     });
   }
-  function boardDelProfile(id) {
-    if (window.confirm && !window.confirm('删除这套卷的画像？')) return;
-    var list = (_brd.loadProfiles && _brd.loadProfiles()) || [];
-    var next = window.GrammarErrorProfileStore.removeEntry(list, id);
-    if (_brd.saveProfiles) _brd.saveProfiles(next);
-    renderBoardPage(_brd);
+  function boardDelProfile(examId) {
+    if (window.confirm && !window.confirm('删除这套卷的画像？(会从云端移除该卷成绩)')) return;
+    if (!_brd.deleteExamResultsExam) return;
+    _brd.deleteExamResultsExam(_boardClassId, examId).then(function(){ renderBoardPage(_brd); }).catch(function(){ if (window.alert) window.alert('删除失败，稍后重试。'); });
   }
   function renderBoardPage(deps) {
     _brd = deps || _brd;
     var el = document.getElementById('errorProfileContent');
     if (!el) return;
-    var profiles = (_brd.loadProfiles && _brd.loadProfiles()) || [];
-    var classes = (_brd.getClasses && _brd.getClasses()) || [];
-    var classListModel = window.GrammarErrorProfileStore.buildClassListModel(classes, profiles);
-    if (!_boardClassId && classListModel.length) _boardClassId = classListModel[0].id;   // 默认第一个班
-    var boardModel = window.GrammarErrorProfileStore.buildBoardModel(profiles, _boardClassId);
-    el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classListModel, _boardClassId)
-      + '<button id="epToTimeline" style="margin:0 0 12px;padding:6px 14px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">📈 学生时间线</button>'
-      + '<div id="epBoardList">' + window.GrammarErrorProfileRender.boardListHtml(boardModel) + '</div>'
-      + '<div id="epBoardDetail" style="margin-top:16px;"></div>';
-    el.querySelectorAll('.ep-class-chip').forEach(function(btn){
-      btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); renderBoardPage(_brd); });
-    });
-    var toTl = document.getElementById('epToTimeline');
-    if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
-    var newChip = el.querySelector('.ep-class-new');
-    if (newChip) newChip.addEventListener('click', function(){
-      var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
-      if (name && _brd.createClass) { var c = _brd.createClass(name); if (c) _boardClassId = c.id; renderBoardPage(_brd); }
-    });
-    el.querySelectorAll('.ep-board-view').forEach(function(btn){
-      btn.addEventListener('click', function(){ boardViewProfile(btn.getAttribute('data-id')); });
-    });
-    el.querySelectorAll('.ep-board-del').forEach(function(btn){
-      btn.addEventListener('click', function(){ boardDelProfile(btn.getAttribute('data-id')); });
-    });
-    if (boardModel.length) boardViewProfile(boardModel[0].id);   // 默认展开该班最新一套
+    el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载云端数据…</div>';
+    (_brd.fetchExamResults ? _brd.fetchExamResults() : Promise.resolve({ rows: [] })).then(function(res){
+      var allRows = (res && res.rows) || [];
+      var clsMap = {};
+      allRows.forEach(function(r){
+        if (!r.class_id) return;
+        if (!clsMap[r.class_id]) clsMap[r.class_id] = { id: r.class_id, name: r.class_name || r.class_id, stu: {} };
+        clsMap[r.class_id].stu[r.student_no] = 1;
+      });
+      ((_brd.getClasses && _brd.getClasses()) || []).forEach(function(c){
+        if (!clsMap[c.id]) clsMap[c.id] = { id: c.id, name: c.name, stu: {} };
+      });
+      var classList = Object.keys(clsMap).map(function(k){ return { id: clsMap[k].id, name: clsMap[k].name, count: Object.keys(clsMap[k].stu).length }; });
+      if ((!_boardClassId || !clsMap[_boardClassId]) && classList.length) _boardClassId = classList[0].id;
+      _brdExams = {};
+      allRows.filter(function(r){ return r.class_id === _boardClassId; }).forEach(function(r){
+        if (!_brdExams[r.exam_id]) _brdExams[r.exam_id] = { examId: r.exam_id, examLabel: r.exam_label || r.exam_id, examDate: r.exam_date || '', rows: [] };
+        _brdExams[r.exam_id].rows.push(r);
+      });
+      var catNames = _brd.catNames || {};
+      var boardModel = Object.keys(_brdExams).map(function(eid){
+        var g = _brdExams[eid];
+        var vm = window.GrammarErrorProfileView.buildProfileViewModel(window.GrammarErrorProfile.buildProfileFromExamRows(g.rows), catNames);
+        return { id: eid, examLabel: g.examLabel, savedAtText: (g.examDate || '').replace(/-/g, '.'), examDate: g.examDate, studentCount: vm.summary.studentCount, focusCount: vm.summary.focusCount };
+      }).sort(function(a, z){ return String(z.examDate).localeCompare(String(a.examDate)); });
+      el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _boardClassId)
+        + '<button id="epToTimeline" style="margin:0 0 12px;padding:6px 14px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">📈 学生时间线</button>'
+        + '<div id="epBoardList">' + window.GrammarErrorProfileRender.boardListHtml(boardModel) + '</div>'
+        + '<div id="epBoardDetail" style="margin-top:16px;"></div>';
+      el.querySelectorAll('.ep-class-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); renderBoardPage(_brd); });
+      });
+      var toTl = document.getElementById('epToTimeline');
+      if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
+      var newChip = el.querySelector('.ep-class-new');
+      if (newChip) newChip.addEventListener('click', function(){
+        var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
+        if (name && _brd.createClass) { var c = _brd.createClass(name); if (c) _boardClassId = c.id; renderBoardPage(_brd); }
+      });
+      el.querySelectorAll('.ep-board-view').forEach(function(btn){
+        btn.addEventListener('click', function(){ boardViewProfile(btn.getAttribute('data-id')); });
+      });
+      el.querySelectorAll('.ep-board-del').forEach(function(btn){
+        btn.addEventListener('click', function(){ boardDelProfile(btn.getAttribute('data-id')); });
+      });
+      if (boardModel.length) boardViewProfile(boardModel[0].id);
+    }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }
 
   // ---------- 学生时间线（云端读，本地显名）----------
