@@ -10,7 +10,7 @@
 (function(){
   var _imp = null, _brd = null, _boardClassId = null;
   var _tl = null, _tlClassId = null;
-  var _brdExams = {};
+  var _brdExams = {}, _boardExamId = null;
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
   function classIdNow() { var s = document.getElementById('errorImportClass'); return (s || {}).value || ''; }
@@ -151,7 +151,11 @@
     if (!g || !detail) return;
     var profile = window.GrammarErrorProfile.buildProfileFromExamRows(g.rows);
     var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(profile, _brd.catNames || {});
-    detail.innerHTML = window.GrammarErrorProfileRender.profilePageHtml(vmodel);
+    detail.innerHTML = '<div style="margin-bottom:10px;"><b>' + (window.escapeHtml ? window.escapeHtml(g.examLabel) : g.examLabel) + '</b> · 本卷画像'
+      + '<button id="epDelExam" style="margin-left:10px;padding:3px 10px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;font-size:12px;">删这套</button></div>'
+      + window.GrammarErrorProfileRender.profilePageHtml(vmodel);
+    var del = document.getElementById('epDelExam');
+    if (del) del.addEventListener('click', function(){ boardDelProfile(examId); });
     detail.querySelectorAll('.ep-add-error').forEach(function(btn){
       btn.addEventListener('click', function(){
         if (!_brd.addExamQuestionToErrorBook) return;
@@ -190,32 +194,40 @@
         _brdExams[r.exam_id].rows.push(r);
       });
       var catNames = _brd.catNames || {};
-      var boardModel = Object.keys(_brdExams).map(function(eid){
+      var orderedExams = Object.keys(_brdExams).map(function(eid){
         var g = _brdExams[eid];
-        var vm = window.GrammarErrorProfileView.buildProfileViewModel(window.GrammarErrorProfile.buildProfileFromExamRows(g.rows), catNames);
-        return { id: eid, examLabel: g.examLabel, savedAtText: (g.examDate || '').replace(/-/g, '.'), examDate: g.examDate, studentCount: vm.summary.studentCount, focusCount: vm.summary.focusCount };
-      }).sort(function(a, z){ return String(z.examDate).localeCompare(String(a.examDate)); });
+        var profile = window.GrammarErrorProfile.buildProfileFromExamRows(g.rows);
+        var vm = window.GrammarErrorProfileView.buildProfileViewModel(profile, catNames);
+        return { id: eid, examLabel: g.examLabel, examDate: g.examDate, byCat: profile.byCat, focusCount: vm.summary.focusCount };
+      }).sort(function(a, z){ return String(a.examDate).localeCompare(String(z.examDate)); });   // 升序：左早右近
+      if ((!_boardExamId || !_brdExams[_boardExamId]) && orderedExams.length) _boardExamId = orderedExams[orderedExams.length - 1].id;   // 默认最新一套
+      var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
       el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _boardClassId)
         + '<button id="epToTimeline" style="margin:0 0 12px;padding:6px 14px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">📈 学生时间线</button>'
-        + '<div id="epBoardList">' + window.GrammarErrorProfileRender.boardListHtml(boardModel) + '</div>'
-        + '<div id="epBoardDetail" style="margin-top:16px;"></div>';
+        + window.GrammarErrorProfileRender.examChipsHtml(orderedExams, _boardExamId)
+        + window.GrammarErrorProfileRender.catTrendHtml(trends, catNames)
+        + '<div id="epBoardDetail" style="margin-top:4px;"></div>';
       el.querySelectorAll('.ep-class-chip').forEach(function(btn){
-        btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); renderBoardPage(_brd); });
+        btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); _boardExamId = null; renderBoardPage(_brd); });
       });
       var toTl = document.getElementById('epToTimeline');
       if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
       var newChip = el.querySelector('.ep-class-new');
       if (newChip) newChip.addEventListener('click', function(){
         var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
-        if (name && _brd.createClass) { var c = _brd.createClass(name); if (c) _boardClassId = c.id; renderBoardPage(_brd); }
+        if (name && _brd.createClass) { var c = _brd.createClass(name); if (c) { _boardClassId = c.id; _boardExamId = null; } renderBoardPage(_brd); }
       });
-      el.querySelectorAll('.ep-board-view').forEach(function(btn){
-        btn.addEventListener('click', function(){ boardViewProfile(btn.getAttribute('data-id')); });
+      el.querySelectorAll('.ep-exam-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          _boardExamId = btn.getAttribute('data-id');
+          el.querySelectorAll('.ep-exam-chip').forEach(function(b){
+            var on = b.getAttribute('data-id') === _boardExamId;
+            b.style.background = on ? '#0071e3' : '#f7f7f7'; b.style.color = on ? '#fff' : '#333'; b.style.border = '1px solid ' + (on ? '#0071e3' : '#e5e5e5');
+          });
+          boardViewProfile(_boardExamId);
+        });
       });
-      el.querySelectorAll('.ep-board-del').forEach(function(btn){
-        btn.addEventListener('click', function(){ boardDelProfile(btn.getAttribute('data-id')); });
-      });
-      if (boardModel.length) boardViewProfile(boardModel[0].id);
+      if (_boardExamId) boardViewProfile(_boardExamId);
     }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }
 
