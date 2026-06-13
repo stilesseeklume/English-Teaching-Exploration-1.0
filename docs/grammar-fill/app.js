@@ -1181,6 +1181,21 @@ function mergeStudentNames(roster) {
   saveStudentNames(names);
   return names;
 }
+// 班级名单（学号清单，随班级存本地，只存学号、不上云）
+function loadClassRoster(classId) {
+  var c = (loadClasses() || []).filter(function(x){ return x.id === classId; })[0];
+  return (c && c.students) || [];
+}
+function mergeClassRoster(classId, studentNos) {
+  var list = loadClasses();
+  var c = list.filter(function(x){ return x.id === classId; })[0];
+  if (!c) return [];
+  var set = {}; (c.students || []).forEach(function(n){ set[n] = 1; });
+  (studentNos || []).forEach(function(n){ if (n) set[n] = 1; });
+  c.students = Object.keys(set);
+  saveClasses(list);
+  return c.students;
+}
 function createClassNamed(name) {
   name = (name || '').trim();
   if (!name) return null;
@@ -1266,6 +1281,12 @@ function renderStudentTimelinePage() {
       return (window.cloud && window.cloud.fetchExamResults)
         ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
         : Promise.resolve({ rows: [] });
+    },
+    classRoster: loadClassRoster,
+    importRoster: function(classId, rows){
+      var roster = window.GrammarStudentTracking.extractStudentRoster(rows);
+      mergeStudentNames(roster);
+      return mergeClassRoster(classId, roster.map(function(s){ return s.studentNo; }));
     }
   });
 }
