@@ -82,3 +82,21 @@ test('boardListHtml: 空→提示；有→卷名/计数/看画像/删 按钮带 
   assert.ok(html.includes('data-id="2026广州一模"'), '含 data-id');
   assert.ok(html.includes('ep-board-view') && html.includes('ep-board-del'), '含看/删按钮 class');
 });
+
+const { examChipsHtml, catTrendHtml } = w.GrammarErrorProfileRender;
+
+test('examChipsHtml: 时间 chips + 选中高亮 + 重点讲红点', () => {
+  const html = examChipsHtml([{ id: 'e1', examLabel: '一模', focusCount: 2 }, { id: 'e2', examLabel: '二模', focusCount: 0 }], 'e2');
+  assert.ok(html.includes('class="ep-exam-chip"'), '应是 chip');
+  assert.ok(html.includes('一模') && html.includes('二模'), '应列两套');
+  assert.ok(html.includes('●2'), '一模重点讲红点');
+});
+
+test('catTrendHtml: 趋势行含考点名 + sparkline svg + 最新正确率 + 箭头', () => {
+  const trends = [{ category: 'tense', series: [{ rate: 40 }, { rate: 60 }], latestRate: 60, firstRate: 40, delta: 20 }];
+  const html = catTrendHtml(trends, { tense: '谓语动词' });
+  assert.ok(html.includes('谓语动词'), '中文考点名');
+  assert.ok(html.includes('<svg'), 'sparkline');
+  assert.ok(html.includes('60%'), '最新正确率');
+  assert.ok(html.includes('↑20'), '上升箭头');
+});

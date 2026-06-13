@@ -160,12 +160,61 @@
     }).join('');
   }
 
+  function examChipsHtml(exams, selectedId) {
+    exams = exams || [];
+    if (!exams.length) return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:20px;color:#888;text-align:center;margin-bottom:14px;">还没有导入的卷子。去「导入成绩」传一套吧。</div>';
+    var chips = exams.map(function(e){
+      var active = e.id === selectedId;
+      var dot = (e.focusCount > 0) ? '<span style="margin-left:5px;font-size:11px;color:' + (active ? '#fff' : '#e74c3c') + ';">●' + e.focusCount + '</span>' : '';
+      return '<button type="button" class="ep-exam-chip" data-id="' + esc(e.id) + '" style="flex:0 0 auto;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:13px;margin:0 8px 0 0;white-space:nowrap;'
+        + (active ? 'background:#0071e3;color:#fff;border:1px solid #0071e3;' : 'background:#f7f7f7;color:#333;border:1px solid #e5e5e5;') + '">'
+        + esc(e.examLabel) + dot + '</button>';
+    }).join('');
+    return '<div style="margin-bottom:14px;">'
+      + '<div style="font-weight:600;margin-bottom:8px;">选一套卷看画像 <span style="font-weight:400;color:#888;font-size:12px;">· 按时间排，' + exams.length + ' 套，左早右近</span></div>'
+      + '<div style="display:flex;overflow-x:auto;padding-bottom:4px;">' + chips + '</div></div>';
+  }
+
+  function sparklineSvg(rates) {
+    rates = rates || [];
+    if (rates.filter(function(r){ return r != null; }).length < 2) return '<span style="color:#bbb;font-size:11px;">数据不足</span>';
+    var W = 130, H = 26, n = rates.length, coords = [];
+    rates.forEach(function(r, i){
+      if (r == null) return;
+      var x = n > 1 ? (i / (n - 1)) * (W - 4) + 2 : 2;
+      var y = H - 2 - (r / 100) * (H - 4);
+      coords.push(x.toFixed(1) + ',' + y.toFixed(1));
+    });
+    return '<svg width="' + W + '" height="' + H + '" style="vertical-align:middle;">'
+      + '<polyline points="' + coords.join(' ') + '" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  }
+
+  function catTrendHtml(trends, catNames) {
+    trends = trends || []; catNames = catNames || {};
+    if (!trends.length) return '';
+    var rows = trends.map(function(t){
+      var rate = t.latestRate == null ? '—' : (t.latestRate + '%');
+      var color = t.latestRate == null ? '#888' : (t.latestRate < 60 ? '#e74c3c' : (t.latestRate < 85 ? '#f39c12' : '#27ae60'));
+      var arrow = t.delta > 3 ? '<span style="color:#27ae60;">↑' + t.delta + '</span>' : (t.delta < -3 ? '<span style="color:#e74c3c;">↓' + (-t.delta) + '</span>' : '<span style="color:#aaa;">→</span>');
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f4f4f4;">'
+        + '<span style="width:84px;font-weight:600;font-size:13px;">' + esc(catNames[t.category] || t.category) + '</span>'
+        + sparklineSvg((t.series || []).map(function(p){ return p.rate; }))
+        + '<span style="width:46px;text-align:right;font-weight:600;color:' + color + ';">' + rate + '</span>'
+        + '<span style="width:50px;text-align:right;font-size:12px;">' + arrow + '</span>'
+        + '</div>';
+    }).join('');
+    return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
+      + '<div style="font-weight:600;margin-bottom:8px;">📈 考点趋势 · 正确率随卷变化 <span style="font-weight:400;color:#888;font-size:12px;">· 左早右近，越靠上越该补</span></div>' + rows + '</div>';
+  }
+
   window.GrammarErrorProfileRender = {
     uploadPanelHtml: uploadPanelHtml,
     profilePageHtml: profilePageHtml,
     boardListHtml: boardListHtml,
     importClassBarHtml: importClassBarHtml,
     classChipsHtml: classChipsHtml,
-    studentTimelineHtml: studentTimelineHtml
+    studentTimelineHtml: studentTimelineHtml,
+    examChipsHtml: examChipsHtml,
+    catTrendHtml: catTrendHtml
   };
 })();

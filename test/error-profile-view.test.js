@@ -52,3 +52,20 @@ test('buildProfileViewModel: 考点排行(差的在前)+优先级、题表、学
   ]));
   assert.equal(json(vm.summary), json({ studentCount: 2, questionCount: 2, focusCount: 1 }));
 });
+
+const { buildCatTrends } = w.GrammarErrorProfileView;
+
+test('buildCatTrends: 跨卷考点趋势(按最新正确率升序,含变化量与缺卷null)', () => {
+  const exams = [
+    { examLabel: '一模', examDate: '2026-01-01', byCat: { tense: { right: 4, wrong: 6, rate: 40 }, article: { right: 9, wrong: 1, rate: 90 } } },
+    { examLabel: '二模', examDate: '2026-02-01', byCat: { tense: { right: 6, wrong: 4, rate: 60 } } },
+  ];
+  const t = buildCatTrends(exams);
+  const byCat = {}; t.forEach((x) => { byCat[x.category] = x; });
+  assert.equal(t[0].category, 'tense');
+  assert.equal(byCat.tense.latestRate, 60);
+  assert.equal(byCat.tense.firstRate, 40);
+  assert.equal(byCat.tense.delta, 20);
+  assert.equal(json(byCat.tense.series.map((p) => p.rate)), json([40, 60]));
+  assert.equal(json(byCat.article.series.map((p) => p.rate)), json([90, null]));
+});
