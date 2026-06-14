@@ -100,3 +100,78 @@ test('catTrendHtml: 趋势行含考点名 + sparkline svg + 最新正确率 + �
   assert.ok(html.includes('60%'), '最新正确率');
   assert.ok(html.includes('↑20'), '上升箭头');
 });
+
+const { studentSearchBoxHtml, studentMatchListHtml, studentProfileHtml, catTrendDetailsHtml } = w.GrammarErrorProfileRender;
+
+test('catRankingHtml 行内趋势：传 trendByCat 时每行含迷你 sparkline + 升降箭头', () => {
+  const vm = {
+    summary: { studentCount: 10, questionCount: 10, focusCount: 1 },
+    catRanking: [{ category: 'tense', categoryName: '谓语动词', right: 2, wrong: 8, rate: 20, priority: 'focus' }],
+    noList: [], students: [],
+  };
+  const html = profilePageHtml(vm, { tense: { series: [{ rate: 10 }, { rate: 20 }], delta: 10 } });
+  assert.ok(html.includes('谓语动词'), '考点名');
+  assert.ok(html.includes('20%'), '当前正确率');
+  assert.ok(html.includes('<svg'), '行内迷你趋势线');
+  assert.ok(html.includes('↑10'), '升箭头');
+  assert.ok(html.includes('重点讲'), '优先级标签');
+});
+
+test('profilePageHtml 不传 trendByCat 时不渲染 svg（向后兼容）', () => {
+  const vm = { summary: {}, catRanking: [{ category: 't', categoryName: '时态', right: 1, wrong: 1, rate: 50, priority: 'watch' }], noList: [], students: [] };
+  const html = profilePageHtml(vm);
+  assert.ok(html.includes('时态'), '考点名');
+  assert.ok(!html.includes('<svg'), '无趋势数据不出 sparkline');
+});
+
+test('studentSearchBoxHtml: 搜索框 + 人数 + 匹配/画像容器', () => {
+  const html = studentSearchBoxHtml(42);
+  assert.ok(html.includes('id="stSearch"'), '搜索框 id');
+  assert.ok(html.includes('共 42 人'), '人数');
+  assert.ok(html.includes('id="stMatchList"'), '匹配容器');
+  assert.ok(html.includes('id="stStudentDetail"'), '画像容器');
+});
+
+test('studentMatchListHtml: 命中行带 data-no + 本地显名 + 错次/缺考 + 标题', () => {
+  const html = studentMatchListHtml([{ studentNo: '2023531001', totalWrong: 9, missedCount: 1 }], { '2023531001': '张三' }, { title: '最需要关注的学生' });
+  assert.ok(html.includes('class="st-pick"'), '可点 class');
+  assert.ok(html.includes('data-no="2023531001"'), 'data-no');
+  assert.ok(html.includes('张三'), '本地显名');
+  assert.ok(html.includes('错 9'), '错次');
+  assert.ok(html.includes('缺考 1'), '缺考');
+  assert.ok(html.includes('最需要关注的学生'), '标题');
+});
+
+test('studentMatchListHtml: 无命中 + emptyText → 提示', () => {
+  assert.ok(studentMatchListHtml([], {}, { emptyText: '没找到' }).includes('没找到'), '空态提示');
+});
+
+test('studentProfileHtml: 姓名 + 正确率折线 svg + 弱项考点 + 各卷明细 + 缺考徽章', () => {
+  const vm = {
+    studentNo: 'S1',
+    rateSeries: [{ examLabel: '一模', rate: 40 }, { examLabel: '二模', rate: 70 }],
+    weakCats: [{ category: 'tense', categoryName: '谓语动词', right: 2, wrong: 6, rate: 25 }],
+    exams: [{ examLabel: '一模', rightCount: 4, wrongCount: 6, blankCount: 0 }, { examLabel: '二模', rightCount: 7, wrongCount: 3, blankCount: 0 }],
+    examCount: 2, missedCount: 1, latestRate: 70,
+  };
+  const html = studentProfileHtml(vm, '张三');
+  assert.ok(html.includes('张三'), '姓名');
+  assert.ok(html.includes('缺考 1'), '缺考徽章');
+  assert.ok(html.includes('<svg'), '正确率折线图');
+  assert.ok(html.includes('谓语动词'), '弱项考点名');
+  assert.ok(html.includes('一模') && html.includes('二模'), '各卷明细');
+  assert.ok(html.includes('70%'), '最近正确率');
+});
+
+test('studentProfileHtml: 单卷数据不足 → 折线图给提示而非报错', () => {
+  const vm = { studentNo: 'S1', rateSeries: [{ examLabel: '一模', rate: 40 }], weakCats: [], exams: [{ examLabel: '一模', rightCount: 4, wrongCount: 6, blankCount: 0 }], examCount: 1, missedCount: 0, latestRate: 40 };
+  assert.ok(studentProfileHtml(vm, '李四').includes('数据不足'), '少于2卷提示');
+});
+
+test('catTrendDetailsHtml: 折叠 details/summary 包住趋势；空→空串', () => {
+  assert.equal(catTrendDetailsHtml([]), '', '空趋势→空串');
+  const html = catTrendDetailsHtml([{ category: 'tense', series: [{ rate: 40 }, { rate: 60 }], latestRate: 60, firstRate: 40, delta: 20 }], { tense: '谓语动词' });
+  assert.ok(html.includes('<details'), 'details 包裹');
+  assert.ok(html.includes('<summary'), 'summary 摘要');
+  assert.ok(html.includes('谓语动词'), '内含趋势内容');
+});

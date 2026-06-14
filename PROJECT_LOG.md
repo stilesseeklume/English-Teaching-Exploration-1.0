@@ -486,3 +486,17 @@ d29c166 注册登录改为用户名+密码
 - 3 处 isMockQuestion（knowledge-view-model / migration-training / saved-materials-model）均认全「模拟卷」+「模拟题」双写法，模拟计数无遗漏。
 - buildUnitFilterChips 在 source !== bank 时返回空 → 错题本不出真/模筛选片，是设计预期（错题本不区分真题/模拟）。
 无需改代码。
+
+## 2026-06-14 · 考点画像板块可视化升级 + 学生画像搜索驱动（用户反馈）
+
+起因：组长反馈两点——①画像板块里"选套卷"后，结果被夹在中间的一大段"考点趋势"挡住，看不见变化；②学生那么多/考试那么多，不该全平铺，要可选择 + 个人画像也要可视化。设计原则收敛为「选择器驱动 + 结果紧跟 + 渐进披露，不全平铺」（过 `frontend-design`：减法、一个焦点、按需展开）。
+
+- **考点画像板块重排**（`error-profile-controller.js renderBoardPage`）：顺序改为 班级chips → 选套卷chips → **选中套卷画像（紧跟，立即可见）** → 全考点跨卷趋势（折叠沉底，默认收起）→ "查看单个学生的画像"入口。原来夹在 chips 与画像之间的整段趋势不再挡路。
+- **跨卷趋势融进考点排行**（`error-profile-render.js`）：`catRankingHtml(catRanking, trendByCat?)` 每行内嵌迷你趋势线（`miniSparkSvg`）+ 升降箭头（`deltaHtml`）；`profilePageHtml(vm, trendByCat?)` 透传（不传则与原样一致，向后兼容）。全考点完整趋势降级为 `catTrendDetailsHtml`（`<details>` 折叠）。
+- **学生板块改搜索驱动 + 可视化个人画像**（`renderTimelinePage` 重写末段 + 新 `wireStudentSearch`）：搜索框（姓名/学号即时筛）→ 命中列表（`studentMatchListHtml`，空查询默认列"最需要关注的几个"）→ 选中渲染 `studentProfileHtml`：正确率折线图（`rateTrendBlock`，红黄绿点 + 数值 + 60分线 + 首尾卷名）+ 弱项考点条形 + 各卷明细。不再把全班平铺成卡片墙。
+- **新增纯函数**：view 加 `buildStudentProfileVM`；render 加 `miniSparkSvg`/`deltaHtml`/`rateTrendBlock`/`catTrendDetailsHtml`/`studentSearchBoxHtml`/`studentMatchListHtml`/`studentProfileHtml`。隐私红线不变（姓名仍只在本机解析，云端只存学号）。
+- 契约同步：`scripts/check_grammar_modules.py` 登记 `GrammarErrorProfileView`(+buildCatTrends,+buildStudentProfileVM) 与 `GrammarErrorProfileRender`(+4 个新导出)。`studentTimelineHtml`（旧扁平卡片）保留导出 + 单测，暂作兼容/回退，不再被控制器调用。
+- 在哪试：登录 →「考点画像」选套卷即见画像 + 行内趋势，底部可展开全考点趋势；「学生时间线」搜姓名/学号选一个学生看折线画像。
+- 验证：`node --test`（64/64，新增 11 条）+ `python3 scripts/check_grammar_modules.py`（27 模块）全绿；本地预览注入模拟数据截图核对三块可视化与折线图标签防重叠（含高分起点压力用例），无 console error。`npm run check` 全量门禁与 commit/push 待用户授权后再跑。
+
+*此日志随项目推进持续更新。最后更新：2026-06-14*

@@ -39,20 +39,34 @@
       + '<span style="display:block;width:' + pct + '%;height:100%;background:' + color + ';"></span></span>';
   }
 
-  function catRankingHtml(catRanking) {
+  // catRankingHtml(catRanking, trendByCat?)：trendByCat[考点] = { series:[{rate}], delta } 时，
+  // 行内嵌一条跨卷迷你趋势线 + 升降箭头（把"考点趋势"融进排行，免去单独一大块）。不传则与原样一致。
+  function catRankingHtml(catRanking, trendByCat) {
     if (!catRanking.length) return '';
+    trendByCat = trendByCat || {};
+    var hasTrend = false; for (var k in trendByCat) { if (trendByCat.hasOwnProperty(k)) { hasTrend = true; break; } }
     var rows = catRanking.map(function(c){
       var rateText = c.rate == null ? '—' : (c.rate + '%');
+      var trendCell = '';
+      if (hasTrend) {
+        var t = trendByCat[c.category];
+        trendCell = t
+          ? '<span style="display:inline-flex;align-items:center;gap:4px;width:100px;flex:0 0 auto;">'
+              + miniSparkSvg((t.series || []).map(function(p){ return p.rate; })) + deltaHtml(t.delta) + '</span>'
+          : '<span style="width:100px;flex:0 0 auto;color:#ccc;font-size:11px;">新考点</span>';
+      }
       return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f4f4f4;">'
-        + '<span style="width:84px;font-weight:600;">' + esc(c.categoryName) + '</span>'
+        + '<span style="width:84px;flex:0 0 auto;font-weight:600;">' + esc(c.categoryName) + '</span>'
         + barHtml(c.rate)
-        + '<span style="width:48px;text-align:right;">' + rateText + '</span>'
-        + '<span style="color:#888;font-size:12px;">对' + c.right + ' / 错' + c.wrong + '</span>'
-        + '<span style="margin-left:auto;font-size:12px;">' + (PRIORITY_LABEL[c.priority] || '') + '</span>'
+        + '<span style="width:44px;flex:0 0 auto;text-align:right;">' + rateText + '</span>'
+        + trendCell
+        + '<span style="color:#999;font-size:12px;flex:0 0 auto;">对' + c.right + ' / 错' + c.wrong + '</span>'
+        + '<span style="margin-left:auto;font-size:12px;flex:0 0 auto;">' + (PRIORITY_LABEL[c.priority] || '') + '</span>'
         + '</div>';
     }).join('');
+    var hint = hasTrend ? ' <span style="font-weight:400;color:#888;font-size:12px;">· 趋势线左早右近</span>' : '';
     return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
-      + '<div style="font-weight:600;margin-bottom:8px;">考点画像 · 正确率排行（低的该重点讲）</div>' + rows + '</div>';
+      + '<div style="font-weight:600;margin-bottom:8px;">考点画像 · 正确率排行（低的该重点讲）' + hint + '</div>' + rows + '</div>';
   }
 
   function noListHtml(noList) {
@@ -82,13 +96,13 @@
       + '<div style="font-weight:600;margin-bottom:8px;">学生（错最多在前）</div>' + rows + '</div>';
   }
 
-  function profilePageHtml(vm) {
+  function profilePageHtml(vm, trendByCat) {
     vm = vm || {};
     var s = vm.summary || {};
     var head = '<div style="color:#666;font-size:13px;margin-bottom:12px;">'
       + '共 ' + (s.studentCount || 0) + ' 名学生 · ' + (s.questionCount || 0) + ' 道语法填空 · '
       + '<b style="color:#e74c3c;">' + (s.focusCount || 0) + '</b> 个考点需重点讲</div>';
-    return head + catRankingHtml(vm.catRanking || []) + noListHtml(vm.noList || []) + studentsHtml(vm.students || []);
+    return head + catRankingHtml(vm.catRanking || [], trendByCat) + noListHtml(vm.noList || []) + studentsHtml(vm.students || []);
   }
 
   function boardListHtml(boardModel) {
@@ -175,6 +189,63 @@
       + '<div style="display:flex;overflow-x:auto;padding-bottom:4px;">' + chips + '</div></div>';
   }
 
+  // 行内迷你趋势线（融进考点排行那行用）。比 sparklineSvg 更小，末点带圆点。
+  function miniSparkSvg(rates) {
+    rates = rates || [];
+    var W = 64, H = 18;
+    if (rates.filter(function(r){ return r != null; }).length < 2) return '<span style="display:inline-block;width:' + W + 'px;color:#ccc;font-size:10px;text-align:center;">—</span>';
+    var n = rates.length, coords = [], last = null;
+    rates.forEach(function(r, i){
+      if (r == null) return;
+      var x = n > 1 ? (i / (n - 1)) * (W - 4) + 2 : 2;
+      var y = H - 2 - (r / 100) * (H - 4);
+      coords.push(x.toFixed(1) + ',' + y.toFixed(1)); last = [x, y];
+    });
+    var dot = last ? '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="1.8" fill="#0071e3"/>' : '';
+    return '<svg width="' + W + '" height="' + H + '" style="vertical-align:middle;flex:0 0 auto;">'
+      + '<polyline points="' + coords.join(' ') + '" fill="none" stroke="#0071e3" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>' + dot + '</svg>';
+  }
+
+  // 升/降/平 箭头（>3 升、<-3 降）
+  function deltaHtml(delta) {
+    if (delta == null) return '';
+    if (delta > 3) return '<span style="color:#27ae60;font-size:12px;">↑' + delta + '</span>';
+    if (delta < -3) return '<span style="color:#e74c3c;font-size:12px;">↓' + (-delta) + '</span>';
+    return '<span style="color:#bbb;font-size:12px;">→</span>';
+  }
+
+  // rateTrendBlock：单生「正确率随卷变化」折线图（红黄绿点 + 数值标注 + 60%参考线 + 首尾卷名）。
+  function rateTrendBlock(series) {
+    series = series || [];
+    var rated = series.filter(function(p){ return p.rate != null; });
+    if (rated.length < 2) return '<div style="color:#aaa;font-size:13px;margin-bottom:4px;">数据不足（至少 2 卷才看得出趋势）</div>';
+    var W = 320, H = 96, padL = 8, padR = 8, padT = 12, padB = 22;
+    var n = series.length, innerW = W - padL - padR, innerH = H - padT - padB, pts = [];
+    series.forEach(function(p, i){
+      if (p.rate == null) return;
+      var x = n > 1 ? padL + (i / (n - 1)) * innerW : padL + innerW / 2;
+      var y = padT + (1 - p.rate / 100) * innerH;
+      pts.push({ x: x, y: y, rate: p.rate, label: p.examLabel });
+    });
+    var y60 = padT + (1 - 0.6) * innerH;
+    var grid = '<line x1="' + padL + '" y1="' + y60.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y60.toFixed(1) + '" stroke="#eedede" stroke-width="1" stroke-dasharray="3 3"/>'
+      + '<text x="' + padL + '" y="' + (y60 - 3).toFixed(1) + '" text-anchor="start" font-size="9" fill="#d9a0a0">60分线</text>';
+    var line = '<polyline points="' + pts.map(function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') + '" fill="none" stroke="#0071e3" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    var dots = pts.map(function(p){
+      var col = p.rate < 60 ? '#e74c3c' : (p.rate < 85 ? '#f39c12' : '#27ae60');
+      return '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="' + col + '"/>'
+        + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 7).toFixed(1) + '" text-anchor="middle" font-size="10" fill="#666">' + p.rate + '</text>';
+    }).join('');
+    var xlabels = pts.map(function(p, idx){
+      if (pts.length > 4 && idx !== 0 && idx !== pts.length - 1) return '';
+      var lab = (p.label || ''); if (lab.length > 7) lab = lab.slice(0, 7);
+      var anchor = idx === 0 ? 'start' : (idx === pts.length - 1 ? 'end' : 'middle');
+      return '<text x="' + p.x.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + anchor + '" font-size="10" fill="#aaa">' + esc(lab) + '</text>';
+    }).join('');
+    return '<div style="margin-bottom:4px;"><svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="max-width:440px;display:block;">'
+      + grid + line + dots + xlabels + '</svg></div>';
+  }
+
   function sparklineSvg(rates) {
     rates = rates || [];
     if (rates.filter(function(r){ return r != null; }).length < 2) return '<span style="color:#bbb;font-size:11px;">数据不足</span>';
@@ -207,6 +278,83 @@
       + '<div style="font-weight:600;margin-bottom:8px;">📈 考点趋势 · 正确率随卷变化 <span style="font-weight:400;color:#888;font-size:12px;">· 左早右近，越靠上越该补</span></div>' + rows + '</div>';
   }
 
+  // catTrendDetailsHtml：把全考点跨卷趋势收进一个默认折叠的 <details>，沉到板块底部，永不挡路。
+  function catTrendDetailsHtml(trends, catNames) {
+    trends = trends || [];
+    if (!trends.length) return '';
+    return '<details style="margin-bottom:8px;">'
+      + '<summary style="cursor:pointer;font-weight:600;color:#0071e3;font-size:14px;padding:10px 0;list-style:none;">📈 展开全部考点的跨卷趋势（' + trends.length + ' 个考点）</summary>'
+      + '<div style="margin-top:8px;">' + catTrendHtml(trends, catNames) + '</div></details>';
+  }
+
+  // studentSearchBoxHtml：搜索框（姓名/学号即时筛）+ 匹配列表容器 + 个人画像容器。
+  function studentSearchBoxHtml(count) {
+    return '<div style="margin:10px 0 4px;">'
+      + '<input id="stSearch" type="text" autocomplete="off" placeholder="🔍 搜学生：打姓名或学号…（共 ' + (count || 0) + ' 人）" '
+      +   'style="width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #e5e5e5;border-radius:12px;font-size:14px;outline:none;background:#fff;">'
+      + '</div>'
+      + '<div id="stMatchList"></div>'
+      + '<div id="stStudentDetail" style="margin-top:6px;"></div>';
+  }
+
+  // studentMatchListHtml：搜索命中（或默认"最需要关注"）的紧凑可点列表。一行一个学生 + 错次/缺考。
+  function studentMatchListHtml(matches, nameMap, opt) {
+    matches = matches || []; nameMap = nameMap || {}; opt = opt || {};
+    var resolve = (window.GrammarStudentTracking && window.GrammarStudentTracking.resolveStudentName) || function(m, s){ return (m && m[s]) || s; };
+    if (!matches.length) {
+      return opt.emptyText ? '<div style="color:#aaa;font-size:13px;padding:10px 2px;">' + esc(opt.emptyText) + '</div>' : '';
+    }
+    var rows = matches.map(function(m){
+      var nm = esc(resolve(nameMap, m.studentNo));
+      var stat = (m.totalWrong != null) ? '<span style="color:#c0392b;font-size:12px;">错 ' + m.totalWrong + '</span>' : '';
+      var miss = (m.missedCount > 0) ? '<span style="color:#e67e22;font-size:12px;">缺考 ' + m.missedCount + '</span>' : '';
+      var on = (m.studentNo === opt.selectedNo);
+      return '<button type="button" class="st-pick" data-no="' + esc(m.studentNo) + '" '
+        + 'style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 14px;border:none;border-bottom:1px solid #f4f4f4;cursor:pointer;font-size:14px;'
+        + (on ? 'background:#f0f7ff;' : 'background:#fff;') + '">'
+        + '<span style="font-weight:600;min-width:64px;">' + nm + '</span>' + stat + miss
+        + '<span style="margin-left:auto;color:#bbb;font-size:12px;">看画像 ›</span></button>';
+    }).join('');
+    var title = opt.title ? '<div style="font-weight:600;font-size:13px;color:#666;margin:8px 2px 6px;">' + esc(opt.title) + '</div>' : '';
+    return title + '<div style="background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;margin-bottom:12px;">' + rows + '</div>';
+  }
+
+  // studentProfileHtml：单生个人画像（可视化）。vm 来自 buildStudentProfileVM。
+  function studentProfileHtml(vm, name) {
+    vm = vm || {};
+    name = esc(name || vm.studentNo || '');
+    var missedBadge = (vm.missedCount > 0)
+      ? ' <span style="font-weight:400;font-size:12px;color:#e67e22;background:#fff5ec;border-radius:10px;padding:1px 8px;margin-left:6px;">缺考 ' + vm.missedCount + '</span>' : '';
+    var latest = vm.latestRate == null ? '—' : (vm.latestRate + '%');
+    var latestColor = vm.latestRate == null ? '#333' : (vm.latestRate < 60 ? '#e74c3c' : (vm.latestRate < 85 ? '#f39c12' : '#27ae60'));
+    var weak = (vm.weakCats && vm.weakCats.length)
+      ? vm.weakCats.slice(0, 8).map(function(c){
+          return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;">'
+            + '<span style="width:84px;flex:0 0 auto;font-weight:600;font-size:13px;">' + esc(c.categoryName) + '</span>'
+            + barHtml(c.rate)
+            + '<span style="width:44px;flex:0 0 auto;text-align:right;font-size:13px;">' + (c.rate == null ? '—' : c.rate + '%') + '</span>'
+            + '<span style="color:#999;font-size:12px;">错 ' + c.wrong + '</span></div>';
+        }).join('')
+      : '<div style="color:#aaa;font-size:13px;">暂无弱项数据</div>';
+    var exams = (vm.exams && vm.exams.length)
+      ? vm.exams.map(function(e){
+          var ans = (e.rightCount || 0) + (e.wrongCount || 0);
+          var rate = ans > 0 ? Math.round((e.rightCount || 0) / ans * 100) : null;
+          var col = rate == null ? '#999' : (rate < 60 ? '#e74c3c' : (rate < 85 ? '#f39c12' : '#27ae60'));
+          return '<span style="display:inline-block;margin:3px 6px 3px 0;padding:5px 10px;border:1px solid #eee;border-radius:8px;font-size:12px;">'
+            + esc(e.examLabel) + ' <b style="color:' + col + ';">' + (rate == null ? '—' : rate + '%') + '</b> '
+            + '<span style="color:#999;">对' + (e.rightCount || 0) + ' 错' + (e.wrongCount || 0) + (e.blankCount ? ' 缺' + e.blankCount : '') + '</span></span>';
+        }).join('')
+      : '<span style="color:#aaa;font-size:12px;">暂无成绩</span>';
+    return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.05);">'
+      + '<div style="font-size:16px;font-weight:600;">' + name + missedBadge + '</div>'
+      + '<div style="color:#888;font-size:13px;margin:2px 0 14px;">最近正确率 <b style="color:' + latestColor + ';">' + latest + '</b> · 共 ' + (vm.examCount || 0) + ' 卷</div>'
+      + '<div style="font-weight:600;font-size:13px;color:#555;margin-bottom:6px;">正确率趋势</div>' + rateTrendBlock(vm.rateSeries)
+      + '<div style="font-weight:600;font-size:13px;color:#555;margin:16px 0 6px;">高频弱项考点（错最多在前）</div>' + weak
+      + '<div style="font-weight:600;font-size:13px;color:#555;margin:16px 0 6px;">各卷明细</div><div>' + exams + '</div>'
+      + '</div>';
+  }
+
   window.GrammarErrorProfileRender = {
     uploadPanelHtml: uploadPanelHtml,
     profilePageHtml: profilePageHtml,
@@ -215,6 +363,10 @@
     classChipsHtml: classChipsHtml,
     studentTimelineHtml: studentTimelineHtml,
     examChipsHtml: examChipsHtml,
-    catTrendHtml: catTrendHtml
+    catTrendHtml: catTrendHtml,
+    catTrendDetailsHtml: catTrendDetailsHtml,
+    studentSearchBoxHtml: studentSearchBoxHtml,
+    studentMatchListHtml: studentMatchListHtml,
+    studentProfileHtml: studentProfileHtml
   };
 })();

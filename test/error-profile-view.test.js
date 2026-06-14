@@ -69,3 +69,33 @@ test('buildCatTrends: 跨卷考点趋势(按最新正确率升序,含变化量�
   assert.equal(json(byCat.tense.series.map((p) => p.rate)), json([40, 60]));
   assert.equal(json(byCat.article.series.map((p) => p.rate)), json([90, null]));
 });
+
+const { buildStudentProfileVM } = w.GrammarErrorProfileView;
+
+test('buildStudentProfileVM: 每卷正确率序列 + 弱项考点带 rate + 最近正确率', () => {
+  const st = {
+    studentNo: 'S1',
+    exams: [
+      { examLabel: '一模', rightCount: 4, wrongCount: 6, blankCount: 0 },
+      { examLabel: '二模', rightCount: 7, wrongCount: 3, blankCount: 0 },
+    ],
+    weakCats: [{ category: 'tense', right: 2, wrong: 6 }],
+    missedCount: 1,
+  };
+  const vm = buildStudentProfileVM(st, { tense: '谓语动词' });
+  assert.equal(vm.rateSeries.length, 2);
+  assert.equal(vm.rateSeries[0].rate, 40, '一模 4/10=40%');
+  assert.equal(vm.rateSeries[1].rate, 70, '二模 7/10=70%');
+  assert.equal(vm.latestRate, 70, '最近=最后一卷');
+  assert.equal(vm.weakCats[0].categoryName, '谓语动词', '考点名解析');
+  assert.equal(vm.weakCats[0].rate, 25, '2/(2+6)=25%');
+  assert.equal(vm.missedCount, 1);
+  assert.equal(vm.examCount, 2);
+});
+
+test('buildStudentProfileVM: 全缺考卷 rate=null 且不计入 latestRate', () => {
+  const st = { studentNo: 'S1', exams: [{ examLabel: '一模', rightCount: 0, wrongCount: 0, blankCount: 10 }], weakCats: [], missedCount: 0 };
+  const vm = buildStudentProfileVM(st, {});
+  assert.equal(vm.rateSeries[0].rate, null, '全缺考→null');
+  assert.equal(vm.latestRate, null, '无有效卷→null');
+});

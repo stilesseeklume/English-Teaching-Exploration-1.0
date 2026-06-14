@@ -10,7 +10,7 @@
 (function(){
   var _imp = null, _brd = null, _boardClassId = null;
   var _tl = null, _tlClassId = null;
-  var _brdExams = {}, _boardExamId = null;
+  var _brdExams = {}, _boardExamId = null, _brdTrendByCat = {};
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
   function classIdNow() { var s = document.getElementById('errorImportClass'); return (s || {}).value || ''; }
@@ -153,7 +153,7 @@
     var vmodel = window.GrammarErrorProfileView.buildProfileViewModel(profile, _brd.catNames || {});
     detail.innerHTML = '<div style="margin-bottom:10px;"><b>' + (window.escapeHtml ? window.escapeHtml(g.examLabel) : g.examLabel) + '</b> · 本卷画像'
       + '<button id="epDelExam" style="margin-left:10px;padding:3px 10px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;font-size:12px;">删这套</button></div>'
-      + window.GrammarErrorProfileRender.profilePageHtml(vmodel);
+      + window.GrammarErrorProfileRender.profilePageHtml(vmodel, _brdTrendByCat);
     var del = document.getElementById('epDelExam');
     if (del) del.addEventListener('click', function(){ boardDelProfile(examId); });
     detail.querySelectorAll('.ep-add-error').forEach(function(btn){
@@ -202,11 +202,13 @@
       }).sort(function(a, z){ return String(a.examDate).localeCompare(String(z.examDate)); });   // 升序：左早右近
       if ((!_boardExamId || !_brdExams[_boardExamId]) && orderedExams.length) _boardExamId = orderedExams[orderedExams.length - 1].id;   // 默认最新一套
       var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
+      _brdTrendByCat = {};
+      trends.forEach(function(t){ _brdTrendByCat[t.category] = t; });   // 考点→趋势，喂给排行行内迷你趋势线
       el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _boardClassId)
-        + '<button id="epToTimeline" style="margin:0 0 12px;padding:6px 14px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">📈 学生时间线</button>'
         + window.GrammarErrorProfileRender.examChipsHtml(orderedExams, _boardExamId)
-        + window.GrammarErrorProfileRender.catTrendHtml(trends, catNames)
-        + '<div id="epBoardDetail" style="margin-top:4px;"></div>';
+        + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 选中套卷的画像——紧跟 chips，立即可见
+        + window.GrammarErrorProfileRender.catTrendDetailsHtml(trends, catNames)        // 全考点跨卷趋势——折叠沉底，默认收起
+        + '<div style="margin-top:8px;"><button id="epToTimeline" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">查看单个学生的画像 →</button></div>';
       el.querySelectorAll('.ep-class-chip').forEach(function(btn){
         btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); _boardExamId = null; renderBoardPage(_brd); });
       });
@@ -245,6 +247,56 @@
       } catch (err) { if (window.alert) window.alert('名单解析失败：' + (err && err.message ? err.message : '未知错误') + '。确认是含「学号」「姓名」列的 Excel。'); }
     };
     reader.readAsArrayBuffer(file);
+  }
+  function studentTotalWrong(st) {
+    return ((st && st.weakCats) || []).reduce(function(s, x){ return s + (x.wrong || 0); }, 0);
+  }
+  // 搜索驱动：输入姓名/学号即时筛 → 点一个 → 在下方渲染他的可视化个人画像。默认空查询只列"最需要关注的几个"。
+  function wireStudentSearch(timeline, nameMap, catNames) {
+    timeline = timeline || []; nameMap = nameMap || {}; catNames = catNames || {};
+    var R = window.GrammarErrorProfileRender;
+    var resolve = window.GrammarStudentTracking.resolveStudentName;
+    var input = document.getElementById('stSearch');
+    var selectedNo = null;
+    var rows = timeline.map(function(st){
+      return { studentNo: st.studentNo, name: resolve(nameMap, st.studentNo), totalWrong: studentTotalWrong(st), missedCount: st.missedCount || 0, st: st };
+    });
+    function showDetail(no) {
+      selectedNo = no;
+      var hit = null;
+      for (var i = 0; i < rows.length; i++) { if (rows[i].studentNo === no) { hit = rows[i]; break; } }
+      var detail = document.getElementById('stStudentDetail');
+      if (!detail) return;
+      if (!hit) { detail.innerHTML = ''; return; }
+      var vm = window.GrammarErrorProfileView.buildStudentProfileVM(hit.st, catNames);
+      detail.innerHTML = R.studentProfileHtml(vm, hit.name);
+    }
+    function showMatches(query) {
+      var q = (query || '').trim().toLowerCase();
+      var matched, opt;
+      if (!q) {
+        matched = rows.slice(0, 6);   // buildStudentTimeline 默认按"弱"降序，取前几个即"最需要关注"
+        opt = matched.length
+          ? { title: '最需要关注的学生（错最多在前，点开看画像）', selectedNo: selectedNo }
+          : { emptyText: '这个班还没有学生成绩——导一次成绩或名单就有了。', selectedNo: selectedNo };
+      } else {
+        matched = rows.filter(function(m){
+          return String(m.name).toLowerCase().indexOf(q) !== -1 || String(m.studentNo).indexOf(q) !== -1;
+        }).slice(0, 20);
+        opt = { emptyText: '没找到「' + query + '」——换个姓名或学号试试。', selectedNo: selectedNo };
+      }
+      var box = document.getElementById('stMatchList');
+      if (!box) return;
+      box.innerHTML = R.studentMatchListHtml(matched, nameMap, opt);
+      box.querySelectorAll('.st-pick').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          showDetail(btn.getAttribute('data-no'));
+          showMatches(input ? input.value : '');   // 重渲染列表以高亮选中项
+        });
+      });
+    }
+    if (input) input.addEventListener('input', function(){ showMatches(input.value); });
+    showMatches('');   // 初始：默认列出最需要关注的几个
   }
   function renderTimelinePage(deps) {
     _tl = deps || _tl;
@@ -287,7 +339,11 @@
       ((_tl.classRoster && _tl.classRoster(_tlClassId)) || []).forEach(function(n){ rosterSet[n] = 1; });
       var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows, Object.keys(rosterSet));
       var names = (_tl.loadStudentNames && _tl.loadStudentNames()) || {};
-      if (listEl) listEl.innerHTML = window.GrammarErrorProfileRender.studentTimelineHtml(timeline, names, (_tl.catNames) || {});
+      if (listEl) {
+        listEl.style.color = '';
+        listEl.innerHTML = window.GrammarErrorProfileRender.studentSearchBoxHtml(timeline.length);
+        wireStudentSearch(timeline, names, (_tl.catNames) || {});
+      }
     }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }
 

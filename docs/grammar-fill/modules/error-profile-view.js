@@ -75,9 +75,42 @@
     }).sort(function(a, z){ return (a.latestRate == null ? 999 : a.latestRate) - (z.latestRate == null ? 999 : z.latestRate); });
   }
 
+  // buildStudentProfileVM: 单个学生的时间线 → 个人画像视图模型（供可视化）。
+  // in:  { studentNo, exams:[{examLabel,examDate,rightCount,wrongCount,blankCount}], weakCats:[{category,right,wrong}], missedCount }
+  // out: { studentNo, rateSeries:[{examLabel,rate}], weakCats:[{category,categoryName,right,wrong,rate}],
+  //        exams, examCount, missedCount, latestRate }
+  // 每卷正确率 rate = 对/(对+错)*100 取整（无应答=null，缺考不进分母）。
+  function buildStudentProfileVM(st, catNames) {
+    st = st || {}; catNames = catNames || {};
+    var exams = st.exams || [];
+    var rateSeries = exams.map(function(e){
+      var ans = (e.rightCount || 0) + (e.wrongCount || 0);
+      return { examLabel: e.examLabel, rate: ans > 0 ? Math.round((e.rightCount || 0) / ans * 100) : null };
+    });
+    var weakCats = (st.weakCats || []).map(function(c){
+      var ans = (c.right || 0) + (c.wrong || 0);
+      return {
+        category: c.category, categoryName: catNames[c.category] || c.category,
+        right: c.right || 0, wrong: c.wrong || 0,
+        rate: ans > 0 ? Math.round((c.right || 0) / ans * 100) : null
+      };
+    });
+    var rated = rateSeries.filter(function(p){ return p.rate != null; });
+    return {
+      studentNo: st.studentNo,
+      rateSeries: rateSeries,
+      weakCats: weakCats,
+      exams: exams,
+      examCount: exams.length,
+      missedCount: st.missedCount || 0,
+      latestRate: rated.length ? rated[rated.length - 1].rate : null
+    };
+  }
+
   window.GrammarErrorProfileView = {
     buildProfileViewModel: buildProfileViewModel,
     teachPriority: teachPriority,
-    buildCatTrends: buildCatTrends
+    buildCatTrends: buildCatTrends,
+    buildStudentProfileVM: buildStudentProfileVM
   };
 })();

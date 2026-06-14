@@ -4284,7 +4284,7 @@ test('错题画像：导入页可进 + 画像板块列出并展开', async ({ pa
   expect(errors).toEqual([]);
 });
 
-test('学生时间线：选班 + 渲染(mock 云端，本地显名)', async ({ page }) => {
+test('学生时间线：搜索驱动选学生 + 单生可视化画像(mock 云端，本地显名)', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4300,9 +4300,15 @@ test('学生时间线：选班 + 渲染(mock 云端，本地显名)', async ({ p
   });
   await page.evaluate(() => window.switchPage('student-timeline'));
   await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  // 搜索驱动：默认列出学生，不再把每生卷子明细平铺在页面上
+  await expect(page.locator('#stSearch')).toBeVisible();
   await expect(page.locator('#studentTimelineContent')).toContainText('张三');
-  await expect(page.locator('#studentTimelineContent')).toContainText('一模');
   await expect(page.locator('#studentTimelineContent')).toContainText('李四');
-  await expect(page.locator('#studentTimelineContent')).toContainText('暂无成绩');
+  // 点开张三 → 渲染其可视化个人画像，含卷子明细「一模」
+  await page.locator('#stMatchList .st-pick[data-no="S1"]').click();
+  await expect(page.locator('#stStudentDetail')).toContainText('一模');
+  // 点开李四（仅在名单、无成绩）→ 画像显示「暂无成绩」
+  await page.locator('#stMatchList .st-pick[data-no="S2"]').click();
+  await expect(page.locator('#stStudentDetail')).toContainText('暂无成绩');
   expect(errors).toEqual([]);
 });

@@ -663,6 +663,8 @@ EXPECTED_MODULES = [
         "exports": [
             "teachPriority",
             "buildProfileViewModel",
+            "buildCatTrends",
+            "buildStudentProfileVM",
         ],
     },
     {
@@ -672,6 +674,10 @@ EXPECTED_MODULES = [
             "uploadPanelHtml",
             "profilePageHtml",
             "boardListHtml",
+            "catTrendDetailsHtml",
+            "studentSearchBoxHtml",
+            "studentMatchListHtml",
+            "studentProfileHtml",
         ],
     },
     {
