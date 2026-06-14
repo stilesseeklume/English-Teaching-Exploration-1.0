@@ -1235,7 +1235,7 @@ function renderErrorImportPage() {
     catNames: errorProfileCatNames(),
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
-    gotoBoard: function(){ switchPage('error-profile'); },
+    gotoBoard: function(){ switchPage('student-timeline'); },   // 导完成绩 → 班级工作台（默认考点视角）
     now: function(){ return Date.now(); },
     nowText: function(){ return new Date().toLocaleString('zh-CN'); },
     getClasses: loadClasses,
@@ -1260,40 +1260,27 @@ function addProfileErrorToBook(examId, no) {
   saveErrorBook();
   return { ok: true, added: result.imported.length > 0 };
 }
-function renderErrorProfilePage() {
-  return window.GrammarErrorProfileController.renderBoardPage({
+// 班级工作台：考点视角 + 学生视角共用一份 deps（合并原 board / timeline 两套）。
+function renderWorkbenchPage() {
+  return window.GrammarErrorProfileController.renderWorkbenchPage({
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
     catNames: errorProfileCatNames(),
     addExamQuestionToErrorBook: addProfileErrorToBook,
     getClasses: loadClasses,
     createClass: createClassNamed,
-    gotoTimeline: function(){ switchPage('student-timeline'); },
+    deleteClass: function(id){ saveClasses(window.GrammarErrorProfileStore.removeClass(loadClasses(), id)); },
+    loadStudentNames: loadStudentNames,
+    classRoster: loadClassRoster,
     fetchExamResults: function(classId){
       return (window.cloud && window.cloud.fetchExamResults)
         ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
         : Promise.resolve({ rows: [] });
     },
+    deleteExamResultsClass: function(id){ return (window.cloud && window.cloud.deleteExamResults) ? window.cloud.deleteExamResults(id) : Promise.resolve(); },
     deleteExamResultsExam: function(classId, examId){
       return (window.cloud && window.cloud.deleteExamResultsExam) ? window.cloud.deleteExamResultsExam(classId, examId) : Promise.resolve();
-    }
-  });
-}
-function renderStudentTimelinePage() {
-  return window.GrammarErrorProfileController.renderTimelinePage({
-    getClasses: loadClasses,
-    createClass: createClassNamed,
-    deleteClass: function(id){ saveClasses(window.GrammarErrorProfileStore.removeClass(loadClasses(), id)); },
-    deleteExamResultsClass: function(id){ return (window.cloud && window.cloud.deleteExamResults) ? window.cloud.deleteExamResults(id) : Promise.resolve(); },
-    loadProfiles: loadErrorProfiles,
-    loadStudentNames: loadStudentNames,
-    catNames: errorProfileCatNames(),
-    fetchExamResults: function(classId){
-      return (window.cloud && window.cloud.fetchExamResults)
-        ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
-        : Promise.resolve({ rows: [] });
     },
-    classRoster: loadClassRoster,
     importRoster: function(classId, rows){
       var roster = window.GrammarStudentTracking.extractStudentRoster(rows);
       mergeStudentNames(roster);
@@ -1660,6 +1647,7 @@ function handleDockBack() {
 }
 
 function switchPage(page) {
+  if (page === 'error-profile') page = 'student-timeline';   // 考点画像并入班级工作台：旧入口/旧链接重定向到工作台
   var sessionState = getTeachingSessionSnapshot();
   var retentionState = getTeachingPageSwitchRetentionSnapshot();
   var pageSwitchPlan = window.GrammarAppState && window.GrammarAppState.buildPageSwitchPlan
@@ -1719,9 +1707,8 @@ function switchPage(page) {
   if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
   if (renderPlan.renderAction === 'render-admin') renderAdminPage();
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
-  if (page === 'error-profile') renderErrorProfilePage();
   if (page === 'error-import') renderErrorImportPage();
-  if (page === 'student-timeline') renderStudentTimelinePage();
+  if (page === 'student-timeline') renderWorkbenchPage();   // 班级工作台（考点视角 + 学生视角）
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 错题本/备课/讲题显示）
