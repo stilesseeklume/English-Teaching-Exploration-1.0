@@ -13,7 +13,7 @@ function loadWindow(relPaths) {
   return window;
 }
 const w = loadWindow(['docs/grammar-fill/modules/error-profile-store.js']);
-const { upsertEntry, removeEntry, getEntry, buildBoardModel, addClass, removeClass, renameClass, buildClassListModel, addStudentsToClass, removeStudentFromClass } = w.GrammarErrorProfileStore;
+const { upsertEntry, removeEntry, getEntry, buildBoardModel, addClass, removeClass, renameClass, buildClassListModel, addStudentsToClass, removeStudentFromClass, buildClassList } = w.GrammarErrorProfileStore;
 const json = (v) => JSON.stringify(v);
 
 const E = (examId, savedAt, focus) => ({
@@ -88,6 +88,22 @@ test('removeStudentFromClass: 按学号移除，其它字段与其它班不动',
     { id: 'c1', name: 'A班', students: ['S1', 'S3'] },
     { id: 'c2', name: 'B班', students: ['S1'] },
   ]));
+});
+
+test('buildClassList: 人数=名单∪成绩（修两页 0 vs 40 口径不同步）', () => {
+  const rows = [
+    { class_id: 'c1', class_name: '高三①班', student_no: 'S1' },
+    { class_id: 'c1', class_name: '高三①班', student_no: 'S2' },
+  ];
+  const local = [
+    { id: 'c1', name: '高三①班', students: ['S2', 'S3'] },       // S2 重叠、S3 仅名单
+    { id: 'cDemo', name: '演示班级', students: ['m1', 'm2', 'm3'] }, // 纯名单、无成绩
+  ];
+  const list = buildClassList(rows, local);
+  const byId = {}; list.forEach((c) => { byId[c.id] = c; });
+  assert.equal(byId.c1.count, 3);        // S1,S2,S3 并集
+  assert.equal(byId.cDemo.count, 3);     // 纯名单也算 3（不再是 0）
+  assert.equal(byId.c1.name, '高三①班');
 });
 
 test('buildClassListModel: 每班带画像数', () => {

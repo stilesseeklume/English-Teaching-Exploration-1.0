@@ -58,6 +58,22 @@
       return Object.assign({}, c, { students: (c.students || []).filter(function(n){ return n !== studentNo; }) });
     });
   }
+  // 班级列表（云端成绩 ∪ 本地名单），人数口径唯一：工作台两视角共用，杜绝同班 0 vs 40。
+  function buildClassList(allRows, localClasses) {
+    var clsMap = {};
+    (allRows || []).forEach(function(r){
+      if (!r.class_id) return;
+      if (!clsMap[r.class_id]) clsMap[r.class_id] = { id: r.class_id, name: r.class_name || r.class_id, stu: {} };
+      clsMap[r.class_id].stu[r.student_no] = 1;
+    });
+    (localClasses || []).forEach(function(c){
+      if (!clsMap[c.id]) clsMap[c.id] = { id: c.id, name: c.name, stu: {} };
+      (c.students || []).forEach(function(n){ if (n) clsMap[c.id].stu[n] = 1; });
+    });
+    return Object.keys(clsMap).map(function(k){
+      return { id: clsMap[k].id, name: clsMap[k].name, count: Object.keys(clsMap[k].stu).length };
+    });
+  }
   // 每个班 + 它名下有几张画像
   function buildClassListModel(classes, profiles) {
     profiles = profiles || [];
@@ -70,6 +86,6 @@
   window.GrammarErrorProfileStore = {
     upsertEntry: upsertEntry, removeEntry: removeEntry, getEntry: getEntry, buildBoardModel: buildBoardModel,
     addClass: addClass, removeClass: removeClass, renameClass: renameClass, buildClassListModel: buildClassListModel,
-    addStudentsToClass: addStudentsToClass, removeStudentFromClass: removeStudentFromClass
+    addStudentsToClass: addStudentsToClass, removeStudentFromClass: removeStudentFromClass, buildClassList: buildClassList
   };
 })();
