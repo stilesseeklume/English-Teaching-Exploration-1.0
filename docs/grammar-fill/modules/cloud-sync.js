@@ -1,20 +1,19 @@
 // grammar-fill/modules/cloud-sync.js
 //
 // 职责：云同步 UI + 数据层。管理云端登录生命周期状态（首次到达本用户、迁移提示、
-//       管理员 ?admin 入口）、拉取/上传错题本与备课资料、同步状态指示条、
-//       带引用计数与重入队列的全量同步（错题本 / 备课资料）。
-//       并在模块加载时对 window.saveErrorBook / window.savePrepPassages 打猴补丁，
+//       管理员 ?admin 入口）、拉取/上传备课资料、同步状态指示条、
+//       带引用计数与重入队列的全量同步（备课资料）。
+//       并在模块加载时对 window.savePrepPassages 打猴补丁，
 //       使得每次本地保存后异步把全量推到云端。
 // 用法：从 index.html 的同名薄壳调用，公开入口需传入 deps（依赖注入对象）。
 //       模块内保存最近一次 deps（_d），函数间互调走模块内部直接调用。
 //       猴补丁在 IIFE 体内顶层、定义完同步函数之后立即执行（不依赖 deps）。
-// 装配顺序要求：本脚本必须加载在 shared/error-book.js、shared/lesson-prep.js、
-//       shared/cloud.js 之后（保证 window.saveErrorBook / window.savePrepPassages
+// 装配顺序要求：本脚本必须加载在 shared/lesson-prep.js、
+//       shared/cloud.js 之后（保证 window.savePrepPassages
 //       已定义，猴补丁才能正确捕获并重写）。
 // 依赖（deps，运行时注入）：
 //   renderUserPill(state)        渲染用户信息条（来自 shared/auth-ui.js）
 //   switchPage(page)             切换页面
-//   renderErrorBook()            渲染错题本
 //   renderPrepList()             渲染备课资料列表
 //   renderBankStat()             刷新题库统计
 // 全局依赖（window.*，直接调用）：
@@ -22,9 +21,8 @@
 //   window.GrammarAppState       app state 模型（生命周期 / 同步状态 / 队列计算）
 //   window.GrammarSavedMaterialsModel  保存资料同步计划计算
 //   window.seeklumeObservability 可观测性上报（可选）
-//   window.errorBookQuestions    错题数组（读写 window 全局）
 //   window.prepPassages          备课资料数组（读写 window 全局）
-//   window.saveErrorBook / window.savePrepPassages  原始本地保存（被猴补丁包裹）
+//   window.savePrepPassages      原始本地保存（被猴补丁包裹）
 
 /* eslint-disable */
 (function(){
@@ -159,11 +157,8 @@
     // 拉云端数据
     setSyncStatus('syncing');
     try {
-      var [errors, preps] = await Promise.all([
-        window.cloud.pullErrorBook(),
-        window.cloud.pullLessonPrep()
-      ]);
-      var pullPlan = window.GrammarSavedMaterialsModel.buildCloudPullResultPlan(errors, preps);
+      var preps = await window.cloud.pullLessonPrep();
+      var pullPlan = window.GrammarSavedMaterialsModel.buildCloudPullResultPlan([], preps);
       if (pullPlan.shouldCheckLocalCloudMigration) {
         // 第一次登录的迁移提示：云端空 + 本地非空
         var migrationPromptState = window.GrammarAppState
@@ -172,15 +167,15 @@
               cloudMigrationPromptShown: getCloudLifecycleSnapshot().cloudMigrationPromptShown,
               cloudErrorCount: pullPlan.cloudErrorCount,
               cloudPrepCount: pullPlan.cloudPrepCount,
-              localErrorCount: window.errorBookQuestions.length,
+              localErrorCount: 0,
               localPrepCount: window.prepPassages.length
             })
           : {
               cloudMigrationPromptShown: true,
               shouldPrompt: !state.viewingUserId && !getCloudLifecycleSnapshot().cloudMigrationPromptShown
                 && pullPlan.cloudErrorCount === 0 && pullPlan.cloudPrepCount === 0
-                && (window.errorBookQuestions.length > 0 || window.prepPassages.length > 0),
-              localErrorCount: window.errorBookQuestions.length,
+                && (window.prepPassages.length > 0),
+              localErrorCount: 0,
               localPrepCount: window.prepPassages.length
             };
         applyCloudLifecycleState(migrationPromptState);
@@ -196,9 +191,7 @@
         }
       }
       if (pullPlan.shouldApplyCloudData) {
-        window.errorBookQuestions = pullPlan.nextErrorItems;
         window.prepPassages = pullPlan.nextPrepItems;
-        if (pullPlan.shouldRenderErrorBook) _d.renderErrorBook();
         if (pullPlan.shouldRenderPrepList) _d.renderPrepList();
         if (pullPlan.shouldRenderBankStat) _d.renderBankStat();
         setSyncStatus(pullPlan.syncStatus, pullPlan.syncMessage);
@@ -217,7 +210,7 @@
   async function uploadLocalToCloud(deps) {
     _d = deps || _d;
     try {
-      var plan = window.GrammarSavedMaterialsModel.buildLocalCloudUploadPlan(window.errorBookQuestions, window.prepPassages);
+      var plan = window.GrammarSavedMaterialsModel.buildLocalCloudUploadPlan([], window.prepPassages);
       for (var p = 0; p < plan.syncPlans.length; p++) {
         var syncPlan = plan.syncPlans[p];
         for (var i = 0; i < syncPlan.upsertItems.length; i++) {
@@ -226,25 +219,17 @@
       }
       alert(plan.successMessage);
       // 重新拉一次，状态以云端为准
-      var pulledErrors = await window.cloud[plan.errorPullMethod]();
       var pulledPreps = await window.cloud[plan.prepPullMethod]();
       var pullResultPlan = window.GrammarSavedMaterialsModel.buildLocalCloudUploadPullResultPlan(
-        pulledErrors,
+        [],
         pulledPreps,
-        window.errorBookQuestions,
+        [],
         window.prepPassages,
         plan
       );
-      window.errorBookQuestions = pullResultPlan.nextErrorItems;
       window.prepPassages = pullResultPlan.nextPrepItems;
-      if (pullResultPlan.shouldSaveErrorBook) {
-        window.saveErrorBook();
-      }
       if (pullResultPlan.shouldSavePrepPassages) {
         window.savePrepPassages();
-      }
-      if (pullResultPlan.shouldRenderErrorBook) {
-        _d.renderErrorBook();
       }
       if (pullResultPlan.shouldRenderPrepList) {
         _d.renderPrepList();
@@ -423,28 +408,13 @@
     }
   }
 
-  async function syncErrorBookToCloud() {
-    return runSavedMaterialsCloudSync('error', function() { return window.errorBookQuestions; }, syncErrorBookToCloud);
-  }
-
   async function syncPrepToCloud() {
     return runSavedMaterialsCloudSync('prep', function() { return window.prepPassages; }, syncPrepToCloud);
   }
 
   // ─── 猴补丁：拦截原始 save 函数，写本地后异步推到云 ───
-  // 在模块加载时立即执行。捕获/重写均针对 window.*（saveErrorBook / savePrepPassages
-  // 由 shared/error-book.js、shared/lesson-prep.js 定义为 window 全局，本脚本加载在其后）。
-  var _origSaveError = window.saveErrorBook;
-  window.saveErrorBook = function() {
-    _origSaveError.apply(this, arguments);
-    var plan = window.GrammarAppState
-      ? window.GrammarAppState.buildSavedMaterialsSaveCloudPlan('error', window.cloud && window.cloud.state)
-      : { shouldSyncCloud: !!(window.cloud && window.cloud.state && window.cloud.state.user && !window.cloud.state.viewingUserId) };
-    if (plan.shouldSyncCloud) {
-      // 全量同步：每次保存都把本地全量推一遍（小数据量场景没问题）
-      syncErrorBookToCloud();
-    }
-  };
+  // 在模块加载时立即执行。捕获/重写均针对 window.*（savePrepPassages
+  // 由 shared/lesson-prep.js 定义为 window 全局，本脚本加载在其后）。
   var _origSavePrep = window.savePrepPassages;
   window.savePrepPassages = function() {
     _origSavePrep.apply(this, arguments);
@@ -472,7 +442,6 @@
     requestSavedMaterialsSync: requestSavedMaterialsSync,
     finishSavedMaterialsSync: finishSavedMaterialsSync,
     runSavedMaterialsCloudSync: runSavedMaterialsCloudSync,
-    syncErrorBookToCloud: syncErrorBookToCloud,
     syncPrepToCloud: syncPrepToCloud
   };
 })();

@@ -333,39 +333,12 @@
       <div id="pointsTrainingContent"></div>
     </div>
 
-    <div class="page" id="page-error-book">
-      <h1 class="page-title">错题本</h1>
-      <p class="page-desc"><span id="errorBookStat">加载中…</span></p>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch;">
-        <div class="docx-dropzone" id="errorDropZone" onclick="handleDocxUploadForError()" title="拖入 Word 或点击上传">
-          <span class="docx-dropzone-icon">📄</span>
-          <span>把 Word 卷子拖进来，或<b>点击上传</b></span>
-        </div>
-        <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="toggleErrorBulkMode()">批量删除</button>
-      </div>
-      <div class="bulk-select-bar" id="errorBulkBar">
-        <span class="bulk-select-info" id="errorBulkInfo">已选择 0 道错题</span>
-        <div class="bulk-select-actions">
-          <button onclick="selectAllErrorBulk(true)">全选</button>
-          <button onclick="selectAllErrorBulk(false)">清空</button>
-          <button class="primary" onclick="deleteSelectedErrors()">删除所选</button>
-          <button onclick="toggleErrorBulkMode(false)">取消</button>
-        </div>
-      </div>
-      <!-- JSON 批量导入入口已移除：上传统一走拖拽/点击 Word -->
-
-      <div id="errorBookList"></div>
-    </div>
 
     <div class="page" id="page-lesson-prep">
       <h1 class="page-title">备课资料</h1>
-      <p class="page-desc"><span id="prepStat">加载中…</span></p>
+      <p class="page-desc"><span id="prepStat">加载中…</span> · 备课资料由「导入」页产生，这里查看 / 讲题 / 删除</p>
       <input type="file" id="docxFileInput" accept=".docx" onchange="processDocxFile(this)" style="display:none;">
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch;">
-        <div class="docx-dropzone" id="prepDropZone" onclick="handleDocxUpload()" title="拖入 Word 或点击上传">
-          <span class="docx-dropzone-icon">📄</span>
-          <span>把 Word 卷子拖进来，或<b>点击上传</b></span>
-        </div>
         <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="togglePrepBulkMode()">批量删除</button>
       </div>
       <div class="bulk-select-bar" id="prepBulkBar">
@@ -383,8 +356,8 @@
     </div>
 
     <div class="page" id="page-error-import">
-      <h1 class="page-title">导入成绩</h1>
-      <p class="page-desc">选题库套卷 + 传网阅成绩 .xls，算出考点画像并存入「班级工作台」</p>
+      <h1 class="page-title">导入</h1>
+      <p class="page-desc">一份套卷两用：导进来既存成备课资料（可讲题），又抽语法填空算班级画像 · 再传网阅成绩 .xls 自动出画像</p>
       <div id="errorImportContent">加载中…</div>
     </div>
 
@@ -421,7 +394,6 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../shared/cloud.js"></script>
 <script src="../shared/utils.js"></script>
-<script src="../shared/error-book.js"></script>
 <script src="../shared/lesson-prep.js"></script>
 <script src="../shared/auth-ui.js"></script><script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
 <script src="../shared/admin-ui.js"></script>
@@ -457,8 +429,8 @@
 <script src="./modules/home-dashboard.js"></script>
 <script src="./modules/lesson-prep-controller.js"></script>
 <script src="./modules/error-profile-controller.js"></script>
-<!-- cloud-sync 必须在 shared/error-book.js、shared/lesson-prep.js、shared/cloud.js 之后：
-     加载时即对 window.saveErrorBook / window.savePrepPassages 打猴补丁 -->
+<!-- cloud-sync 必须在 shared/lesson-prep.js、shared/cloud.js 之后：
+     加载时即对 window.savePrepPassages 打猴补丁 -->
 <script src="./modules/cloud-sync.js"></script>
 
 <script defer src="./app.js"></script>
@@ -473,11 +445,11 @@
     <div class="dock-dot"></div>
   </div>
   <div class="dock-divider"></div>
-  <div class="dock-item" data-label="导入成绩" data-dock-key="error-import" onclick="switchPage('error-import')">
+  <div class="dock-item" data-label="导入" data-dock-key="error-import" onclick="switchPage('error-import')">
     📥
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="班级工作台" data-dock-key="student-timeline" onclick="switchPage('student-timeline')">
+  <div class="dock-item" data-label="班级" data-dock-key="student-timeline" onclick="switchPage('student-timeline')">
     👥
     <div class="dock-dot"></div>
   </div>
@@ -492,10 +464,6 @@
   </div>
   <div class="dock-item" data-label="知识库" data-dock-key="knowledge" onclick="switchPage('knowledge')">
     📖
-    <div class="dock-dot"></div>
-  </div>
-  <div class="dock-item" data-label="错题本" data-dock-key="error-book" onclick="switchPage('error-book')">
-    📝
     <div class="dock-dot"></div>
   </div>
   <div class="dock-item" data-label="备课" data-dock-key="lesson-prep" onclick="switchPage('lesson-prep')">

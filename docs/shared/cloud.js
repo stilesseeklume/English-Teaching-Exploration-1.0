@@ -5,7 +5,7 @@
 // 职责：
 //   - 创建 Supabase 客户端（依赖 window.SUPABASE_URL / window.SUPABASE_ANON_KEY）
 //   - 提供 auth：signIn / signUp / signOut / changePassword / requestUsernameChange
-//   - 提供数据 CRUD：error_book / lesson_prep 表的拉取与增删
+//   - 提供数据 CRUD：lesson_prep 表的拉取与增删
 //   - 提供管理员 RPC：listUsers / approveUser / rejectUser / viewAs 等
 //   - 暴露统一 API：window.cloud  + 原始客户端 window._sb
 //
@@ -113,30 +113,6 @@
   async function signOut() {
     if (!sb) return;
     await sb.auth.signOut({ scope: 'local' });
-  }
-
-  async function pullErrorBook() {
-    if (!sb || !state.user) return null;
-    var uid = asUserId();
-    var r = await sb.from('error_book').select('*').eq('user_id', uid).order('created_at', { ascending: false });
-    if (r.error) throw r.error;
-    return r.data.map(function(row){ return Object.assign({}, row.question, { id: row.client_id }); });
-  }
-  async function upsertErrorItem(q) {
-    if (!sb || !state.user) return;
-    if (state.viewingUserId) return; // admin 浏览别人的数据，禁止写
-    var clean = Object.assign({}, q); delete clean.id;
-    var r = await sb.from('error_book').upsert({
-      user_id: state.user.id,
-      client_id: q.id,
-      question: clean
-    }, { onConflict: 'user_id,client_id' });
-    if (r.error) throw r.error;
-  }
-  async function deleteErrorItem(clientId) {
-    if (!sb || !state.user || state.viewingUserId) return;
-    var r = await sb.from('error_book').delete().eq('user_id', state.user.id).eq('client_id', clientId);
-    if (r.error) throw r.error;
   }
 
   async function pullLessonPrep() {
@@ -359,7 +335,6 @@
     signUp: signUp, signIn: signIn, signOut: signOut,
     changePassword: changePassword, requestUsernameChange: requestUsernameChange,
     approveUsernameChange: approveUsernameChange, rejectUsernameChange: rejectUsernameChange,
-    pullErrorBook: pullErrorBook, upsertErrorItem: upsertErrorItem, deleteErrorItem: deleteErrorItem,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     clearLearningData: clearLearningData,
     uploadExamResults: uploadExamResults, fetchExamResults: fetchExamResults, deleteExamResults: deleteExamResults, deleteExamResultsExam: deleteExamResultsExam,

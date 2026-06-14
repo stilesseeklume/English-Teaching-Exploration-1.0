@@ -15,8 +15,7 @@
 //
 // 依赖（必须在 auth-ui.js 之前加载）：
 //   - shared/cloud.js     提供 window.cloud / window._sb
-//   - shared/error-book.js 提供 window.errorBookQuestions / saveErrorBook（doLogout 清理用）
-//   - shared/lesson-prep.js 同上
+//   - shared/lesson-prep.js 提供 window.prepPassages / savePrepPassages（doLogout 清理用）
 //
 // 题型侧（index.html）必须提供的全局符号：
 //   - switchPage(name)
@@ -248,12 +247,9 @@
     if (btn) btn.disabled = true;
     settingsDataMsg('var(--text-2)', '正在准备导出…');
     try {
-      var errors = window.errorBookQuestions || [];
       var preps = window.prepPassages || [];
       if (window.cloud && window.cloud.state && window.cloud.state.user) {
-        var cloudErrors = await window.cloud.pullErrorBook();
         var cloudPreps = await window.cloud.pullLessonPrep();
-        if (cloudErrors) errors = cloudErrors;
         if (cloudPreps) preps = cloudPreps;
       }
       var payload = {
@@ -262,7 +258,6 @@
         exported_at: new Date().toISOString(),
         user: getSafeUserExportInfo(),
         data: {
-          error_book: cloneData(errors),
           lesson_prep: cloneData(preps)
         }
       };
@@ -275,14 +270,14 @@
       a.click();
       a.remove();
       setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-      settingsDataMsg('var(--green)', '已导出错题本和备课资料。');
+      settingsDataMsg('var(--green)', '已导出备课资料。');
       if (window.cloud && window.cloud.recordEvent) {
         window.cloud.recordEvent({
           event_type: 'learning_data_exported',
           severity: 'info',
           module: 'account-settings',
           message: 'learning data exported',
-          context: { error_count: errors.length, prep_count: preps.length }
+          context: { prep_count: preps.length }
         }).catch(function(){});
       }
     } catch (e) {
@@ -297,7 +292,7 @@
       settingsDataMsg('var(--red)', '管理员查看他人数据时不能清空。');
       return;
     }
-    if (!confirm('确定清空自己的错题本和备课资料吗？\n这会删除云端学习数据，并清空本机缓存。')) return;
+    if (!confirm('确定清空自己的备课资料吗？\n这会删除云端学习数据，并清空本机缓存。')) return;
     var btn = document.getElementById('settingsClearDataBtn');
     if (btn) btn.disabled = true;
     settingsDataMsg('var(--text-2)', '正在清空…');
@@ -305,21 +300,18 @@
       if (window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.clearLearningData) {
         await window.cloud.clearLearningData();
       }
-      window.errorBookQuestions = [];
       window.prepPassages = [];
-      if (typeof window.saveErrorBook === 'function') window.saveErrorBook();
       if (typeof window.savePrepPassages === 'function') window.savePrepPassages();
-      if (typeof window.renderErrorBook === 'function') window.renderErrorBook();
       if (typeof window.renderPrepList === 'function') window.renderPrepList();
       if (typeof window.renderBankStat === 'function') window.renderBankStat();
-      settingsDataMsg('var(--green)', '错题本和备课资料已清空。');
+      settingsDataMsg('var(--green)', '备课资料已清空。');
       if (window.cloud && window.cloud.recordEvent) {
         window.cloud.recordEvent({
           event_type: 'learning_data_cleared',
           severity: 'warning',
           module: 'account-settings',
           message: 'learning data cleared',
-          context: { scope: 'error_book,lesson_prep' }
+          context: { scope: 'lesson_prep' }
         }).catch(function(){});
       }
     } catch (e) {
@@ -370,7 +362,7 @@
 
   // ─── 退出登录 ─────────────────────────────────
   async function doLogout() {
-    if (!confirm('确定要退出登录吗？\n（错题本和备课资料会从本地清空，下次登录会自动从云端拉回来）')) return;
+    if (!confirm('确定要退出登录吗？\n（备课资料会从本地清空，下次登录会自动从云端拉回来）')) return;
     if (window.setCloudLoggingOutState) window.setCloudLoggingOutState(true);
     else window._loggingOut = true;
     try {
@@ -380,9 +372,8 @@
     }
     // 清除本地 Supabase session（彻底退出）
     try { localStorage.removeItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token'); } catch(e) {}
-    window.errorBookQuestions = [];
     window.prepPassages = [];
-    window.saveErrorBook(); window.savePrepPassages();
+    window.savePrepPassages();
     if (window.clearCloudLifecycleState) window.clearCloudLifecycleState();
     else {
       window._lastCloudUser = null;

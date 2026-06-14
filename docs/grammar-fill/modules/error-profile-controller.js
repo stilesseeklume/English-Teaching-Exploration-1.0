@@ -8,7 +8,7 @@
 // deps（import）: getExamList, getExamGrammarQuestions, catNames, loadProfiles, saveProfiles, gotoBoard, now, nowText
 // deps（workbench）: catNames, getClasses, createClass, deleteClass, renameClass, addStudents, removeStudent,
 //                    importRoster, classRoster, loadStudentNames, fetchExamResults,
-//                    deleteExamResultsClass, deleteExamResultsExam, addExamQuestionToErrorBook
+//                    deleteExamResultsClass, deleteExamResultsExam, openMigrationForFineTag
 
 /* eslint-disable */
 (function(){
@@ -155,12 +155,9 @@
       + window.GrammarErrorProfileRender.profilePageHtml(vmodel, _brdTrendByCat);
     var del = document.getElementById('epDelExam');
     if (del) del.addEventListener('click', function(){ boardDelProfile(examId); });
-    detail.querySelectorAll('.ep-add-error').forEach(function(btn){
+    detail.querySelectorAll('.ep-migrate').forEach(function(btn){
       btn.addEventListener('click', function(){
-        if (!_wb.addExamQuestionToErrorBook) return;
-        var r = _wb.addExamQuestionToErrorBook(examId, btn.getAttribute('data-no'));
-        btn.textContent = (r && r.ok) ? (r.added ? '已加✓' : '已在本') : '题库无';
-        btn.disabled = true; btn.style.opacity = '0.6';
+        if (_wb.openMigrationForFineTag) _wb.openMigrationForFineTag(btn.getAttribute('data-fine'));
       });
     });
   }

@@ -43,9 +43,9 @@ test('buildErrorProfile: 完整画像——每考点对错+正确率、每题对
   ];
   const p = buildErrorProfile(studentResults, examQuestions);
   assert.equal(json(p.byCat), json({
-    preposition: { right: 1, wrong: 1, rate: 50 },
-    word:        { right: 2, wrong: 0, rate: 100 },
-    number:      { right: 0, wrong: 2, rate: 0 },
+    'prep-common': { right: 1, wrong: 1, rate: 50 },
+    'word-adv':    { right: 2, wrong: 0, rate: 100 },
+    'num-plural':  { right: 0, wrong: 2, rate: 0 },
   }));
   assert.equal(json(p.byNo), json({
     '36': { right: 1, wrong: 1, blank: 0 },
@@ -56,6 +56,23 @@ test('buildErrorProfile: 完整画像——每考点对错+正确率、每题对
     studentNo: '2023531001',
     right: [36, 38], wrong: [37], blank: [],
     wrongQuestions: [{ no: 37, category: 'number', fine_category: 'num-plural', answer: 'gestures' }],
+  }));
+});
+
+test('buildErrorProfile: byCat 优先用 fine_category，缺失回退 category（精细/粗混存）', () => {
+  const studentResults = { students: [
+    { studentNo: 'S1', right: [36], wrong: [37, 38], blank: [] },
+  ]};
+  const examQuestions = [
+    { no: 36, category: 'word', fine_category: 'word-adv', answer: 'instantly' },   // 精细
+    { no: 37, category: 'preposition', answer: 'from' },                            // 缺 fine → 回退粗类
+    { no: 38, category: 'word', fine_category: 'word-comparative', answer: 'better' }, // 精细
+  ];
+  const p = buildErrorProfile(studentResults, examQuestions);
+  assert.equal(json(p.byCat), json({
+    'word-adv':         { right: 1, wrong: 0, rate: 100 },
+    'preposition':      { right: 0, wrong: 1, rate: 0 },
+    'word-comparative': { right: 0, wrong: 1, rate: 0 },
   }));
 });
 

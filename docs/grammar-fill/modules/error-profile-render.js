@@ -16,15 +16,15 @@
     }).join('');
     return ''
       + '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:20px;margin-bottom:16px;">'
-      +   '<div style="font-weight:600;margin-bottom:4px;">把套卷和成绩拖进来 —— 自动 AI 识考点 + 匹配成画像</div>'
-      +   '<div style="color:#888;font-size:12px;margin-bottom:12px;">两个都拖好就自动出画像，存进上面选的班级。</div>'
+      +   '<div style="font-weight:600;margin-bottom:4px;">套卷 + 成绩拖进来 —— 套卷自动存备课资料 + AI 识考点，匹配成画像</div>'
+      +   '<div style="color:#888;font-size:12px;margin-bottom:12px;">套卷一份两用（讲题 + 算分）；两个都拖好就自动出画像，存进上面选的班级。</div>'
       +   '<div style="display:flex;gap:12px;flex-wrap:wrap;">'
-      +     '<div class="docx-dropzone" id="errorExamDrop"><span class="docx-dropzone-icon">📄</span><span id="errorExamLabel">① 把套卷 Word 拖进来，或<b>点击上传</b></span></div>'
+      +     '<div class="docx-dropzone" id="errorExamDrop"><span class="docx-dropzone-icon">📄</span><span id="errorExamLabel">① 套卷 Word 拖进来（存备课资料 + 抽题算画像），或<b>点击上传</b></span></div>'
       +     '<div class="docx-dropzone" id="errorScoreDrop"><span class="docx-dropzone-icon">📊</span><span id="errorScoreLabel">② 把网阅成绩 .xls 拖进来，或<b>点击上传</b></span></div>'
       +   '</div>'
       +   '<div style="color:#888;font-size:12px;margin-top:10px;">套卷也可以 '
       +     '<select id="errorProfileExam" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;">'
-      +       '<option value="">从题库选已传过的</option>' + opts
+      +       '<option value="">从题库或已导套卷里选</option>' + opts
       +     '</select></div>'
       +   '<input type="file" id="errorExamFile" accept=".docx" style="display:none;">'
       +   '<input type="file" id="errorProfileFile" accept=".xls,.xlsx" style="display:none;">'
@@ -62,6 +62,7 @@
         + trendCell
         + '<span style="color:#999;font-size:12px;flex:0 0 auto;">对' + c.right + ' / 错' + c.wrong + '</span>'
         + '<span style="margin-left:auto;font-size:12px;flex:0 0 auto;">' + (PRIORITY_LABEL[c.priority] || '') + '</span>'
+        + '<button type="button" class="ep-migrate" data-fine="' + esc(c.category) + '" style="margin-left:10px;padding:2px 10px;border-radius:8px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:12px;flex:0 0 auto;">🎯 迁移</button>'
         + '</div>';
     }).join('');
     var hint = hasTrend ? ' <span style="font-weight:400;color:#888;font-size:12px;">· 趋势线左早右近</span>' : '';
@@ -72,14 +73,12 @@
   function noListHtml(noList) {
     if (!noList.length) return '';
     var cells = noList.map(function(n){
-      var btn = n.wrong > 0
-        ? '<button type="button" class="ep-add-error" data-no="' + n.no + '" style="margin-left:6px;padding:1px 7px;border-radius:6px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:11px;">+错题本</button>'
-        : '';
+      var btn = '';   // 个人错题本已下线；班级错题练习走考点排行的「🎯迁移」
       return '<span style="display:inline-block;min-width:130px;padding:6px 10px;margin:4px;border:1px solid #eee;border-radius:8px;font-size:13px;">'
         + '第' + n.no + '题　对' + n.right + ' 错' + n.wrong + (n.blank ? ' 缺考' + n.blank : '') + btn + '</span>';
     }).join('');
     return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
-      + '<div style="font-weight:600;margin-bottom:8px;">每题对错 <span style="font-weight:400;color:#888;font-size:12px;">· 错题可「+错题本」变迁移弹药</span></div>' + cells + '</div>';
+      + '<div style="font-weight:600;margin-bottom:8px;">每题对错</div>' + cells + '</div>';
   }
 
   function studentsHtml(students) {

@@ -45,7 +45,7 @@ test('uploadPanelHtml: 套卷+成绩两个拖拽框 + 题库下拉 + 两个隐�
   assert.ok(html.includes('2026 广州一模'), '应含题库套卷标签');
   assert.ok(html.includes('id="errorExamDrop"'), '应含套卷拖拽区 id');
   assert.ok(html.includes('id="errorScoreDrop"'), '应含成绩拖拽区 id');
-  assert.ok(html.includes('把套卷 Word 拖进来'), '应含套卷拖拽提示');
+  assert.ok(html.includes('套卷 Word 拖进来'), '应含套卷拖拽提示');
   assert.ok(html.includes('把网阅成绩 .xls 拖进来'), '应含成绩拖拽提示');
   assert.ok(html.includes('class="docx-dropzone"'), '应复用备课 docx-dropzone 样式');
   assert.ok(html.includes('id="errorExamFile"'), '应含套卷隐藏文件输入');
@@ -180,7 +180,7 @@ test('importClassBarHtml: 只「选班」——有班给下拉 + 指向学生管
   const html = w.GrammarErrorProfileRender.importClassBarHtml([{ id: 'c1', name: '高三①班' }]);
   assert.ok(html.includes('id="errorImportClass"'), '班级下拉');
   assert.ok(html.includes('高三①班'), '班级名');
-  assert.ok(html.includes('学生管理'), '指向学生管理');
+  assert.ok(html.includes('班级工作台'), '指向班级工作台');
   assert.ok(!html.includes('id="errorImportNewClass"'), '导入页不再有新建班级');
   assert.ok(!html.includes('id="errorDeleteClass"'), '导入页不再有删除该班');
   assert.ok(!html.includes('id="errorImportRoster"'), '导入页不再有导入名单');
@@ -188,6 +188,6 @@ test('importClassBarHtml: 只「选班」——有班给下拉 + 指向学生管
 
 test('importClassBarHtml: 无班级→提示去学生管理建班（不出下拉）', () => {
   const html = w.GrammarErrorProfileRender.importClassBarHtml([]);
-  assert.ok(html.includes('学生管理'), '提示去学生管理');
+  assert.ok(html.includes('班级工作台'), '提示去班级工作台');
   assert.ok(!html.includes('id="errorImportClass"'), '无班级不渲染下拉');
 });

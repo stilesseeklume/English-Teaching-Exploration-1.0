@@ -1,21 +1,19 @@
 // shared/word-import.js
 //
 // Word 文档上传 → Mammoth 提取文本 → DeepSeek AI 解析 → 统一导入对话框
-// → 写入错题本 / 备课资料。
+// → 写入备课资料（成绩套卷走 exam-profile 回调，不进此面板）。
 //
 // 这一整套是 v1 最复杂的功能，集中放在一个文件以便未来升级（换 LLM、改 prompt、
 // 加图片识别、加 PDF 等）只动一处。
 //
 // 依赖（必须先加载）：
 //   - shared/cloud.js          window._sb / window.SUPABASE_URL
-//   - shared/error-book.js     window.errorBookQuestions / saveErrorBook / getErrorFingerprint
 //   - shared/lesson-prep.js    window.prepPassages / savePrepPassages / getPrepFingerprint
 //   - 外部 CDN：mammoth.browser.min.js
 //
 // 题型侧（grammar-fill/index.html）必须提供（通过 window）：
-//   - CATEGORY_MAP / CATEGORY_TIPS（语法填空考点映射，固定到 window）
-//   - extractSentence(passage, no) / extractContextWindow(passage, no)（提取空格所在句子）
-//   - renderPrepList() / renderErrorBook() / renderBankStat()（重渲染列表）
+//   - CATEGORY_MAP（语法填空考点映射，固定到 window，统一导入面板用）
+//   - renderPrepList() / renderBankStat()（重渲染列表）
 //   - uploadLocalToCloud()（导入后异步推云，可选）
 //   - HTML 元素：
 //       #docxFileInput（type=file，change 事件由 processDocxFile 处理）
@@ -31,7 +29,7 @@
 
 /* eslint-disable */
 (function(){
-  var _docxImportTarget = 'prep'; // 'prep' | 'error'
+  var _docxImportTarget = 'prep'; // 'prep' | 'exam-profile'
   var _demoTimer = null;
   var _abortAiParse = false;
   var _aiDriftTimer = null;
@@ -79,11 +77,6 @@
   function handleDocxUpload() {
     if (typeof window.requireAuth === 'function' && !window.requireAuth('上传 Word')) return;
     _docxImportTarget = 'prep';
-    document.getElementById('docxFileInput').click();
-  }
-  function handleDocxUploadForError() {
-    if (typeof window.requireAuth === 'function' && !window.requireAuth('上传 Word')) return;
-    _docxImportTarget = 'error';
     document.getElementById('docxFileInput').click();
   }
 
@@ -439,9 +432,7 @@
   }
 
   // ─── 统一导入面板 ─────────────────────────────
-  // 行为根据 _docxImportTarget 分流：
-  //   'error' = 错题模式：只挑题进错题本，整篇绝不进备课资料
-  //   'prep'  = 备课模式：整篇进备课资料，勾选的题额外进错题本（可选）
+  // 'prep' = 备课模式：整篇进备课资料。面板内容全部由 savedModel 数据驱动。
   function renderUnifiedImportBody(model) {
     var html = '<div style="color:var(--text-3);padding:4px 0 12px;font-size:13px;">'
       + escapeImportText(model.modeHintText)
@@ -544,15 +535,7 @@
         if (importDeepSeekResult(p, true)) prepCount++; else prepSkip++;
     });
 
-    var errorCount = 0, errorSkip = 0;
-    plan.errorPassages.forEach(function(item){
-      var r = importDeepSeekResultToErrorBook(item, true);
-      if (r && r.count > 0) errorCount += r.count;
-      if (r && r.skipCount > 0) errorSkip += r.skipCount;
-    });
-
     if (typeof window.renderPrepList === 'function') window.renderPrepList();
-    if (typeof window.renderErrorBook === 'function') window.renderErrorBook();
     if (typeof window.renderBankStat === 'function') window.renderBankStat();
 
     closeUnifiedImport();
@@ -561,8 +544,8 @@
       ? savedModel.buildUnifiedImportCompleteMessage({
           prepCount: prepCount,
           prepSkip: prepSkip,
-          errorCount: errorCount,
-          errorSkip: errorSkip
+          errorCount: 0,
+          errorSkip: 0
         }, _docxImportTarget)
       : '导入完成';
     alert(msg);
@@ -600,42 +583,11 @@
     return true;
   }
 
-  function importDeepSeekResultToErrorBook(result, silent) {
-    var savedModel = getSavedMaterialsModel();
-    if (!savedModel || typeof savedModel.buildDeepSeekErrorImportPlan !== 'function') {
-      if (!silent) alert(callSavedMaterialsModel('getImportModuleMissingMessage')
-        || '导入模块尚未加载，请刷新后重试。');
-      return { count: 0, skipCount: 0 };
-    }
-    var plan = savedModel.buildDeepSeekErrorImportPlan(result, window.errorBookQuestions, {
-      categoryMap: window.CATEGORY_MAP || {},
-      categoryTips: window.CATEGORY_TIPS || {},
-      extractSentence: typeof window.extractSentence === 'function' ? window.extractSentence : null,
-      extractContextWindow: typeof window.extractContextWindow === 'function' ? window.extractContextWindow : null,
-      createdAt: new Date().toISOString()
-    });
-
-    window.errorBookQuestions = plan.nextItems;
-    window.saveErrorBook();
-    if (silent) return { count: plan.count, skipCount: plan.skipCount };
-
-    if (typeof window.renderErrorBook === 'function') window.renderErrorBook();
-    if (typeof window.renderBankStat === 'function') window.renderBankStat();
-    alert(plan.successMessage);
-
-    if (typeof window.uploadLocalToCloud === 'function') {
-      window.uploadLocalToCloud().catch(function(e) {
-        console.warn('云端同步失败，已保存到本地：', e);
-      });
-    }
-    return { count: plan.count, skipCount: plan.skipCount };
-  }
-
   function showRawTextFallback() {
     alert('AI 没能解析这份文档。请重试，或把文档拆小后再传。');
   }
 
-  // 把拖入的文件按目标（备课/错题）走统一上传流程
+  // 把拖入的文件按目标（备课 / 成绩画像）走统一上传流程
   function handleDroppedFile(file, target) {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.docx')) {
@@ -658,7 +610,7 @@
     handleDroppedFile(file, 'exam-profile');
   }
 
-  // 拖拽卡片（每页一个，决定进备课还是错题）
+  // 拖拽卡片（按 target 决定走备课还是成绩画像）
   function wireDropZone(id, target) {
     var zone = document.getElementById(id);
     if (!zone) return;
@@ -672,13 +624,8 @@
   }
 
   function isUploadPageActive() {
-    var prep = document.getElementById('page-lesson-prep');
-    var err = document.getElementById('page-error-book');
-    return (prep && prep.classList.contains('active')) || (err && err.classList.contains('active'));
-  }
-  function activeUploadTarget() {
-    var err = document.getElementById('page-error-book');
-    return (err && err.classList.contains('active')) ? 'error' : 'prep';
+    // 没有页面再用整页拖拽浮层：成绩页用自己的 wireDrop，备课页已不接整页拖。
+    return false;
   }
   function dragHasFiles(e) {
     var t = e.dataTransfer && e.dataTransfer.types;
@@ -694,7 +641,7 @@
       if (!dragHasFiles(e) || !isUploadPageActive()) return;
       depth++;
       var label = document.getElementById('dropOverlayTarget');
-      if (label) label.textContent = activeUploadTarget() === 'error' ? '到错题本' : '到备课资料';
+      if (label) label.textContent = '到备课资料';
       overlay.classList.add('show');
     });
     document.addEventListener('dragover', function(e) {
@@ -710,13 +657,12 @@
       depth = 0;
       overlay.classList.remove('show');
       if (!isUploadPageActive()) return;
-      handleDroppedFile(e.dataTransfer.files[0], activeUploadTarget());
+      handleDroppedFile(e.dataTransfer.files[0], 'prep');
     });
   }
 
   function setupDocxDrop() {
-    wireDropZone('prepDropZone', 'prep');
-    wireDropZone('errorDropZone', 'error');
+    // prepDropZone 已删（备课导入并入「导入」页）；错题本已删，不再有页内拖拽卡片。
     setupPageDropOverlay();
   }
 
@@ -725,7 +671,6 @@
   window.hideImportDemo = hideImportDemo;
   window.hideImportDemoDelayed = hideImportDemoDelayed;
   window.handleDocxUpload = handleDocxUpload;
-  window.handleDocxUploadForError = handleDocxUploadForError;
   window.cancelAiParse = cancelAiParse;
   window.processDocxFile = processDocxFile;
   window.parseExamWordForProfile = parseExamWordForProfile;
@@ -735,6 +680,5 @@
   window.updateUnifiedSelectedCount = updateUnifiedSelectedCount;
   window.confirmUnifiedImport = confirmUnifiedImport;
   window.importDeepSeekResult = importDeepSeekResult;
-  window.importDeepSeekResultToErrorBook = importDeepSeekResultToErrorBook;
   window.setupDocxDrop = setupDocxDrop;
 })();
