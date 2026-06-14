@@ -294,6 +294,7 @@
   }
 
   function normalizeDockKey(dockKey) {
+    if (dockKey === 'error-profile') dockKey = 'student-timeline';   // 考点画像并入班级工作台
     if (
       dockKey === 'home'
       || dockKey === 'exams'
@@ -313,7 +314,8 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
-    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile' || page === 'student-timeline') {
+    if (page === 'error-profile') page = 'student-timeline';   // 考点画像并入班级工作台
+    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'student-timeline') {
       return page;
     }
     return '';
