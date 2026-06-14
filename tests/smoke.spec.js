@@ -4313,7 +4313,7 @@ test('学生时间线：搜索驱动选学生 + 单生可视化画像(mock 云�
   expect(errors).toEqual([]);
 });
 
-test('班级管理：导入页新建班级→启用导入名单/删除→删除班级(本地+云端成绩)', async ({ page }) => {
+test('班级管理(学生管理页)：新建班级→删除该班(本地+云端成绩)；导入页不再有班级 CRUD', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4324,22 +4324,26 @@ test('班级管理：导入页新建班级→启用导入名单/删除→删除�
     window.cloud.fetchExamResults = async () => ([]);
     window.cloud.deleteExamResults = async (classId) => { window.__deletedClass = classId; return { ok: true }; };
   });
-  await page.evaluate(() => window.switchPage('error-import'));
-  await expect(page.locator('#page-error-import')).toHaveClass(/active/);
-  // 新建班级（prompt 返回班名）→ 自动选中 → 导入名单/删除该班 启用
+  // 班级管理在「学生管理」页（独立 dock 入口）
+  await page.evaluate(() => window.switchPage('student-timeline'));
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  // 新建班级（chip ＋新建班级，prompt 返回班名）→ 自动选中 → 删除该班按钮出现
   page.once('dialog', (d) => d.accept('高三②班'));
-  await page.locator('#errorImportNewClass').click();
-  await expect(page.locator('#errorImportClass')).toContainText('高三②班');
-  await expect(page.locator('#errorImportRoster')).toBeEnabled();
-  await expect(page.locator('#errorDeleteClass')).toBeEnabled();
-  await expect(page.locator('#errorClassMeta')).toContainText('还没导名单');
+  await page.locator('#studentTimelineContent .ep-class-new').click();
+  await expect(page.locator('#studentTimelineContent')).toContainText('高三②班');
+  await expect(page.locator('#stDeleteClass')).toBeVisible();
   // 删除该班（confirm 接受）→ 调云端 deleteExamResults(classId) + 本地移除
   page.once('dialog', (d) => d.accept());
-  await page.locator('#errorDeleteClass').click();
-  await expect(page.locator('#errorProfileMsg')).toContainText('已删除班级');
-  await expect(page.locator('#errorImportClass')).not.toContainText('高三②班');
+  await page.locator('#stDeleteClass').click();
+  await expect(page.locator('#studentTimelineContent')).not.toContainText('高三②班');
   const deletedClassId = await page.evaluate(() => window.__deletedClass);
   expect(typeof deletedClassId).toBe('string');
   expect(deletedClassId.startsWith('cls_')).toBe(true);
+  // 导入成绩页只「选班」——不再有新建/删除班级
+  await page.evaluate(() => window.switchPage('error-import'));
+  await expect(page.locator('#page-error-import')).toHaveClass(/active/);
+  await expect(page.locator('#errorImportNewClass')).toHaveCount(0);
+  await expect(page.locator('#errorDeleteClass')).toHaveCount(0);
+  await expect(page.locator('#errorImportContent')).toContainText('学生管理');
   expect(errors).toEqual([]);
 });

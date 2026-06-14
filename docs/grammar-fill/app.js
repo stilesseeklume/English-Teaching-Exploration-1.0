@@ -1239,11 +1239,6 @@ function renderErrorImportPage() {
     now: function(){ return Date.now(); },
     nowText: function(){ return new Date().toLocaleString('zh-CN'); },
     getClasses: loadClasses,
-    createClass: createClassNamed,
-    deleteClass: function(id){ saveClasses(window.GrammarErrorProfileStore.removeClass(loadClasses(), id)); },
-    deleteExamResultsClass: function(id){ return (window.cloud && window.cloud.deleteExamResults) ? window.cloud.deleteExamResults(id) : Promise.resolve(); },
-    importRoster: function(classId, rows){ var roster = window.GrammarStudentTracking.extractStudentRoster(rows); mergeStudentNames(roster); return mergeClassRoster(classId, roster.map(function(s){ return s.studentNo; })); },
-    classRoster: loadClassRoster,
     parseExamWord: parseExamWord,
     mergeStudentNames: mergeStudentNames,
     uploadExamResults: function(rows){ return (window.cloud && window.cloud.uploadExamResults) ? window.cloud.uploadExamResults(rows) : Promise.resolve(); },
@@ -1287,6 +1282,9 @@ function renderErrorProfilePage() {
 function renderStudentTimelinePage() {
   return window.GrammarErrorProfileController.renderTimelinePage({
     getClasses: loadClasses,
+    createClass: createClassNamed,
+    deleteClass: function(id){ saveClasses(window.GrammarErrorProfileStore.removeClass(loadClasses(), id)); },
+    deleteExamResultsClass: function(id){ return (window.cloud && window.cloud.deleteExamResults) ? window.cloud.deleteExamResults(id) : Promise.resolve(); },
     loadProfiles: loadErrorProfiles,
     loadStudentNames: loadStudentNames,
     catNames: errorProfileCatNames(),

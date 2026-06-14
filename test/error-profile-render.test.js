@@ -176,14 +176,18 @@ test('catTrendDetailsHtml: 折叠 details/summary 包住趋势；空→空串', 
   assert.ok(html.includes('谓语动词'), '内含趋势内容');
 });
 
-test('importClassBarHtml: 下拉 + 新建 + 导入名单 + 删除该班(默认禁用) + 隐藏名单输入', () => {
+test('importClassBarHtml: 只「选班」——有班给下拉 + 指向学生管理；班级管理按钮不在这', () => {
   const html = w.GrammarErrorProfileRender.importClassBarHtml([{ id: 'c1', name: '高三①班' }]);
   assert.ok(html.includes('id="errorImportClass"'), '班级下拉');
   assert.ok(html.includes('高三①班'), '班级名');
-  assert.ok(html.includes('id="errorImportNewClass"'), '新建班级按钮');
-  assert.ok(html.includes('id="errorImportRoster"'), '导入名单按钮');
-  assert.ok(html.includes('id="errorDeleteClass"'), '删除该班按钮');
-  assert.ok(html.includes('id="errorRosterFile"'), '隐藏名单文件输入');
-  assert.ok(/id="errorImportRoster"[^>]*\bdisabled\b/.test(html), '导入名单默认禁用');
-  assert.ok(/id="errorDeleteClass"[^>]*\bdisabled\b/.test(html), '删除该班默认禁用');
+  assert.ok(html.includes('学生管理'), '指向学生管理');
+  assert.ok(!html.includes('id="errorImportNewClass"'), '导入页不再有新建班级');
+  assert.ok(!html.includes('id="errorDeleteClass"'), '导入页不再有删除该班');
+  assert.ok(!html.includes('id="errorImportRoster"'), '导入页不再有导入名单');
+});
+
+test('importClassBarHtml: 无班级→提示去学生管理建班（不出下拉）', () => {
+  const html = w.GrammarErrorProfileRender.importClassBarHtml([]);
+  assert.ok(html.includes('学生管理'), '提示去学生管理');
+  assert.ok(!html.includes('id="errorImportClass"'), '无班级不渲染下拉');
 });

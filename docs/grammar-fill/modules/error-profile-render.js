@@ -122,23 +122,21 @@
     }).join('');
   }
 
+  // 导入成绩页只「选班」（成绩归到哪个班）。新建/删除班级、导名单都在「学生管理」里，这里不再混入。
   function importClassBarHtml(classes) {
     classes = classes || [];
     var opts = classes.map(function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
-    var btn = 'padding:8px 12px;border-radius:8px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;';
-    var btnGhost = 'padding:8px 12px;border-radius:8px;border:1px solid #e5e5e5;background:#fff;color:#333;';
-    var btnDanger = 'padding:8px 12px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;';
-    return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
-      + '<div style="font-weight:600;margin-bottom:10px;">这是哪个班的成绩？<span style="font-weight:400;color:#888;font-size:12px;"> · 选班后可导入名单或删除该班</span></div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
-      +   '<select id="errorImportClass" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;">'
-      +     '<option value="">— 选班级 —</option>' + opts + '</select>'
-      +   '<button type="button" id="errorImportNewClass" style="' + btn + '">＋ 新建班级</button>'
-      +   '<button type="button" id="errorImportRoster" disabled style="' + btnGhost + 'opacity:0.5;cursor:default;">导入名单</button>'
-      +   '<button type="button" id="errorDeleteClass" disabled style="' + btnDanger + 'opacity:0.5;cursor:default;">🗑 删除该班</button>'
-      + '</div>'
-      + '<div id="errorClassMeta" style="color:#888;font-size:12px;margin-top:8px;"></div>'
-      + '<input type="file" id="errorRosterFile" accept=".xls,.xlsx" style="display:none;">'
+    var head = '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
+      + '<div style="font-weight:600;margin-bottom:10px;">这是哪个班的成绩？</div>';
+    if (!classes.length) {
+      return head
+        + '<div style="color:#888;font-size:13px;">还没有班级——先去「学生管理」新建班级（可顺手导名单），再回来传成绩。</div>'
+        + '</div>';
+    }
+    return head
+      + '<select id="errorImportClass" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;">'
+      +   '<option value="">— 选班级 —</option>' + opts + '</select>'
+      + '<div style="color:#888;font-size:12px;margin-top:8px;">新建/删除班级、导入名单都在「学生管理」里。</div>'
       + '</div>';
   }
 

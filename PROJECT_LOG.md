@@ -510,5 +510,16 @@ d29c166 注册登录改为用户名+密码
 - 隐私红线不变：姓名只存本机（grammar-student-names，owner 隔离），云端永不存姓名。
 - 在哪试：登录 →「导入成绩」→ 选班/新建 →「导入名单」传 学号+姓名 Excel；或「删除该班」（会二次确认并清云端成绩）。
 - 验证：render 单测（importClassBarHtml 含新按钮、默认禁用）；smoke「班级管理」（新建→按钮启用→删除走云端 deleteExamResults + 本地移除）；`npm run check` 全量 36/36 全绿。
+- 已 commit + push origin/main：f6b54d8。
+
+## 2026-06-14 · 班级管理移出导入页 → 独立「学生管理」入口（IA 收敛，用户反馈）
+
+用户反馈：班级的新建/删除不该塞在「导入成绩」里，应是一个独立的「学生管理」板块（"按用途聚合"，对齐 [[seeklume-ia-reorg-pending]] 的整理方向）。选了"三合一·升级现有页"。
+
+- **导入成绩页回退为只「选班」**：`importClassBarHtml` 去掉 新建/导名单/删除/meta/file，只剩班级下拉 + 一行"新建/删除班级、导入名单都在「学生管理」里"。无班级时提示去学生管理建班。控制器 `renderImportPage` 去掉相关 wiring（删 `updateImportClassButtons`/`impImportRoster`/`impDeleteClass`），app.js 导入页依赖去掉 createClass/deleteClass/deleteExamResultsClass/importRoster/classRoster。
+- **「学生时间线」升级为「学生管理」+ 独立 dock 入口（👥）**：它本就有班级 chips + 导名单 + 学生画像；这次补齐——① 接上之前漏接的 `.ep-class-new`（新建班级，时间线页原来点了没反应）；② 选中班下方加「🗑 删除该班」（`tlDeleteClass`：confirm → 云端 `deleteExamResults(classId)` 成功后删本地，失败不动本地）；③ 加 `_tlClasses` 存当前班列表供删班取名。index.html 加 dock 项 + 页标题改「学生管理」；app-state.js 的 `normalizeDockKey`/`getDockKeyForPage` 收录 student-timeline（不再高亮成考点画像，改高亮自己）。app.js 学生页依赖加 createClass/deleteClass/deleteExamResultsClass。
+- 净结果：班级 CRUD + 名单 + 学生画像集中在「学生管理」；「考点画像」仍可点"查看单个学生画像"跳过去。隐私不变。
+- 在哪试：dock「学生管理」→ 新建/删除班级、导名单、搜学生看画像；「导入成绩」只选班。
+- 验证：单测 66/66（importClassBarHtml 改为断言只选班/无 CRUD）；smoke「班级管理(学生管理页)」改测学生页新建→删除走云端 + 导入页无 CRUD；`npm run check` 全量 36/36 全绿。
 
 *此日志随项目推进持续更新。最后更新：2026-06-14*

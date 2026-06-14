@@ -12,7 +12,7 @@
   var _tl = null, _tlClassId = null;
   var _brdExams = {}, _boardExamId = null, _brdTrendByCat = {};
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
-  var _impSelClass = '';   // 导入页当前选中的班级 id（重渲染后回填，新建/导名单后保持选中）
+  var _tlClasses = [];   // 学生管理页当前班级列表（删班时取名用）
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
   function classIdNow() { var s = document.getElementById('errorImportClass'); return (s || {}).value || ''; }
 
@@ -63,7 +63,7 @@
   function tryRunProfile() {
     if (!_examQuestions || !_scoreRows) return;            // 等两个都拖好
     var classId = classIdNow();
-    if (!classId) { setMsg('两个文件都好了——请在上方选个班级（或新建）。'); return; }
+    if (!classId) { setMsg('两个文件都好了——请在上方选个班级（没有班级就先去「学生管理」新建）。'); return; }
     try {
       var EP = window.GrammarErrorProfile;
       var sortedExam = _examQuestions.slice().sort(function(a, z){ return a.no - z.no; });
@@ -119,64 +119,6 @@
       if (f) handler(f);
     });
   }
-  // 选班后启用「导入名单 / 删除该班」并显示本地名单人数
-  function updateImportClassButtons() {
-    var sel = document.getElementById('errorImportClass');
-    var rosterBtn = document.getElementById('errorImportRoster');
-    var delBtn = document.getElementById('errorDeleteClass');
-    var meta = document.getElementById('errorClassMeta');
-    var id = sel ? sel.value : '';
-    var on = !!id;
-    [rosterBtn, delBtn].forEach(function(b){ if (b) { b.disabled = !on; b.style.opacity = on ? '1' : '0.5'; b.style.cursor = on ? 'pointer' : 'default'; } });
-    if (meta) {
-      if (!on) { meta.textContent = ''; return; }
-      var n = ((_imp.classRoster && _imp.classRoster(id)) || []).length;
-      meta.textContent = n
-        ? ('本地名单：' + n + ' 人（导入名单可补全；姓名只存本机，云端只存学号）')
-        : '这个班还没导名单——点「导入名单」传 学号+姓名 的 Excel。';
-    }
-  }
-  // 给当前选中的班导入名单（学号+姓名 Excel）：本地存名单与姓名，不上云
-  function impImportRoster(file) {
-    var sel = document.getElementById('errorImportClass');
-    var classId = sel ? sel.value : '';
-    if (!file || !classId) return;
-    if (!window.XLSX) { setMsg('Excel 解析库未加载，请刷新重试。'); return; }
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        var wb = window.XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-        var rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
-        var merged = _imp.importRoster ? _imp.importRoster(classId, rows) : [];
-        _impSelClass = classId;
-        renderImportPage(_imp);
-        setMsg('已导入名单：' + ((merged && merged.length) || 0) + ' 名学生（姓名只存本机，云端只存学号）。');
-      } catch (err) { setMsg('名单解析失败：' + (err && err.message ? err.message : '未知错误') + '。确认是含「学号」「姓名」列的 Excel。'); }
-    };
-    reader.onerror = function(){ setMsg('读取名单文件失败，请重试。'); };
-    reader.readAsArrayBuffer(file);
-  }
-  // 删除当前选中的班：本地班级+名单，并删云端该班全部成绩（不可逆，强确认）
-  function impDeleteClass() {
-    var sel = document.getElementById('errorImportClass');
-    var classId = sel ? sel.value : '';
-    if (!classId) return;
-    var name = (sel.options[sel.selectedIndex] || {}).text || classId;
-    if (window.confirm && !window.confirm('删除班级「' + name + '」？\n这会移除该班的本地名单，并删除云端该班的全部成绩记录，不可恢复。')) return;
-    var delBtn = document.getElementById('errorDeleteClass');
-    if (delBtn) { delBtn.disabled = true; delBtn.style.opacity = '0.5'; delBtn.style.cursor = 'default'; }
-    setMsg('删除中…');
-    var cloudDel = _imp.deleteExamResultsClass ? _imp.deleteExamResultsClass(classId) : Promise.resolve();
-    cloudDel.then(function(){
-      if (_imp.deleteClass) _imp.deleteClass(classId);
-      _impSelClass = '';
-      renderImportPage(_imp);
-      setMsg('已删除班级「' + name + '」。');
-    }).catch(function(){
-      if (delBtn) { delBtn.disabled = false; delBtn.style.opacity = '1'; delBtn.style.cursor = 'pointer'; }
-      setMsg('云端删除失败，未删除该班。请检查网络/登录后重试。');
-    });
-  }
   function renderImportPage(deps) {
     _imp = deps || _imp;
     _examQuestions = null; _scoreRows = null; _examLabel = ''; _examId = '';   // 进页面重置
@@ -186,31 +128,6 @@
     var classes = (_imp.getClasses && _imp.getClasses()) || [];
     el.innerHTML = window.GrammarErrorProfileRender.importClassBarHtml(classes)
       + window.GrammarErrorProfileRender.uploadPanelHtml(exams);
-    var classSel = document.getElementById('errorImportClass');
-    if (classSel) {
-      if (_impSelClass && classes.some(function(c){ return c.id === _impSelClass; })) classSel.value = _impSelClass;
-      else _impSelClass = classSel.value;
-      classSel.addEventListener('change', function(){ _impSelClass = classSel.value; updateImportClassButtons(); });
-    }
-    var newBtn = document.getElementById('errorImportNewClass');
-    if (newBtn) newBtn.addEventListener('click', function(){
-      var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
-      if (name && _imp.createClass) {
-        var c = _imp.createClass(name);
-        _impSelClass = (c && c.id) || _impSelClass;   // 新建后自动选中，方便接着「导入名单」
-        renderImportPage(_imp);
-        setMsg('已建班级「' + ((c && c.name) || name) + '」。可点「导入名单」补全学生，或直接传成绩。');
-      }
-    });
-    var rosterBtn = document.getElementById('errorImportRoster');
-    var rosterFile = document.getElementById('errorRosterFile');
-    if (rosterBtn && rosterFile) {
-      rosterBtn.addEventListener('click', function(){ if (rosterBtn.disabled) return; rosterFile.click(); });
-      rosterFile.addEventListener('change', function(ev){ impImportRoster(ev.target.files && ev.target.files[0]); });
-    }
-    var delBtn = document.getElementById('errorDeleteClass');
-    if (delBtn) delBtn.addEventListener('click', function(){ if (!delBtn.disabled) impDeleteClass(); });
-    updateImportClassButtons();
     var examSel = document.getElementById('errorProfileExam');
     if (examSel) examSel.addEventListener('change', function(){
       var id = examSel.value;
@@ -327,6 +244,24 @@
     };
     reader.readAsArrayBuffer(file);
   }
+  // 删除当前选中的班：本地班级+名单，并删云端该班全部成绩（不可逆，强确认）。云端失败则不动本地。
+  function tlDeleteClass() {
+    if (!_tlClassId) return;
+    var c = _tlClasses.filter(function(x){ return x.id === _tlClassId; })[0];
+    var name = (c && c.name) || _tlClassId;
+    if (window.confirm && !window.confirm('删除班级「' + name + '」？\n这会移除该班的本地名单，并删除云端该班的全部成绩记录，不可恢复。')) return;
+    var delBtn = document.getElementById('stDeleteClass');
+    if (delBtn) { delBtn.disabled = true; delBtn.style.opacity = '0.5'; delBtn.style.cursor = 'default'; delBtn.textContent = '删除中…'; }
+    var cloudDel = _tl.deleteExamResultsClass ? _tl.deleteExamResultsClass(_tlClassId) : Promise.resolve();
+    cloudDel.then(function(){
+      if (_tl.deleteClass) _tl.deleteClass(_tlClassId);
+      _tlClassId = null;
+      renderTimelinePage(_tl);
+    }).catch(function(){
+      if (delBtn) { delBtn.disabled = false; delBtn.style.opacity = '1'; delBtn.style.cursor = 'pointer'; delBtn.textContent = '🗑 删除该班'; }
+      if (window.alert) window.alert('云端删除失败，未删除该班。请检查网络/登录后重试。');
+    });
+  }
   function studentTotalWrong(st) {
     return ((st && st.weakCats) || []).reduce(function(s, x){ return s + (x.wrong || 0); }, 0);
   }
@@ -398,12 +333,26 @@
       });
       var classList = Object.keys(clsMap).map(function(k){ return { id: clsMap[k].id, name: clsMap[k].name, count: Object.keys(clsMap[k].stu).length }; });
       if ((!_tlClassId || !clsMap[_tlClassId]) && classList.length) _tlClassId = classList[0].id;
+      _tlClasses = classList;   // 删班时取名用
+      var manageRow = _tlClassId
+        ? '<div style="margin:6px 0 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+            + '<span id="stRosterDrop" style="display:inline-block;padding:7px 14px;border-radius:999px;border:1px dashed #cfe3ff;background:#f7fbff;color:#0071e3;cursor:pointer;font-size:13px;">＋ 导入名单（学号+姓名 Excel）</span>'
+            + '<button type="button" id="stDeleteClass" style="padding:7px 14px;border-radius:999px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;font-size:13px;">🗑 删除该班</button>'
+            + '<input type="file" id="stRosterFile" accept=".xls,.xlsx" style="display:none;"></div>'
+        : '<div style="margin:6px 0 4px;color:#888;font-size:13px;">点上面「＋ 新建班级」建一个班；导名单或导成绩后，这里就有学生了。</div>';
       el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _tlClassId)
-        + '<div style="margin:6px 0 4px;"><span id="stRosterDrop" style="display:inline-block;padding:6px 14px;border-radius:999px;border:1px dashed #cfe3ff;background:#f7fbff;color:#0071e3;cursor:pointer;font-size:13px;">＋ 导入名单（学号+姓名 Excel）</span><input type="file" id="stRosterFile" accept=".xls,.xlsx" style="display:none;"></div>'
+        + manageRow
         + '<div id="stTimelineList" style="margin-top:14px;color:#888;"></div>';
       el.querySelectorAll('.ep-class-chip').forEach(function(btn){
         btn.addEventListener('click', function(){ _tlClassId = btn.getAttribute('data-id'); renderTimelinePage(_tl); });
       });
+      var newChip = el.querySelector('.ep-class-new');
+      if (newChip) newChip.addEventListener('click', function(){
+        var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
+        if (name && _tl.createClass) { var c = _tl.createClass(name); if (c) _tlClassId = c.id; renderTimelinePage(_tl); }
+      });
+      var delClassBtn = document.getElementById('stDeleteClass');
+      if (delClassBtn) delClassBtn.addEventListener('click', tlDeleteClass);
       var rosterDrop = document.getElementById('stRosterDrop');
       var rosterFile = document.getElementById('stRosterFile');
       if (rosterDrop && rosterFile) {

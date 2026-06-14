@@ -304,6 +304,7 @@
       || dockKey === 'lesson-prep'
       || dockKey === 'error-import'
       || dockKey === 'error-profile'
+      || dockKey === 'student-timeline'
     ) {
       return dockKey;
     }
@@ -312,8 +313,7 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
-    if (page === 'student-timeline') return 'error-profile';
-    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
+    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile' || page === 'student-timeline') {
       return page;
     }
     return '';
