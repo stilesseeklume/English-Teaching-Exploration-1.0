@@ -154,6 +154,19 @@
       + chips + newChip + '</div>';
   }
 
+  // workbenchTabsHtml：班级工作台分段切换（考点视角 / 学生视角）。activeTab ∈ {'board','students'}。
+  function workbenchTabsHtml(activeTab) {
+    function seg(key, label) {
+      var on = activeTab === key;
+      return '<button type="button" class="wb-tab" data-tab="' + key + '" '
+        + 'style="flex:1;padding:9px 0;border:none;cursor:pointer;font-size:14px;border-radius:9px;'
+        + (on ? 'background:#fff;color:#0071e3;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08);' : 'background:transparent;color:#666;') + '">'
+        + label + '</button>';
+    }
+    return '<div style="display:flex;gap:4px;background:#f0f0f2;border-radius:11px;padding:4px;margin:14px 0 12px;max-width:420px;">'
+      + seg('board', '考点视角') + seg('students', '学生视角') + '</div>';
+  }
+
   function studentTimelineHtml(timeline, nameMap, catNames) {
     timeline = timeline || []; catNames = catNames || {};
     var resolve = (window.GrammarStudentTracking && window.GrammarStudentTracking.resolveStudentName) || function(m, s){ return (m && m[s]) || s; };
@@ -385,6 +398,7 @@
     boardListHtml: boardListHtml,
     importClassBarHtml: importClassBarHtml,
     classChipsHtml: classChipsHtml,
+    workbenchTabsHtml: workbenchTabsHtml,
     studentTimelineHtml: studentTimelineHtml,
     examChipsHtml: examChipsHtml,
     catTrendHtml: catTrendHtml,
