@@ -175,6 +175,16 @@
     var r = await sb.from('exam_results').delete().eq('user_id', state.user.id).eq('class_id', classId).eq('exam_id', examId);
     if (r.error) throw r.error;
   }
+  async function deleteExamResultsStudent(classId, studentNo) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var r = await sb.from('exam_results').delete().eq('user_id', state.user.id).eq('class_id', classId).eq('student_no', studentNo);
+    if (r.error) throw r.error;
+  }
+  async function renameExamResultsClass(classId, newName) {
+    if (!sb || !state.user || state.viewingUserId) return;
+    var r = await sb.from('exam_results').update({ class_name: newName }).eq('user_id', state.user.id).eq('class_id', classId);
+    if (r.error) throw r.error;
+  }
 
   function isSensitiveContextKey(key) {
     var lower = String(key || '').toLowerCase();
@@ -328,6 +338,7 @@
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     clearLearningData: clearLearningData,
     uploadExamResults: uploadExamResults, fetchExamResults: fetchExamResults, deleteExamResults: deleteExamResults, deleteExamResultsExam: deleteExamResultsExam,
+    deleteExamResultsStudent: deleteExamResultsStudent, renameExamResultsClass: renameExamResultsClass,
     submitFeedback: submitFeedback, recordEvent: recordEvent,
     listFeedbackReports: listFeedbackReports, updateFeedbackStatus: updateFeedbackStatus,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,

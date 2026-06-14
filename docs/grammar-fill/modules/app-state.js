@@ -223,7 +223,7 @@
         view: normalizeHomeView(previousView.view || 'cards')
       };
     }
-    if (page === 'error-book' || page === 'lesson-prep') {
+    if (page === 'lesson-prep') {
       return { page: page };
     }
     return { page: page };
@@ -292,6 +292,7 @@
   }
 
   function normalizeDockKey(dockKey) {
+    if (dockKey === 'error-profile') dockKey = 'student-timeline';   // 考点画像并入班级工作台
     if (
       dockKey === 'home'
       || dockKey === 'exams'
@@ -301,6 +302,7 @@
       || dockKey === 'lesson-prep'
       || dockKey === 'error-import'
       || dockKey === 'error-profile'
+      || dockKey === 'student-timeline'
     ) {
       return dockKey;
     }
@@ -309,8 +311,8 @@
 
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
-    if (page === 'student-timeline') return 'error-profile';
-    if (page === 'home' || page === 'knowledge' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
+    if (page === 'error-profile') page = 'student-timeline';   // 考点画像并入班级工作台
+    if (page === 'home' || page === 'knowledge' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'student-timeline') {
       return page;
     }
     return '';

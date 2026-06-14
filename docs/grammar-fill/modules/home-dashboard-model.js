@@ -156,18 +156,13 @@
     return [
       {
         key: 'error-import', icon: '📥', label: '导入成绩',
-        subtitleText: '传网阅成绩 → 算考点画像', tone: 'primary', count: null,
+        subtitleText: '传网阅成绩 → 算考点画像', tone: 'accent', count: null,
         action: buildAction('switch-page', 'error-import')
       },
       {
         key: 'error-profile', icon: '📊', label: '考点画像',
         subtitleText: '历次卷子 · 班级考点画像', tone: 'accent', count: null,
         action: buildAction('switch-page', 'error-profile')
-      },
-      {
-        key: 'points-training', icon: '🎯', label: '去练',
-        subtitleText: '挑弱考点集中练', tone: 'primary', count: null,
-        action: buildAction('switch-page', 'points-training')
       }
     ];
   }
@@ -194,6 +189,11 @@
         key: 'knowledge', icon: '📖', label: '知识库',
         subtitleText: '教材 · 按考点分类', tone: 'purple', count: null,
         action: buildAction('switch-page', 'knowledge')
+      },
+      {
+        key: 'points-training', icon: '🎯', label: '去练',
+        subtitleText: '挑弱考点集中练', tone: 'accent', count: null,
+        action: buildAction('switch-page', 'points-training')
       }
     ];
   }

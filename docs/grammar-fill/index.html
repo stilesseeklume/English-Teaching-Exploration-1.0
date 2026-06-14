@@ -327,8 +327,8 @@
 
     <div class="page" id="page-points-training">
       <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
-        <button class="knowledge-view-btn active" id="ptGraphBtn" onclick="setPointsTrainingView('graph')">🌐 图谱</button>
-        <button class="knowledge-view-btn" id="ptTextBtn" onclick="setPointsTrainingView('text')">🏷️ 文字</button>
+        <button class="knowledge-view-btn" id="ptGraphBtn" onclick="setPointsTrainingView('graph')">🌐 图谱</button>
+        <button class="knowledge-view-btn active" id="ptTextBtn" onclick="setPointsTrainingView('text')">🏷️ 文字</button>
       </div>
       <div id="pointsTrainingContent"></div>
     </div>
@@ -355,12 +355,6 @@
       <div id="prepList"></div>
     </div>
 
-    <div class="page" id="page-error-profile">
-      <h1 class="page-title">班级工作台</h1>
-      <p class="page-desc">选班级 → 看这个班各卷的考点画像与薄弱考点 · 一键迁移训练</p>
-      <div id="errorProfileContent">加载中…</div>
-    </div>
-
     <div class="page" id="page-error-import">
       <h1 class="page-title">导入</h1>
       <p class="page-desc">一份套卷两用：导进来既存成备课资料（可讲题），又抽语法填空算班级画像 · 再传网阅成绩 .xls 自动出画像</p>
@@ -368,8 +362,8 @@
     </div>
 
     <div class="page" id="page-student-timeline">
-      <h1 class="page-title">学生时间线</h1>
-      <p class="page-desc">按学生看一学期各卷的考点弱项 · 姓名只在本机显示，云端只存学号</p>
+      <h1 class="page-title">班级工作台</h1>
+      <p class="page-desc">选班 → 考点视角看该班该重点讲什么 / 学生视角管名单、看个人画像 · 姓名只在本机显示，云端只存学号</p>
       <div id="studentTimelineContent">加载中…</div>
     </div>
 
@@ -455,7 +449,7 @@
     📥
     <div class="dock-dot"></div>
   </div>
-  <div class="dock-item" data-label="班级" data-dock-key="error-profile" onclick="switchPage('error-profile')">
+  <div class="dock-item" data-label="班级" data-dock-key="student-timeline" onclick="switchPage('student-timeline')">
     👥
     <div class="dock-dot"></div>
   </div>

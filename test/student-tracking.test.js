@@ -13,7 +13,7 @@ function loadWindow(relPaths) {
   return window;
 }
 const w = loadWindow(['docs/grammar-fill/modules/student-tracking.js']);
-const { extractStudentRoster, buildExamResultRows, buildStudentTimeline, resolveStudentName } = w.GrammarStudentTracking;
+const { extractStudentRoster, buildExamResultRows, buildStudentTimeline, resolveStudentName, parseRosterText } = w.GrammarStudentTracking;
 
 test('extractStudentRoster: 读学号+姓名列，跳过非学生行', () => {
   const rows = [
@@ -86,6 +86,29 @@ test('buildExamResultRows: 行里绝不含姓名（隐私红线）', () => {
   const allowed = ['client_id', 'class_id', 'class_name', 'exam_id', 'exam_label', 'exam_date', 'student_no', 'result'];
   Object.keys(rows[0]).forEach((k) => assert.ok(allowed.includes(k), '意外字段(疑似姓名): ' + k));
   assert.ok(!JSON.stringify(rows).includes('"name"'), '行 JSON 不应有 name 键（class_name 不算）');
+});
+
+test('parseRosterText: 「学号 姓名」/只姓名/逗号Tab分隔/跳空行', () => {
+  const text = '20230531041 王五\n李雷\n20230531042,韩梅梅\n\t \n20230531043\t林涛\n  ';
+  assert.equal(JSON.stringify(parseRosterText(text)), JSON.stringify([
+    { studentNo: '20230531041', name: '王五' },
+    { studentNo: '', name: '李雷' },
+    { studentNo: '20230531042', name: '韩梅梅' },
+    { studentNo: '20230531043', name: '林涛' },
+  ]));
+});
+
+test('parseRosterText: 只给学号（无名）保留学号、名为空；非4位数字开头当姓名', () => {
+  assert.equal(JSON.stringify(parseRosterText('20230531044\n3班王五\nJohn Smith')), JSON.stringify([
+    { studentNo: '20230531044', name: '' },
+    { studentNo: '', name: '3班王五' },
+    { studentNo: '', name: 'John Smith' },
+  ]));
+});
+
+test('parseRosterText: 空/null 安全', () => {
+  assert.equal(JSON.stringify(parseRosterText('')), JSON.stringify([]));
+  assert.equal(JSON.stringify(parseRosterText(null)), JSON.stringify([]));
 });
 
 test('buildStudentTimeline: 名单里没成绩的学生也列出 + 缺考次数', () => {

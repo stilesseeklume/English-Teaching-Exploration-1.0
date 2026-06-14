@@ -655,6 +655,7 @@ EXPECTED_MODULES = [
             "buildExamResultRows",
             "buildStudentTimeline",
             "resolveStudentName",
+            "parseRosterText",
         ],
     },
     {
@@ -677,6 +678,8 @@ EXPECTED_MODULES = [
             "catTrendDetailsHtml",
             "studentSearchBoxHtml",
             "studentMatchListHtml",
+            "studentAddBoxHtml",
+            "workbenchTabsHtml",
             "studentProfileHtml",
         ],
     },
@@ -688,6 +691,10 @@ EXPECTED_MODULES = [
             "removeEntry",
             "getEntry",
             "buildBoardModel",
+            "renameClass",
+            "addStudentsToClass",
+            "removeStudentFromClass",
+            "buildClassList",
         ],
     },
 ]

@@ -121,23 +121,21 @@
     }).join('');
   }
 
+  // 导入成绩页只「选班」（成绩归到哪个班）。新建/删除班级、导名单都在「学生管理」里，这里不再混入。
   function importClassBarHtml(classes) {
     classes = classes || [];
     var opts = classes.map(function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
-    var btn = 'padding:8px 12px;border-radius:8px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;';
-    var btnGhost = 'padding:8px 12px;border-radius:8px;border:1px solid #e5e5e5;background:#fff;color:#333;';
-    var btnDanger = 'padding:8px 12px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;';
-    return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
-      + '<div style="font-weight:600;margin-bottom:10px;">这是哪个班的成绩？<span style="font-weight:400;color:#888;font-size:12px;"> · 选班后可导入名单或删除该班</span></div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
-      +   '<select id="errorImportClass" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;">'
-      +     '<option value="">— 选班级 —</option>' + opts + '</select>'
-      +   '<button type="button" id="errorImportNewClass" style="' + btn + '">＋ 新建班级</button>'
-      +   '<button type="button" id="errorImportRoster" disabled style="' + btnGhost + 'opacity:0.5;cursor:default;">导入名单</button>'
-      +   '<button type="button" id="errorDeleteClass" disabled style="' + btnDanger + 'opacity:0.5;cursor:default;">🗑 删除该班</button>'
-      + '</div>'
-      + '<div id="errorClassMeta" style="color:#888;font-size:12px;margin-top:8px;"></div>'
-      + '<input type="file" id="errorRosterFile" accept=".xls,.xlsx" style="display:none;">'
+    var head = '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
+      + '<div style="font-weight:600;margin-bottom:10px;">这是哪个班的成绩？</div>';
+    if (!classes.length) {
+      return head
+        + '<div style="color:#888;font-size:13px;">还没有班级——先去「班级工作台」新建班级（可顺手导名单），再回来传成绩。</div>'
+        + '</div>';
+    }
+    return head
+      + '<select id="errorImportClass" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;">'
+      +   '<option value="">— 选班级 —</option>' + opts + '</select>'
+      + '<div style="color:#888;font-size:12px;margin-top:8px;">新建/删除班级、导入名单都在「班级工作台」里。</div>'
       + '</div>';
   }
 
@@ -153,6 +151,19 @@
     return '<div style="margin-bottom:14px;">'
       + (classList.length ? '<div style="font-weight:600;margin-bottom:8px;">我的班级</div>' : '<div style="color:#888;font-size:13px;margin-bottom:8px;">还没有班级——新建一个，导入成绩时选它。</div>')
       + chips + newChip + '</div>';
+  }
+
+  // workbenchTabsHtml：班级工作台分段切换（考点视角 / 学生视角）。activeTab ∈ {'board','students'}。
+  function workbenchTabsHtml(activeTab) {
+    function seg(key, label) {
+      var on = activeTab === key;
+      return '<button type="button" class="wb-tab" data-tab="' + key + '" '
+        + 'style="flex:1;padding:9px 0;border:none;cursor:pointer;font-size:14px;border-radius:9px;'
+        + (on ? 'background:#fff;color:#0071e3;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08);' : 'background:transparent;color:#666;') + '">'
+        + label + '</button>';
+    }
+    return '<div style="display:flex;gap:4px;background:#f0f0f2;border-radius:11px;padding:4px;margin:14px 0 12px;max-width:420px;">'
+      + seg('board', '考点视角') + seg('students', '学生视角') + '</div>';
   }
 
   function studentTimelineHtml(timeline, nameMap, catNames) {
@@ -317,14 +328,31 @@
       var stat = (m.totalWrong != null) ? '<span style="color:#c0392b;font-size:12px;">错 ' + m.totalWrong + '</span>' : '';
       var miss = (m.missedCount > 0) ? '<span style="color:#e67e22;font-size:12px;">缺考 ' + m.missedCount + '</span>' : '';
       var on = (m.studentNo === opt.selectedNo);
-      return '<button type="button" class="st-pick" data-no="' + esc(m.studentNo) + '" '
-        + 'style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 14px;border:none;border-bottom:1px solid #f4f4f4;cursor:pointer;font-size:14px;'
-        + (on ? 'background:#f0f7ff;' : 'background:#fff;') + '">'
-        + '<span style="font-weight:600;min-width:64px;">' + nm + '</span>' + stat + miss
-        + '<span style="margin-left:auto;color:#bbb;font-size:12px;">看画像 ›</span></button>';
+      return '<div class="st-row" style="display:flex;align-items:center;border-bottom:1px solid #f4f4f4;' + (on ? 'background:#f0f7ff;' : 'background:#fff;') + '">'
+        + '<button type="button" class="st-pick" data-no="' + esc(m.studentNo) + '" '
+        +   'style="flex:1;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 14px;border:none;background:transparent;cursor:pointer;font-size:14px;">'
+        +   '<span style="font-weight:600;min-width:64px;">' + nm + '</span>' + stat + miss
+        +   '<span style="margin-left:auto;color:#bbb;font-size:12px;">看画像 ›</span></button>'
+        + '<button type="button" class="st-del" data-no="' + esc(m.studentNo) + '" title="从本班移除该生" '
+        +   'style="flex:0 0 auto;margin:0 10px;padding:4px 10px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;font-size:12px;">删</button>'
+        + '</div>';
     }).join('');
     var title = opt.title ? '<div style="font-weight:600;font-size:13px;color:#666;margin:8px 2px 6px;">' + esc(opt.title) + '</div>' : '';
     return title + '<div style="background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;margin-bottom:12px;">' + rows + '</div>';
+  }
+
+  // studentAddBoxHtml：手动「添加学生」折叠框（默认收起，不占主视图）。一行一个：「学号 姓名」或只写姓名。
+  function studentAddBoxHtml() {
+    return '<details style="margin:6px 0 4px;">'
+      + '<summary style="cursor:pointer;font-size:13px;color:#0071e3;padding:6px 0;list-style:none;">＋ 添加学生（手动 / 插班，一行一个）</summary>'
+      + '<div style="margin-top:6px;background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;">'
+      +   '<textarea id="stAddInput" rows="4" placeholder="每行一个学生，例如：&#10;20230531041 王五&#10;李雷&#10;（写「学号 姓名」最好，方便以后对上成绩；只写姓名也行，系统会自动编号）" '
+      +     'style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e5e5e5;border-radius:10px;font-size:13px;line-height:1.6;resize:vertical;outline:none;font-family:inherit;"></textarea>'
+      +   '<div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+      +     '<button type="button" id="stAddBtn" style="padding:7px 16px;border-radius:999px;border:1px solid #0071e3;background:#0071e3;color:#fff;cursor:pointer;font-size:13px;">添加进本班</button>'
+      +     '<span id="stAddMsg" style="color:#888;font-size:12px;"></span>'
+      +   '</div>'
+      + '</div></details>';
   }
 
   // studentProfileHtml：单生个人画像（可视化）。vm 来自 buildStudentProfileVM。
@@ -369,12 +397,14 @@
     boardListHtml: boardListHtml,
     importClassBarHtml: importClassBarHtml,
     classChipsHtml: classChipsHtml,
+    workbenchTabsHtml: workbenchTabsHtml,
     studentTimelineHtml: studentTimelineHtml,
     examChipsHtml: examChipsHtml,
     catTrendHtml: catTrendHtml,
     catTrendDetailsHtml: catTrendDetailsHtml,
     studentSearchBoxHtml: studentSearchBoxHtml,
     studentMatchListHtml: studentMatchListHtml,
+    studentAddBoxHtml: studentAddBoxHtml,
     studentProfileHtml: studentProfileHtml
   };
 })();

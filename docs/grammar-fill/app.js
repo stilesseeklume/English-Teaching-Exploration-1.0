@@ -1098,15 +1098,10 @@ function renderErrorImportPage() {
     catNames: errorProfileCatNames(),
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
-    gotoBoard: function(){ switchPage('error-profile'); },
+    gotoBoard: function(){ switchPage('student-timeline'); },   // 导完成绩 → 班级工作台（默认考点视角）
     now: function(){ return Date.now(); },
     nowText: function(){ return new Date().toLocaleString('zh-CN'); },
     getClasses: loadClasses,
-    createClass: createClassNamed,
-    deleteClass: function(id){ saveClasses(window.GrammarErrorProfileStore.removeClass(loadClasses(), id)); },
-    deleteExamResultsClass: function(id){ return (window.cloud && window.cloud.deleteExamResults) ? window.cloud.deleteExamResults(id) : Promise.resolve(); },
-    importRoster: function(classId, rows){ var roster = window.GrammarStudentTracking.extractStudentRoster(rows); mergeStudentNames(roster); return mergeClassRoster(classId, roster.map(function(s){ return s.studentNo; })); },
-    classRoster: loadClassRoster,
     parseExamWord: parseExamWord,
     mergeStudentNames: mergeStudentNames,
     uploadExamResults: function(rows){ return (window.cloud && window.cloud.uploadExamResults) ? window.cloud.uploadExamResults(rows) : Promise.resolve(); },
@@ -1114,42 +1109,54 @@ function renderErrorImportPage() {
     today: function(){ var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   });
 }
-function renderErrorProfilePage() {
-  return window.GrammarErrorProfileController.renderBoardPage({
+// 班级工作台：考点视角 + 学生视角共用一份 deps（合并原 board / timeline 两套）。
+function renderWorkbenchPage() {
+  return window.GrammarErrorProfileController.renderWorkbenchPage({
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
     catNames: errorProfileCatNames(),
     openMigrationForFineTag: openMigrationDrawerForTag,
     getClasses: loadClasses,
     createClass: createClassNamed,
-    gotoTimeline: function(){ switchPage('student-timeline'); },
-    gotoImport: function(){ switchPage('error-import'); },
+    deleteClass: function(id){ saveClasses(window.GrammarErrorProfileStore.removeClass(loadClasses(), id)); },
+    loadStudentNames: loadStudentNames,
+    classRoster: loadClassRoster,
     fetchExamResults: function(classId){
       return (window.cloud && window.cloud.fetchExamResults)
         ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
         : Promise.resolve({ rows: [] });
     },
+    deleteExamResultsClass: function(id){ return (window.cloud && window.cloud.deleteExamResults) ? window.cloud.deleteExamResults(id) : Promise.resolve(); },
     deleteExamResultsExam: function(classId, examId){
       return (window.cloud && window.cloud.deleteExamResultsExam) ? window.cloud.deleteExamResultsExam(classId, examId) : Promise.resolve();
-    }
-  });
-}
-function renderStudentTimelinePage() {
-  return window.GrammarErrorProfileController.renderTimelinePage({
-    getClasses: loadClasses,
-    loadProfiles: loadErrorProfiles,
-    loadStudentNames: loadStudentNames,
-    catNames: errorProfileCatNames(),
-    fetchExamResults: function(classId){
-      return (window.cloud && window.cloud.fetchExamResults)
-        ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
-        : Promise.resolve({ rows: [] });
     },
-    classRoster: loadClassRoster,
     importRoster: function(classId, rows){
       var roster = window.GrammarStudentTracking.extractStudentRoster(rows);
       mergeStudentNames(roster);
       return mergeClassRoster(classId, roster.map(function(s){ return s.studentNo; }));
+    },
+    // 班级改名：本地改名（保留名单），并把云端该班成绩行的 class_name 一并改（非阻塞）
+    renameClass: function(id, name){
+      saveClasses(window.GrammarErrorProfileStore.renameClass(loadClasses(), id, name));
+      return (window.cloud && window.cloud.renameExamResultsClass) ? window.cloud.renameExamResultsClass(id, name) : Promise.resolve();
+    },
+    // 添加学生：缺学号则补「本地合成键」（永不上云、避免与真实学号撞键）；姓名只存本地；进本班名单
+    addStudents: function(classId, students){
+      var roster = (students || []).map(function(s, i){
+        var no = String((s && s.studentNo) || '').trim();
+        if (!no) no = 'm' + Date.now().toString(36) + i.toString(36) + Math.floor(Math.random() * 1296).toString(36);
+        return { studentNo: no, name: String((s && s.name) || '').trim() };
+      }).filter(function(s){ return s.studentNo; });
+      mergeStudentNames(roster.filter(function(s){ return s.name; }));
+      saveClasses(window.GrammarErrorProfileStore.addStudentsToClass(loadClasses(), classId, roster.map(function(s){ return s.studentNo; })));
+      return roster.length;
+    },
+    // 删除学生：本地名单移除；该学号无任何班再引用时连本地姓名也清掉；删云端该班该生成绩
+    removeStudent: function(classId, studentNo){
+      saveClasses(window.GrammarErrorProfileStore.removeStudentFromClass(loadClasses(), classId, studentNo));
+      var stillUsed = (loadClasses() || []).some(function(c){ return (c.students || []).indexOf(studentNo) !== -1; });
+      if (!stillUsed) { var names = loadStudentNames(); if (names[studentNo] != null) { delete names[studentNo]; saveStudentNames(names); } }
+      return (window.cloud && window.cloud.deleteExamResultsStudent) ? window.cloud.deleteExamResultsStudent(classId, studentNo) : Promise.resolve();
     }
   });
 }
@@ -1484,6 +1491,7 @@ function handleDockBack() {
 }
 
 function switchPage(page) {
+  if (page === 'error-profile') page = 'student-timeline';   // 考点画像并入班级工作台：旧入口/旧链接重定向到工作台
   var sessionState = getTeachingSessionSnapshot();
   var retentionState = getTeachingPageSwitchRetentionSnapshot();
   var pageSwitchPlan = window.GrammarAppState && window.GrammarAppState.buildPageSwitchPlan
@@ -1542,9 +1550,8 @@ function switchPage(page) {
   if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
   if (renderPlan.renderAction === 'render-admin') renderAdminPage();
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
-  if (page === 'error-profile') renderErrorProfilePage();
   if (page === 'error-import') renderErrorImportPage();
-  if (page === 'student-timeline') renderStudentTimelinePage();
+  if (page === 'student-timeline') renderWorkbenchPage();   // 班级工作台（考点视角 + 学生视角）
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
   // 备课/讲题显示）
@@ -4289,7 +4296,7 @@ function renderKnowledgePage() {
 }
 
 var _knowledgeRenderTarget = 'knowledgeContent';
-var _pointsTrainingView = 'graph';
+var _pointsTrainingView = 'text';
 function setPointsTrainingView(view) {
   _pointsTrainingView = (view === 'text') ? 'text' : 'graph';
   var gb = document.getElementById('ptGraphBtn'); if (gb) gb.classList.toggle('active', _pointsTrainingView === 'graph');

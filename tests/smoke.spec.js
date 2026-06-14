@@ -2272,13 +2272,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && newUserDashboard && newUserDashboard.activity.isNewUser === true
       && newUserDashboard.activity.greeting === '早上好'
       && newUserDashboard.hero && newUserDashboard.hero.titleText.indexOf('语法填空讲评工作台') !== -1
+      && newUserDashboard.coreActions.length === 2
       && newUserDashboard.coreActions[0].action && newUserDashboard.coreActions[0].action.type === 'switch-page' && newUserDashboard.coreActions[0].action.value === 'error-import'
       && newUserDashboard.coreActions[1].action && newUserDashboard.coreActions[1].action.type === 'switch-page' && newUserDashboard.coreActions[1].action.value === 'error-profile'
-      && newUserDashboard.coreActions[2].action && newUserDashboard.coreActions[2].action.value === 'points-training' && newUserDashboard.coreActions[2].label === '去练'
       && newUserDashboard.toolActions[0].action && newUserDashboard.toolActions[0].action.type === 'navigate-home' && newUserDashboard.toolActions[0].action.value === 'exams'
       && newUserDashboard.toolActions[1].action && newUserDashboard.toolActions[1].action.type === 'upload-word' && newUserDashboard.toolActions[1].label === '导入试题'
-      && newUserDashboard.coreActions[0].chrome && newUserDashboard.coreActions[0].chrome.style.indexOf('box-shadow') !== -1
-      && newUserDashboard.coreActions[0].subtitleStyle.indexOf('opacity') !== -1
+      && newUserDashboard.toolActions[newUserDashboard.toolActions.length - 1].action.value === 'points-training' && newUserDashboard.toolActions[newUserDashboard.toolActions.length - 1].label === '去练'
+      && newUserDashboard.coreActions[0].chrome && newUserDashboard.coreActions[0].chrome.style.indexOf('box-shadow') === -1
+      && newUserDashboard.coreActions[0].subtitleStyle.indexOf('opacity') === -1
       && newUserDashboard.books && newUserDashboard.books.length === 7
       && newUserDashboard.books[0].cover.indexOf('bixiu-1.jpg') !== -1
       && !newUserDashboard.books[0].action
@@ -2290,7 +2291,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.coreActions && activeDashboard.coreActions.length === 3 && activeDashboard.toolActions.length === 4
+      && activeDashboard.coreActions && activeDashboard.coreActions.length === 2 && activeDashboard.toolActions.length === 5
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
       && activeDashboard.toolActions[2].subtitleText === '2 套已入库'
       && !activeDashboard.toolActions.some(function(t){ return t.action && t.action.value === 'error-book'; })
@@ -3066,10 +3067,14 @@ test('考点训练页：dock 入口 + 图(决策地图)/文字(考点视图)双�
   await expect(page.locator('html')).toHaveClass(/ready/);
   await page.locator('[data-dock-key="points-training"]').click();
   await expect(page.locator('#page-points-training')).toHaveClass(/active/);
-  // 默认 图 = 决策地图，渲染进 #pointsTrainingContent（验证渲染目标重定向，而非串到知识库页）
+  // 默认 文字 = 考点视图，渲染进 #pointsTrainingContent（验证渲染目标重定向，而非串到知识库页）
+  await expect(page.locator('#ptTextBtn')).toHaveClass(/active/);
+  await expect(page.locator('#pointsTrainingContent')).toContainText(/考点视图/);
+  // 切 图 = 决策地图
+  await page.locator('#ptGraphBtn').click();
   await expect(page.locator('#ptGraphBtn')).toHaveClass(/active/);
   await expect(page.locator('#pointsTrainingContent .dm-wrap')).toBeVisible();
-  // 切 文字 = 考点视图
+  // 切回 文字 = 考点视图
   await page.locator('#ptTextBtn').click();
   await expect(page.locator('#ptTextBtn')).toHaveClass(/active/);
   await expect(page.locator('#pointsTrainingContent')).toContainText(/考点视图/);
@@ -4207,7 +4212,7 @@ test('名词叶子合并：num-plural 标题末段=名词复数，无可数/不�
   })).toBe('ok');
 });
 
-test('错题画像：导入页可进 + 画像板块列出并展开', async ({ page }) => {
+test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默认出考点画像', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4228,14 +4233,16 @@ test('错题画像：导入页可进 + 画像板块列出并展开', async ({ pa
         result: { right: [37], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'preposition', fine_category: null, answer: 'from' }], byCat: { preposition: { right: 0, wrong: 1 } } } },
     ]);
   });
+  // 旧「考点画像」入口重定向到班级工作台（student-timeline），默认考点视角
   await page.evaluate(() => window.switchPage('error-profile'));
-  await expect(page.locator('#page-error-profile')).toHaveClass(/active/);
-  await expect(page.locator('#errorProfileContent')).toContainText('X卷');
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  await expect(page.locator('.wb-tab[data-tab="board"]')).toBeVisible();
+  await expect(page.locator('#wbContent')).toContainText('X卷');
   await expect(page.locator('#epBoardDetail')).toContainText('考点画像');
   expect(errors).toEqual([]);
 });
 
-test('学生时间线：搜索驱动选学生 + 单生可视化画像(mock 云端，本地显名)', async ({ page }) => {
+test('班级工作台·学生视角：搜索驱动选学生 + 单生可视化画像(mock 云端，本地显名)', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4251,10 +4258,11 @@ test('学生时间线：搜索驱动选学生 + 单生可视化画像(mock 云�
   });
   await page.evaluate(() => window.switchPage('student-timeline'));
   await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
-  // 搜索驱动：默认列出学生，不再把每生卷子明细平铺在页面上
+  // 切到学生视角 → 搜索驱动列出学生（不平铺每生明细）
+  await page.locator('.wb-tab[data-tab="students"]').click();
   await expect(page.locator('#stSearch')).toBeVisible();
-  await expect(page.locator('#studentTimelineContent')).toContainText('张三');
-  await expect(page.locator('#studentTimelineContent')).toContainText('李四');
+  await expect(page.locator('#wbContent')).toContainText('张三');
+  await expect(page.locator('#wbContent')).toContainText('李四');
   // 点开张三 → 渲染其可视化个人画像，含卷子明细「一模」
   await page.locator('#stMatchList .st-pick[data-no="S1"]').click();
   await expect(page.locator('#stStudentDetail')).toContainText('一模');
@@ -4264,7 +4272,7 @@ test('学生时间线：搜索驱动选学生 + 单生可视化画像(mock 云�
   expect(errors).toEqual([]);
 });
 
-test('班级管理：导入页新建班级→启用导入名单/删除→删除班级(本地+云端成绩)', async ({ page }) => {
+test('班级工作台：新建班级→删除该班(本地+云端成绩)；导入页不再有班级 CRUD', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4275,22 +4283,105 @@ test('班级管理：导入页新建班级→启用导入名单/删除→删除�
     window.cloud.fetchExamResults = async () => ([]);
     window.cloud.deleteExamResults = async (classId) => { window.__deletedClass = classId; return { ok: true }; };
   });
-  await page.evaluate(() => window.switchPage('error-import'));
-  await expect(page.locator('#page-error-import')).toHaveClass(/active/);
-  // 新建班级（prompt 返回班名）→ 自动选中 → 导入名单/删除该班 启用
+  // 班级管理在「班级工作台」（dock 入口，顶部统一区，两视角共用）
+  await page.evaluate(() => window.switchPage('student-timeline'));
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  // 新建班级（chip ＋新建班级，prompt 返回班名）→ 自动选中 → 删除该班按钮出现
   page.once('dialog', (d) => d.accept('高三②班'));
-  await page.locator('#errorImportNewClass').click();
-  await expect(page.locator('#errorImportClass')).toContainText('高三②班');
-  await expect(page.locator('#errorImportRoster')).toBeEnabled();
-  await expect(page.locator('#errorDeleteClass')).toBeEnabled();
-  await expect(page.locator('#errorClassMeta')).toContainText('还没导名单');
+  await page.locator('#studentTimelineContent .ep-class-new').click();
+  await expect(page.locator('#studentTimelineContent')).toContainText('高三②班');
+  await expect(page.locator('#stDeleteClass')).toBeVisible();
   // 删除该班（confirm 接受）→ 调云端 deleteExamResults(classId) + 本地移除
   page.once('dialog', (d) => d.accept());
-  await page.locator('#errorDeleteClass').click();
-  await expect(page.locator('#errorProfileMsg')).toContainText('已删除班级');
-  await expect(page.locator('#errorImportClass')).not.toContainText('高三②班');
+  await page.locator('#stDeleteClass').click();
+  await expect(page.locator('#studentTimelineContent')).not.toContainText('高三②班');
   const deletedClassId = await page.evaluate(() => window.__deletedClass);
   expect(typeof deletedClassId).toBe('string');
   expect(deletedClassId.startsWith('cls_')).toBe(true);
+  // 导入成绩页只「选班」——不再有新建/删除班级，提示指向「班级工作台」
+  await page.evaluate(() => window.switchPage('error-import'));
+  await expect(page.locator('#page-error-import')).toHaveClass(/active/);
+  await expect(page.locator('#errorImportNewClass')).toHaveCount(0);
+  await expect(page.locator('#errorDeleteClass')).toHaveCount(0);
+  await expect(page.locator('#errorImportContent')).toContainText('班级工作台');
+  expect(errors).toEqual([]);
+});
+
+test('班级工作台：班级改名 + 添加学生 + 删除单个学生(本地名单+云端同步)', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockSignedInTeacher(page);
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.evaluate(() => {
+    // 可变云端：rename 改 class_name、删生剔行，re-fetch 反映变化（贴近真实合并：有云端数据时班名以云端为准）
+    window.__cloudRows = [
+      { student_no: 'S1', class_id: 'cls_x', class_name: '高三①班', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
+        result: { right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'tense' }], byCat: { tense: { right: 0, wrong: 1 } } } },
+    ];
+    window.__renamed = null; window.__deletedStudent = null;
+    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cls_x', name: '高三①班', students: ['S1', 'S2'] }] }));
+    localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { S1: '张三', S2: '李四' } }));
+    window.cloud = window.cloud || {};
+    window.cloud.fetchExamResults = async () => window.__cloudRows.slice();
+    window.cloud.renameExamResultsClass = async (classId, newName) => {
+      window.__renamed = { classId, newName };
+      window.__cloudRows.forEach((r) => { if (r.class_id === classId) r.class_name = newName; });
+    };
+    window.cloud.deleteExamResultsStudent = async (classId, studentNo) => {
+      window.__deletedStudent = { classId, studentNo };
+      window.__cloudRows = window.__cloudRows.filter((r) => !(r.class_id === classId && r.student_no === studentNo));
+    };
+  });
+  await page.evaluate(() => window.switchPage('student-timeline'));
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  await expect(page.locator('#studentTimelineContent')).toContainText('高三①班');
+
+  // ① 班级改名（管理行在工作台顶部，两视角共用）→ chip 显示新名 + 调用云端 renameExamResultsClass
+  page.once('dialog', (d) => d.accept('高三特优班'));
+  await page.locator('#stRenameClass').click();
+  await expect(page.locator('#studentTimelineContent')).toContainText('高三特优班');
+  await expect(page.locator('#studentTimelineContent')).not.toContainText('高三①班');
+  const renamed = await page.evaluate(() => window.__renamed);
+  expect(renamed && renamed.newName).toBe('高三特优班');
+
+  // ② 切到学生视角 → 添加学生（展开折叠框 → 多行文本 → 添加）→ 新生进本班、可被搜出
+  await page.locator('.wb-tab[data-tab="students"]').click();
+  await page.evaluate(() => { const d = document.querySelector('#stAddInput').closest('details'); if (d) d.open = true; });
+  await page.locator('#stAddInput').fill('演示学生1\n演示学生2');
+  await page.locator('#stAddBtn').click();
+  await expect(page.locator('#wbContent')).toContainText('演示学生1');
+  await expect(page.locator('#wbContent')).toContainText('演示学生2');
+
+  // ③ 删除单个学生（搜索结果行的「删」→ confirm）→ 本地名单移除 + 调用云端 deleteExamResultsStudent
+  await expect(page.locator('#stMatchList .st-del[data-no="S1"]')).toBeVisible();
+  page.once('dialog', (d) => d.accept());
+  await page.locator('#stMatchList .st-del[data-no="S1"]').click();
+  await expect(page.locator('#wbContent')).not.toContainText('张三');
+  const deleted = await page.evaluate(() => window.__deletedStudent);
+  expect(deleted && deleted.studentNo).toBe('S1');
+
+  expect(errors).toEqual([]);
+});
+
+test('班级工作台：纯名单班人数在考点/学生两视角一致（修 0 vs 40 不同步）', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockSignedInTeacher(page);
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.evaluate(() => {
+    // 纯名单班：本地名单 3 人，云端无成绩
+    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cDemo', name: '演示班级', students: ['m1', 'm2', 'm3'] }] }));
+    localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { m1: '演示学生1', m2: '演示学生2', m3: '演示学生3' } }));
+    window.cloud = window.cloud || {};
+    window.cloud.fetchExamResults = async () => ([]);
+  });
+  await page.evaluate(() => window.switchPage('student-timeline'));
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  // 默认考点视角：班级 chip 人数 = 名单数 3（旧版考点画像会显示 0）
+  await expect(page.locator('.ep-class-chip[data-id="cDemo"]')).toContainText('演示班级');
+  await expect(page.locator('.ep-class-chip[data-id="cDemo"]')).toContainText('3');
+  // 切学生视角：同一 chip 人数仍 3，两视角口径一致
+  await page.locator('.wb-tab[data-tab="students"]').click();
+  await expect(page.locator('.ep-class-chip[data-id="cDemo"]')).toContainText('3');
   expect(errors).toEqual([]);
 });

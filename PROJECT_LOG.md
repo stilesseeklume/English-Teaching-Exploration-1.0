@@ -510,5 +510,42 @@ d29c166 注册登录改为用户名+密码
 - 隐私红线不变：姓名只存本机（grammar-student-names，owner 隔离），云端永不存姓名。
 - 在哪试：登录 →「导入成绩」→ 选班/新建 →「导入名单」传 学号+姓名 Excel；或「删除该班」（会二次确认并清云端成绩）。
 - 验证：render 单测（importClassBarHtml 含新按钮、默认禁用）；smoke「班级管理」（新建→按钮启用→删除走云端 deleteExamResults + 本地移除）；`npm run check` 全量 36/36 全绿。
+- 已 commit + push origin/main：f6b54d8。
+
+## 2026-06-14 · 班级管理移出导入页 → 独立「学生管理」入口（IA 收敛，用户反馈）
+
+用户反馈：班级的新建/删除不该塞在「导入成绩」里，应是一个独立的「学生管理」板块（"按用途聚合"，对齐 [[seeklume-ia-reorg-pending]] 的整理方向）。选了"三合一·升级现有页"。
+
+- **导入成绩页回退为只「选班」**：`importClassBarHtml` 去掉 新建/导名单/删除/meta/file，只剩班级下拉 + 一行"新建/删除班级、导入名单都在「学生管理」里"。无班级时提示去学生管理建班。控制器 `renderImportPage` 去掉相关 wiring（删 `updateImportClassButtons`/`impImportRoster`/`impDeleteClass`），app.js 导入页依赖去掉 createClass/deleteClass/deleteExamResultsClass/importRoster/classRoster。
+- **「学生时间线」升级为「学生管理」+ 独立 dock 入口（👥）**：它本就有班级 chips + 导名单 + 学生画像；这次补齐——① 接上之前漏接的 `.ep-class-new`（新建班级，时间线页原来点了没反应）；② 选中班下方加「🗑 删除该班」（`tlDeleteClass`：confirm → 云端 `deleteExamResults(classId)` 成功后删本地，失败不动本地）；③ 加 `_tlClasses` 存当前班列表供删班取名。index.html 加 dock 项 + 页标题改「学生管理」；app-state.js 的 `normalizeDockKey`/`getDockKeyForPage` 收录 student-timeline（不再高亮成考点画像，改高亮自己）。app.js 学生页依赖加 createClass/deleteClass/deleteExamResultsClass。
+- 净结果：班级 CRUD + 名单 + 学生画像集中在「学生管理」；「考点画像」仍可点"查看单个学生画像"跳过去。隐私不变。
+- 在哪试：dock「学生管理」→ 新建/删除班级、导名单、搜学生看画像；「导入成绩」只选班。
+- 验证：单测 66/66（importClassBarHtml 改为断言只选班/无 CRUD）；smoke「班级管理(学生管理页)」改测学生页新建→删除走云端 + 导入页无 CRUD；`npm run check` 全量 36/36 全绿。
+
+## 2026-06-14 · 班级管理补全：班级改名 + 添加学生 + 删除单个学生（用户反馈）
+
+用户要在「学生管理」页把班级管理做全：导入名单后还能手动增删学生、给班级改名（"演示班级"造数据由用户自己导入名单，本次只做功能）。落点仍在「学生管理」页（`renderTimelinePage`），延续"选择器/搜索驱动、不平铺"（对齐 [[ui-selector-driven-no-flat-walls]]）。
+
+- **班级改名**：管理行加「✎ 班级改名」（`stRenameClass`）→ prompt 预填当前名 → 本地改名 + 云端该班 `class_name` 一并改。修了一个隐患：`GrammarErrorProfileStore.renameClass` 旧实现把班级重建成 `{id,name}`，会**抹掉 `students` 名单**；改为 `Object.assign({}, c, {name})` 保留其它字段（加单测）。云端合并里有成绩的班名以 `class_name` 为准，故必须同步云端才看得到新名 → 新增 cloud.js `renameExamResultsClass(classId, newName)`（`update class_name`，复用 RLS，**无迁移**）。
+- **添加学生**（手动/插班）：管理行下加折叠框（默认收起，不占主视图）`studentAddBoxHtml` —— 多行文本，每行「学号 姓名」或只写姓名。新纯函数 `GrammarStudentTracking.parseRosterText(text)`（≥4 位数字开头识别为学号，支持 空格/逗号/Tab 分隔，跳空行）。app.js `addStudents` 依赖：缺学号则补"本地合成键"（`m`+时间戳，永不上云、避免与真实学号撞键），`mergeStudentNames`（仅本机）+ 新纯函数 `GrammarErrorProfileStore.addStudentsToClass`（去重保序）。
+- **删除单个学生**：搜索结果每行加「删」按钮（`st-del`，搜索驱动删除，不另铺名单墙；`studentMatchListHtml` 行结构由单 button 改为 `st-row` 容器内 `st-pick`+`st-del`，`.st-pick[data-no]` 不变）。app.js `removeStudent` 依赖：`GrammarErrorProfileStore.removeStudentFromClass` 移除本地名单 → 该学号无任何班再引用时连本机姓名也清掉 → 删云端该班该生成绩（新增 cloud.js `deleteExamResultsStudent(classId, studentNo)`，复用 RLS，**无迁移**）。强 confirm 兜底。
+- 隐私红线不变：姓名只存本机（owner 隔离），云端只存学号；新增云端函数只动 `class_name`/按 `student_no` 删行，不写姓名。
+- 在哪试：dock「学生管理」→ 选班 → 「✎ 班级改名」；展开「＋ 添加学生」粘贴名单（一行一个）；搜到某生点行尾「删」。导入页不受影响。
+- 验证：`node --test` 单测全绿（store +4：rename 保名单 / add 去重保序 / add 空班建起 / remove；student-tracking +3：parseRosterText 三组）；`python3 scripts/check_grammar_modules.py`（27 模块，登记 +parseRosterText/+studentAddBoxHtml/+renameClass/+addStudentsToClass/+removeStudentFromClass）；新增 smoke「班级管理…改名+添加+删除」用可变云端 stub 跑通三动作并校验云端被调用；**`npm run check` 全量门禁 37/37 全绿**。
+- 未跑：`renameExamResultsClass`/`deleteExamResultsStudent` 的真实 Supabase 执行（需真账号环境，按 AGENTS.md 留待真环境/用户授权）；二者是已有 delete/update 模式的 3 行镜像。
+- 待办：未 commit/push（等用户授权）。已于本日 commit b91336c 并经用户授权 push 到 main 上线。
+
+## 2026-06-14 · 考点画像 + 学生管理 合并为「班级工作台」（修数据不同步 + 去功能重复，用户反馈）
+
+用户反馈「考点画像 与 学生管理 两页数据不同步、且功能重复」。经 brainstorming → writing-plans（spec/plan 见 `docs/planning/2026-06-14-班级工作台-{design,plan}.md`）。
+
+- **根因（已核实）**：两页是同一份云端 `exam_results` 的两种切法（按考点 / 按学生），却各自挂班级管理。**人数口径不一致**——考点画像只数「云端有成绩的学生」，学生管理数「成绩 ∪ 本地名单」；纯名单班（如演示班级 40 人无成绩）→ 考点画像显 0、学生管理显 40。
+- **合并为一页「班级工作台」**（宿主复用 `student-timeline`，分段切换）：顶部统一「选班 + 班级管理（改名/导名单/加/删）」；下面 `workbenchTabsHtml` 切「考点视角 / 学生视角」，默认考点视角。控制器 `renderTimelinePage`/`renderBoardPage` 合为 `renderWorkbenchPage`：一次 `fetchExamResults` 两视角共用，body 拆 `renderBoardBody`/`renderTimelineBody`（无自取数据、无班级 chips）。
+- **同步修复（核心）**：新增纯函数 `GrammarErrorProfileStore.buildClassList(allRows, localClasses)`（名单 ∪ 成绩，人数口径唯一），工作台两视角共用 → 同班人数恒一致（单测 + smoke 各一条兜住 0→40）。
+- **导航收敛**：dock 两个入口（考点画像 📊 / 学生管理 👥）收成一个「班级工作台」👥；`switchPage('error-profile')` 入口重定向到工作台（考点视角），原「查看单个学生画像」按钮改为同页切学生视角；`app-state` 的 `normalizeDockKey`/`getDockKeyForPage` 把 `error-profile` 归一到 `student-timeline`；index 删 `page-error-profile` 容器、改页标题、导入页文案指向「班级工作台」。
+- **导入成绩页保持独立**（数据入口，不在本次范围）。隐私红线不变。
+- 在哪试：dock「班级工作台」→ 选班 → 默认看考点视角（选套卷出排行/趋势），切「学生视角」搜学生看个人画像/管名单；旧「考点画像」链接自动落到工作台。
+- 验证：`node --test`（store +1 `buildClassList`）；`check_grammar_modules.py`（27 模块，+`buildClassList`/+`workbenchTabsHtml`）；smoke 改造为 5 条「班级工作台」用例（考点视角默认出画像 + 旧入口重定向 / 学生视角搜+画像 / 新建删班 / 改名加删生 / 两视角人数一致）；**`npm run check` 全量门禁 38/38 全绿**。
+- 待办：未 commit/push（等用户授权）。
 
 *此日志随项目推进持续更新。最后更新：2026-06-14*
