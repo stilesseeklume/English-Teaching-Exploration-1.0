@@ -533,6 +533,19 @@ d29c166 注册登录改为用户名+密码
 - 在哪试：dock「学生管理」→ 选班 → 「✎ 班级改名」；展开「＋ 添加学生」粘贴名单（一行一个）；搜到某生点行尾「删」。导入页不受影响。
 - 验证：`node --test` 单测全绿（store +4：rename 保名单 / add 去重保序 / add 空班建起 / remove；student-tracking +3：parseRosterText 三组）；`python3 scripts/check_grammar_modules.py`（27 模块，登记 +parseRosterText/+studentAddBoxHtml/+renameClass/+addStudentsToClass/+removeStudentFromClass）；新增 smoke「班级管理…改名+添加+删除」用可变云端 stub 跑通三动作并校验云端被调用；**`npm run check` 全量门禁 37/37 全绿**。
 - 未跑：`renameExamResultsClass`/`deleteExamResultsStudent` 的真实 Supabase 执行（需真账号环境，按 AGENTS.md 留待真环境/用户授权）；二者是已有 delete/update 模式的 3 行镜像。
+- 待办：未 commit/push（等用户授权）。已于本日 commit b91336c 并经用户授权 push 到 main 上线。
+
+## 2026-06-14 · 考点画像 + 学生管理 合并为「班级工作台」（修数据不同步 + 去功能重复，用户反馈）
+
+用户反馈「考点画像 与 学生管理 两页数据不同步、且功能重复」。经 brainstorming → writing-plans（spec/plan 见 `docs/planning/2026-06-14-班级工作台-{design,plan}.md`）。
+
+- **根因（已核实）**：两页是同一份云端 `exam_results` 的两种切法（按考点 / 按学生），却各自挂班级管理。**人数口径不一致**——考点画像只数「云端有成绩的学生」，学生管理数「成绩 ∪ 本地名单」；纯名单班（如演示班级 40 人无成绩）→ 考点画像显 0、学生管理显 40。
+- **合并为一页「班级工作台」**（宿主复用 `student-timeline`，分段切换）：顶部统一「选班 + 班级管理（改名/导名单/加/删）」；下面 `workbenchTabsHtml` 切「考点视角 / 学生视角」，默认考点视角。控制器 `renderTimelinePage`/`renderBoardPage` 合为 `renderWorkbenchPage`：一次 `fetchExamResults` 两视角共用，body 拆 `renderBoardBody`/`renderTimelineBody`（无自取数据、无班级 chips）。
+- **同步修复（核心）**：新增纯函数 `GrammarErrorProfileStore.buildClassList(allRows, localClasses)`（名单 ∪ 成绩，人数口径唯一），工作台两视角共用 → 同班人数恒一致（单测 + smoke 各一条兜住 0→40）。
+- **导航收敛**：dock 两个入口（考点画像 📊 / 学生管理 👥）收成一个「班级工作台」👥；`switchPage('error-profile')` 入口重定向到工作台（考点视角），原「查看单个学生画像」按钮改为同页切学生视角；`app-state` 的 `normalizeDockKey`/`getDockKeyForPage` 把 `error-profile` 归一到 `student-timeline`；index 删 `page-error-profile` 容器、改页标题、导入页文案指向「班级工作台」。
+- **导入成绩页保持独立**（数据入口，不在本次范围）。隐私红线不变。
+- 在哪试：dock「班级工作台」→ 选班 → 默认看考点视角（选套卷出排行/趋势），切「学生视角」搜学生看个人画像/管名单；旧「考点画像」链接自动落到工作台。
+- 验证：`node --test`（store +1 `buildClassList`）；`check_grammar_modules.py`（27 模块，+`buildClassList`/+`workbenchTabsHtml`）；smoke 改造为 5 条「班级工作台」用例（考点视角默认出画像 + 旧入口重定向 / 学生视角搜+画像 / 新建删班 / 改名加删生 / 两视角人数一致）；**`npm run check` 全量门禁 38/38 全绿**。
 - 待办：未 commit/push（等用户授权）。
 
 *此日志随项目推进持续更新。最后更新：2026-06-14*
