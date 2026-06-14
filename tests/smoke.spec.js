@@ -1888,14 +1888,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && practiceContextSnapshot && practiceContextSnapshot.currentQuestions.length === examState.currentQuestions.length
       && practiceContextFromExam && practiceContextFromExam.currentQuestions.length === examState.currentQuestions.length
       && clearedPracticeContext && clearedPracticeContext.currentExam === null && clearedPracticeContext.currentQuestions.length === 0
-      && normalizedPreviousHome && normalizedPreviousHome.page === 'home' && normalizedPreviousHome.view === 'cards'
-      && normalizedPreviousError && normalizedPreviousError.page === 'error-book' && !normalizedPreviousError.view
-      && previousViewState && previousViewState.previousView && previousViewState.previousView.page === 'lesson-prep'
+      && normalizedPreviousHome && normalizedPreviousHome.page === 'home' && normalizedPreviousHome.view === 'cards'      && previousViewState && previousViewState.previousView && previousViewState.previousView.page === 'lesson-prep'
       && previousViewState.label === '返回备课资料'
       && categoryEntryPrevious && categoryEntryPrevious.page === 'points-training'
-      && examEntryPrevious && examEntryPrevious.view === 'exams'
-      && errorEntryPrevious && errorEntryPrevious.page === 'error-book'
-      && prepEntryPrevious && prepEntryPrevious.page === 'lesson-prep'
+      && examEntryPrevious && examEntryPrevious.view === 'exams'      && prepEntryPrevious && prepEntryPrevious.page === 'lesson-prep'
       && blankNavigationInitialForward === 0
       && blankNavigationInitialBackward === 9
       && blankNavigationWrapForward === 0
@@ -1938,9 +1934,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && practiceBackAction && practiceBackAction.type === 'previous-view'
       && mapBackAction && mapBackAction.type === 'knowledge-map'
       && systemBackAction && systemBackAction.type === 'knowledge-system'
-      && previousHomeReturn && previousHomeReturn.type === 'home' && previousHomeReturn.homeView === 'categories'
-      && previousPageReturn && previousPageReturn.type === 'page' && previousPageReturn.page === 'error-book'
-      && emptyPreviousReturn && emptyPreviousReturn.type === 'home' && emptyPreviousReturn.homeView === 'cards'
+      && previousHomeReturn && previousHomeReturn.type === 'home' && previousHomeReturn.homeView === 'categories'      && emptyPreviousReturn && emptyPreviousReturn.type === 'home' && emptyPreviousReturn.homeView === 'cards'
       && drawerReturnState && drawerReturnState.drawerReturnTo && drawerReturnState.drawerReturnTo.label === '返回教材'
       && consumedDrawerReturn && consumedDrawerReturn.returnInfo && consumedDrawerReturn.drawerReturnTo === null
       && drawerClosePlan && drawerClosePlan.action === 'close-drawer'
@@ -3207,7 +3201,6 @@ test('account settings export, clear data, and account deletion request are trac
   });
   expect(exported.app).toBe('seeklume');
   expect(exported.user.id).toBe('smoke-user-1');
-  expect(exported.data.error_book).toHaveLength(1);
   expect(exported.data.lesson_prep).toHaveLength(1);
   expect(JSON.stringify(exported)).not.toContain('password');
   await expect.poll(async () => page.evaluate(() => {
@@ -3223,7 +3216,7 @@ test('account settings export, clear data, and account deletion request are trac
   await page.locator('#settingsClearDataBtn').click();
   await expect(page.locator('#settingsDataMsg')).toContainText('已清空');
   await expect(await page.evaluate(() => {
-    return window.errorBookQuestions.length === 0 && window.prepPassages.length === 0;
+    return window.prepPassages.length === 0;
   })).toBe(true);
   await expect.poll(async () => page.evaluate(() => {
     var deletes = window.__supabaseDeletes || [];
@@ -3327,9 +3320,7 @@ test('local saved materials are isolated by account owner', async ({ page }) => 
   await expect(page.locator('#prepList')).not.toContainText('Other User Lesson');
 
   await expect(await page.evaluate(() => {
-    return !localStorage.getItem('grammar-error-book')
-      && !localStorage.getItem('grammar-lesson-prep')
-      && window.errorBookQuestions.length === 0
+    return !localStorage.getItem('grammar-lesson-prep')
       && window.prepPassages.length === 0;
   })).toBe(true);
 
@@ -3419,19 +3410,18 @@ test('admin view-as is readable but does not write viewed user data', async ({ p
   await page.locator('#adminUserList .prep-list-item').first().click();
   await expect(page.locator('#adminBanner')).toBeVisible();
   await expect(page.locator('#adminViewingEmail')).toContainText('target-teacher');
-  await expect(page.locator('#page-error-book')).toHaveClass(/active/);
-  await expect(page.locator('#errorBookList')).toContainText('saved');
+  await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
+  await expect(page.locator('#prepList')).toContainText('Target Teacher Lesson');
 
-  await page.evaluate(() => window.cloud.upsertErrorItem({
-    id: 'err_should_not_write',
-    no: 2,
+  await page.evaluate(() => window.cloud.upsertPrepItem({
+    id: 'prep_should_not_write',
+    title: 'Admin attempted write',
     passage: 'Admin attempted write.',
-    answer: 'blocked',
-    category: 'predicate'
+    blanks: []
   }));
   await expect(await page.evaluate(() => {
     return !(window.__supabaseInserts || []).some(function(item) {
-      return item.table === 'error_book' && item.operation === 'upsert';
+      return item.table === 'lesson_prep' && item.operation === 'upsert';
     });
   })).toBe(true);
 

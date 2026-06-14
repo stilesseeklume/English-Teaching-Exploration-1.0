@@ -214,7 +214,6 @@ function getPracticeEntryPreviousView(source) {
   if (window.GrammarAppState) return window.GrammarAppState.getPracticeEntryPreviousView(source);
   if (source === 'category' || source === 'categories') return { page: 'home', view: 'categories' };
   if (source === 'exam' || source === 'exams' || source === 'bank') return { page: 'home', view: 'exams' };
-  if (source === 'error' || source === 'errors' || source === 'error-book') return { page: 'error-book' };
   if (source === 'prep' || source === 'lesson-prep') return { page: 'lesson-prep' };
   return null;
 }
@@ -244,13 +243,13 @@ function buildActivePageState(page) {
   if (window.GrammarAppState) return window.GrammarAppState.buildActivePageState(page);
   return {
     activePage: page || 'home',
-    activeDock: page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' ? page : ''
+    activeDock: page === 'home' || page === 'knowledge' || page === 'lesson-prep' ? page : ''
   };
 }
 
 function buildDockActivationState(dockKey) {
   if (window.GrammarAppState) return window.GrammarAppState.buildDockActivationState(dockKey);
-  var valid = ['home', 'exams', 'categories', 'knowledge', 'error-book', 'lesson-prep', 'ai'];
+  var valid = ['home', 'exams', 'categories', 'knowledge', 'lesson-prep', 'ai'];
   return {
     activeDock: valid.indexOf(dockKey) === -1 ? '' : dockKey
   };
@@ -698,11 +697,10 @@ function syncAppState() {
 }
 syncAppState();
 
-// errorBookQuestions / loadErrorBook / saveErrorBook / runErrorBookCleanup / getErrorFingerprint
-// 已抽到 shared/error-book.js（含 _owner 跨账号隔离机制）
+// 个人错题本（error-book）已整体下线，相关本地存储/渲染代码已移除。
 //
 // prepPassages / loadPrepPassages / savePrepPassages / getPrepFingerprint
-// 已抽到 shared/lesson-prep.js（同样的 _owner 机制）
+// 已抽到 shared/lesson-prep.js（_owner 跨账号隔离机制）
 
 function loadDrawerHeight() {
   drawerHeight = window.GrammarAppState.normalizeDrawerHeight(localStorage.getItem(DRAWER_STORAGE_KEY));
@@ -812,34 +810,8 @@ function setupBatchDrop() {
   });
 }
 
-// getErrorFingerprint 已抽到 shared/error-book.js
-
 // getPrepFingerprint 已抽到 shared/lesson-prep.js
 
-
-function batchImportJson() {
-  var raw = document.getElementById('batchJson').value.trim();
-  var parsed = window.GrammarSavedMaterialsModel.parseBatchImportJson(raw, 'error');
-  if (parsed.empty) return;
-  if (!parsed.ok) {
-    alert(parsed.errorMessage);
-    return;
-  }
-  var result = window.GrammarSavedMaterialsModel.importErrorItems(parsed.list, errorBookQuestions, {
-    categoryMap: CATEGORY_MAP,
-    categoryTips: CATEGORY_TIPS,
-    extractSentence: extractSentence,
-    now: Date.now(),
-    createdAt: new Date().toISOString()
-  });
-  errorBookQuestions = result.nextItems;
-  saveErrorBook();
-  renderErrorBook();
-  renderBankStat();
-  toggleBatchImport();
-  document.getElementById('batchJson').value = '';
-  alert(window.GrammarSavedMaterialsModel.buildImportResultMessage(result, 'error'));
-}
 
 async function deleteSavedMaterialItem(kind, id, items, applyLocalDelete) {
   var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialDeletePlan(kind, items, [id]);
@@ -865,15 +837,6 @@ async function deleteSavedMaterialItem(kind, id, items, applyLocalDelete) {
   }
 }
 
-async function deleteErrorQuestion(id) {
-  return deleteSavedMaterialItem('error', id, errorBookQuestions, function(nextItems) {
-    errorBookQuestions = nextItems;
-    saveErrorBook();
-    renderErrorBook();
-  });
-}
-
-var _errorBulkMode = false;
 var _prepBulkMode = false;
 
 function getSavedMaterialBulkModeSnapshot(kind) {
@@ -887,15 +850,6 @@ function getSavedMaterialBulkModeSnapshot(kind) {
   return current;
 }
 
-function toggleErrorBulkMode(force) {
-  var state = window.GrammarSavedMaterialsModel.buildBulkModeState(getSavedMaterialBulkModeSnapshot('error'), force);
-  _errorBulkMode = state.bulkMode;
-  if (window.GrammarAppState) window.GrammarAppState.patch({ errorBulkMode: _errorBulkMode });
-  var bar = document.getElementById('errorBulkBar');
-  if (bar) bar.classList.toggle('show', getSavedMaterialBulkModeSnapshot('error'));
-  renderErrorBook();
-}
-
 function togglePrepBulkMode(force) {
   var state = window.GrammarSavedMaterialsModel.buildBulkModeState(getSavedMaterialBulkModeSnapshot('prep'), force);
   _prepBulkMode = state.bulkMode;
@@ -903,16 +857,6 @@ function togglePrepBulkMode(force) {
   var bar = document.getElementById('prepBulkBar');
   if (bar) bar.classList.toggle('show', getSavedMaterialBulkModeSnapshot('prep'));
   renderPrepList();
-}
-
-function syncErrorBulkInfo() {
-  var config = window.GrammarSavedMaterialsModel.getBulkSelectionDomConfig('error');
-  var plan = window.GrammarSavedMaterialsModel.buildBulkSelectionInfoPlan(
-    'error',
-    document.querySelectorAll(config.checkboxSelector + ':checked').length
-  );
-  var el = document.getElementById(plan.infoId);
-  if (el) el.textContent = plan.text;
 }
 
 function syncPrepBulkInfo() {
@@ -925,41 +869,10 @@ function syncPrepBulkInfo() {
   if (el) el.textContent = plan.text;
 }
 
-function selectAllErrorBulk(checked) {
-  var plan = window.GrammarSavedMaterialsModel.buildBulkSelectAllPlan('error', checked);
-  document.querySelectorAll(plan.checkboxSelector).forEach(function(cb) { cb.checked = plan.checked; });
-  syncErrorBulkInfo();
-}
-
 function selectAllPrepBulk(checked) {
   var plan = window.GrammarSavedMaterialsModel.buildBulkSelectAllPlan('prep', checked);
   document.querySelectorAll(plan.checkboxSelector).forEach(function(cb) { cb.checked = plan.checked; });
   syncPrepBulkInfo();
-}
-
-async function deleteSelectedErrors() {
-  var config = window.GrammarSavedMaterialsModel.getBulkSelectionDomConfig('error');
-  var ids = Array.from(document.querySelectorAll(config.checkboxSelector + ':checked')).map(function(cb) { return cb.dataset.id; });
-  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialDeletePlan('error', errorBookQuestions, ids, { bulk: true });
-  if (!plan.hasSelection) { alert(plan.emptySelectionMessage); return; }
-  if (!confirm(plan.confirmMessage)) return;
-  errorBookQuestions = plan.nextItems;
-  saveErrorBook();
-  renderErrorBook();
-  renderBankStat();
-  var failures = [];
-  if (window.cloud && window.cloud[plan.cloudDeleteMethod]) {
-    for (var i = 0; i < plan.ids.length; i++) {
-      try {
-        await window.cloud[plan.cloudDeleteMethod](plan.ids[i]);
-      } catch (e) {
-        failures.push(window.GrammarSavedMaterialsModel.buildCloudDeleteFailure(plan.ids[i], e, 'error'));
-        console.warn(plan.cloudFailureConsolePrefix, plan.ids[i], e);
-      }
-    }
-  }
-  reportSavedMaterialCloudDeleteFailures('error', failures);
-  syncErrorBulkInfo();
 }
 
 async function deleteSelectedPreps() {
@@ -998,99 +911,6 @@ function reportSavedMaterialCloudDeleteFailures(kind, failures) {
       summary.observabilityPayload
     );
   }
-}
-
-var _teachingExitToErrorBook = false;  // 从错题本直接进讲题：退出讲题时回错题本而非练习页
-function viewErrorQuestion(id, preserveDrawerReturn) {
-  var q = errorBookQuestions.find(function(item) { return item.id === id; });
-  var plan = window.GrammarSavedMaterialsModel.buildSavedMaterialPracticeEntryPlan('error', q, {
-    preserveDrawerReturn: preserveDrawerReturn
-  });
-  if (plan.action === 'none') return;
-  if (plan.shouldCloseDrawer) closeDrawer(plan.preserveDrawerReturn);
-  if (plan.shouldResetPracticeDisplay) resetPracticeDisplayState();
-  var state = createErrorStateForQuestion(q);
-  if (plan.shouldApplyPracticeContext) applyPracticeContextState(state);
-  setPreviousView(getPracticeEntryPreviousView(plan.previousViewSource));
-  if (plan.shouldSyncAppState) syncAppState();
-  // 点错题直接进全局讲题（练习页只作底座、不停留）；退出讲题回错题本
-  _teachingExitToErrorBook = true;
-  switchPageKeepingTeaching(plan.page);
-  renderExam();
-  openTeachingStageByIdx(0, { tab: 'guide', source: 'practice' });
-}
-
-var _errorCatFilter = '';
-var _errorExpanded = {};   // 考点折叠：默认全折叠，点考点卡片头展开看该考点全部题
-function setErrorCategoryFilter(cat) {
-  _errorCatFilter = (_errorCatFilter === cat) ? '' : cat;
-  if (_errorCatFilter) _errorExpanded[_errorCatFilter] = true; // 点 chip 直接展开该考点
-  renderErrorBook();
-}
-function toggleErrorCategory(cat) {
-  _errorExpanded[cat] = !_errorExpanded[cat];
-  renderErrorBook();
-}
-function revealErrorAnswer(id) {   // 错题卡片答案默认隐藏，点「显示答案」才揭晓（想直接做题就先不看）
-  var meta = document.getElementById('errAns-' + id);
-  var btn = document.getElementById('errAnsBtn-' + id);
-  if (meta) meta.style.display = '';
-  if (btn) btn.style.display = 'none';
-}
-
-function renderErrorBook() {
-  var el = document.getElementById('errorBookList');
-  if (!el) return;
-  var model = window.GrammarSavedMaterialsModel.buildErrorListModel(errorBookQuestions, CATEGORY_MAP, {
-    bulkMode: getSavedMaterialBulkModeSnapshot('error')
-  });
-
-  document.getElementById('errorBookStat').textContent = model.statText;
-
-  if (model.empty) {
-    el.innerHTML = '<div class="error-empty">' + escapeHtml(model.emptyText) + '</div>';
-    return;
-  }
-
-  // 按考点筛选 chip：点一个考点只看该题型，方便按题型连着练
-  var cats = model.categories || [];
-  if (_errorCatFilter && !cats.some(function(c) { return c.category === _errorCatFilter; })) _errorCatFilter = '';
-  var html = '<div class="error-cat-chips">'
-    + '<button class="error-cat-chip' + (_errorCatFilter === '' ? ' active' : '') + '" onclick="setErrorCategoryFilter(\'\')">全部 ' + model.count + '</button>';
-  cats.forEach(function(c) {
-    html += '<button class="error-cat-chip' + (_errorCatFilter === c.category ? ' active' : '') + '" onclick="setErrorCategoryFilter(\'' + escapeHtml(c.category) + '\')">'
-      + escapeHtml(c.label) + ' ' + c.count + '</button>';
-  });
-  html += '</div>';
-
-  model.groups.forEach(function(group) {
-    if (_errorCatFilter && group.category !== _errorCatFilter) return;
-    var expanded = !!_errorExpanded[group.category];
-    html += '<div class="category-section">'
-          + '<div class="category-section-title" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px;" onclick="toggleErrorCategory(\'' + escapeHtml(group.category) + '\')">'
-          + '<span style="display:inline-block;width:14px;color:var(--text-3);transition:transform .15s;">' + (expanded ? '▾' : '▸') + '</span>'
-          + escapeHtml(group.titleText) + '</div>'
-          + '<div class="error-cat-items"' + (expanded ? '' : ' style="display:none;"') + '>';
-    (group.items || []).forEach(function(item) {
-      var sent = escapeHtml(item.passage).replace(item.blankMarker,
-        '<span style="display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-bottom:2px dashed var(--accent);background:var(--accent-bg);border-radius:3px;font-weight:600;color:var(--accent);">' + escapeHtml(item.blankMarker) + '</span>');
-      var truncateCls = item.sentenceTruncated ? ' error-list-sentence-truncated' : '';
-      html += '<div class="error-list-item" onclick="viewErrorQuestion(\'' + escapeHtml(item.id) + '\')">'
-            + '<div class="error-list-left">'
-            + (item.showBulkCheck ? '<label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;"><input type="checkbox" class="bulk-item-check error-bulk-check" data-id="' + escapeHtml(item.id) + '" onchange="syncErrorBulkInfo()" onclick="event.stopPropagation()"></label>' : '')
-            + '<div class="error-list-sentence' + truncateCls + '">' + sent + '</div>'
-            + (item.source ? '<div class="error-list-source">📄 ' + escapeHtml(item.source) + '</div>' : '')
-            + '<button class="error-show-answer" id="errAnsBtn-' + escapeHtml(item.id) + '" onclick="event.stopPropagation();revealErrorAnswer(\'' + escapeHtml(item.id) + '\')" style="margin-top:6px;font-size:13px;padding:3px 12px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;">显示答案</button>'
-            + '<div class="error-list-meta" id="errAns-' + escapeHtml(item.id) + '" style="display:none;">答案：' + escapeHtml(item.answer) + ' · ' + escapeHtml(item.analysisPreview) + '</div>'
-            + '</div>'
-            + '<button class="error-list-delete" onclick="event.stopPropagation();deleteErrorQuestion(\'' + escapeHtml(item.id) + '\')" title="删除">✕</button>'
-            + '</div>';
-    });
-    html += '</div></div>';
-  });
-  el.innerHTML = html;
-  renderPageSidebar('error-book');
-  syncErrorBulkInfo();
 }
 
 // ────────── 备课资料 ──────────
@@ -1294,26 +1114,11 @@ function renderErrorImportPage() {
     today: function(){ var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   });
 }
-function addProfileErrorToBook(examId, no) {
-  var qs = ALL_QUESTIONS.filter(function(x){ return x.exam_id === examId && Number(x.no) === Number(no); });
-  if (!qs.length) return { ok: false };
-  var result = window.GrammarSavedMaterialsModel.importErrorItems([qs[0]], errorBookQuestions, {
-    categoryMap: CATEGORY_MAP,
-    categoryTips: CATEGORY_TIPS,
-    extractSentence: extractSentence,
-    now: Date.now(),
-    createdAt: new Date().toISOString()
-  });
-  errorBookQuestions = result.nextItems;
-  saveErrorBook();
-  return { ok: true, added: result.imported.length > 0 };
-}
 function renderErrorProfilePage() {
   return window.GrammarErrorProfileController.renderBoardPage({
     loadProfiles: loadErrorProfiles,
     saveProfiles: saveErrorProfiles,
     catNames: errorProfileCatNames(),
-    addExamQuestionToErrorBook: addProfileErrorToBook,
     openMigrationForFineTag: openMigrationDrawerForTag,
     getClasses: loadClasses,
     createClass: createClassNamed,
@@ -1370,16 +1175,13 @@ function init() {
   if (window.GrammarAppState) {
     applyFontScaleViewModel(window.GrammarAppState.buildFontScaleViewModel(getFontScaleState()));
   }
-  loadErrorBook();
   loadPrepPassages();
-  runErrorBookCleanup();
   // Clean up old sidebar collapsed state
   try { localStorage.removeItem('grammar-context-sidebar-collapsed'); } catch(e) {}
   renderBankStat();
   renderExamGrid();
   updateCounts();
   renderKnowledgePage();
-  renderErrorBook();
   renderPrepList();
   try { localStorage.removeItem(DRAWER_STORAGE_KEY); } catch(e) {}
   setupBatchDrop();
@@ -1420,9 +1222,8 @@ function init() {
 
 // ========== 云同步：UI + 数据 ==========
 // 已抽到 modules/cloud-sync.js（IIFE → window.GrammarCloudSync）。
-// 该模块加载时即对 window.saveErrorBook / window.savePrepPassages 打猴补丁
-//（写本地后异步推云），故装配清单中必须排在 shared/error-book.js、
-// shared/lesson-prep.js、shared/cloud.js 之后。
+// 该模块加载时即对 window.savePrepPassages 打猴补丁（写本地后异步推云），
+// 故装配清单中必须排在 shared/lesson-prep.js、shared/cloud.js 之后。
 // 跨模块共享：auth-ui.js 的 doLogout 调用 window.clearCloudLifecycleState() /
 // window.setCloudLoggingOutState()；admin-ui.js / cloud.onChange 调用
 // window.onCloudStateChange()；word-import.js 调用 window.uploadLocalToCloud()。
@@ -1435,7 +1236,6 @@ function cloudSyncDeps() {
   return {
     renderUserPill: renderUserPill,
     switchPage: switchPage,
-    renderErrorBook: renderErrorBook,
     renderPrepList: renderPrepList,
     renderBankStat: renderBankStat
   };
@@ -1475,7 +1275,7 @@ function renderBankStat() {
   var summary = window.GrammarHomeDashboardModel.buildHomeSummaryModel({
     examCount: BANK.exams.length,
     questionCount: ALL_QUESTIONS.length,
-    errorCount: errorBookQuestions.length,
+    errorCount: 0,
     prepCount: prepPassages.length
   });
   if (el) el.textContent = summary.bankStatText;
@@ -1493,7 +1293,7 @@ function renderBankStat() {
 
 // ─── Sprint 1.6 · 智能 Dashboard 主页 ─────────────
 // 逻辑已搬至 modules/home-dashboard.js，此处为薄壳 + 依赖注入。
-// 数组型依赖（prepPassages / errorBookQuestions）用 getter 注入，避免拿到旧引用。
+// 数组型依赖（prepPassages）用 getter 注入，避免拿到旧引用。
 function homeDashboardDeps() {
   return {
     escapeHtml: window.escapeHtml,
@@ -1510,7 +1310,7 @@ function homeDashboardDeps() {
     showAnalysisByIdx: showAnalysisByIdx,
     inlineSidebarAction: inlineSidebarAction,
     getPrepPassages: function(){ return prepPassages; },
-    getErrorBookQuestions: function(){ return errorBookQuestions; },
+    getErrorBookQuestions: function(){ return []; },   // 错题本已下线；保留 getter 避免 home-dashboard.js 调用时报错
     BANK: BANK,
     CATEGORY_MAP: CATEGORY_MAP
   };
@@ -1542,7 +1342,7 @@ function getSidebarModelDeps(extra) {
     exams: BANK.exams,
     allQuestions: ALL_QUESTIONS,
     categoryMap: CATEGORY_MAP,
-    errorQuestions: errorBookQuestions,
+    errorQuestions: [],   // 错题本已下线；侧栏错题分组恒为空
     prepPassages: prepPassages
   };
   Object.keys(extra || {}).forEach(function(key) {
@@ -1694,7 +1494,7 @@ function switchPage(page) {
       })
     : {
         page: page || 'home',
-        shouldRequireAuth: page === 'error-book' || page === 'lesson-prep' || page === 'admin',
+        shouldRequireAuth: page === 'lesson-prep' || page === 'admin',
         shouldCloseTeaching: !!sessionState.teachingSession && !retentionState.keepTeachingOnPageSwitch,
         pageState: buildActivePageState(page),
         shellState: {
@@ -1739,7 +1539,6 @@ function switchPage(page) {
   window.scrollTo({ top: 0, behavior: 'instant' });
 
   if (renderPlan.renderAction === 'navigate-home-cards') navigateHome(renderPlan.homeView || 'cards');
-  if (renderPlan.renderAction === 'render-error-book') renderErrorBook();
   if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
   if (renderPlan.renderAction === 'render-admin') renderAdminPage();
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
@@ -1748,7 +1547,7 @@ function switchPage(page) {
   if (page === 'student-timeline') renderStudentTimelinePage();
   if (renderPlan.trackModule && window.seeklumeObservability) window.seeklumeObservability.trackModule(renderPlan.page);
   // 统一交给 renderPageSidebar 决定显隐（dashboard/教材视图/投影模式收起，
-  // 错题本/备课/讲题显示）
+  // 备课/讲题显示）
   if (renderPlan.renderSidebar && typeof renderPageSidebar === 'function') renderPageSidebar(renderPlan.page);
   if (renderPlan.updateDockBackButton) updateDockBackButton();
 }
@@ -3094,10 +2893,6 @@ function teardownTeachingStage(options) {
 
 function closeTeachingStage(opts) {
   teardownTeachingStage();
-  // 从错题本进来的讲题，退出时直接回错题本（练习页只是底座）；页面切换触发的关闭不在此跳转
-  var goErrorBook = _teachingExitToErrorBook && !(opts && opts.fromPageSwitch);
-  _teachingExitToErrorBook = false;
-  if (goErrorBook) switchPage('error-book');
 }
 
 var _migrationShowAll = false;
@@ -3523,9 +3318,9 @@ function setKnowledgeView(view) {
 
 // ─── Sprint 1 · Task 9：三视图可视化（Tier 1.5）─────────────────────
 
-// 工具：统计某 fine tag 下的题数（真题库 + 我的错题）
+// 工具：统计某 fine tag 下的题数（真题库）
 function _countByFineTag(fineCategory) {
-  return window.GrammarKnowledgeViewModel.countByFineTag(fineCategory, ALL_QUESTIONS, errorBookQuestions);
+  return window.GrammarKnowledgeViewModel.countByFineTag(fineCategory, ALL_QUESTIONS, []);
 }
 
 // 频次着色：根据题数返回颜色（高频红 / 中频黄 / 低频灰）
@@ -3541,7 +3336,7 @@ function renderFineCategoryView() {
   var model = window.GrammarKnowledgeViewModel.buildPointsLeafListModel(
     (window.GRAMMAR_DECISION_MAP || {}).nodes || [],
     window.GRAMMAR_FINE_TAGS || {},
-    ALL_QUESTIONS, errorBookQuestions, CATEGORY_MAP);
+    ALL_QUESTIONS, [], CATEGORY_MAP);
   if (model.empty) {
     content.innerHTML = '<div class="empty-hint">' + escapeHtml(model.emptyText) + '</div>';
     updateDockBackButton();
@@ -4072,9 +3867,9 @@ function renderSystemView(focusNodeId) {
       if (!kd && n.parent && full.byId[n.parent]) kd = full.byId[n.parent].kd || '';
       var pointTag = (n.point && n.point.tag) || fine;        // 词 chip / 跳转用的 tag
       var c = n.point
-        ? window.GrammarKnowledgeViewModel.countByPoint(n.point.tag, n.point.keys, ALL_QUESTIONS, errorBookQuestions)
+        ? window.GrammarKnowledgeViewModel.countByPoint(n.point.tag, n.point.keys, ALL_QUESTIONS, [])
         : ((fine && window.GrammarKnowledgeViewModel)
-          ? window.GrammarKnowledgeViewModel.countByFineTag(fine, ALL_QUESTIONS, errorBookQuestions)
+          ? window.GrammarKnowledgeViewModel.countByFineTag(fine, ALL_QUESTIONS, [])
           : { total: 0, real: 0, bank: 0, error: 0 });
       var qn = c.total || 0;
       var badge = window.GrammarKnowledgeViewModel.formatCountBadge(c);
@@ -4087,7 +3882,7 @@ function renderSystemView(focusNodeId) {
       tip = '<div class="dm-see">' + acts + '</div>';
       // 闭合类/介词叶子下钻具体词 chip（点词→按 {tag, word} 精准进迁移，which→which）
       var words = (fine && window.GrammarKnowledgeViewModel.buildLeafWordBreakdown)
-        ? window.GrammarKnowledgeViewModel.buildLeafWordBreakdown(fine, window.GRAMMAR_FINE_TAGS, ALL_QUESTIONS, errorBookQuestions)
+        ? window.GrammarKnowledgeViewModel.buildLeafWordBreakdown(fine, window.GRAMMAR_FINE_TAGS, ALL_QUESTIONS, [])
         : [];
       if (words.length) {
         var chips = words.map(function(wd) {
@@ -4355,7 +4150,7 @@ function showGlobalKnowledgeNode(nodeId) {
 }
 
 function getGlobalGraphQuestionMatches(node) {
-  return window.GrammarTeachingViewModel.getGlobalGraphQuestionMatches(node, ALL_QUESTIONS, errorBookQuestions, {
+  return window.GrammarTeachingViewModel.getGlobalGraphQuestionMatches(node, ALL_QUESTIONS, [], {
     safeQuestionTrapId: safeQuestionTrapId
   });
 }
@@ -4675,7 +4470,6 @@ Object.assign(window, {
   adjustFont: adjustFont,
   adminViewUser: adminViewUser,
   authBackToSignin: authBackToSignin,
-  batchImportJson: batchImportJson,
   batchImportPrepJson: batchImportPrepJson,
   cancelAiParse: cancelAiParse,
   changeMyPassword: changeMyPassword,  closeAuthModal: closeAuthModal,
@@ -4688,7 +4482,6 @@ Object.assign(window, {
   exitViewAs: exitViewAs,  goBack: goBack,
   handleDockBack: handleDockBack,
   handleDocxUpload: handleDocxUpload,
-  handleDocxUploadForError: handleDocxUploadForError,
   jumpToCategory: jumpToCategory,
   jumpQuestionFromSwitcher: jumpQuestionFromSwitcher,
   jumpToExamFromSwitcher: jumpToExamFromSwitcher,
@@ -4741,7 +4534,6 @@ Object.assign(window, {
   unifiedSelectAll: unifiedSelectAll,
   zoomGlobalGraph: zoomGlobalGraph,
   resetGlobalGraphView: resetGlobalGraphView,
-  viewErrorQuestion: viewErrorQuestion,
   viewPrepPassage: viewPrepPassage
 });
 

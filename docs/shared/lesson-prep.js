@@ -2,21 +2,38 @@
 //
 // 备课资料数据层（题型无关）。
 //
-// 与 error-book.js 对称：维护 window.prepPassages 数组、提供 load/save、
-// 用 _owner 标记防止跨账号 localStorage 残留。
+// 维护 window.prepPassages 数组、提供 load/save、用 _owner 标记防止跨账号 localStorage 残留。
 //
 // 不负责：备课资料列表 UI 渲染、导入流程（题型侧处理）。
 //
-// 引入顺序：必须在 error-book.js 之后（依赖其暴露的 window.__getCurrentOwnerSync）。
+// owner 同步函数 getCurrentOwnerSync 原在 error-book.js（已删），现内置于此并暴露 window.__getCurrentOwnerSync。
 
 /* eslint-disable */
 (function(){
   var PREP_KEY = 'grammar-lesson-prep';
 
+  // 同步取当前 owner：优先 cloud.state.user.id，否则 peek supabase session token，再不行 'guest'。
+  // 也暴露 window.__getCurrentOwnerSync 供其它带 _owner 标记的模块复用（原 error-book.js 提供，现已删）。
+  function getCurrentOwnerSync() {
+    try {
+      if (window.cloud && window.cloud.state && window.cloud.state.user && window.cloud.state.user.id) {
+        return window.cloud.state.user.id;
+      }
+    } catch(e) {}
+    try {
+      var raw = localStorage.getItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token');
+      if (raw) {
+        var d = JSON.parse(raw);
+        var user = d && (d.user || (d.currentSession && d.currentSession.user));
+        if (user && user.id) return user.id;
+      }
+    } catch(e) {}
+    return 'guest';
+  }
+  window.__getCurrentOwnerSync = getCurrentOwnerSync;
+
   function getOwner() {
-    return (typeof window.__getCurrentOwnerSync === 'function')
-      ? window.__getCurrentOwnerSync()
-      : 'guest';
+    return getCurrentOwnerSync();
   }
 
   window.prepPassages = [];

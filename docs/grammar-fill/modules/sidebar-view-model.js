@@ -168,15 +168,6 @@
       };
     }
 
-    if (page === 'error-book') {
-      var errorGroups = buildErrorCategoryGroups(values.errorQuestions, values.categoryMap, values.activeQuestionId);
-      return {
-        title: '全部错题',
-        kind: 'error-groups',
-        groups: errorGroups,
-        emptyText: errorGroups.length ? '' : '暂无错题'
-      };
-    }
 
     if (page === 'lesson-prep') {
       var prepItems = buildPrepItems(values.prepPassages, values.activePrepId);

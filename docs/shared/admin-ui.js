@@ -186,7 +186,7 @@
     await window.cloud.viewAs(userId, email);
     window._lastCloudUser = null;     // 强制刷新数据加载
     await window.onCloudStateChange(window.cloud.state);
-    window.switchPage('error-book');  // 跳到错题本查看
+    window.switchPage('lesson-prep'); // 跳到备课资料查看
   }
 
   async function adminApproveUser(userId, email) {

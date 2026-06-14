@@ -243,7 +243,6 @@
       : (source && (source.source || source.entry || source.mode || source.page)) || '';
     if (key === 'category' || key === 'categories' || key === 'points-training') return { page: 'points-training' };
     if (key === 'exam' || key === 'exams' || key === 'bank') return { page: 'home', view: 'exams' };
-    if (key === 'error' || key === 'errors' || key === 'error-book') return { page: 'error-book' };
     if (key === 'prep' || key === 'lesson-prep') return { page: 'lesson-prep' };
     return null;
   }
@@ -256,7 +255,6 @@
       || page === 'practice'
       || page === 'knowledge'
       || page === 'points-training'
-      || page === 'error-book'
       || page === 'lesson-prep'
       || page === 'error-profile'
       || page === 'error-import'
@@ -269,7 +267,7 @@
   }
 
   function isProtectedPage(page) {
-    return page === 'error-book' || page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import' || page === 'student-timeline';
+    return page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import' || page === 'student-timeline';
   }
 
   function buildPageAuthGuard(page, isAuthenticated) {
@@ -300,7 +298,6 @@
       || dockKey === 'categories'
       || dockKey === 'points-training'
       || dockKey === 'knowledge'
-      || dockKey === 'error-book'
       || dockKey === 'lesson-prep'
       || dockKey === 'error-import'
       || dockKey === 'error-profile'
@@ -313,7 +310,7 @@
   function getDockKeyForPage(page) {
     page = normalizePageKey(page);
     if (page === 'student-timeline') return 'error-profile';
-    if (page === 'home' || page === 'knowledge' || page === 'error-book' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
+    if (page === 'home' || page === 'knowledge' || page === 'lesson-prep' || page === 'points-training' || page === 'error-import' || page === 'error-profile') {
       return page;
     }
     return '';
@@ -337,7 +334,6 @@
     page = normalizePageKey(page);
     var renderAction = '';
     if (page === 'home') renderAction = 'navigate-home-cards';
-    if (page === 'error-book') renderAction = 'render-error-book';
     if (page === 'lesson-prep') renderAction = 'render-lesson-prep';
     if (page === 'admin') renderAction = 'render-admin';
     if (page === 'points-training') renderAction = 'render-points-training';
@@ -427,7 +423,6 @@
       if (previousView.view === 'categories') return '返回考点列表';
       return '返回主页';
     }
-    if (previousView.page === 'error-book') return '返回错题本';
     if (previousView.page === 'lesson-prep') return '返回备课资料';
     if (previousView.page === 'points-training') return '返回考点训练';
     return '返回上一页';
