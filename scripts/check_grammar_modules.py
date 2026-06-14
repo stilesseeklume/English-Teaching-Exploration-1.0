@@ -679,6 +679,7 @@ EXPECTED_MODULES = [
             "studentSearchBoxHtml",
             "studentMatchListHtml",
             "studentAddBoxHtml",
+            "workbenchTabsHtml",
             "studentProfileHtml",
         ],
     },
@@ -693,6 +694,7 @@ EXPECTED_MODULES = [
             "renameClass",
             "addStudentsToClass",
             "removeStudentFromClass",
+            "buildClassList",
         ],
     },
 ]

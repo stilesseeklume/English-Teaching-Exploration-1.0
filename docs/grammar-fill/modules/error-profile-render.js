@@ -130,13 +130,13 @@
       + '<div style="font-weight:600;margin-bottom:10px;">这是哪个班的成绩？</div>';
     if (!classes.length) {
       return head
-        + '<div style="color:#888;font-size:13px;">还没有班级——先去「学生管理」新建班级（可顺手导名单），再回来传成绩。</div>'
+        + '<div style="color:#888;font-size:13px;">还没有班级——先去「班级工作台」新建班级（可顺手导名单），再回来传成绩。</div>'
         + '</div>';
     }
     return head
       + '<select id="errorImportClass" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;">'
       +   '<option value="">— 选班级 —</option>' + opts + '</select>'
-      + '<div style="color:#888;font-size:12px;margin-top:8px;">新建/删除班级、导入名单都在「学生管理」里。</div>'
+      + '<div style="color:#888;font-size:12px;margin-top:8px;">新建/删除班级、导入名单都在「班级工作台」里。</div>'
       + '</div>';
   }
 
