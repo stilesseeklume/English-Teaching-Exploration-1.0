@@ -83,13 +83,72 @@ test('boardListHtml: 空→提示；有→卷名/计数/看画像/删 按钮带 
   assert.ok(html.includes('ep-board-view') && html.includes('ep-board-del'), '含看/删按钮 class');
 });
 
-const { examChipsHtml, catTrendHtml } = w.GrammarErrorProfileRender;
+const { boardSelectorBarHtml, pickerClassChipsHtml, pickerExamListHtml, catTrendHtml } = w.GrammarErrorProfileRender;
 
-test('examChipsHtml: 时间 chips + 选中高亮 + 重点讲红点', () => {
-  const html = examChipsHtml([{ id: 'e1', examLabel: '一模', focusCount: 2 }, { id: 'e2', examLabel: '二模', focusCount: 0 }], 'e2');
-  assert.ok(html.includes('class="ep-exam-chip"'), '应是 chip');
-  assert.ok(html.includes('一模') && html.includes('二模'), '应列两套');
-  assert.ok(html.includes('●2'), '一模重点讲红点');
+test('boardSelectorBarHtml: 窄条含当前班级 + 试卷 + 重点红点 + 套数 + 换卷入口', () => {
+  const html = boardSelectorBarHtml(
+    { id: 'clsA', name: '高三①班' },
+    { id: 'e2', examLabel: '二模', examDate: '2026-05-20', focusCount: 3 },
+    2
+  );
+  assert.ok(html.includes('id="epSelectorBar"'), '是选卷窄条');
+  assert.ok(html.includes('高三①班'), '含当前班级');
+  assert.ok(html.includes('二模'), '含当前试卷');
+  assert.ok(html.includes('●3'), '重点讲红点');
+  assert.ok(html.includes('共 2 套'), '含套数');
+  assert.ok(html.includes('换卷'), '含换卷入口');
+});
+
+test('boardSelectorBarHtml: 无班级时给空态提示，仍是可点窄条', () => {
+  const html = boardSelectorBarHtml(null, null, 0);
+  assert.ok(html.includes('选择班级'), '无班级提示');
+  assert.ok(html.includes('id="epSelectorBar"'), '仍是可点窄条');
+});
+
+test('pickerClassChipsHtml: 班级 chips 单选 + 新建班级', () => {
+  const html = pickerClassChipsHtml([{ id: 'clsA', name: '高三①班', count: 3 }, { id: 'clsB', name: '高三②班', count: 2 }], 'clsA');
+  assert.ok(html.includes('class="ep-picker-class"'), '是班级 chip');
+  assert.ok(html.includes('高三①班') && html.includes('高三②班'), '列出两个班');
+  assert.ok(html.includes('ep-picker-class-new'), '含新建班级');
+  assert.ok(html.includes('data-id="clsA"'), '含 data-id');
+});
+
+test('pickerExamListHtml: 竖排最新在上 + 选中 ✓ + 重点红点 + 日期', () => {
+  // 传入升序（左早右近），列表里应反转成最新在上
+  const html = pickerExamListHtml(
+    [{ id: 'e1', examLabel: '一模', examDate: '2026-03-10', focusCount: 2 }, { id: 'e2', examLabel: '二模', examDate: '2026-05-20', focusCount: 1 }],
+    'e2'
+  );
+  assert.ok(html.includes('class="ep-picker-exam"'), '是试卷行');
+  assert.ok(html.includes('一模') && html.includes('二模'), '列出两套');
+  assert.ok(html.includes('2026-05-20'), '含日期');
+  assert.ok(html.includes('●1'), '重点讲红点');
+  assert.ok(html.includes('✓'), '选中项打勾');
+  assert.ok(html.indexOf('二模') < html.indexOf('一模'), '最新（二模）在上');
+});
+
+test('pickerExamListHtml: 空列表给「去导入」提示', () => {
+  const html = pickerExamListHtml([], '');
+  assert.ok(html.includes('还没有卷子'), '空态提示');
+});
+
+const { boardModeToggleHtml, crossProfileHtml } = w.GrammarErrorProfileRender;
+
+test('boardModeToggleHtml: 本卷|跨卷 segmented，当前态可辨', () => {
+  const html = boardModeToggleHtml('cross');
+  assert.ok(html.includes('本卷') && html.includes('跨卷'), '两个段');
+  assert.ok(html.includes('data-mode="exam"') && html.includes('data-mode="cross"'), '含 data-mode');
+  assert.ok(html.includes('class="ep-mode-btn"'), '可点段');
+});
+
+test('crossProfileHtml: 跨卷累计头(套数/人数) + 长期排行 + 覆盖默认标题', () => {
+  const vm = { catRanking: [{ category: 'tense', categoryName: '谓语动词', right: 4, wrong: 6, rate: 40, priority: 'focus' }] };
+  const html = crossProfileHtml(vm, {}, { examCount: 3, studentCount: 48 });
+  assert.ok(html.includes('3 套卷累计'), '套数');
+  assert.ok(html.includes('48 名学生'), '人数');
+  assert.ok(html.includes('谓语动词'), '考点名');
+  assert.ok(html.includes('跨卷累计'), '跨卷标题');
+  assert.ok(!html.includes('考点画像 · 正确率排行'), '默认标题被覆盖');
 });
 
 test('catTrendHtml: 趋势行含考点名 + sparkline svg + 最新正确率 + 箭头', () => {

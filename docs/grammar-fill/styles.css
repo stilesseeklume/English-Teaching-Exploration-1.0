@@ -3101,3 +3101,15 @@
 
 [data-theme="dark"] .context-sidebar:hover { box-shadow: 8px 0 40px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.08); }
 [data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
+
+/* 考点画像 · 选卷器（窄条 + 居中弹窗）—— hover 态与开窗动效 */
+.ep-selector-bar { transition: border-color .18s ease, box-shadow .18s ease; }
+.ep-selector-bar:hover { border-color: var(--accent-light); box-shadow: var(--shadow-lg); }
+.ep-picker-exam { transition: background .15s ease, border-color .15s ease; }
+.ep-picker-exam:hover { background: var(--surface-2); }
+.ep-picker-class { transition: border-color .15s ease, background .15s ease; }
+.ep-picker-class-new:hover { background: var(--accent-bg); }
+#epPickerOverlay { animation: epPickerFade .18s ease; }
+#epPickerOverlay .ep-picker-panel { animation: epPickerPop .2s cubic-bezier(.2,.7,.3,1); }
+@keyframes epPickerFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes epPickerPop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }

@@ -10,7 +10,7 @@
 (function(){
   var _imp = null, _brd = null, _boardClassId = null;
   var _tl = null, _tlClassId = null;
-  var _brdExams = {}, _boardExamId = null, _brdTrendByCat = {};
+  var _brdExams = {}, _boardExamId = null, _brdTrendByCat = {}, _brdAllRows = [], _brdClassList = [], _pickerWired = false, _boardMode = 'exam';
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   var _impSelClass = '';   // 导入页当前选中的班级 id（重渲染后回填，新建/导名单后保持选中）
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
@@ -249,15 +249,130 @@
     if (!_brd.deleteExamResultsExam) return;
     _brd.deleteExamResultsExam(_boardClassId, examId).then(function(){ renderBoardPage(_brd); }).catch(function(){ if (window.alert) window.alert('删除失败，稍后重试。'); });
   }
+  // 按班级把缓存的云端行聚合成「有序试卷(升序·左早右近) + 跨卷趋势」。换班级时复用，不重拉云端。
+  function buildExamsForClass(classId) {
+    _brdExams = {};
+    (_brdAllRows || []).filter(function(r){ return r.class_id === classId; }).forEach(function(r){
+      if (!_brdExams[r.exam_id]) _brdExams[r.exam_id] = { examId: r.exam_id, examLabel: r.exam_label || r.exam_id, examDate: r.exam_date || '', rows: [] };
+      _brdExams[r.exam_id].rows.push(r);
+    });
+    var catNames = _brd.catNames || {};
+    var orderedExams = Object.keys(_brdExams).map(function(eid){
+      var g = _brdExams[eid];
+      var profile = window.GrammarErrorProfile.buildProfileFromExamRows(g.rows);
+      var vm = window.GrammarErrorProfileView.buildProfileViewModel(profile, catNames);
+      return { id: eid, examLabel: g.examLabel, examDate: g.examDate, byCat: profile.byCat, focusCount: vm.summary.focusCount };
+    }).sort(function(a, z){ return String(a.examDate).localeCompare(String(z.examDate)); });   // 升序：左早右近
+    var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
+    _brdTrendByCat = {};
+    trends.forEach(function(t){ _brdTrendByCat[t.category] = t; });   // 考点→趋势，喂给排行行内迷你趋势线
+    return { orderedExams: orderedExams, trends: trends };
+  }
+  function findById(list, id) { for (var i = 0; i < (list || []).length; i++) { if (list[i] && list[i].id === id) return list[i]; } return null; }
+
+  // 选卷弹窗开关（弹窗壳子是 index.html 的 #epPickerOverlay，常驻 body 级——避免 fixed 被页面容器裁切）
+  function pickerEsc(e) { if (e.key === 'Escape') closePicker(); }
+  function openPicker() {
+    var ov = document.getElementById('epPickerOverlay');
+    if (!ov) return;
+    ov.style.display = 'flex';
+    document.removeEventListener('keydown', pickerEsc);
+    document.addEventListener('keydown', pickerEsc);
+  }
+  function closePicker() {
+    var ov = document.getElementById('epPickerOverlay');
+    if (ov) ov.style.display = 'none';
+    document.removeEventListener('keydown', pickerEsc);
+  }
+  function ensurePickerChrome() {
+    if (_pickerWired) return;
+    var cl = document.getElementById('epPickerClose');
+    var ov = document.getElementById('epPickerOverlay');
+    if (cl) cl.addEventListener('click', closePicker);
+    if (ov) ov.addEventListener('click', function(e){ if (e.target === ov) closePicker(); });
+    _pickerWired = true;
+  }
+  // 填充弹窗内容（班级 chips + 试卷列表）并接事件：换班级即时刷新列表(弹窗不关)；选卷则关窗出画像。
+  function fillPicker(orderedExams) {
+    var R = window.GrammarErrorProfileRender;
+    var clsBox = document.getElementById('epPickerClasses');
+    var exBox = document.getElementById('epPickerExams');
+    if (clsBox) {
+      clsBox.innerHTML = R.pickerClassChipsHtml(_brdClassList, _boardClassId);
+      clsBox.querySelectorAll('.ep-picker-class').forEach(function(b){
+        b.addEventListener('click', function(){ _boardClassId = b.getAttribute('data-id'); _boardExamId = null; paintBoard(); });
+      });
+      var nb = clsBox.querySelector('.ep-picker-class-new');
+      if (nb) nb.addEventListener('click', function(){
+        var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
+        if (name && _brd.createClass) {
+          var c = _brd.createClass(name);
+          if (c) { _brdClassList = _brdClassList.concat([{ id: c.id, name: c.name, count: 0 }]); _boardClassId = c.id; _boardExamId = null; }
+          paintBoard();
+        }
+      });
+    }
+    if (exBox) {
+      exBox.innerHTML = R.pickerExamListHtml(orderedExams, _boardExamId);
+      exBox.querySelectorAll('.ep-picker-exam').forEach(function(b){
+        b.addEventListener('click', function(){ _boardExamId = b.getAttribute('data-id'); _boardMode = 'exam'; closePicker(); paintBoard(); });   // 选具体一套 → 回本卷视角
+      });
+    }
+  }
+  // 同步渲染画像板块（不拉云端）：窄条选卷器 + 本卷|跨卷 切换 + 画像详情 + 去学生时间线。换班/换卷/切模式都走这里。
+  function paintBoard() {
+    var el = document.getElementById('errorProfileContent');
+    if (!el) return;
+    var R = window.GrammarErrorProfileRender;
+    var built = buildExamsForClass(_boardClassId);
+    var orderedExams = built.orderedExams;
+    if ((!_boardExamId || !_brdExams[_boardExamId]) && orderedExams.length) _boardExamId = orderedExams[orderedExams.length - 1].id;   // 默认最新一套
+    var curCls = findById(_brdClassList, _boardClassId);
+    var curExam = findById(orderedExams, _boardExamId);
+    el.innerHTML = R.boardSelectorBarHtml(curCls, curExam, orderedExams.length)
+      + (orderedExams.length ? R.boardModeToggleHtml(_boardMode) : '')                // 有卷才给 本卷|跨卷 切换
+      + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                      // 画像详情——本卷/跨卷 由 renderBoardDetail 填
+      + '<div style="margin-top:8px;"><button id="epToTimeline" style="padding:8px 16px;border-radius:999px;border:1px solid var(--accent-light);background:var(--accent-bg);color:var(--accent);cursor:pointer;font-size:13px;">查看单个学生的画像 →</button></div>';
+    var bar = document.getElementById('epSelectorBar');
+    if (bar) bar.addEventListener('click', openPicker);
+    el.querySelectorAll('.ep-mode-btn').forEach(function(b){
+      b.addEventListener('click', function(){ _boardMode = b.getAttribute('data-mode'); paintBoard(); });   // 本卷 / 跨卷 切换
+    });
+    var toTl = document.getElementById('epToTimeline');
+    if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
+    ensurePickerChrome();
+    fillPicker(orderedExams);   // 弹窗常驻 body 级，paintBoard 不会关掉它——换班级时列表原地刷新
+    renderBoardDetail();
+  }
+  function emptyDetailHtml(msg) {
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;color:var(--text-3);text-align:center;font-size:13px;">' + msg + '</div>';
+  }
+  // 本卷 / 跨卷 两种详情，填进 #epBoardDetail
+  function renderBoardDetail() {
+    var detail = document.getElementById('epBoardDetail');
+    if (!detail) return;
+    if (_boardMode === 'cross') {
+      var classRows = (_brdAllRows || []).filter(function(r){ return r.class_id === _boardClassId; });
+      if (!classRows.length) { detail.innerHTML = emptyDetailHtml('这个班还没有成绩——先导一份，或换个班。'); return; }
+      var profile = window.GrammarErrorProfile.buildProfileFromExamRows(classRows);   // 整班所有卷加总成长期画像
+      var vm = window.GrammarErrorProfileView.buildProfileViewModel(profile, _brd.catNames || {});
+      var stuSet = {}; classRows.forEach(function(r){ stuSet[r.student_no] = 1; });
+      detail.innerHTML = window.GrammarErrorProfileRender.crossProfileHtml(vm, _brdTrendByCat, { examCount: Object.keys(_brdExams).length, studentCount: Object.keys(stuSet).length });
+    } else if (_boardExamId) {
+      boardViewProfile(_boardExamId);
+    } else {
+      detail.innerHTML = emptyDetailHtml('点上面那条，选个班级和试卷，这里就出画像。');
+    }
+  }
   function renderBoardPage(deps) {
     _brd = deps || _brd;
     var el = document.getElementById('errorProfileContent');
     if (!el) return;
-    el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载云端数据…</div>';
+    el.innerHTML = '<div style="color:var(--text-3);padding:18px 4px;">加载云端数据…</div>';
     (_brd.fetchExamResults ? _brd.fetchExamResults() : Promise.resolve({ rows: [] })).then(function(res){
-      var allRows = (res && res.rows) || [];
+      _brdAllRows = (res && res.rows) || [];
       var clsMap = {};
-      allRows.forEach(function(r){
+      _brdAllRows.forEach(function(r){
         if (!r.class_id) return;
         if (!clsMap[r.class_id]) clsMap[r.class_id] = { id: r.class_id, name: r.class_name || r.class_id, stu: {} };
         clsMap[r.class_id].stu[r.student_no] = 1;
@@ -265,51 +380,10 @@
       ((_brd.getClasses && _brd.getClasses()) || []).forEach(function(c){
         if (!clsMap[c.id]) clsMap[c.id] = { id: c.id, name: c.name, stu: {} };
       });
-      var classList = Object.keys(clsMap).map(function(k){ return { id: clsMap[k].id, name: clsMap[k].name, count: Object.keys(clsMap[k].stu).length }; });
-      if ((!_boardClassId || !clsMap[_boardClassId]) && classList.length) _boardClassId = classList[0].id;
-      _brdExams = {};
-      allRows.filter(function(r){ return r.class_id === _boardClassId; }).forEach(function(r){
-        if (!_brdExams[r.exam_id]) _brdExams[r.exam_id] = { examId: r.exam_id, examLabel: r.exam_label || r.exam_id, examDate: r.exam_date || '', rows: [] };
-        _brdExams[r.exam_id].rows.push(r);
-      });
-      var catNames = _brd.catNames || {};
-      var orderedExams = Object.keys(_brdExams).map(function(eid){
-        var g = _brdExams[eid];
-        var profile = window.GrammarErrorProfile.buildProfileFromExamRows(g.rows);
-        var vm = window.GrammarErrorProfileView.buildProfileViewModel(profile, catNames);
-        return { id: eid, examLabel: g.examLabel, examDate: g.examDate, byCat: profile.byCat, focusCount: vm.summary.focusCount };
-      }).sort(function(a, z){ return String(a.examDate).localeCompare(String(z.examDate)); });   // 升序：左早右近
-      if ((!_boardExamId || !_brdExams[_boardExamId]) && orderedExams.length) _boardExamId = orderedExams[orderedExams.length - 1].id;   // 默认最新一套
-      var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
-      _brdTrendByCat = {};
-      trends.forEach(function(t){ _brdTrendByCat[t.category] = t; });   // 考点→趋势，喂给排行行内迷你趋势线
-      el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _boardClassId)
-        + window.GrammarErrorProfileRender.examChipsHtml(orderedExams, _boardExamId)
-        + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 选中套卷的画像——紧跟 chips，立即可见
-        + window.GrammarErrorProfileRender.catTrendDetailsHtml(trends, catNames)        // 全考点跨卷趋势——折叠沉底，默认收起
-        + '<div style="margin-top:8px;"><button id="epToTimeline" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">查看单个学生的画像 →</button></div>';
-      el.querySelectorAll('.ep-class-chip').forEach(function(btn){
-        btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); _boardExamId = null; renderBoardPage(_brd); });
-      });
-      var toTl = document.getElementById('epToTimeline');
-      if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
-      var newChip = el.querySelector('.ep-class-new');
-      if (newChip) newChip.addEventListener('click', function(){
-        var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');
-        if (name && _brd.createClass) { var c = _brd.createClass(name); if (c) { _boardClassId = c.id; _boardExamId = null; } renderBoardPage(_brd); }
-      });
-      el.querySelectorAll('.ep-exam-chip').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          _boardExamId = btn.getAttribute('data-id');
-          el.querySelectorAll('.ep-exam-chip').forEach(function(b){
-            var on = b.getAttribute('data-id') === _boardExamId;
-            b.style.background = on ? '#0071e3' : '#f7f7f7'; b.style.color = on ? '#fff' : '#333'; b.style.border = '1px solid ' + (on ? '#0071e3' : '#e5e5e5');
-          });
-          boardViewProfile(_boardExamId);
-        });
-      });
-      if (_boardExamId) boardViewProfile(_boardExamId);
-    }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
+      _brdClassList = Object.keys(clsMap).map(function(k){ return { id: clsMap[k].id, name: clsMap[k].name, count: Object.keys(clsMap[k].stu).length }; });
+      if ((!_boardClassId || !clsMap[_boardClassId]) && _brdClassList.length) _boardClassId = _brdClassList[0].id;
+      paintBoard();
+    }).catch(function(){ el.innerHTML = '<div style="color:var(--text-3);padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }
 
   // ---------- 学生时间线（云端读，本地显名）----------

@@ -41,9 +41,10 @@
 
   // catRankingHtml(catRanking, trendByCat?)：trendByCat[考点] = { series:[{rate}], delta } 时，
   // 行内嵌一条跨卷迷你趋势线 + 升降箭头（把"考点趋势"融进排行，免去单独一大块）。不传则与原样一致。
-  function catRankingHtml(catRanking, trendByCat) {
+  function catRankingHtml(catRanking, trendByCat, title) {
     if (!catRanking.length) return '';
     trendByCat = trendByCat || {};
+    title = title || '考点画像 · 正确率排行（低的该重点讲）';
     var hasTrend = false; for (var k in trendByCat) { if (trendByCat.hasOwnProperty(k)) { hasTrend = true; break; } }
     var rows = catRanking.map(function(c){
       var rateText = c.rate == null ? '—' : (c.rate + '%');
@@ -66,7 +67,7 @@
     }).join('');
     var hint = hasTrend ? ' <span style="font-weight:400;color:#888;font-size:12px;">· 趋势线左早右近</span>' : '';
     return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:16px 20px;margin-bottom:16px;">'
-      + '<div style="font-weight:600;margin-bottom:8px;">考点画像 · 正确率排行（低的该重点讲）' + hint + '</div>' + rows + '</div>';
+      + '<div style="font-weight:600;margin-bottom:8px;">' + title + hint + '</div>' + rows + '</div>';
   }
 
   function noListHtml(noList) {
@@ -103,6 +104,27 @@
       + '共 ' + (s.studentCount || 0) + ' 名学生 · ' + (s.questionCount || 0) + ' 道语法填空 · '
       + '<b style="color:#e74c3c;">' + (s.focusCount || 0) + '</b> 个考点需重点讲</div>';
     return head + catRankingHtml(vm.catRanking || [], trendByCat) + noListHtml(vm.noList || []) + studentsHtml(vm.students || []);
+  }
+
+  // 本卷 | 跨卷 切换（segmented）：本卷=当前这套；跨卷=整班所有卷累计的长期画像
+  function boardModeToggleHtml(mode) {
+    mode = mode || 'exam';
+    function seg(m, label){
+      var on = mode === m;
+      return '<button type="button" class="ep-mode-btn" data-mode="' + m + '" '
+        + 'style="padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;'
+        + (on ? 'background:var(--surface);color:var(--accent);box-shadow:var(--shadow);' : 'background:transparent;color:var(--text-2);') + '">' + label + '</button>';
+    }
+    return '<div style="display:inline-flex;gap:2px;background:var(--surface-3);border-radius:10px;padding:3px;margin-bottom:14px;">'
+      + seg('exam', '本卷') + seg('cross', '跨卷') + '</div>';
+  }
+
+  // 跨卷累计画像：整班所有卷加总的 11 类正确率排行（长期最弱在前）+ 行内趋势线
+  function crossProfileHtml(vm, trendByCat, meta) {
+    vm = vm || {}; meta = meta || {};
+    var head = '<div style="color:var(--text-2);font-size:13px;margin-bottom:12px;">整班 · '
+      + (meta.examCount || 0) + ' 套卷累计 · ' + (meta.studentCount || 0) + ' 名学生 · 看长期哪个考点一直弱</div>';
+    return head + catRankingHtml(vm.catRanking || [], trendByCat, '跨卷累计 · 长期正确率（低的长期没掌握）');
   }
 
   function boardListHtml(boardModel) {
@@ -156,6 +178,56 @@
       + chips + newChip + '</div>';
   }
 
+  // ── 考点画像 · 选卷器（窄条触发；弹窗壳子在 index.html 的 #epPickerOverlay，常驻 body 级）──
+  // 顶部一条窄条显示「当前班级 + 当前试卷 + 换卷入口」，点开弹窗换班/换卷，省掉原来两行常驻 chips。
+  function boardSelectorBarHtml(cls, exam, examCount) {
+    var hasExam = !!exam;
+    var clsName = cls ? esc(cls.name) : '选择班级';
+    var clsPill = '<span style="flex:0 0 auto;padding:3px 10px;border-radius:999px;background:var(--accent-bg);color:var(--accent);font-size:12px;font-weight:600;white-space:nowrap;">' + clsName + '</span>';
+    var examName = hasExam ? esc(exam.examLabel) : (cls ? '还没有卷子 · 去「导入成绩」传一套' : '先选个班级');
+    var examSpan = '<span style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:' + (hasExam ? 'var(--text)' : 'var(--text-3)') + ';">' + examName + '</span>';
+    var focus = (hasExam && exam.focusCount > 0)
+      ? '<span style="flex:0 0 auto;padding:2px 8px;border-radius:999px;background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;">●' + exam.focusCount + '</span>' : '';
+    var meta = examCount ? '<span style="flex:0 0 auto;color:var(--text-3);font-size:12px;">共 ' + examCount + ' 套</span>' : '';
+    return '<button type="button" id="epSelectorBar" class="ep-selector-bar" '
+      + 'style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:16px;box-shadow:var(--shadow);">'
+      + clsPill + examSpan + focus
+      + '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:10px;flex:0 0 auto;">' + meta
+      + '<span style="display:inline-flex;align-items:center;gap:2px;color:var(--accent);font-size:13px;font-weight:600;">换卷<span style="font-size:16px;line-height:1;">›</span></span>'
+      + '</span></button>';
+  }
+
+  // 弹窗里的班级 chips（横排单选，末尾「＋ 新建班级」）
+  function pickerClassChipsHtml(classList, currentClassId) {
+    var chips = (classList || []).map(function(c){
+      var on = c.id === currentClassId;
+      return '<button type="button" class="ep-picker-class" data-id="' + esc(c.id) + '" '
+        + 'style="padding:6px 13px;border-radius:999px;cursor:pointer;font-size:13px;'
+        + (on ? 'background:var(--accent);color:#fff;border:1px solid var(--accent);' : 'background:var(--surface-2);color:var(--text);border:1px solid var(--border);') + '">'
+        + esc(c.name) + ' <span style="opacity:.65;">' + (c.count || 0) + '</span></button>';
+    }).join('');
+    return chips + '<button type="button" class="ep-picker-class-new" '
+      + 'style="padding:6px 13px;border-radius:999px;cursor:pointer;font-size:13px;background:transparent;color:var(--accent);border:1px dashed var(--accent-light);">＋ 新建班级</button>';
+  }
+
+  // 弹窗里的试卷列表（竖排，最新在上；每行卷名 + 日期 + 重点考点数，选中高亮 ✓）
+  function pickerExamListHtml(orderedExams, currentExamId) {
+    var exams = (orderedExams || []).slice().reverse();   // orderedExams 升序(左早右近)，列表里最新在上
+    if (!exams.length) return '<div style="padding:30px 16px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.7;">这个班还没有卷子。<br>去「导入成绩」传一套，就出现在这里。</div>';
+    return exams.map(function(e){
+      var on = e.id === currentExamId;
+      var sub = [e.examDate ? esc(e.examDate) : '', e.focusCount > 0 ? ('重点讲 ' + e.focusCount + ' 个考点') : '暂无需重点讲'].filter(Boolean).join(' · ');
+      var dot = e.focusCount > 0 ? '<span style="flex:0 0 auto;padding:2px 9px;border-radius:999px;background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;">●' + e.focusCount + '</span>' : '';
+      var check = on ? '<span style="flex:0 0 auto;color:var(--accent);font-size:16px;font-weight:700;">✓</span>' : '';
+      return '<button type="button" class="ep-picker-exam" data-id="' + esc(e.id) + '" '
+        + 'style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;border:1px solid ' + (on ? 'var(--accent)' : 'transparent') + ';border-radius:12px;padding:12px 14px;margin-bottom:6px;background:' + (on ? 'var(--accent-bg)' : 'transparent') + ';">'
+        + '<span style="flex:1;min-width:0;">'
+        +   '<span style="display:block;font-weight:600;color:var(--text);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(e.examLabel) + '</span>'
+        +   '<span style="display:block;color:var(--text-3);font-size:12px;margin-top:2px;">' + sub + '</span>'
+        + '</span>' + dot + check + '</button>';
+    }).join('');
+  }
+
   function studentTimelineHtml(timeline, nameMap, catNames) {
     timeline = timeline || []; catNames = catNames || {};
     var resolve = (window.GrammarStudentTracking && window.GrammarStudentTracking.resolveStudentName) || function(m, s){ return (m && m[s]) || s; };
@@ -181,21 +253,6 @@
         + '<div>' + examsLine + '</div>'
         + '</div>';
     }).join('');
-  }
-
-  function examChipsHtml(exams, selectedId) {
-    exams = exams || [];
-    if (!exams.length) return '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:20px;color:#888;text-align:center;margin-bottom:14px;">还没有导入的卷子。去「导入成绩」传一套吧。</div>';
-    var chips = exams.map(function(e){
-      var active = e.id === selectedId;
-      var dot = (e.focusCount > 0) ? '<span style="margin-left:5px;font-size:11px;color:' + (active ? '#fff' : '#e74c3c') + ';">●' + e.focusCount + '</span>' : '';
-      return '<button type="button" class="ep-exam-chip" data-id="' + esc(e.id) + '" style="flex:0 0 auto;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:13px;margin:0 8px 0 0;white-space:nowrap;'
-        + (active ? 'background:#0071e3;color:#fff;border:1px solid #0071e3;' : 'background:#f7f7f7;color:#333;border:1px solid #e5e5e5;') + '">'
-        + esc(e.examLabel) + dot + '</button>';
-    }).join('');
-    return '<div style="margin-bottom:14px;">'
-      + '<div style="font-weight:600;margin-bottom:8px;">选一套卷看画像 <span style="font-weight:400;color:#888;font-size:12px;">· 按时间排，' + exams.length + ' 套，左早右近</span></div>'
-      + '<div style="display:flex;overflow-x:auto;padding-bottom:4px;">' + chips + '</div></div>';
   }
 
   // 行内迷你趋势线（融进考点排行那行用）。比 sparklineSvg 更小，末点带圆点。
@@ -367,11 +424,15 @@
   window.GrammarErrorProfileRender = {
     uploadPanelHtml: uploadPanelHtml,
     profilePageHtml: profilePageHtml,
+    boardModeToggleHtml: boardModeToggleHtml,
+    crossProfileHtml: crossProfileHtml,
     boardListHtml: boardListHtml,
     importClassBarHtml: importClassBarHtml,
     classChipsHtml: classChipsHtml,
+    boardSelectorBarHtml: boardSelectorBarHtml,
+    pickerClassChipsHtml: pickerClassChipsHtml,
+    pickerExamListHtml: pickerExamListHtml,
     studentTimelineHtml: studentTimelineHtml,
-    examChipsHtml: examChipsHtml,
     catTrendHtml: catTrendHtml,
     catTrendDetailsHtml: catTrendDetailsHtml,
     studentSearchBoxHtml: studentSearchBoxHtml,
