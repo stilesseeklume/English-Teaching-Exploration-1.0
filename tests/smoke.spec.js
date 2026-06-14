@@ -2278,13 +2278,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && newUserDashboard && newUserDashboard.activity.isNewUser === true
       && newUserDashboard.activity.greeting === '早上好'
       && newUserDashboard.hero && newUserDashboard.hero.titleText.indexOf('语法填空讲评工作台') !== -1
+      && newUserDashboard.coreActions.length === 2
       && newUserDashboard.coreActions[0].action && newUserDashboard.coreActions[0].action.type === 'switch-page' && newUserDashboard.coreActions[0].action.value === 'error-import'
       && newUserDashboard.coreActions[1].action && newUserDashboard.coreActions[1].action.type === 'switch-page' && newUserDashboard.coreActions[1].action.value === 'error-profile'
-      && newUserDashboard.coreActions[2].action && newUserDashboard.coreActions[2].action.value === 'points-training' && newUserDashboard.coreActions[2].label === '去练'
       && newUserDashboard.toolActions[0].action && newUserDashboard.toolActions[0].action.type === 'navigate-home' && newUserDashboard.toolActions[0].action.value === 'exams'
       && newUserDashboard.toolActions[1].action && newUserDashboard.toolActions[1].action.type === 'upload-word' && newUserDashboard.toolActions[1].label === '导入试题'
-      && newUserDashboard.coreActions[0].chrome && newUserDashboard.coreActions[0].chrome.style.indexOf('box-shadow') !== -1
-      && newUserDashboard.coreActions[0].subtitleStyle.indexOf('opacity') !== -1
+      && newUserDashboard.toolActions[newUserDashboard.toolActions.length - 1].action.value === 'points-training' && newUserDashboard.toolActions[newUserDashboard.toolActions.length - 1].label === '去练'
+      && newUserDashboard.coreActions[0].chrome && newUserDashboard.coreActions[0].chrome.style.indexOf('box-shadow') === -1
+      && newUserDashboard.coreActions[0].subtitleStyle.indexOf('opacity') === -1
       && newUserDashboard.books && newUserDashboard.books.length === 7
       && newUserDashboard.books[0].cover.indexOf('bixiu-1.jpg') !== -1
       && !newUserDashboard.books[0].action
@@ -2296,7 +2297,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.coreActions && activeDashboard.coreActions.length === 3 && activeDashboard.toolActions.length === 5
+      && activeDashboard.coreActions && activeDashboard.coreActions.length === 2 && activeDashboard.toolActions.length === 6
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
       && activeDashboard.toolActions[2].subtitleText === '2 套已入库'
       && activeDashboard.toolActions[3].action && activeDashboard.toolActions[3].action.value === 'error-book'
@@ -3073,10 +3074,14 @@ test('考点训练页：dock 入口 + 图(决策地图)/文字(考点视图)双�
   await expect(page.locator('html')).toHaveClass(/ready/);
   await page.locator('[data-dock-key="points-training"]').click();
   await expect(page.locator('#page-points-training')).toHaveClass(/active/);
-  // 默认 图 = 决策地图，渲染进 #pointsTrainingContent（验证渲染目标重定向，而非串到知识库页）
+  // 默认 文字 = 考点视图，渲染进 #pointsTrainingContent（验证渲染目标重定向，而非串到知识库页）
+  await expect(page.locator('#ptTextBtn')).toHaveClass(/active/);
+  await expect(page.locator('#pointsTrainingContent')).toContainText(/考点视图/);
+  // 切 图 = 决策地图
+  await page.locator('#ptGraphBtn').click();
   await expect(page.locator('#ptGraphBtn')).toHaveClass(/active/);
   await expect(page.locator('#pointsTrainingContent .dm-wrap')).toBeVisible();
-  // 切 文字 = 考点视图
+  // 切回 文字 = 考点视图
   await page.locator('#ptTextBtn').click();
   await expect(page.locator('#ptTextBtn')).toHaveClass(/active/);
   await expect(page.locator('#pointsTrainingContent')).toContainText(/考点视图/);
