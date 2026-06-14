@@ -4312,3 +4312,34 @@ test('学生时间线：搜索驱动选学生 + 单生可视化画像(mock 云�
   await expect(page.locator('#stStudentDetail')).toContainText('暂无成绩');
   expect(errors).toEqual([]);
 });
+
+test('班级管理：导入页新建班级→启用导入名单/删除→删除班级(本地+云端成绩)', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockSignedInTeacher(page);
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.evaluate(() => {
+    window.__deletedClass = null;
+    window.cloud = window.cloud || {};
+    window.cloud.fetchExamResults = async () => ([]);
+    window.cloud.deleteExamResults = async (classId) => { window.__deletedClass = classId; return { ok: true }; };
+  });
+  await page.evaluate(() => window.switchPage('error-import'));
+  await expect(page.locator('#page-error-import')).toHaveClass(/active/);
+  // 新建班级（prompt 返回班名）→ 自动选中 → 导入名单/删除该班 启用
+  page.once('dialog', (d) => d.accept('高三②班'));
+  await page.locator('#errorImportNewClass').click();
+  await expect(page.locator('#errorImportClass')).toContainText('高三②班');
+  await expect(page.locator('#errorImportRoster')).toBeEnabled();
+  await expect(page.locator('#errorDeleteClass')).toBeEnabled();
+  await expect(page.locator('#errorClassMeta')).toContainText('还没导名单');
+  // 删除该班（confirm 接受）→ 调云端 deleteExamResults(classId) + 本地移除
+  page.once('dialog', (d) => d.accept());
+  await page.locator('#errorDeleteClass').click();
+  await expect(page.locator('#errorProfileMsg')).toContainText('已删除班级');
+  await expect(page.locator('#errorImportClass')).not.toContainText('高三②班');
+  const deletedClassId = await page.evaluate(() => window.__deletedClass);
+  expect(typeof deletedClassId).toBe('string');
+  expect(deletedClassId.startsWith('cls_')).toBe(true);
+  expect(errors).toEqual([]);
+});

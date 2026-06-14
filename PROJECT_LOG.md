@@ -497,6 +497,18 @@ d29c166 注册登录改为用户名+密码
 - **新增纯函数**：view 加 `buildStudentProfileVM`；render 加 `miniSparkSvg`/`deltaHtml`/`rateTrendBlock`/`catTrendDetailsHtml`/`studentSearchBoxHtml`/`studentMatchListHtml`/`studentProfileHtml`。隐私红线不变（姓名仍只在本机解析，云端只存学号）。
 - 契约同步：`scripts/check_grammar_modules.py` 登记 `GrammarErrorProfileView`(+buildCatTrends,+buildStudentProfileVM) 与 `GrammarErrorProfileRender`(+4 个新导出)。`studentTimelineHtml`（旧扁平卡片）保留导出 + 单测，暂作兼容/回退，不再被控制器调用。
 - 在哪试：登录 →「考点画像」选套卷即见画像 + 行内趋势，底部可展开全考点趋势；「学生时间线」搜姓名/学号选一个学生看折线画像。
-- 验证：`node --test`（64/64，新增 11 条）+ `python3 scripts/check_grammar_modules.py`（27 模块）全绿；本地预览注入模拟数据截图核对三块可视化与折线图标签防重叠（含高分起点压力用例），无 console error。`npm run check` 全量门禁与 commit/push 待用户授权后再跑。
+- 验证：`node --test`（64/64，新增 11 条）+ `python3 scripts/check_grammar_modules.py`（27 模块）全绿；本地预览注入模拟数据截图核对三块可视化与折线图标签防重叠（含高分起点压力用例），无 console error。`npm run check` 全量门禁 35/35 全绿。
+- 已 commit + push 到 origin/main（用户授权）：84b83c0。
+
+## 2026-06-14 · 班级管理：导入页加「删除班级」+「加班后导入名单」（用户反馈）
+
+用户准备整理项目（功能混杂、页面混乱），顺手要两个班级管理功能。落点统一在「导入成绩」页的班级栏（`importClassBarHtml`），做成班级管理小中枢：选/建班 → 导入名单 → 删除该班。
+
+- **删除班级**（完整语义，强确认兜底）：`importClassBarHtml` 加「🗑 删除该班」（选班后启用）。删除 = 移除本地班级+名单（`GrammarErrorProfileStore.removeClass`）+ 删云端该班全部成绩（复用 cloud.js 已有的 `deleteExamResults(classId)`，**无后端改动**）。confirm 明确告知"云端成绩不可恢复"；先删云成功再删本地，云端失败则不动本地并提示。注：必须连云端一起删，否则板块/时间线会从 exam_results 把该班重新拼出来。
+- **加班后导入名单**：`importClassBarHtml` 加「导入名单」（选班后启用）+ 隐藏 .xls 输入；解析 学号+姓名 Excel → `mergeStudentNames`（仅本机）+ `mergeClassRoster`（学号清单）。新建班级后自动选中该班，方便接着导名单（即"加入班级后导入名单"流）。选班后 meta 行显示本地名单人数 + 隐私说明。
+- 控制器（`renderImportPage`）新增 `updateImportClassButtons`/`impImportRoster`/`impDeleteClass` + `_impSelClass`（重渲染保持选中）；app.js 导入页依赖加 `deleteClass`/`deleteExamResultsClass`/`importRoster`/`classRoster`。
+- 隐私红线不变：姓名只存本机（grammar-student-names，owner 隔离），云端永不存姓名。
+- 在哪试：登录 →「导入成绩」→ 选班/新建 →「导入名单」传 学号+姓名 Excel；或「删除该班」（会二次确认并清云端成绩）。
+- 验证：render 单测（importClassBarHtml 含新按钮、默认禁用）；smoke「班级管理」（新建→按钮启用→删除走云端 deleteExamResults + 本地移除）；`npm run check` 全量 36/36 全绿。
 
 *此日志随项目推进持续更新。最后更新：2026-06-14*

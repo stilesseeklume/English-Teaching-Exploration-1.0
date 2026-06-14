@@ -175,3 +175,15 @@ test('catTrendDetailsHtml: 折叠 details/summary 包住趋势；空→空串', 
   assert.ok(html.includes('<summary'), 'summary 摘要');
   assert.ok(html.includes('谓语动词'), '内含趋势内容');
 });
+
+test('importClassBarHtml: 下拉 + 新建 + 导入名单 + 删除该班(默认禁用) + 隐藏名单输入', () => {
+  const html = w.GrammarErrorProfileRender.importClassBarHtml([{ id: 'c1', name: '高三①班' }]);
+  assert.ok(html.includes('id="errorImportClass"'), '班级下拉');
+  assert.ok(html.includes('高三①班'), '班级名');
+  assert.ok(html.includes('id="errorImportNewClass"'), '新建班级按钮');
+  assert.ok(html.includes('id="errorImportRoster"'), '导入名单按钮');
+  assert.ok(html.includes('id="errorDeleteClass"'), '删除该班按钮');
+  assert.ok(html.includes('id="errorRosterFile"'), '隐藏名单文件输入');
+  assert.ok(/id="errorImportRoster"[^>]*\bdisabled\b/.test(html), '导入名单默认禁用');
+  assert.ok(/id="errorDeleteClass"[^>]*\bdisabled\b/.test(html), '删除该班默认禁用');
+});
