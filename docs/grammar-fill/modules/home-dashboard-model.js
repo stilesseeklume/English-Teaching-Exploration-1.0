@@ -191,11 +191,6 @@
         action: buildAction('switch-page', 'lesson-prep')
       },
       {
-        key: 'error-book', icon: '📕', label: '错题本',
-        subtitleText: activity.errorCount + ' 道待复习', tone: 'red', count: activity.errorCount,
-        action: buildAction('switch-page', 'error-book')
-      },
-      {
         key: 'knowledge', icon: '📖', label: '知识库',
         subtitleText: '教材 · 按考点分类', tone: 'purple', count: null,
         action: buildAction('switch-page', 'knowledge')

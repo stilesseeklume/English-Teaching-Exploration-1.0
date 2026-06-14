@@ -72,8 +72,7 @@
     var pool = bankDisplayPool || [];
     return [
       { key: 'bank', label: '真题库', count: pool.filter(isRealQuestion).length },
-      { key: 'mock', label: '模拟题', count: pool.filter(isMockQuestion).length },
-      { key: 'errors', label: '我的错题', count: (errorDisplayPool || []).length }
+      { key: 'mock', label: '模拟题', count: pool.filter(isMockQuestion).length }
     ];
   }
 

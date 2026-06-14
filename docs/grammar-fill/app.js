@@ -2509,7 +2509,7 @@ var _migrationSource = (function(){
       : (localStorage.getItem(MIGRATION_SOURCE_KEY) || 'bank');
   }
   catch(e) { return 'bank'; }
-})(); // 'bank' | 'mock' | 'errors'
+})(); // 'bank' | 'mock'（'errors' 个人错题本已下线）
 
 function getMigrationSourceSnapshot() {
   var current = (typeof _migrationSource !== 'undefined' && _migrationSource)
@@ -2519,7 +2519,7 @@ function getMigrationSourceSnapshot() {
     return window.GrammarAppState.buildMigrationSourceState(current);
   }
   return {
-    migrationSource: current === 'errors' || current === 'mock' ? current : 'bank'
+    migrationSource: current === 'mock' ? current : 'bank'
   };
 }
 
@@ -2529,7 +2529,7 @@ function applyMigrationSourceState(nextState) {
   var source = nextState.migrationSource || nextState.source || 'bank';
   var state = window.GrammarAppState && window.GrammarAppState.buildMigrationSourceState
     ? window.GrammarAppState.buildMigrationSourceState(source)
-    : { migrationSource: source === 'errors' || source === 'mock' ? source : 'bank' };
+    : { migrationSource: source === 'mock' ? source : 'bank' };
   _migrationSource = state.migrationSource;
   if (window.GrammarAppState) window.GrammarAppState.patch(state);
   return state;
@@ -3076,10 +3076,8 @@ function getMigrationData(q, sourceOverride, pointIdxOverride) {
   var data = window.GrammarMigrationTraining.buildMigrationData(q, {
     source: migrationSource,
     bankQuestions: ALL_QUESTIONS,
-    errorQuestions: errorBookQuestions.map(function(it){
-      var c = (window.GrammarQuestionCorrection ? window.GrammarQuestionCorrection.correctClassification(it) : it);
-      return Object.assign({}, c, { points: window.GrammarQuestionPoints.buildQuestionPoints(c) });
-    }),
+    errorQuestions: [],   // 个人错题本已下线，迁移只用真题库/模拟题
+
     categoryMap: CATEGORY_MAP,
     getFineTagInfo: getFineTagInfo,
     getPointTitle: function(points) {

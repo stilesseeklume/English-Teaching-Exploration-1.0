@@ -1734,7 +1734,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && teachingGlobalGraphOpenPlan.selectDelayMs === 80
       && emptyTeachingGlobalGraphOpenPlan && emptyTeachingGlobalGraphOpenPlan.action === 'none'
       && emptyTeachingGlobalGraphOpenPlan.active === false
-      && migrationData && migrationData.tabs && migrationData.tabs.length === 3
+      && migrationData && migrationData.tabs && migrationData.tabs.length === 2
       && migrationData.headerLabel && migrationData.poolCount >= migrationData.migration.length
       && migrationData.migration && migrationData.migration.length
       && migrationData.migration[0].tagLabel && typeof migrationData.migration[0].teachingLine === 'string'
@@ -1742,7 +1742,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && migrationPanelModel.tabs && migrationPanelModel.tabs.some(function(tab) { return tab.key === 'bank' && tab.active; })
       && migrationPanelModel.countText.indexOf('共 ') === 0
       && migrationContentModel && migrationContentModel.heading === migrationData.headerLabel
-      && migrationContentModel.tabs && migrationContentModel.tabs.length === 3
+      && migrationContentModel.tabs && migrationContentModel.tabs.length === 2
       && migrationContentModel.countText.indexOf('共 ') === 0
       && migrationContentModel.entries.length === migrationData.migration.length
       && migrationContentModel.entries[0].id
@@ -1957,7 +1957,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && drawerTeachingTabPlan && drawerTeachingTabPlan.shouldUseTeachingTab === true
       && drawerTeachingTabPlan.shouldUpdateTabChrome === false
       && normalizedMigrationSource === 'bank'
-      && migrationSourceState && migrationSourceState.migrationSource === 'errors'
+      && migrationSourceState && migrationSourceState.migrationSource === 'bank'
       && migrationSourceChangePlan && migrationSourceChangePlan.migrationSource === 'mock'
       && migrationSourceChangePlan.renderTarget === 'drawer'
       && migrationSourceChangePlan.eventContext.question_no === 4
@@ -2296,11 +2296,10 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.coreActions && activeDashboard.coreActions.length === 3 && activeDashboard.toolActions.length === 5
+      && activeDashboard.coreActions && activeDashboard.coreActions.length === 3 && activeDashboard.toolActions.length === 4
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
       && activeDashboard.toolActions[2].subtitleText === '2 套已入库'
-      && activeDashboard.toolActions[3].action && activeDashboard.toolActions[3].action.value === 'error-book'
-      && activeDashboard.toolActions[3].chrome.mouseover.indexOf('var(--red)') !== -1
+      && !activeDashboard.toolActions.some(function(t){ return t.action && t.action.value === 'error-book'; })
       && homeSummary && homeSummary.bankStatText.indexOf('2 套卷 · 20 题') !== -1
       && homeSummary.errorCountText === '3 道错题'
       && homeSummary.prepCountText === '4 份资料'
@@ -3099,42 +3098,8 @@ test('signed-in saved materials and auto fullscreen paths render', async ({ page
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  await page.locator('[data-dock-key="error-book"]').click();
-  await expect(page.locator('#page-error-book')).toHaveClass(/active/);
-  await expect(page.locator('#errorBookStat')).toContainText('共 1 道');
-  await expect(page.locator('#errorBookList')).toContainText('prepared');
-  // 考点卡片默认折叠，先点开才能操作题目（批量勾选 / 删除）
-  await page.locator('#errorBookList .category-section-title').first().click();
-  await page.locator('#page-error-book button', { hasText: '批量删除' }).click();
-  await expect(page.locator('#errorBulkBar')).toHaveClass(/show/);
-  await expect(await page.evaluate(() => {
-    var state = window.GrammarAppState && window.GrammarAppState.state;
-    return !!(state
-      && state.errorBulkMode === true
-      && window.getSavedMaterialBulkModeSnapshot
-      && window.getSavedMaterialBulkModeSnapshot('error') === true);
-  })).toBe(true);
-  await page.locator('.error-bulk-check').check();
-  await expect(page.locator('#errorBulkInfo')).toContainText('已选择 1 道错题');
-  await page.locator('#errorBulkBar button', { hasText: '取消' }).click();
-  await expect(page.locator('#errorBulkBar')).not.toHaveClass(/show/);
-  await expect(await page.evaluate(() => {
-    var state = window.GrammarAppState && window.GrammarAppState.state;
-    return !!(state
-      && state.errorBulkMode === false
-      && window.getSavedMaterialBulkModeSnapshot
-      && window.getSavedMaterialBulkModeSnapshot('error') === false);
-  })).toBe(true);
-  page.once('dialog', dialog => dialog.accept());
-  await page.locator('#errorBookList .error-list-delete').first().click();
-  await expect(page.locator('#errorBookStat')).toContainText('共 0 道');
-  await expect.poll(async () => page.evaluate(() => {
-    return (window.__supabaseDeletes || []).some(function(item) {
-      return item.table === 'error_book'
-        && item.filters.user_id === 'smoke-user-1'
-        && item.filters.client_id === 'err_smoke_1';
-    });
-  })).toBe(true);
+  // 个人错题本已下线：dock 不再有错题本入口（首页卡片/＋错题本/迁移「我的错题」一并撤掉）
+  await expect(page.locator('[data-dock-key="error-book"]')).toHaveCount(0);
 
   await page.locator('[data-dock-key="lesson-prep"]').click();
   await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
@@ -3294,7 +3259,7 @@ test('auth sign-in and sign-out update protected access', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  await page.locator('[data-dock-key="error-book"]').click();
+  await page.locator('[data-dock-key="lesson-prep"]').click();
   await expect(page.locator('#authModal')).toBeVisible();
   await fillAuthCredentials(page, 'login.teacher@example.com', 'correct-password');
   await page.locator('#authPrimaryBtn').click();
@@ -3302,9 +3267,9 @@ test('auth sign-in and sign-out update protected access', async ({ page }) => {
   await expect(page.locator('#authModal')).not.toBeVisible();
   await expect(page.locator('#userPill')).toContainText('login-teacher');
 
-  await page.locator('[data-dock-key="error-book"]').click();
-  await expect(page.locator('#page-error-book')).toHaveClass(/active/);
-  await expect(page.locator('#errorBookStat')).toContainText('共 0 道');
+  await page.locator('[data-dock-key="lesson-prep"]').click();
+  await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
+  await expect(page.locator('#prepStat')).toContainText('共 0 份');
 
   await page.evaluate(() => window.switchPage('admin'));
   await expect(page.locator('#page-admin')).toHaveClass(/active/);
@@ -3355,11 +3320,7 @@ test('local saved materials are isolated by account owner', async ({ page }) => 
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  await page.locator('[data-dock-key="error-book"]').click();
-  await expect(page.locator('#page-error-book')).toHaveClass(/active/);
-  await expect(page.locator('#errorBookStat')).toContainText('共 0 道');
-  await expect(page.locator('#errorBookList')).not.toContainText('private');
-
+  // 个人错题本已下线：账号隔离改由备课(lesson-prep)验证；error_book 隔离清理仍由 error-book.js 加载时执行（见末尾断言）
   await page.locator('[data-dock-key="lesson-prep"]').click();
   await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
   await expect(page.locator('#prepStat')).toContainText('共 0 份');

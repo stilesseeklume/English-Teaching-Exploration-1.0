@@ -697,7 +697,8 @@
   }
 
   function normalizeMigrationSource(source) {
-    if (source === 'errors' || source === 'mock') return source;
+    // 'errors'（我的错题/个人错题本）已下线，归一到 bank；保留 mock。
+    if (source === 'mock') return source;
     return 'bank';
   }
 
