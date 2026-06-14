@@ -316,14 +316,31 @@
       var stat = (m.totalWrong != null) ? '<span style="color:#c0392b;font-size:12px;">错 ' + m.totalWrong + '</span>' : '';
       var miss = (m.missedCount > 0) ? '<span style="color:#e67e22;font-size:12px;">缺考 ' + m.missedCount + '</span>' : '';
       var on = (m.studentNo === opt.selectedNo);
-      return '<button type="button" class="st-pick" data-no="' + esc(m.studentNo) + '" '
-        + 'style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 14px;border:none;border-bottom:1px solid #f4f4f4;cursor:pointer;font-size:14px;'
-        + (on ? 'background:#f0f7ff;' : 'background:#fff;') + '">'
-        + '<span style="font-weight:600;min-width:64px;">' + nm + '</span>' + stat + miss
-        + '<span style="margin-left:auto;color:#bbb;font-size:12px;">看画像 ›</span></button>';
+      return '<div class="st-row" style="display:flex;align-items:center;border-bottom:1px solid #f4f4f4;' + (on ? 'background:#f0f7ff;' : 'background:#fff;') + '">'
+        + '<button type="button" class="st-pick" data-no="' + esc(m.studentNo) + '" '
+        +   'style="flex:1;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 14px;border:none;background:transparent;cursor:pointer;font-size:14px;">'
+        +   '<span style="font-weight:600;min-width:64px;">' + nm + '</span>' + stat + miss
+        +   '<span style="margin-left:auto;color:#bbb;font-size:12px;">看画像 ›</span></button>'
+        + '<button type="button" class="st-del" data-no="' + esc(m.studentNo) + '" title="从本班移除该生" '
+        +   'style="flex:0 0 auto;margin:0 10px;padding:4px 10px;border-radius:8px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;font-size:12px;">删</button>'
+        + '</div>';
     }).join('');
     var title = opt.title ? '<div style="font-weight:600;font-size:13px;color:#666;margin:8px 2px 6px;">' + esc(opt.title) + '</div>' : '';
     return title + '<div style="background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;margin-bottom:12px;">' + rows + '</div>';
+  }
+
+  // studentAddBoxHtml：手动「添加学生」折叠框（默认收起，不占主视图）。一行一个：「学号 姓名」或只写姓名。
+  function studentAddBoxHtml() {
+    return '<details style="margin:6px 0 4px;">'
+      + '<summary style="cursor:pointer;font-size:13px;color:#0071e3;padding:6px 0;list-style:none;">＋ 添加学生（手动 / 插班，一行一个）</summary>'
+      + '<div style="margin-top:6px;background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;">'
+      +   '<textarea id="stAddInput" rows="4" placeholder="每行一个学生，例如：&#10;20230531041 王五&#10;李雷&#10;（写「学号 姓名」最好，方便以后对上成绩；只写姓名也行，系统会自动编号）" '
+      +     'style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e5e5e5;border-radius:10px;font-size:13px;line-height:1.6;resize:vertical;outline:none;font-family:inherit;"></textarea>'
+      +   '<div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+      +     '<button type="button" id="stAddBtn" style="padding:7px 16px;border-radius:999px;border:1px solid #0071e3;background:#0071e3;color:#fff;cursor:pointer;font-size:13px;">添加进本班</button>'
+      +     '<span id="stAddMsg" style="color:#888;font-size:12px;"></span>'
+      +   '</div>'
+      + '</div></details>';
   }
 
   // studentProfileHtml：单生个人画像（可视化）。vm 来自 buildStudentProfileVM。
@@ -374,6 +391,7 @@
     catTrendDetailsHtml: catTrendDetailsHtml,
     studentSearchBoxHtml: studentSearchBoxHtml,
     studentMatchListHtml: studentMatchListHtml,
+    studentAddBoxHtml: studentAddBoxHtml,
     studentProfileHtml: studentProfileHtml
   };
 })();

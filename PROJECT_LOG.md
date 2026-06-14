@@ -522,4 +522,17 @@ d29c166 注册登录改为用户名+密码
 - 在哪试：dock「学生管理」→ 新建/删除班级、导名单、搜学生看画像；「导入成绩」只选班。
 - 验证：单测 66/66（importClassBarHtml 改为断言只选班/无 CRUD）；smoke「班级管理(学生管理页)」改测学生页新建→删除走云端 + 导入页无 CRUD；`npm run check` 全量 36/36 全绿。
 
+## 2026-06-14 · 班级管理补全：班级改名 + 添加学生 + 删除单个学生（用户反馈）
+
+用户要在「学生管理」页把班级管理做全：导入名单后还能手动增删学生、给班级改名（"演示班级"造数据由用户自己导入名单，本次只做功能）。落点仍在「学生管理」页（`renderTimelinePage`），延续"选择器/搜索驱动、不平铺"（对齐 [[ui-selector-driven-no-flat-walls]]）。
+
+- **班级改名**：管理行加「✎ 班级改名」（`stRenameClass`）→ prompt 预填当前名 → 本地改名 + 云端该班 `class_name` 一并改。修了一个隐患：`GrammarErrorProfileStore.renameClass` 旧实现把班级重建成 `{id,name}`，会**抹掉 `students` 名单**；改为 `Object.assign({}, c, {name})` 保留其它字段（加单测）。云端合并里有成绩的班名以 `class_name` 为准，故必须同步云端才看得到新名 → 新增 cloud.js `renameExamResultsClass(classId, newName)`（`update class_name`，复用 RLS，**无迁移**）。
+- **添加学生**（手动/插班）：管理行下加折叠框（默认收起，不占主视图）`studentAddBoxHtml` —— 多行文本，每行「学号 姓名」或只写姓名。新纯函数 `GrammarStudentTracking.parseRosterText(text)`（≥4 位数字开头识别为学号，支持 空格/逗号/Tab 分隔，跳空行）。app.js `addStudents` 依赖：缺学号则补"本地合成键"（`m`+时间戳，永不上云、避免与真实学号撞键），`mergeStudentNames`（仅本机）+ 新纯函数 `GrammarErrorProfileStore.addStudentsToClass`（去重保序）。
+- **删除单个学生**：搜索结果每行加「删」按钮（`st-del`，搜索驱动删除，不另铺名单墙；`studentMatchListHtml` 行结构由单 button 改为 `st-row` 容器内 `st-pick`+`st-del`，`.st-pick[data-no]` 不变）。app.js `removeStudent` 依赖：`GrammarErrorProfileStore.removeStudentFromClass` 移除本地名单 → 该学号无任何班再引用时连本机姓名也清掉 → 删云端该班该生成绩（新增 cloud.js `deleteExamResultsStudent(classId, studentNo)`，复用 RLS，**无迁移**）。强 confirm 兜底。
+- 隐私红线不变：姓名只存本机（owner 隔离），云端只存学号；新增云端函数只动 `class_name`/按 `student_no` 删行，不写姓名。
+- 在哪试：dock「学生管理」→ 选班 → 「✎ 班级改名」；展开「＋ 添加学生」粘贴名单（一行一个）；搜到某生点行尾「删」。导入页不受影响。
+- 验证：`node --test` 单测全绿（store +4：rename 保名单 / add 去重保序 / add 空班建起 / remove；student-tracking +3：parseRosterText 三组）；`python3 scripts/check_grammar_modules.py`（27 模块，登记 +parseRosterText/+studentAddBoxHtml/+renameClass/+addStudentsToClass/+removeStudentFromClass）；新增 smoke「班级管理…改名+添加+删除」用可变云端 stub 跑通三动作并校验云端被调用；**`npm run check` 全量门禁 37/37 全绿**。
+- 未跑：`renameExamResultsClass`/`deleteExamResultsStudent` 的真实 Supabase 执行（需真账号环境，按 AGENTS.md 留待真环境/用户授权）；二者是已有 delete/update 模式的 3 行镜像。
+- 待办：未 commit/push（等用户授权）。
+
 *此日志随项目推进持续更新。最后更新：2026-06-14*

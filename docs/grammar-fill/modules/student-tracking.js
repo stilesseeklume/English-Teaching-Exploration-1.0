@@ -96,10 +96,26 @@
     return nameMap[studentNo] || studentNo;
   }
 
+  // 手动「添加学生」：把多行文本解析成 [{studentNo, name}]。
+  // 每行可写「学号 姓名」（学号≥4位数字开头，分隔可空格/逗号/Tab），也可只写姓名（学号留空，由调用方补本地键）。
+  function parseRosterText(text) {
+    var lines = String(text == null ? '' : text).split(/\r?\n/);
+    var out = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var m = line.match(/^(\d{4,})\s*[,，\t]?\s*(.*)$/);
+      if (m) out.push({ studentNo: m[1], name: (m[2] || '').trim() });
+      else out.push({ studentNo: '', name: line });
+    }
+    return out;
+  }
+
   window.GrammarStudentTracking = {
     extractStudentRoster: extractStudentRoster,
     buildExamResultRows: buildExamResultRows,
     buildStudentTimeline: buildStudentTimeline,
-    resolveStudentName: resolveStudentName
+    resolveStudentName: resolveStudentName,
+    parseRosterText: parseRosterText
   };
 })();

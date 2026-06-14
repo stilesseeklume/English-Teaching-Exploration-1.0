@@ -13,7 +13,7 @@ function loadWindow(relPaths) {
   return window;
 }
 const w = loadWindow(['docs/grammar-fill/modules/error-profile-store.js']);
-const { upsertEntry, removeEntry, getEntry, buildBoardModel, addClass, removeClass, renameClass, buildClassListModel } = w.GrammarErrorProfileStore;
+const { upsertEntry, removeEntry, getEntry, buildBoardModel, addClass, removeClass, renameClass, buildClassListModel, addStudentsToClass, removeStudentFromClass } = w.GrammarErrorProfileStore;
 const json = (v) => JSON.stringify(v);
 
 const E = (examId, savedAt, focus) => ({
@@ -56,6 +56,38 @@ test('班级 CRUD: add / rename / remove', () => {
   assert.equal(json(cs), json([{ id: 'c1', name: '高三1班' }, { id: 'c2', name: '高三②班' }]));
   cs = removeClass(cs, 'c2');
   assert.equal(json(cs), json([{ id: 'c1', name: '高三1班' }]));
+});
+
+test('renameClass: 改名保留 students 等其它字段（不再把名单清掉）', () => {
+  const cs = [{ id: 'c1', name: '高三①班', students: ['S1', 'S2'] }, { id: 'c2', name: '高三②班' }];
+  const next = renameClass(cs, 'c1', '高三1班');
+  assert.equal(json(next), json([
+    { id: 'c1', name: '高三1班', students: ['S1', 'S2'] },
+    { id: 'c2', name: '高三②班' },
+  ]));
+});
+
+test('addStudentsToClass: 追加去重保序，只动目标班', () => {
+  const cs = [{ id: 'c1', name: 'A班', students: ['S1'] }, { id: 'c2', name: 'B班' }];
+  const next = addStudentsToClass(cs, 'c1', ['S2', 'S1', 'S3', '']);   // S1 已在→不重复，空串忽略
+  assert.equal(json(next), json([
+    { id: 'c1', name: 'A班', students: ['S1', 'S2', 'S3'] },
+    { id: 'c2', name: 'B班' },
+  ]));
+});
+
+test('addStudentsToClass: 目标班还没有 students 时也能建起来', () => {
+  const next = addStudentsToClass([{ id: 'c1', name: 'A班' }], 'c1', ['S1', 'S2']);
+  assert.equal(json(next), json([{ id: 'c1', name: 'A班', students: ['S1', 'S2'] }]));
+});
+
+test('removeStudentFromClass: 按学号移除，其它字段与其它班不动', () => {
+  const cs = [{ id: 'c1', name: 'A班', students: ['S1', 'S2', 'S3'] }, { id: 'c2', name: 'B班', students: ['S1'] }];
+  const next = removeStudentFromClass(cs, 'c1', 'S2');
+  assert.equal(json(next), json([
+    { id: 'c1', name: 'A班', students: ['S1', 'S3'] },
+    { id: 'c2', name: 'B班', students: ['S1'] },
+  ]));
 });
 
 test('buildClassListModel: 每班带画像数', () => {

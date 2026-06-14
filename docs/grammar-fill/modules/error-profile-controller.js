@@ -262,6 +262,38 @@
       if (window.alert) window.alert('云端删除失败，未删除该班。请检查网络/登录后重试。');
     });
   }
+  // 班级改名：本地改名（保留名单），并把云端该班成绩行的 class_name 一并改掉（有云端数据时名字以云端为准）。
+  function tlRenameClass() {
+    if (!_tlClassId || !_tl.renameClass) return;
+    var c = _tlClasses.filter(function(x){ return x.id === _tlClassId; })[0];
+    var cur = (c && c.name) || '';
+    var name = window.prompt && window.prompt('班级改名（如 高三①班）：', cur);
+    if (name == null) return;                       // 点了取消
+    name = String(name).trim();
+    if (!name || name === cur) return;
+    var p = _tl.renameClass(_tlClassId, name);
+    (p && p.then ? p : Promise.resolve()).then(function(){ renderTimelinePage(_tl); })
+      .catch(function(){ renderTimelinePage(_tl); });   // 本地已改名，云端失败也照常刷新
+  }
+  // 添加学生：解析多行文本 → 进本班名单（同步，姓名只存本地）。空白则提示，不重渲染。
+  function tlAddStudents() {
+    if (!_tlClassId || !_tl.addStudents) return;
+    var ta = document.getElementById('stAddInput');
+    var msg = document.getElementById('stAddMsg');
+    var parsed = window.GrammarStudentTracking.parseRosterText(ta ? ta.value : '');
+    if (!parsed.length) { if (msg) msg.textContent = '没识别到学生——每行写一个姓名，或「学号 姓名」。'; return; }
+    _tl.addStudents(_tlClassId, parsed);
+    renderTimelinePage(_tl);                         // 重渲染：班级人数 chip + 搜索即时含新生
+  }
+  // 删除单个学生：本地名单移除 + 删云端该班该生成绩（不可逆，强确认）。失败则不动、提示重试。
+  function tlRemoveStudent(studentNo, nameMap) {
+    if (!studentNo || !_tlClassId || !_tl.removeStudent) return;
+    var nm = (nameMap && nameMap[studentNo]) || studentNo;
+    if (window.confirm && !window.confirm('从本班移除「' + nm + '」？\n会删掉本地名单里的这名学生，以及云端该班下这名学生的成绩记录，不可恢复。')) return;
+    var p = _tl.removeStudent(_tlClassId, studentNo);
+    (p && p.then ? p : Promise.resolve()).then(function(){ renderTimelinePage(_tl); })
+      .catch(function(){ if (window.alert) window.alert('删除失败，请检查网络/登录后重试。'); });
+  }
   function studentTotalWrong(st) {
     return ((st && st.weakCats) || []).reduce(function(s, x){ return s + (x.wrong || 0); }, 0);
   }
@@ -308,6 +340,9 @@
           showMatches(input ? input.value : '');   // 重渲染列表以高亮选中项
         });
       });
+      box.querySelectorAll('.st-del').forEach(function(btn){
+        btn.addEventListener('click', function(){ tlRemoveStudent(btn.getAttribute('data-no'), nameMap); });
+      });
     }
     if (input) input.addEventListener('input', function(){ showMatches(input.value); });
     showMatches('');   // 初始：默认列出最需要关注的几个
@@ -337,11 +372,13 @@
       var manageRow = _tlClassId
         ? '<div style="margin:6px 0 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
             + '<span id="stRosterDrop" style="display:inline-block;padding:7px 14px;border-radius:999px;border:1px dashed #cfe3ff;background:#f7fbff;color:#0071e3;cursor:pointer;font-size:13px;">＋ 导入名单（学号+姓名 Excel）</span>'
+            + '<button type="button" id="stRenameClass" style="padding:7px 14px;border-radius:999px;border:1px solid #cfe3ff;background:#f7fbff;color:#0071e3;cursor:pointer;font-size:13px;">✎ 班级改名</button>'
             + '<button type="button" id="stDeleteClass" style="padding:7px 14px;border-radius:999px;border:1px solid #f3c0c0;background:#fff;color:#c0392b;cursor:pointer;font-size:13px;">🗑 删除该班</button>'
             + '<input type="file" id="stRosterFile" accept=".xls,.xlsx" style="display:none;"></div>'
         : '<div style="margin:6px 0 4px;color:#888;font-size:13px;">点上面「＋ 新建班级」建一个班；导名单或导成绩后，这里就有学生了。</div>';
       el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _tlClassId)
         + manageRow
+        + (_tlClassId ? window.GrammarErrorProfileRender.studentAddBoxHtml() : '')
         + '<div id="stTimelineList" style="margin-top:14px;color:#888;"></div>';
       el.querySelectorAll('.ep-class-chip').forEach(function(btn){
         btn.addEventListener('click', function(){ _tlClassId = btn.getAttribute('data-id'); renderTimelinePage(_tl); });
@@ -353,6 +390,10 @@
       });
       var delClassBtn = document.getElementById('stDeleteClass');
       if (delClassBtn) delClassBtn.addEventListener('click', tlDeleteClass);
+      var renameBtn = document.getElementById('stRenameClass');
+      if (renameBtn) renameBtn.addEventListener('click', tlRenameClass);
+      var addBtn = document.getElementById('stAddBtn');
+      if (addBtn) addBtn.addEventListener('click', tlAddStudents);
       var rosterDrop = document.getElementById('stRosterDrop');
       var rosterFile = document.getElementById('stRosterFile');
       if (rosterDrop && rosterFile) {

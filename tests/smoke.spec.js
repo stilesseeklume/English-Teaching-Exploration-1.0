@@ -4347,3 +4347,58 @@ test('班级管理(学生管理页)：新建班级→删除该班(本地+云端�
   await expect(page.locator('#errorImportContent')).toContainText('学生管理');
   expect(errors).toEqual([]);
 });
+
+test('班级管理(学生管理页)：班级改名 + 添加学生 + 删除单个学生(本地名单+云端同步)', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockSignedInTeacher(page);
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await page.evaluate(() => {
+    // 可变云端：rename 改 class_name、删生剔行，re-fetch 反映变化（贴近真实合并：有云端数据时班名以云端为准）
+    window.__cloudRows = [
+      { student_no: 'S1', class_id: 'cls_x', class_name: '高三①班', exam_id: 'e1', exam_label: '一模', exam_date: '2026-03-01',
+        result: { right: [], wrong: [36], blank: [], wrongQuestions: [{ no: 36, category: 'tense' }], byCat: { tense: { right: 0, wrong: 1 } } } },
+    ];
+    window.__renamed = null; window.__deletedStudent = null;
+    localStorage.setItem('grammar-classes', JSON.stringify({ _owner: 'smoke-user-1', items: [{ id: 'cls_x', name: '高三①班', students: ['S1', 'S2'] }] }));
+    localStorage.setItem('grammar-student-names', JSON.stringify({ _owner: 'smoke-user-1', names: { S1: '张三', S2: '李四' } }));
+    window.cloud = window.cloud || {};
+    window.cloud.fetchExamResults = async () => window.__cloudRows.slice();
+    window.cloud.renameExamResultsClass = async (classId, newName) => {
+      window.__renamed = { classId, newName };
+      window.__cloudRows.forEach((r) => { if (r.class_id === classId) r.class_name = newName; });
+    };
+    window.cloud.deleteExamResultsStudent = async (classId, studentNo) => {
+      window.__deletedStudent = { classId, studentNo };
+      window.__cloudRows = window.__cloudRows.filter((r) => !(r.class_id === classId && r.student_no === studentNo));
+    };
+  });
+  await page.evaluate(() => window.switchPage('student-timeline'));
+  await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
+  await expect(page.locator('#studentTimelineContent')).toContainText('高三①班');
+
+  // ① 班级改名（prompt 返回新名）→ chip 显示新名 + 调用云端 renameExamResultsClass
+  page.once('dialog', (d) => d.accept('高三特优班'));
+  await page.locator('#stRenameClass').click();
+  await expect(page.locator('#studentTimelineContent')).toContainText('高三特优班');
+  await expect(page.locator('#studentTimelineContent')).not.toContainText('高三①班');
+  const renamed = await page.evaluate(() => window.__renamed);
+  expect(renamed && renamed.newName).toBe('高三特优班');
+
+  // ② 添加学生（展开折叠框 → 多行文本 → 添加）→ 新生进本班、可被搜出
+  await page.evaluate(() => { const d = document.querySelector('#stAddInput').closest('details'); if (d) d.open = true; });
+  await page.locator('#stAddInput').fill('演示学生1\n演示学生2');
+  await page.locator('#stAddBtn').click();
+  await expect(page.locator('#studentTimelineContent')).toContainText('演示学生1');
+  await expect(page.locator('#studentTimelineContent')).toContainText('演示学生2');
+
+  // ③ 删除单个学生（搜索结果行的「删」→ confirm）→ 本地名单移除 + 调用云端 deleteExamResultsStudent
+  await expect(page.locator('#stMatchList .st-del[data-no="S1"]')).toBeVisible();
+  page.once('dialog', (d) => d.accept());
+  await page.locator('#stMatchList .st-del[data-no="S1"]').click();
+  await expect(page.locator('#studentTimelineContent')).not.toContainText('张三');
+  const deleted = await page.evaluate(() => window.__deletedStudent);
+  expect(deleted && deleted.studentNo).toBe('S1');
+
+  expect(errors).toEqual([]);
+});
