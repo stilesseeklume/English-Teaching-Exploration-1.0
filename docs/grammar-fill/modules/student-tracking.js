@@ -28,15 +28,18 @@
   }
 
   // 把班级画像拆成每生一行；result.byCat：错用 wrongQuestions 的考点（回填也有），对用 examForBuild 的题→考点
+  // 考点聚合粒度真源（与 error-profile.js catKeyOf 一致）：优先 fine_category，回退 category。
+  function catKeyOf(q){ return (q && (q.fine_category || q.category)) || ''; }
+
   function buildExamResultRows(profile, examForBuild, meta) {
     profile = profile || {}; examForBuild = examForBuild || []; meta = meta || {};
     var catByNo = {};
-    examForBuild.forEach(function(q){ catByNo[q.no] = q.category; });
+    examForBuild.forEach(function(q){ catByNo[q.no] = catKeyOf(q); });
     return (profile.students || []).map(function(s){
       var byCat = {};
       function bump(cat, key){ if (!cat) return; byCat[cat] = byCat[cat] || { right: 0, wrong: 0 }; byCat[cat][key]++; }
       var wq = s.wrongQuestions || [];
-      if (wq.length) wq.forEach(function(q){ bump(q.category, 'wrong'); });
+      if (wq.length) wq.forEach(function(q){ bump(catKeyOf(q), 'wrong'); });
       else (s.wrong || []).forEach(function(no){ bump(catByNo[no], 'wrong'); });
       (s.right || []).forEach(function(no){ bump(catByNo[no], 'right'); });
       return {

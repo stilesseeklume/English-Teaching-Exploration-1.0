@@ -62,6 +62,7 @@
         + trendCell
         + '<span style="color:#999;font-size:12px;flex:0 0 auto;">对' + c.right + ' / 错' + c.wrong + '</span>'
         + '<span style="margin-left:auto;font-size:12px;flex:0 0 auto;">' + (PRIORITY_LABEL[c.priority] || '') + '</span>'
+        + '<button type="button" class="ep-migrate" data-fine="' + esc(c.category) + '" style="margin-left:10px;padding:2px 10px;border-radius:8px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:12px;flex:0 0 auto;">🎯 迁移</button>'
         + '</div>';
     }).join('');
     var hint = hasTrend ? ' <span style="font-weight:400;color:#888;font-size:12px;">· 趋势线左早右近</span>' : '';

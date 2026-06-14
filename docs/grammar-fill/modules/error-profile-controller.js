@@ -243,6 +243,11 @@
         btn.disabled = true; btn.style.opacity = '0.6';
       });
     });
+    detail.querySelectorAll('.ep-migrate').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (_brd.openMigrationForFineTag) _brd.openMigrationForFineTag(btn.getAttribute('data-fine'));
+      });
+    });
   }
   function boardDelProfile(examId) {
     if (window.confirm && !window.confirm('删除这套卷的画像？(会从云端移除该卷成绩)')) return;
@@ -283,16 +288,23 @@
       var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
       _brdTrendByCat = {};
       trends.forEach(function(t){ _brdTrendByCat[t.category] = t; });   // 考点→趋势，喂给排行行内迷你趋势线
-      el.innerHTML = window.GrammarErrorProfileRender.classChipsHtml(classList, _boardClassId)
+      el.innerHTML = '<div style="font-size:12px;color:#999;margin:2px 2px 6px;font-weight:600;">选择班级</div>'
+        + window.GrammarErrorProfileRender.classChipsHtml(classList, _boardClassId)
+        + '<div style="font-size:12px;color:#999;margin:14px 2px 6px;font-weight:600;">卷子时间线 · 左早右近</div>'
         + window.GrammarErrorProfileRender.examChipsHtml(orderedExams, _boardExamId)
         + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 选中套卷的画像——紧跟 chips，立即可见
         + window.GrammarErrorProfileRender.catTrendDetailsHtml(trends, catNames)        // 全考点跨卷趋势——折叠沉底，默认收起
-        + '<div style="margin-top:8px;"><button id="epToTimeline" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">查看单个学生的画像 →</button></div>';
+        + '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">'
+        +   '<button id="epToImport" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">＋ 导入这个班的成绩</button>'
+        +   '<button id="epToTimeline" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">查看单个学生的画像 →</button>'
+        + '</div>';
       el.querySelectorAll('.ep-class-chip').forEach(function(btn){
         btn.addEventListener('click', function(){ _boardClassId = btn.getAttribute('data-id'); _boardExamId = null; renderBoardPage(_brd); });
       });
       var toTl = document.getElementById('epToTimeline');
       if (toTl) toTl.addEventListener('click', function(){ if (_brd.gotoTimeline) _brd.gotoTimeline(); });
+      var toImport = document.getElementById('epToImport');
+      if (toImport) toImport.addEventListener('click', function(){ if (_brd.gotoImport) _brd.gotoImport(_boardClassId); });
       var newChip = el.querySelector('.ep-class-new');
       if (newChip) newChip.addEventListener('click', function(){
         var name = window.prompt && window.prompt('新建班级名（如 高三①班）：');

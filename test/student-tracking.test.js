@@ -45,6 +45,19 @@ test('buildExamResultRows: 每生一行；byCat 错用 wrongQuestions、对用 e
   assert.equal(JSON.stringify(rows[0].result.byCat), JSON.stringify({ preposition: { right: 0, wrong: 1 }, tense: { right: 1, wrong: 0 } }));
 });
 
+test('buildExamResultRows: byCat 优先用 fine_category（精细聚合，缺失回退 category）', () => {
+  const profile = { students: [
+    { studentNo: 'S1', right: [37], wrong: [36], blank: [],
+      wrongQuestions: [{ no: 36, category: 'word', fine_category: 'word-adv', answer: 'x' }] },
+  ] };
+  const examForBuild = [
+    { no: 36, category: 'word', fine_category: 'word-adv', answer: 'x' },
+    { no: 37, category: 'predicate', answer: 'y' },   // 缺 fine → 回退粗类
+  ];
+  const rows = buildExamResultRows(profile, examForBuild, { classId: 'c', examId: 'e' });
+  assert.equal(JSON.stringify(rows[0].result.byCat), JSON.stringify({ 'word-adv': { right: 0, wrong: 1 }, predicate: { right: 1, wrong: 0 } }));
+});
+
 test('buildStudentTimeline: 同一学号跨卷聚合，weakCats 按错次降序、exams 按日期升序', () => {
   const rows = [
     { student_no: 'S1', exam_id: 'e2', exam_label: '二模', exam_date: '2026-04-01',

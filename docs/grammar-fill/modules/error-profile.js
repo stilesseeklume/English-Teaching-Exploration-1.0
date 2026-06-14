@@ -49,6 +49,10 @@
   //   byCat[考点]   = { right, wrong, rate }   正确率 = 对/(对+错)*100 取整，缺考不进分母；无应答=null
   //   byNo[题号]    = { right, wrong, blank }
   //   students[i]   = { studentNo, right, wrong, blank, wrongQuestions }
+  // 考点聚合的粒度真源：优先精细 fine_category，老数据无则回退粗 category。
+  // （student-tracking.js 的 buildExamResultRows 内有同义函数，两处须保持一致。）
+  function catKeyOf(q){ return (q && (q.fine_category || q.category)) || ''; }
+
   function buildErrorProfile(studentResults, examQuestions) {
     examQuestions = examQuestions || [];
     var list = (studentResults && studentResults.students) || studentResults || [];
@@ -66,13 +70,13 @@
       right.forEach(function(no){
         ensureNo(no).right++;
         var q = qByNo[String(no)];
-        if (q) ensureCat(q.category).right++;
+        if (q) ensureCat(catKeyOf(q)).right++;
       });
       wrong.forEach(function(no){
         ensureNo(no).wrong++;
         var q = qByNo[String(no)];
         if (q) {
-          ensureCat(q.category).wrong++;
+          ensureCat(catKeyOf(q)).wrong++;
           wrongQuestions.push({ no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer });
         }
       });
@@ -173,6 +177,7 @@
     detectGrammarNos: detectGrammarNos,
     alignExamQuestions: alignExamQuestions,
     extractGrammarBlanks: extractGrammarBlanks,
-    buildProfileFromExamRows: buildProfileFromExamRows
+    buildProfileFromExamRows: buildProfileFromExamRows,
+    catKeyOf: catKeyOf
   };
 })();

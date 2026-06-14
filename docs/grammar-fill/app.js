@@ -1217,7 +1217,18 @@ function errorProfileExamQuestions(examId) {
     .map(function(q){ return { no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer }; });
 }
 function errorProfileCatNames() {
-  return (window.GrammarCategoryRules && window.GrammarCategoryRules.DEFAULT_CATEGORY_NAMES) || {};
+  // 粗类名(DEFAULT_CATEGORY_NAMES) + 精细 tag id→名(GRAMMAR_FINE_TAGS) 合并：
+  // byCat 升精细后 key 是 fine id，画像/趋势靠这张表显示中文；无 fine 的降级题用粗类名兜底。
+  var base = (window.GrammarCategoryRules && window.GrammarCategoryRules.DEFAULT_CATEGORY_NAMES) || {};
+  var out = {};
+  Object.keys(base).forEach(function(k){ out[k] = base[k]; });
+  var ft = window.GRAMMAR_FINE_TAGS;
+  if (ft) {
+    (ft.tags || []).forEach(function(t){ if (t && t.id && t.name) out[t.id] = t.name; });
+    var cats = ft.categories || {};
+    Object.keys(cats).forEach(function(c){ if (cats[c] && cats[c].name && !out[c]) out[c] = cats[c].name; });
+  }
+  return out;
 }
 // 套卷 Word → 复用备课上传/AI 解析（word-import 的 exam-profile divert）→ 语法填空题
 function parseExamWord(file) {
@@ -1271,9 +1282,11 @@ function renderErrorProfilePage() {
     saveProfiles: saveErrorProfiles,
     catNames: errorProfileCatNames(),
     addExamQuestionToErrorBook: addProfileErrorToBook,
+    openMigrationForFineTag: openMigrationDrawerForTag,
     getClasses: loadClasses,
     createClass: createClassNamed,
     gotoTimeline: function(){ switchPage('student-timeline'); },
+    gotoImport: function(){ switchPage('error-import'); },
     fetchExamResults: function(classId){
       return (window.cloud && window.cloud.fetchExamResults)
         ? window.cloud.fetchExamResults(classId).then(function(rows){ return { rows: rows }; }).catch(function(){ return { rows: [] }; })
@@ -3058,8 +3071,8 @@ function closeTeachingStage(opts) {
 var _migrationShowAll = false;
 var _migrationPointIdx = 0;
 
-function getMigrationData(q) {
-  var migrationSource = getMigrationSourceSnapshot().migrationSource;
+function getMigrationData(q, sourceOverride, pointIdxOverride) {
+  var migrationSource = sourceOverride || getMigrationSourceSnapshot().migrationSource;
   var data = window.GrammarMigrationTraining.buildMigrationData(q, {
     source: migrationSource,
     bankQuestions: ALL_QUESTIONS,
@@ -3077,7 +3090,7 @@ function getMigrationData(q) {
         points
       );
     },
-    pointIdx: _migrationPointIdx,
+    pointIdx: (pointIdxOverride != null ? pointIdxOverride : _migrationPointIdx),
     limit: _migrationShowAll ? 9999 : 6
   });
   data.migration = data.migration.map(function(entry) {
@@ -3094,6 +3107,44 @@ function buildMigrationContent(q) {
   var migrationSource = getMigrationSourceSnapshot().migrationSource;
   var contentModel = window.GrammarMigrationTraining.buildMigrationContentViewModel(data, migrationSource, _migrationShowAll);
   return window.GrammarTeachingRender.migrationDrawerHtml(contentModel);
+}
+
+// 班级工作台：点弱项精细考点 → 合成源题，复用迁移引擎按该 fine_tag 出真题库同类题，装独立 modal。
+// 自包含、不依赖讲题 teachingSession：只展示题面+答案+出处，不复用讲题 drawer 的点击交互。
+function openMigrationDrawerForTag(fineCat) {
+  if (!fineCat) return;
+  var tag = (window.GRAMMAR_FINE_TAGS && (window.GRAMMAR_FINE_TAGS.tags || []).filter(function(t){ return t.id === fineCat; })[0]) || null;
+  var name = tag ? tag.name : fineCat;
+  var synthQ = { fine_category: fineCat, category: (tag && tag.category) || '', no: 0, exam: '__profile__' };
+  var data = getMigrationData(synthQ, 'bank', 0);   // 弱项迁移固定真题库 + 单考点轴(0)
+  var items = (data && data.migration) || [];
+  var esc = window.escapeHtml || function(s){ return s; };
+  var body = items.length
+    ? items.map(function(e){
+        return '<div style="border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px;">'
+          + '<div style="font-size:12px;color:#888;margin-bottom:6px;">' + esc(e.srcLabel || '') + (e.tagLabel ? ' · ' + esc(e.tagLabel) : '') + '</div>'
+          + '<div style="font-size:14px;line-height:1.8;">' + (e.sentenceHtml || '') + '</div>'
+          + '<div style="font-size:13px;color:#0071e3;margin-top:8px;">答案：' + esc((e.item && e.item.answer) || '') + '</div>'
+          + '</div>';
+      }).join('')
+    : '<div style="color:#888;padding:24px;text-align:center;">题库暂无这个考点的同类题（多为老数据未精细标注的考点）。</div>';
+  var ov = document.getElementById('profileMigrationOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'profileMigrationOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;';
+    ov.addEventListener('click', function(e){ if (e.target === ov) ov.style.display = 'none'; });
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:760px;width:100%;padding:22px;position:relative;box-sizing:border-box;">'
+    + '<button id="profMigClose" type="button" style="position:absolute;top:14px;right:16px;border:none;background:#f2f2f2;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:14px;">✕</button>'
+    + '<div style="font-weight:600;font-size:16px;margin-bottom:4px;">🎯 迁移训练 · ' + esc(name) + '</div>'
+    + '<div style="color:#888;font-size:12px;margin-bottom:16px;">本班这个考点错得多 —— 来练同类题（' + items.length + ' 题）</div>'
+    + body
+    + '</div>';
+  ov.style.display = 'flex';
+  var closeBtn = document.getElementById('profMigClose');
+  if (closeBtn) closeBtn.addEventListener('click', function(){ ov.style.display = 'none'; });
 }
 
 function buildTheoryContent(q) { return window.GrammarTeachingRender.theoryContent(q, { knowledgeData: KNOWLEDGE_DATA, categoryMap: CATEGORY_MAP, safeQuestionFocus: safeQuestionFocus, getFineTagInfo: getFineTagInfo }); }
