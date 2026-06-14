@@ -1027,9 +1027,10 @@ function createClassNamed(name) {
   return cls;
 }
 function errorProfileExamList() {
+  // 题库即语法填空库——列出有题的全部套卷（不按题号过滤：全国卷题号 56-65、地方卷 36-45，硬编码 36-45 会漏全国卷/浙江卷）。
   var bankExams = window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
     .map(function(ex){ return { examId: ex.exam_id, label: ex.exam_id }; })
-    .filter(function(e){ return ALL_QUESTIONS.some(function(q){ return q.exam_id === e.examId && q.no >= 36 && q.no <= 45; }); });
+    .filter(function(e){ return ALL_QUESTIONS.some(function(q){ return q.exam_id === e.examId; }); });
   // 也列出已导备课卷（lesson_prep，含空=语填材料）——跨会话复用、不重新 AI 解析。examId 加 prep: 前缀以分流。
   var prepExams = (window.prepPassages || [])
     .filter(function(p){ return p && (p.blanks || []).length > 0; })
@@ -1044,7 +1045,7 @@ function errorProfileExamQuestions(examId) {
     return item ? window.GrammarErrorProfile.extractGrammarBlanks([item]) : [];
   }
   return ALL_QUESTIONS
-    .filter(function(q){ return q.exam_id === examId && q.no >= 36 && q.no <= 45; })
+    .filter(function(q){ return q.exam_id === examId; })
     .map(function(q){ return { no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer }; });
 }
 function errorProfileCatNames() {
