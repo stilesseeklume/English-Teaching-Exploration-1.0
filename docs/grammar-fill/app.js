@@ -4421,7 +4421,7 @@ function renderKnowledgePage() {
 }
 
 var _knowledgeRenderTarget = 'knowledgeContent';
-var _pointsTrainingView = 'graph';
+var _pointsTrainingView = 'text';
 function setPointsTrainingView(view) {
   _pointsTrainingView = (view === 'text') ? 'text' : 'graph';
   var gb = document.getElementById('ptGraphBtn'); if (gb) gb.classList.toggle('active', _pointsTrainingView === 'graph');
