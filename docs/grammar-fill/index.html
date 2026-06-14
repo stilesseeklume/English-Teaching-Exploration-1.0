@@ -359,13 +359,9 @@
 
     <div class="page" id="page-lesson-prep">
       <h1 class="page-title">备课资料</h1>
-      <p class="page-desc"><span id="prepStat">加载中…</span></p>
+      <p class="page-desc"><span id="prepStat">加载中…</span> · 备课资料由「导入」页产生，这里查看 / 讲题 / 删除</p>
       <input type="file" id="docxFileInput" accept=".docx" onchange="processDocxFile(this)" style="display:none;">
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch;">
-        <div class="docx-dropzone" id="prepDropZone" onclick="handleDocxUpload()" title="拖入 Word 或点击上传">
-          <span class="docx-dropzone-icon">📄</span>
-          <span>把 Word 卷子拖进来，或<b>点击上传</b></span>
-        </div>
         <button class="error-import-toggle" style="background:var(--surface-3);color:var(--text);" onclick="togglePrepBulkMode()">批量删除</button>
       </div>
       <div class="bulk-select-bar" id="prepBulkBar">
@@ -389,8 +385,8 @@
     </div>
 
     <div class="page" id="page-error-import">
-      <h1 class="page-title">导入成绩</h1>
-      <p class="page-desc">选题库套卷 + 传网阅成绩 .xls，算出班级考点画像，存入「班级工作台」</p>
+      <h1 class="page-title">导入</h1>
+      <p class="page-desc">一份套卷两用：导进来既存成备课资料（可讲题），又抽语法填空算班级画像 · 再传网阅成绩 .xls 自动出画像</p>
       <div id="errorImportContent">加载中…</div>
     </div>
 
@@ -479,7 +475,7 @@
     <div class="dock-dot"></div>
   </div>
   <div class="dock-divider"></div>
-  <div class="dock-item" data-label="导入成绩" data-dock-key="error-import" onclick="switchPage('error-import')">
+  <div class="dock-item" data-label="导入" data-dock-key="error-import" onclick="switchPage('error-import')">
     📥
     <div class="dock-dot"></div>
   </div>

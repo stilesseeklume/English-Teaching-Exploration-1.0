@@ -1207,11 +1207,22 @@ function createClassNamed(name) {
   return cls;
 }
 function errorProfileExamList() {
-  return window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
+  var bankExams = window.GrammarQuestionModel.getOrderedExams(Object.values(EXAMS_BY_ID))
     .map(function(ex){ return { examId: ex.exam_id, label: ex.exam_id }; })
     .filter(function(e){ return ALL_QUESTIONS.some(function(q){ return q.exam_id === e.examId && q.no >= 36 && q.no <= 45; }); });
+  // 也列出已导备课卷（lesson_prep，含空=语填材料）——跨会话复用、不重新 AI 解析。examId 加 prep: 前缀以分流。
+  var prepExams = (window.prepPassages || [])
+    .filter(function(p){ return p && (p.blanks || []).length > 0; })
+    .map(function(p){ return { examId: 'prep:' + p.id, label: '（已导）' + (p.title || '套卷') }; });
+  return bankExams.concat(prepExams);
 }
 function errorProfileExamQuestions(examId) {
+  // 备课卷：从已导篇章抽题（题号随篇，对齐时 alignExamQuestions 按数量顺序重映射）。
+  if (examId && examId.indexOf('prep:') === 0) {
+    var pid = examId.slice(5);
+    var item = (window.prepPassages || []).filter(function(p){ return p.id === pid; })[0];
+    return item ? window.GrammarErrorProfile.extractGrammarBlanks([item]) : [];
+  }
   return ALL_QUESTIONS
     .filter(function(q){ return q.exam_id === examId && q.no >= 36 && q.no <= 45; })
     .map(function(q){ return { no: q.no, category: q.category, fine_category: q.fine_category, answer: q.answer }; });
@@ -1231,11 +1242,32 @@ function errorProfileCatNames() {
   return out;
 }
 // 套卷 Word → 复用备课上传/AI 解析（word-import 的 exam-profile divert）→ 语法填空题
+// 一份套卷两用：整篇同时落备课资料(lesson_prep)供讲题，再抽题号给成绩画像。
 function parseExamWord(file) {
   return new Promise(function(resolve, reject){
     if (!window.parseExamWordForProfile) { reject(new Error('上传组件未加载')); return; }
     window.parseExamWordForProfile(file, function(passages){
-      resolve(window.GrammarErrorProfile.extractGrammarBlanks(passages || []));
+      passages = passages || [];
+      // 副作用：整篇存进备课资料。复用备课导入的去重存储；循环内只改数组，循环后仅在有新增时 save 一次（避免 N 次云同步）。
+      try {
+        var SM = window.GrammarSavedMaterialsModel;
+        if (SM && typeof SM.buildDeepSeekPrepImportPlan === 'function'
+            && Array.isArray(window.prepPassages) && typeof window.savePrepPassages === 'function') {
+          var createdAt = new Date().toISOString();
+          var changed = false;
+          passages.forEach(function(p){
+            var plan = SM.buildDeepSeekPrepImportPlan(p, window.prepPassages, { createdAt: createdAt });
+            window.prepPassages = plan.nextItems;
+            if (plan.imported && plan.imported.length) changed = true;
+          });
+          if (changed) {
+            window.savePrepPassages();
+            if (typeof window.renderPrepList === 'function') window.renderPrepList();
+            if (typeof window.renderBankStat === 'function') window.renderBankStat();
+          }
+        }
+      } catch (e) { /* 落备课失败不阻断画像主流程 */ }
+      resolve(window.GrammarErrorProfile.extractGrammarBlanks(passages));
     });
   });
 }

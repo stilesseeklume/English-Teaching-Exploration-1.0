@@ -16,15 +16,15 @@
     }).join('');
     return ''
       + '<div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:20px;margin-bottom:16px;">'
-      +   '<div style="font-weight:600;margin-bottom:4px;">把套卷和成绩拖进来 —— 自动 AI 识考点 + 匹配成画像</div>'
-      +   '<div style="color:#888;font-size:12px;margin-bottom:12px;">两个都拖好就自动出画像，存进上面选的班级。</div>'
+      +   '<div style="font-weight:600;margin-bottom:4px;">套卷 + 成绩拖进来 —— 套卷自动存备课资料 + AI 识考点，匹配成画像</div>'
+      +   '<div style="color:#888;font-size:12px;margin-bottom:12px;">套卷一份两用（讲题 + 算分）；两个都拖好就自动出画像，存进上面选的班级。</div>'
       +   '<div style="display:flex;gap:12px;flex-wrap:wrap;">'
-      +     '<div class="docx-dropzone" id="errorExamDrop"><span class="docx-dropzone-icon">📄</span><span id="errorExamLabel">① 把套卷 Word 拖进来，或<b>点击上传</b></span></div>'
+      +     '<div class="docx-dropzone" id="errorExamDrop"><span class="docx-dropzone-icon">📄</span><span id="errorExamLabel">① 套卷 Word 拖进来（存备课资料 + 抽题算画像），或<b>点击上传</b></span></div>'
       +     '<div class="docx-dropzone" id="errorScoreDrop"><span class="docx-dropzone-icon">📊</span><span id="errorScoreLabel">② 把网阅成绩 .xls 拖进来，或<b>点击上传</b></span></div>'
       +   '</div>'
       +   '<div style="color:#888;font-size:12px;margin-top:10px;">套卷也可以 '
       +     '<select id="errorProfileExam" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;">'
-      +       '<option value="">从题库选已传过的</option>' + opts
+      +       '<option value="">从题库或已导套卷里选</option>' + opts
       +     '</select></div>'
       +   '<input type="file" id="errorExamFile" accept=".docx" style="display:none;">'
       +   '<input type="file" id="errorProfileFile" accept=".xls,.xlsx" style="display:none;">'

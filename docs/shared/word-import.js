@@ -672,9 +672,9 @@
   }
 
   function isUploadPageActive() {
-    var prep = document.getElementById('page-lesson-prep');
+    // 备课页不再接受整页拖入（导入并入「导入」页）；仅休眠的错题本页保留
     var err = document.getElementById('page-error-book');
-    return (prep && prep.classList.contains('active')) || (err && err.classList.contains('active'));
+    return !!(err && err.classList.contains('active'));
   }
   function activeUploadTarget() {
     var err = document.getElementById('page-error-book');
@@ -715,7 +715,7 @@
   }
 
   function setupDocxDrop() {
-    wireDropZone('prepDropZone', 'prep');
+    // prepDropZone 已删（备课导入并入「导入」页）；errorDropZone 保留给休眠的错题本页
     wireDropZone('errorDropZone', 'error');
     setupPageDropOverlay();
   }

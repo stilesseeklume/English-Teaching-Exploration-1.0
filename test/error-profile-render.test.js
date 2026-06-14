@@ -45,7 +45,7 @@ test('uploadPanelHtml: 套卷+成绩两个拖拽框 + 题库下拉 + 两个隐�
   assert.ok(html.includes('2026 广州一模'), '应含题库套卷标签');
   assert.ok(html.includes('id="errorExamDrop"'), '应含套卷拖拽区 id');
   assert.ok(html.includes('id="errorScoreDrop"'), '应含成绩拖拽区 id');
-  assert.ok(html.includes('把套卷 Word 拖进来'), '应含套卷拖拽提示');
+  assert.ok(html.includes('套卷 Word 拖进来'), '应含套卷拖拽提示');
   assert.ok(html.includes('把网阅成绩 .xls 拖进来'), '应含成绩拖拽提示');
   assert.ok(html.includes('class="docx-dropzone"'), '应复用备课 docx-dropzone 样式');
   assert.ok(html.includes('id="errorExamFile"'), '应含套卷隐藏文件输入');
