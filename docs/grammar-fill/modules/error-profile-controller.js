@@ -288,7 +288,7 @@
     return ((st && st.weakCats) || []).reduce(function(s, x){ return s + (x.wrong || 0); }, 0);
   }
   // 搜索驱动：输入姓名/学号即时筛 → 点一个 → 在下方渲染他的可视化个人画像。默认空查询只列"最需要关注的几个"。
-  function wireStudentSearch(timeline, nameMap, catNames) {
+  function wireStudentSearch(timeline, nameMap, catNames, classRows) {
     timeline = timeline || []; nameMap = nameMap || {}; catNames = catNames || {};
     var R = window.GrammarErrorProfileRender;
     var resolve = window.GrammarStudentTracking.resolveStudentName;
@@ -304,7 +304,12 @@
       var detail = document.getElementById('stStudentDetail');
       if (!detail) return;
       if (!hit) { detail.innerHTML = ''; return; }
-      var vm = window.GrammarErrorProfileView.buildStudentProfileVM(hit.st, catNames);
+      if (window.GrammarDashboard && window.GrammarDashboardRender && window.GrammarDashboardRender.studentBoardHtml) {
+        detail.innerHTML = window.GrammarDashboardRender.studentBoardHtml(classRows || [], no, hit.name);   // 新学生看板
+        window.GrammarDashboardRender.initStudentBoardCharts(classRows || [], no);
+        return;
+      }
+      var vm = window.GrammarErrorProfileView.buildStudentProfileVM(hit.st, catNames);   // 降级：旧画像
       detail.innerHTML = R.studentProfileHtml(vm, hit.name);
     }
     function showMatches(query) {
@@ -347,7 +352,7 @@
     var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows, Object.keys(rosterSet));
     var names = (_wb.loadStudentNames && _wb.loadStudentNames()) || {};
     body.innerHTML = window.GrammarErrorProfileRender.studentSearchBoxHtml(timeline.length);
-    wireStudentSearch(timeline, names, (_wb.catNames) || {});
+    wireStudentSearch(timeline, names, (_wb.catNames) || {}, rows);
   }
 
   // ---------- 班级工作台 · 壳（统一选班 + 班级管理 + 分段切换 + 委派 body）----------

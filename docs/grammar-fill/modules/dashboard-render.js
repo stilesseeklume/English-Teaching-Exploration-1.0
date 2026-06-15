@@ -201,8 +201,79 @@
     });
   }
 
+  /* ---- 学生看板（老师视角）---- */
+  function studentRowsOf(classRows, sNo){ return classRows.filter(function(r){ return r.student_no === sNo; }); }
+  function examOrder(classRows){ var seen = {}, order = []; classRows.forEach(function(r){ if (!seen[r.exam_id]) { seen[r.exam_id] = 1; order.push(r.exam_id); } }); return order; }
+  function diagTagHtml(tags){
+    var pal = { green:{bg:'#eaf3de',fg:'#27500a'}, red:{bg:'#fcebeb',fg:'#791f1f'}, blue:{bg:'#e6f1fb',fg:'#0c447c'}, amber:{bg:'#faeeda',fg:'#633806'} };
+    return tags.map(function(x){ var c = pal[x.c] || pal.blue; return '<span style="background:' + c.bg + ';color:' + c.fg + ';font-size:12px;padding:5px 11px;border-radius:8px;">' + esc(x.t) + '</span>'; }).join(' ');
+  }
+  function studentBoardHtml(classRows, sNo, name){
+    var d = D(), sRows = studentRowsOf(classRows, sNo);
+    if (!sRows.length) return '<div style="color:var(--text-secondary,#888);padding:12px 0;">这名学生暂无成绩。</div>';
+    var sMatrix = d.growthMatrix(sRows), cMatrix = d.growthMatrix(classRows), rx = d.prescription(sRows);
+    var order = examOrder(classRows), lastEx = order.length ? order[order.length - 1] : null;
+    var sLast = sRows.filter(function(r){ return r.exam_id === lastEx; })[0];
+    var sScore = sLast ? d.examScore(sLast) : null, cMean = d.classExamMean(classRows, lastEx);
+    var examRows = classRows.filter(function(r){ return r.exam_id === lastEx; }).map(function(r){ return { no: r.student_no, sc: d.examScore(r) }; }).sort(function(a, b){ return b.sc - a.sc; });
+    var rank = 0; for (var i = 0; i < examRows.length; i++) { if (examRows[i].no === sNo) { rank = i + 1; break; } }
+    var card = function(inner){ return '<div style="background:var(--bg,#fff);border:1px solid var(--border,#eee);border-radius:12px;padding:14px 16px;margin-bottom:14px;">' + inner + '</div>'; };
+    // 诊断标签
+    var diag = [];
+    var strong = sMatrix.filter(function(m){ return m.rate != null && m.rate >= 0.8; }).sort(function(a, b){ return b.rate - a.rate; })[0];
+    if (strong) diag.push({ t: strong.cat + ' 强项 ' + pct(strong.rate) + '%', c: 'green' });
+    sMatrix.filter(function(m){ return m.rate != null && m.rate < 0.5; }).sort(function(a, b){ return a.rate - b.rate; }).slice(0, 2).forEach(function(m){ diag.push({ t: m.cat + ' 反复失分 ' + pct(m.rate) + '%', c: 'red' }); });
+    var sBy = {}; sRows.forEach(function(r){ sBy[r.exam_id] = d.examScore(r); });
+    var seq = order.map(function(e){ return sBy[e]; }).filter(function(v){ return v != null; });
+    if (seq.length >= 3) { var delta = seq[seq.length - 1] - seq[0]; if (delta >= 1.5) diag.unshift({ t: '整体稳步上升', c: 'blue' }); else if (delta <= -1.5) diag.unshift({ t: '近期下滑，需关注', c: 'amber' }); }
+    // 对比
+    var cBy = {}; cMatrix.forEach(function(m){ cBy[m.cat] = m.rate; });
+    var cmp = sMatrix.filter(function(m){ return m.rate != null; }).map(function(m){
+      var cv = cBy[m.cat], up = cv != null && m.rate >= cv;
+      return '<div style="display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:5px;"><span style="width:72px;color:var(--text-secondary,#888);">' + esc(m.cat) + '</span><span style="width:120px;">' + pct(m.rate) + '% <span style="color:var(--text-tertiary,#aaa);">vs ' + (cv == null ? '—' : pct(cv) + '%') + '</span></span><span style="color:' + (up ? '#3B6D11' : '#A32D2D') + ';">' + (up ? '✓ 高于均值' : '✗ 低于均值') + '</span></div>';
+    }).join('');
+    var avatar = esc(String(name || sNo).slice(0, 2));
+    return ''
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface,#eef);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent,#0071e3);">' + avatar + '</div><div><div style="font-weight:600;color:var(--text,#111);">' + esc(name || sNo) + '</div><div style="font-size:12px;color:var(--text-secondary,#888);">本次 ' + (sScore == null ? '—' : sScore.toFixed(1)) + ' /15' + (rank ? ' · 班级第 ' + rank : '') + (cMean != null && sScore != null ? ' · ' + (sScore >= cMean ? '高于' : '低于') + '均分 ' + Math.abs(sScore - cMean).toFixed(1) : '') + '</div></div></div>'
+      + card(growthMatrixHtml(sMatrix) + (rx.length ? '<div style="height:14px;"></div>' + prescriptionHtml(rx) : ''))
+      + (diag.length ? card('<div style="font-size:13px;color:var(--text-secondary,#888);margin-bottom:8px;">🩺 自动诊断</div><div style="display:flex;gap:8px;flex-wrap:wrap;">' + diagTagHtml(diag) + '</div>') : '')
+      + card('<div style="font-size:13px;color:var(--text-secondary,#888);margin-bottom:6px;">个人成绩 vs 班级均分（虚线）</div><div style="position:relative;height:190px;"><canvas id="sbTrend"></canvas></div>')
+      + card('<div style="font-size:13px;color:var(--text-secondary,#888);margin-bottom:6px;">考点雷达 · 个人(实) vs 班级均值(虚)</div><div style="position:relative;height:280px;"><canvas id="sbRadar"></canvas></div>')
+      + card('<div style="font-size:13px;color:var(--text-secondary,#888);margin-bottom:8px;">与班级逐考点对比</div>' + (cmp || '<span style="color:var(--text-tertiary,#aaa);font-size:13px;">暂无数据</span>'));
+  }
+  function initStudentBoardCharts(classRows, sNo){
+    if (!window.Chart || !classRows.length) return;
+    var d = D(), text = cssVar('--text-secondary', '#888'), accent = cssVar('--accent', '#0071e3'), grid = 'rgba(128,128,128,.15)';
+    var labelMap = examLabelMap(classRows), mo = meansInOrder(classRows);
+    var labels = mo.order.map(function(e){ return labelMap[e] || e; });
+    var classMean = mo.order.map(function(e){ return mo.means[e]; });
+    var sBy = {}; studentRowsOf(classRows, sNo).forEach(function(r){ sBy[r.exam_id] = d.examScore(r); });
+    var sScores = mo.order.map(function(e){ return sBy[e] == null ? null : sBy[e]; });
+    var tEl = document.getElementById('sbTrend');
+    if (tEl) new window.Chart(tEl.getContext('2d'), { type: 'line',
+      data: { labels: labels, datasets: [
+        { data: sScores, borderColor: accent, backgroundColor: accent, tension: .3, pointRadius: 2, borderWidth: 2, spanGaps: true },
+        { data: classMean, borderColor: text, borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5 }
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 15, ticks: { stepSize: 3, color: text }, grid: { color: grid } }, x: { ticks: { color: text, autoSkip: true, maxTicksLimit: 10 }, grid: { display: false } } } }
+    });
+    var cats = d.BOARD_CATS.map(function(c){ return c.name; });
+    var sM = {}; d.growthMatrix(studentRowsOf(classRows, sNo)).forEach(function(m){ sM[m.cat] = m.rate; });
+    var cM = {}; d.growthMatrix(classRows).forEach(function(m){ cM[m.cat] = m.rate; });
+    var rEl = document.getElementById('sbRadar');
+    if (rEl) new window.Chart(rEl.getContext('2d'), { type: 'radar',
+      data: { labels: cats, datasets: [
+        { data: cats.map(function(c){ return sM[c] == null ? 0 : Math.round(sM[c] * 100); }), borderColor: accent, backgroundColor: 'rgba(0,113,227,.15)', borderWidth: 2, pointRadius: 2 },
+        { data: cats.map(function(c){ return cM[c] == null ? 0 : Math.round(cM[c] * 100); }), borderColor: text, borderDash: [5, 4], backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0 }
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, color: text, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: text, font: { size: 11 } } } } }
+    });
+  }
+
   window.GrammarDashboardRender = {
     classBoardHtml: classBoardHtml,
-    initClassBoardCharts: initClassBoardCharts
+    initClassBoardCharts: initClassBoardCharts,
+    studentBoardHtml: studentBoardHtml,
+    initStudentBoardCharts: initStudentBoardCharts
   };
 })();

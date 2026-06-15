@@ -4263,9 +4263,9 @@ test('班级工作台·学生视角：搜索驱动选学生 + 单生可视化画
   await expect(page.locator('#stSearch')).toBeVisible();
   await expect(page.locator('#wbContent')).toContainText('张三');
   await expect(page.locator('#wbContent')).toContainText('李四');
-  // 点开张三 → 渲染其可视化个人画像，含卷子明细「一模」
+  // 点开张三 → 渲染其学生看板（成长矩阵 + 雷达 + 逐考点对比）
   await page.locator('#stMatchList .st-pick[data-no="S1"]').click();
-  await expect(page.locator('#stStudentDetail')).toContainText('一模');
+  await expect(page.locator('#stStudentDetail')).toContainText('考点成长矩阵');
   // 点开李四（仅在名单、无成绩）→ 画像显示「暂无成绩」
   await page.locator('#stMatchList .st-pick[data-no="S2"]').click();
   await expect(page.locator('#stStudentDetail')).toContainText('暂无成绩');
