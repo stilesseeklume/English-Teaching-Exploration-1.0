@@ -13,7 +13,7 @@
 /* eslint-disable */
 (function(){
   var _imp = null;
-  var _wb = null, _wbClassId = null, _wbTab = 'board', _wbClasses = [];   // 班级工作台：deps / 选中班 / 当前视角 / 班级列表缓存
+  var _wb = null, _wbClassId = null, _wbTab = 'board', _wbClasses = [], _ebStudent = null;   // 班级工作台：deps / 选中班 / 当前视角 / 班级列表缓存 / 错题本选中学生
   var _brdExams = {}, _boardExamId = null, _brdTrendByCat = {};
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
@@ -185,8 +185,28 @@
     var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
     _brdTrendByCat = {};
     trends.forEach(function(t){ _brdTrendByCat[t.category] = t; });   // 考点→趋势，喂给排行行内迷你趋势线
+    var classRows = (allRows || []).filter(function(r){ return r.class_id === classId; });   // 整班所有卷 → 喂班级看板
+    var DBMIG = { '时态':'pred-tense','谓语其他':'predicate','非谓语':'nonpredicate','词性转换':'word','名词数词':'number','冠词':'article','介词':'preposition','代词':'pronoun','连词逻辑':'logic','从句':'attrib' };
+    function showBoard(eid){
+      var detail = document.getElementById('epBoardDetail');
+      if (!detail) return;
+      if (!window.GrammarDashboard || !window.GrammarDashboardRender) { boardViewProfile(eid); return; }   // 降级：新模块没加载就用旧画像
+      detail.innerHTML = window.GrammarDashboardRender.classBoardHtml(classRows, eid, classId);
+      window.GrammarDashboardRender.initClassBoardCharts(classRows, eid);
+      detail.querySelectorAll('.db-migrate').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cat = btn.getAttribute('data-cat'), tag = DBMIG[cat];
+          if (window.GrammarDashboardLoop && window.GrammarDashboard) {   // 闭环：记一笔当前累计率，下次回看
+            var gm = window.GrammarDashboard.growthMatrix(classRows), rate = null;
+            for (var i = 0; i < gm.length; i++) { if (gm[i].cat === cat) { rate = gm[i].rate; break; } }
+            window.GrammarDashboardLoop.record(classId, cat, eid, rate);
+          }
+          if (tag && _wb.openMigrationForFineTag) _wb.openMigrationForFineTag(tag);
+        });
+      });
+    }
     body.innerHTML = window.GrammarErrorProfileRender.examChipsHtml(orderedExams, _boardExamId)
-      + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 选中套卷的画像——紧跟 chips，立即可见
+      + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 班级看板——紧跟 chips，立即可见
       + window.GrammarErrorProfileRender.catTrendDetailsHtml(trends, catNames)        // 全考点跨卷趋势——折叠沉底，默认收起
       + '<div style="margin-top:8px;"><button id="epToStudents" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">查看单个学生的画像 →</button></div>';
     var toStu = document.getElementById('epToStudents');
@@ -198,10 +218,10 @@
           var on = b.getAttribute('data-id') === _boardExamId;
           b.style.background = on ? '#0071e3' : '#f7f7f7'; b.style.color = on ? '#fff' : '#333'; b.style.border = '1px solid ' + (on ? '#0071e3' : '#e5e5e5');
         });
-        boardViewProfile(_boardExamId);
+        showBoard(_boardExamId);
       });
     });
-    if (_boardExamId) boardViewProfile(_boardExamId);
+    if (_boardExamId) showBoard(_boardExamId);
   }
 
   // ---------- 班级工作台 · 学生视角 + 班级管理动作 ----------
@@ -273,7 +293,7 @@
     return ((st && st.weakCats) || []).reduce(function(s, x){ return s + (x.wrong || 0); }, 0);
   }
   // 搜索驱动：输入姓名/学号即时筛 → 点一个 → 在下方渲染他的可视化个人画像。默认空查询只列"最需要关注的几个"。
-  function wireStudentSearch(timeline, nameMap, catNames) {
+  function wireStudentSearch(timeline, nameMap, catNames, classRows) {
     timeline = timeline || []; nameMap = nameMap || {}; catNames = catNames || {};
     var R = window.GrammarErrorProfileRender;
     var resolve = window.GrammarStudentTracking.resolveStudentName;
@@ -289,7 +309,12 @@
       var detail = document.getElementById('stStudentDetail');
       if (!detail) return;
       if (!hit) { detail.innerHTML = ''; return; }
-      var vm = window.GrammarErrorProfileView.buildStudentProfileVM(hit.st, catNames);
+      if (window.GrammarDashboard && window.GrammarDashboardRender && window.GrammarDashboardRender.studentBoardHtml) {
+        detail.innerHTML = window.GrammarDashboardRender.studentBoardHtml(classRows || [], no, hit.name);   // 新学生看板
+        window.GrammarDashboardRender.initStudentBoardCharts(classRows || [], no);
+        return;
+      }
+      var vm = window.GrammarErrorProfileView.buildStudentProfileVM(hit.st, catNames);   // 降级：旧画像
       detail.innerHTML = R.studentProfileHtml(vm, hit.name);
     }
     function showMatches(query) {
@@ -332,8 +357,28 @@
     var timeline = window.GrammarStudentTracking.buildStudentTimeline(rows, Object.keys(rosterSet));
     var names = (_wb.loadStudentNames && _wb.loadStudentNames()) || {};
     body.innerHTML = window.GrammarErrorProfileRender.studentSearchBoxHtml(timeline.length);
-    wireStudentSearch(timeline, names, (_wb.catNames) || {});
+    wireStudentSearch(timeline, names, (_wb.catNames) || {}, rows);
   }
+  // 错题本 body：班级<50%自动 + 个人错 + 手动加；题面查 GRAMMAR_BANK。
+  function renderErrorBookBody(body, allRows, classId) {
+    if (!body) return;
+    if (!window.GrammarErrorBook || !window.GrammarDashboard) { body.innerHTML = '<div style="color:#888;padding:16px 0;">错题本模块未加载，请刷新。</div>'; return; }
+    var classRows = (allRows || []).filter(function(r){ return r.class_id === classId; });
+    var names = (_wb.loadStudentNames && _wb.loadStudentNames()) || {};
+    body.innerHTML = window.GrammarErrorBook.bodyHtml(classRows, classId, names, _ebStudent);
+    var sel = document.getElementById('ebStudent');
+    if (sel) sel.addEventListener('change', function(){ _ebStudent = sel.value || null; renderErrorBookBody(body, allRows, classId); });
+    var addBtn = document.getElementById('ebAdd');
+    if (addBtn) addBtn.addEventListener('click', function(){
+      var ex = document.getElementById('ebExam'), no = document.getElementById('ebNo');
+      if (ex && no && ex.value && no.value) { window.GrammarErrorBook.manualAdd(classId, ex.value, no.value); renderErrorBookBody(body, allRows, classId); }
+    });
+    body.querySelectorAll('.eb-del').forEach(function(btn){
+      btn.addEventListener('click', function(){ window.GrammarErrorBook.manualRemove(classId, btn.getAttribute('data-exam'), btn.getAttribute('data-no')); renderErrorBookBody(body, allRows, classId); });
+    });
+  }
+  // dock「错题本」入口：切到班级工作台并定位错题本 tab。
+  window.openErrorBook = function(){ _wbTab = 'errorbook'; if (window.switchPage) window.switchPage('student-timeline'); else if (_wb) renderWorkbenchPage(_wb); };
 
   // ---------- 班级工作台 · 壳（统一选班 + 班级管理 + 分段切换 + 委派 body）----------
   // 顶部管理行（导名单/改名/删班/加学生）的事件绑定——两视角共用，每次重渲染后调一次。
@@ -390,6 +435,7 @@
       var body = document.getElementById('wbContent');
       if (!_wbClassId) { if (body) body.innerHTML = '<div style="color:#888;padding:18px 4px;">先「＋ 新建班级」，再导成绩/名单或加学生，这里就有内容了。</div>'; return; }
       if (_wbTab === 'students') renderTimelineBody(body, allRows, _wbClassId);
+      else if (_wbTab === 'errorbook') renderErrorBookBody(body, allRows, _wbClassId);
       else renderBoardBody(body, allRows, _wbClassId);
     }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }

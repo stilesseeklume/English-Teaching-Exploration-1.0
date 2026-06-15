@@ -163,7 +163,7 @@
         + label + '</button>';
     }
     return '<div style="display:flex;gap:4px;background:#f0f0f2;border-radius:11px;padding:4px;margin:14px 0 12px;max-width:420px;">'
-      + seg('board', '考点视角') + seg('students', '学生视角') + '</div>';
+      + seg('board', '考点视角') + seg('students', '学生视角') + seg('errorbook', '错题本') + '</div>';
   }
 
   function studentTimelineHtml(timeline, nameMap, catNames) {

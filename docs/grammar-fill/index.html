@@ -429,6 +429,12 @@
 <script src="./modules/home-dashboard.js"></script>
 <script src="./modules/lesson-prep-controller.js"></script>
 <script src="./modules/error-profile-controller.js"></script>
+<!-- 班级看板：数据层 + 渲染 + Chart.js（图表库，无 CSP 限制可直引 CDN）-->
+<script src="./modules/dashboard-model.js"></script>
+<script src="./modules/dashboard-render.js"></script>
+<script src="./modules/dashboard-loop.js"></script>
+<script src="./modules/error-book-v2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <!-- cloud-sync 必须在 shared/lesson-prep.js、shared/cloud.js 之后：
      加载时即对 window.savePrepPassages 打猴补丁 -->
 <script src="./modules/cloud-sync.js"></script>
@@ -451,6 +457,10 @@
   </div>
   <div class="dock-item" data-label="班级" data-dock-key="student-timeline" onclick="switchPage('student-timeline')">
     👥
+    <div class="dock-dot"></div>
+  </div>
+  <div class="dock-item" data-label="错题本" data-dock-key="error-book" onclick="openErrorBook()">
+    📝
     <div class="dock-dot"></div>
   </div>
   <div class="dock-item" data-label="去练" data-dock-key="points-training" onclick="switchPage('points-training')">

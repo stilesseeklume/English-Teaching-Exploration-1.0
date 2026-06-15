@@ -3097,8 +3097,8 @@ test('signed-in saved materials and auto fullscreen paths render', async ({ page
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  // 个人错题本已下线：dock 不再有错题本入口（首页卡片/＋错题本/迁移「我的错题」一并撤掉）
-  await expect(page.locator('[data-dock-key="error-book"]')).toHaveCount(0);
+  // 错题本（成绩驱动版）已恢复：dock 有错题本入口，点开落到班级工作台错题本 tab
+  await expect(page.locator('[data-dock-key="error-book"]')).toHaveCount(1);
 
   await page.locator('[data-dock-key="lesson-prep"]').click();
   await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
@@ -4212,7 +4212,7 @@ test('名词叶子合并：num-plural 标题末段=名词复数，无可数/不�
   })).toBe('ok');
 });
 
-test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默认出考点画像', async ({ page }) => {
+test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默认出班级看板', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4238,7 +4238,7 @@ test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默
   await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
   await expect(page.locator('.wb-tab[data-tab="board"]')).toBeVisible();
   await expect(page.locator('#wbContent')).toContainText('X卷');
-  await expect(page.locator('#epBoardDetail')).toContainText('考点画像');
+  await expect(page.locator('#epBoardDetail')).toContainText('考点成长矩阵');
   expect(errors).toEqual([]);
 });
 
@@ -4263,9 +4263,9 @@ test('班级工作台·学生视角：搜索驱动选学生 + 单生可视化画
   await expect(page.locator('#stSearch')).toBeVisible();
   await expect(page.locator('#wbContent')).toContainText('张三');
   await expect(page.locator('#wbContent')).toContainText('李四');
-  // 点开张三 → 渲染其可视化个人画像，含卷子明细「一模」
+  // 点开张三 → 渲染其学生看板（成长矩阵 + 雷达 + 逐考点对比）
   await page.locator('#stMatchList .st-pick[data-no="S1"]').click();
-  await expect(page.locator('#stStudentDetail')).toContainText('一模');
+  await expect(page.locator('#stStudentDetail')).toContainText('考点成长矩阵');
   // 点开李四（仅在名单、无成绩）→ 画像显示「暂无成绩」
   await page.locator('#stMatchList .st-pick[data-no="S2"]').click();
   await expect(page.locator('#stStudentDetail')).toContainText('暂无成绩');
