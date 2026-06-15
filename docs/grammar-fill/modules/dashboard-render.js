@@ -173,7 +173,8 @@
       + card(heatmapHtml(hm, labelMap))
       + card('<div style="font-size:13px;color:var(--text-secondary,#888);margin-bottom:6px;">班级均分 · 进步轨迹（虚线＝趋势）</div><div style="position:relative;height:200px;"><canvas id="dbTrend"></canvas></div>')
       + card('<div style="font-size:13px;color:var(--text-secondary,#888);margin-bottom:6px;">本次分数分布</div><div style="position:relative;height:170px;"><canvas id="dbDist"></canvas></div>')
-      + focusHtml(hm, examId, labelMap);
+      + focusHtml(hm, examId, labelMap)
+      + '<div style="margin-top:2px;"><button type="button" onclick="var t=document.querySelector(\'.wb-tab[data-tab=errorbook]\');if(t)t.click();" style="padding:8px 16px;border-radius:999px;border:1px solid var(--border,#ddd);background:var(--bg,#fff);color:var(--accent,#0071e3);cursor:pointer;font-size:13px;">📕 查看本班错题本 →</button></div>';
   }
 
   /* ---- Chart.js（进步轨迹 + 分数分布）；暗色从 CSS 变量读 ---- */

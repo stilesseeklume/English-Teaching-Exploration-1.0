@@ -13,7 +13,7 @@
 /* eslint-disable */
 (function(){
   var _imp = null;
-  var _wb = null, _wbClassId = null, _wbTab = 'board', _wbClasses = [];   // 班级工作台：deps / 选中班 / 当前视角 / 班级列表缓存
+  var _wb = null, _wbClassId = null, _wbTab = 'board', _wbClasses = [], _ebStudent = null;   // 班级工作台：deps / 选中班 / 当前视角 / 班级列表缓存 / 错题本选中学生
   var _brdExams = {}, _boardExamId = null, _brdTrendByCat = {};
   var _examQuestions = null, _scoreRows = null, _examLabel = '', _examId = '';
   function setMsg(text) { var el = document.getElementById('errorProfileMsg'); if (el) el.textContent = text || ''; }
@@ -359,6 +359,26 @@
     body.innerHTML = window.GrammarErrorProfileRender.studentSearchBoxHtml(timeline.length);
     wireStudentSearch(timeline, names, (_wb.catNames) || {}, rows);
   }
+  // 错题本 body：班级<50%自动 + 个人错 + 手动加；题面查 GRAMMAR_BANK。
+  function renderErrorBookBody(body, allRows, classId) {
+    if (!body) return;
+    if (!window.GrammarErrorBook || !window.GrammarDashboard) { body.innerHTML = '<div style="color:#888;padding:16px 0;">错题本模块未加载，请刷新。</div>'; return; }
+    var classRows = (allRows || []).filter(function(r){ return r.class_id === classId; });
+    var names = (_wb.loadStudentNames && _wb.loadStudentNames()) || {};
+    body.innerHTML = window.GrammarErrorBook.bodyHtml(classRows, classId, names, _ebStudent);
+    var sel = document.getElementById('ebStudent');
+    if (sel) sel.addEventListener('change', function(){ _ebStudent = sel.value || null; renderErrorBookBody(body, allRows, classId); });
+    var addBtn = document.getElementById('ebAdd');
+    if (addBtn) addBtn.addEventListener('click', function(){
+      var ex = document.getElementById('ebExam'), no = document.getElementById('ebNo');
+      if (ex && no && ex.value && no.value) { window.GrammarErrorBook.manualAdd(classId, ex.value, no.value); renderErrorBookBody(body, allRows, classId); }
+    });
+    body.querySelectorAll('.eb-del').forEach(function(btn){
+      btn.addEventListener('click', function(){ window.GrammarErrorBook.manualRemove(classId, btn.getAttribute('data-exam'), btn.getAttribute('data-no')); renderErrorBookBody(body, allRows, classId); });
+    });
+  }
+  // dock「错题本」入口：切到班级工作台并定位错题本 tab。
+  window.openErrorBook = function(){ _wbTab = 'errorbook'; if (window.switchPage) window.switchPage('student-timeline'); else if (_wb) renderWorkbenchPage(_wb); };
 
   // ---------- 班级工作台 · 壳（统一选班 + 班级管理 + 分段切换 + 委派 body）----------
   // 顶部管理行（导名单/改名/删班/加学生）的事件绑定——两视角共用，每次重渲染后调一次。
@@ -415,6 +435,7 @@
       var body = document.getElementById('wbContent');
       if (!_wbClassId) { if (body) body.innerHTML = '<div style="color:#888;padding:18px 4px;">先「＋ 新建班级」，再导成绩/名单或加学生，这里就有内容了。</div>'; return; }
       if (_wbTab === 'students') renderTimelineBody(body, allRows, _wbClassId);
+      else if (_wbTab === 'errorbook') renderErrorBookBody(body, allRows, _wbClassId);
       else renderBoardBody(body, allRows, _wbClassId);
     }).catch(function(){ el.innerHTML = '<div style="color:#888;padding:18px 4px;">加载失败，稍后重试（请确认已登录）。</div>'; });
   }

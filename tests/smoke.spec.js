@@ -3097,8 +3097,8 @@ test('signed-in saved materials and auto fullscreen paths render', async ({ page
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  // 个人错题本已下线：dock 不再有错题本入口（首页卡片/＋错题本/迁移「我的错题」一并撤掉）
-  await expect(page.locator('[data-dock-key="error-book"]')).toHaveCount(0);
+  // 错题本（成绩驱动版）已恢复：dock 有错题本入口，点开落到班级工作台错题本 tab
+  await expect(page.locator('[data-dock-key="error-book"]')).toHaveCount(1);
 
   await page.locator('[data-dock-key="lesson-prep"]').click();
   await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
