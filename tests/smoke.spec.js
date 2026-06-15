@@ -4212,7 +4212,7 @@ test('名词叶子合并：num-plural 标题末段=名词复数，无可数/不�
   })).toBe('ok');
 });
 
-test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默认出考点画像', async ({ page }) => {
+test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默认出班级看板', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
   await mockSignedInTeacher(page);
   await page.goto('/docs/grammar-fill/');
@@ -4238,7 +4238,7 @@ test('班级工作台·考点视角：导入页可进 + 旧入口重定向 + 默
   await expect(page.locator('#page-student-timeline')).toHaveClass(/active/);
   await expect(page.locator('.wb-tab[data-tab="board"]')).toBeVisible();
   await expect(page.locator('#wbContent')).toContainText('X卷');
-  await expect(page.locator('#epBoardDetail')).toContainText('考点画像');
+  await expect(page.locator('#epBoardDetail')).toContainText('考点成长矩阵');
   expect(errors).toEqual([]);
 });
 

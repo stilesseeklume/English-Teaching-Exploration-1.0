@@ -185,8 +185,23 @@
     var trends = window.GrammarErrorProfileView.buildCatTrends(orderedExams);
     _brdTrendByCat = {};
     trends.forEach(function(t){ _brdTrendByCat[t.category] = t; });   // 考点→趋势，喂给排行行内迷你趋势线
+    var classRows = (allRows || []).filter(function(r){ return r.class_id === classId; });   // 整班所有卷 → 喂班级看板
+    var DBMIG = { '时态':'pred-tense','谓语其他':'predicate','非谓语':'nonpredicate','词性转换':'word','名词数词':'number','冠词':'article','介词':'preposition','代词':'pronoun','连词逻辑':'logic','从句':'attrib' };
+    function showBoard(eid){
+      var detail = document.getElementById('epBoardDetail');
+      if (!detail) return;
+      if (!window.GrammarDashboard || !window.GrammarDashboardRender) { boardViewProfile(eid); return; }   // 降级：新模块没加载就用旧画像
+      detail.innerHTML = window.GrammarDashboardRender.classBoardHtml(classRows, eid);
+      window.GrammarDashboardRender.initClassBoardCharts(classRows, eid);
+      detail.querySelectorAll('.db-migrate').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var tag = DBMIG[btn.getAttribute('data-cat')];
+          if (tag && _wb.openMigrationForFineTag) _wb.openMigrationForFineTag(tag);
+        });
+      });
+    }
     body.innerHTML = window.GrammarErrorProfileRender.examChipsHtml(orderedExams, _boardExamId)
-      + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 选中套卷的画像——紧跟 chips，立即可见
+      + '<div id="epBoardDetail" style="margin-top:4px;"></div>'                     // 班级看板——紧跟 chips，立即可见
       + window.GrammarErrorProfileRender.catTrendDetailsHtml(trends, catNames)        // 全考点跨卷趋势——折叠沉底，默认收起
       + '<div style="margin-top:8px;"><button id="epToStudents" style="padding:8px 16px;border-radius:999px;border:1px solid #cfe3ff;background:#f0f7ff;color:#0071e3;cursor:pointer;font-size:13px;">查看单个学生的画像 →</button></div>';
     var toStu = document.getElementById('epToStudents');
@@ -198,10 +213,10 @@
           var on = b.getAttribute('data-id') === _boardExamId;
           b.style.background = on ? '#0071e3' : '#f7f7f7'; b.style.color = on ? '#fff' : '#333'; b.style.border = '1px solid ' + (on ? '#0071e3' : '#e5e5e5');
         });
-        boardViewProfile(_boardExamId);
+        showBoard(_boardExamId);
       });
     });
-    if (_boardExamId) boardViewProfile(_boardExamId);
+    if (_boardExamId) showBoard(_boardExamId);
   }
 
   // ---------- 班级工作台 · 学生视角 + 班级管理动作 ----------
