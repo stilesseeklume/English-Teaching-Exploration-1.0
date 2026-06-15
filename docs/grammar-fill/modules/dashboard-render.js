@@ -142,8 +142,23 @@
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + chips + '</div>' + cmp + '</div>';
   }
 
+  /* ---- 闭环回看：讲过的考点起没起色 ---- */
+  function loopHtml(classRows, classId){
+    if (!classId || !window.GrammarDashboardLoop) return '';
+    var marks = window.GrammarDashboardLoop.list(classId);
+    if (!marks.length) return '';
+    var gm = {}; D().growthMatrix(classRows).forEach(function(m){ gm[m.cat] = m.rate; });
+    var items = marks.slice().sort(function(a, b){ return (b.ts || 0) - (a.ts || 0); }).map(function(mk){
+      var nowR = gm[mk.cat], was = mk.rate, delta = (nowR != null && was != null) ? Math.round((nowR - was) * 100) : null;
+      var verdict = delta == null ? '<span style="color:var(--text-tertiary,#aaa);">待下次考</span>'
+        : (delta >= 5 ? '<span style="color:#3B6D11;">✓ 讲到位了</span>' : (delta <= -5 ? '<span style="color:#A32D2D;">↓ 反而退了，换打法</span>' : '<span style="color:var(--text-secondary,#888);">→ 没怎么动</span>'));
+      return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:5px;"><span style="width:72px;color:var(--text,#222);">' + esc(mk.cat) + '</span><span style="width:150px;color:var(--text-secondary,#888);">' + pct(was) + '% → ' + pct(nowR) + '%' + (delta != null ? ' (' + (delta >= 0 ? '+' : '') + delta + ')' : '') + '</span>' + verdict + '</div>';
+    }).join('');
+    return '<div style="background:var(--bg,#fff);border:1px solid var(--border,#eee);border-radius:12px;padding:14px 16px;margin-bottom:14px;"><div style="font-size:13px;font-weight:600;margin-bottom:9px;color:var(--text,#222);">📌 讲过的考点 · 效果回看</div>' + items + '</div>';
+  }
+
   /* ---- 组合 ---- */
-  function classBoardHtml(classRows, examId){
+  function classBoardHtml(classRows, examId, classId){
     if (!classRows.length) return '<div style="color:var(--text-secondary,#888);padding:16px 0;">这个班还没有成绩。去「导入」页传这个班的成绩后，这里出班级看板。</div>';
     var d = D();
     var hm = d.heatmap(classRows);
@@ -152,6 +167,7 @@
     var labelMap = examLabelMap(classRows);
     var card = function(inner){ return '<div style="background:var(--bg,#fff);border:1px solid var(--border,#eee);border-radius:12px;padding:14px 16px;margin-bottom:14px;">' + inner + '</div>'; };
     return ''
+      + loopHtml(classRows, classId)
       + card(growthMatrixHtml(matrix) + '<div style="height:14px;"></div>' + prescriptionHtml(rx))
       + metricCardsHtml(classRows, examId)
       + card(heatmapHtml(hm, labelMap))

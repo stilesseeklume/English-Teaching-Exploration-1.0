@@ -191,11 +191,16 @@
       var detail = document.getElementById('epBoardDetail');
       if (!detail) return;
       if (!window.GrammarDashboard || !window.GrammarDashboardRender) { boardViewProfile(eid); return; }   // 降级：新模块没加载就用旧画像
-      detail.innerHTML = window.GrammarDashboardRender.classBoardHtml(classRows, eid);
+      detail.innerHTML = window.GrammarDashboardRender.classBoardHtml(classRows, eid, classId);
       window.GrammarDashboardRender.initClassBoardCharts(classRows, eid);
       detail.querySelectorAll('.db-migrate').forEach(function(btn){
         btn.addEventListener('click', function(){
-          var tag = DBMIG[btn.getAttribute('data-cat')];
+          var cat = btn.getAttribute('data-cat'), tag = DBMIG[cat];
+          if (window.GrammarDashboardLoop && window.GrammarDashboard) {   // 闭环：记一笔当前累计率，下次回看
+            var gm = window.GrammarDashboard.growthMatrix(classRows), rate = null;
+            for (var i = 0; i < gm.length; i++) { if (gm[i].cat === cat) { rate = gm[i].rate; break; } }
+            window.GrammarDashboardLoop.record(classId, cat, eid, rate);
+          }
           if (tag && _wb.openMigrationForFineTag) _wb.openMigrationForFineTag(tag);
         });
       });
