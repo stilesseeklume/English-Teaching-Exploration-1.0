@@ -279,6 +279,55 @@ export function allocate(input) {
   };
 }
 
+/* ---------- 手动调整 ---------- */
+
+// 交换两个班的全部座位（身份对调），并重排班内序号与 parts；几何块形状不变，绝不新增拆散
+export function swapClasses(res, idA, idB) {
+  if (!idA || !idB || idA === idB) return;
+  const byId = {};
+  res.classes.forEach(c => { byId[c.id] = c; });
+  const ca = byId[idA], cb = byId[idB];
+  if (!ca || !cb) return;
+  res.seats.forEach(s => {
+    if (s.kind !== 'class') return;
+    if (s.classId === idA) { s.classId = idB; s.className = cb.name; s.color = res.colorOf[idB]; }
+    else if (s.classId === idB) { s.classId = idA; s.className = ca.name; s.color = res.colorOf[idA]; }
+  });
+  reindexRes(res);
+}
+
+// 依据当前 seats 的 classId 现状，重建每个班的 parts、班内序号、已坐/未坐
+export function reindexRes(res) {
+  const byId = {};
+  res.classes.forEach(c => {
+    byId[c.id] = c;
+    c.parts = [];
+    c.seated = 0;
+    c.unseated = c.count;
+    c.seqNo = 0;
+    c.floor = null;
+  });
+  const cur = {};
+  res.seats.forEach(s => {
+    if (s.kind !== 'class' || !s.classId) return;
+    const c = byId[s.classId];
+    if (!c) return;
+    if (c.floor === null) c.floor = s.f;
+    const pc = cur[s.classId];
+    if (pc && pc.zone === s.zone && pc.row === s.row && s.n === pc.to + 1) {
+      pc.to = s.n; pc.count++;
+    } else {
+      const np = { zone: s.zone, row: s.row, from: s.n, to: s.n, count: 1 };
+      c.parts.push(np);
+      cur[s.classId] = np;
+    }
+    s.seq = ++c.seqNo;
+    s.className = c.name;
+    c.seated++;
+    c.unseated = c.count - c.seated;
+  });
+}
+
 /* ---------- 平面图 SVG ---------- */
 
 export function buildPlanSVG(res, opts = {}) {
@@ -318,7 +367,10 @@ export function buildPlanSVG(res, opts = {}) {
     else if (s.kind === 'award') { fill = ` fill="${COLOR_AWARD}"`; }
     else if (s.kind === 'unused') { cls = 'seat unused'; }
     else { cls = 'seat empty'; }
-    g += `<g><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"/><title>${esc(tip)}</title>`;
+    const isSel = opts.highlightClass && s.kind === 'class' && s.classId === opts.highlightClass;
+    const dc = s.kind === 'class' && s.classId ? ` data-class="${esc(s.classId)}"` : '';
+    const selStyle = isSel ? ' style="stroke:#111111;stroke-width:2.8"' : '';
+    g += `<g${dc}><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"${selStyle}/><title>${esc(tip)}</title>`;
     let label = '';
     if (s.kind === 'class') {
       if (opts.showNames && s.student) label = s.student;
@@ -348,8 +400,8 @@ export function buildPlanSVG(res, opts = {}) {
     const tw = [...c.name].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? fs : fs * 0.6), 0) + 12;
     const bx = mnX - SQ / 2 + 1;
     const by = mnY - SQ / 2 + 1;
-    g += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${tw.toFixed(1)}" height="17" rx="4" fill="#ffffff" fill-opacity=".95" stroke="${res.colorOf[c.id]}" stroke-width="1.2"/>`;
-    g += `<text x="${(bx + 6).toFixed(1)}" y="${(by + 13).toFixed(1)}" font-size="${fs}" font-weight="700" fill="#1d1d1f" style="font-family:-apple-system,'PingFang SC',sans-serif">${esc(c.name)}</text>`;
+    g += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${tw.toFixed(1)}" height="17" rx="4" fill="#ffffff" fill-opacity=".95" stroke="${res.colorOf[c.id]}" stroke-width="1.2" pointer-events="none"/>`;
+    g += `<text x="${(bx + 6).toFixed(1)}" y="${(by + 13).toFixed(1)}" font-size="${fs}" font-weight="700" fill="#1d1d1f" style="font-family:-apple-system,'PingFang SC',sans-serif" pointer-events="none">${esc(c.name)}</text>`;
   });
 
   // 排号（双侧）

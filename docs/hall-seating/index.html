@@ -265,6 +265,7 @@
       </div>
       <label class="tgl"><input type="checkbox" id="showNumbers" checked> 座位号</label>
       <label class="tgl"><input type="checkbox" id="showNames" disabled> 姓名</label>
+      <label class="tgl" title="开启后在平面图上依次点两个班，即可互换座位"><input type="checkbox" id="manualMode"> 手动调整</label>
       <span class="spacer"></span>
       <button class="btn" id="printBtn">🖨 打印本页</button>
       <button class="btn" id="pngBtn">🖼 下载大图 PNG</button>
@@ -303,7 +304,7 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML } from './hall-seating.js';
+import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapClasses } from './hall-seating.js';
 
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, '0');
@@ -325,7 +326,9 @@ const state = {
   },
   view: 'plan',
   showNumbers: true,
-  showNames: false
+  showNames: false,
+  manual: false,
+  selClass: null
 };
 let result = null;
 let namesTarget = null; // {type:'class', id} | {type:'award'}
@@ -497,8 +500,47 @@ document.querySelectorAll('input[name=gran]').forEach(r => r.addEventListener('c
   if (e.target.value !== 'student') { state.showNames = false; $('showNames').checked = false; }
   scheduleRender();
 }));
-$('showNumbers').addEventListener('change', e => { state.showNumbers = e.target.checked; scheduleRender(); });
-$('showNames').addEventListener('change', e => { state.showNames = e.target.checked; scheduleRender(); });
+$('showNumbers').addEventListener('change', e => { state.showNumbers = e.target.checked; renderViews(); });
+$('showNames').addEventListener('change', e => { state.showNames = e.target.checked; renderViews(); });
+
+/* ---------- 手动调整（平面图上互换班级） ---------- */
+$('manualMode').addEventListener('change', e => {
+  state.manual = e.target.checked;
+  state.selClass = null;
+  if (state.manual) toast('手动调整已开启：在平面图上依次点两个班即可互换座位');
+  renderViews();
+});
+
+$('planBox').addEventListener('click', e => {
+  if (!state.manual || !result) return;
+  const g = e.target.closest('g[data-class]');
+  const cid = g ? g.getAttribute('data-class') : null;
+  if (!cid) { if (state.selClass) { state.selClass = null; renderViews(); } return; }
+  if (state.selClass === null) {
+    state.selClass = cid;
+    const cn = result.classes.find(c => c.id === cid);
+    if (cn) toast(`已选中「${cn.name}」，再点另一个班即可互换`);
+    renderViews();
+  } else if (state.selClass === cid) {
+    state.selClass = null;
+    renderViews();
+  } else {
+    const a = state.selClass, b = cid;
+    const ca = result.classes.find(c => c.id === a);
+    const cb = result.classes.find(c => c.id === b);
+    if (!ca || !cb) return;
+    if (ca.seated !== cb.seated || ca.seated === 0) {
+      toast('两个班人数不同，无法直接互换');
+      state.selClass = null;
+      renderViews();
+      return;
+    }
+    swapClasses(result, a, b);
+    state.selClass = null;
+    toast('已互换两个班的座位');
+    renderViews();
+  }
+});
 
 /* ---------- 视图切换 / 打印 ---------- */
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
@@ -535,6 +577,10 @@ function render() {
     award: state.settings.award,
     granularity: state.settings.granularity
   });
+  state.selClass = null;
+  renderViews();
+}
+function renderViews() {
   const st = result.stats;
 
   const chips = [
@@ -548,7 +594,7 @@ function render() {
   $('statsbar').innerHTML = chips.join('');
 
   $('printHead').innerHTML = `${state.meeting.name || '礼堂排座'}<span>${state.meeting.date || ''} · 共 ${st.totalPeople} 人 · ${st.classCount} 个班 · 领导席 ${st.leaderCount} · 颁奖席 ${st.awardCount}</span>`;
-  $('planBox').innerHTML = buildPlanSVG(result, { showNumbers: state.showNumbers, showNames: state.showNames });
+  $('planBox').innerHTML = buildPlanSVG(result, { showNumbers: state.showNumbers, showNames: state.showNames, highlightClass: state.manual ? state.selClass : null });
   $('legend').innerHTML = buildLegendHTML(result);
   $('summaryBox').innerHTML = buildSummaryHTML(result);
   $('guideBox').innerHTML = buildGuideHTML(result, { granularity: state.settings.granularity });
