@@ -176,56 +176,50 @@ export function allocate(input) {
       }))
       .filter(z => z.rows.length);
 
-    let zi = 0, ri = 0, si = 0;
-    const zoneRemaining = () => {
-      if (zi >= zones.length) return 0;
+    // 每区块独立指针；整班原子分配：要么整班落单区块（区内可跨相邻排），要么整班"未排"并提示差座
+    const cursors = zones.map(() => ({ ri: 0, si: 0 }));
+    const zoneRemain = i => {
+      const z = zones[i], p = cursors[i];
       let rem = 0;
-      for (let i = ri; i < zones[zi].rows.length; i++) {
-        rem += i === ri ? zones[zi].rows[i].length - si : zones[zi].rows[i].length;
+      for (let r = p.ri; r < z.rows.length; r++) {
+        rem += r === p.ri ? z.rows[r].length - p.si : z.rows[r].length;
       }
       return rem;
     };
 
     cls.forEach(c => {
-      let need = c.count;
+      const need = c.count;
       c.floor = fk;
       c.parts = [];
       c.seated = 0;
-
-      // 区块连座：整班装不下本区块剩余 → 整班挪到下一区块，本区块尾部留空
-      while (need > 0 && !input.compact && zi < zones.length && need > zoneRemaining()) {
-        zi++; ri = 0; si = 0;
-      }
-
-      while (need > 0 && zi < zones.length) {
-        const z = zones[zi];
-        if (ri >= z.rows.length) { zi++; ri = 0; si = 0; continue; }
-        const row = z.rows[ri];
-        if (si >= row.length) { ri++; si = 0; continue; }
-        const rem = row.length - si;
-        // 区内整班优先：本排剩余装不下 → 比较碎片数，整班跳下一排更省就跳
-        if (need > rem && !input.compact && ri + 1 < z.rows.length) {
-          const nextCap = z.rows[ri + 1].length;
-          if (need <= nextCap) { ri++; si = 0; continue; }
-          const fragsHere = 1 + Math.ceil((need - rem) / Math.max(nextCap, 1));
-          const fragsJump = Math.ceil(need / Math.max(nextCap, 1));
-          if (fragsJump < fragsHere) { ri++; si = 0; continue; }
-        }
-        const take = Math.min(need, rem);
-        const seg = row.slice(si, si + take);
-        c.parts.push({ zone: z.zk, row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
-        seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; });
-        need -= take; si += take; c.seated += take;
-        if (si >= row.length) { ri++; si = 0; }
-      }
       c.unseated = need;
+      if (need <= 0) { c.unseated = 0; return; }
+
+      // 聚集第一：按区块顺序找第一个能整班装下的区块，整班连续坐进去（不跨过道）
+      for (let i = 0; i < zones.length; i++) {
+        if (zoneRemain(i) < need) continue; // 该区块剩余装不下整班 → 试下一区块
+        const z = zones[i], p = cursors[i];
+        let left = need;
+        while (left > 0) {
+          if (p.ri >= z.rows.length) break;
+          const row = z.rows[p.ri];
+          if (p.si >= row.length) { p.ri++; p.si = 0; continue; }
+          const take = Math.min(left, row.length - p.si);
+          const seg = row.slice(p.si, p.si + take);
+          c.parts.push({ zone: z.zk, row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
+          seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; });
+          left -= take; p.si += take; c.seated += take;
+          if (p.si >= row.length) { p.ri++; p.si = 0; }
+        }
+        c.unseated = left;
+        if (left === 0) break; // 整班排下，停在当前区块
+      }
     });
 
-    // 兜底回填：区块规则排完后仍有人没排到、而场内还有空位 → 按班级顺序回填剩余空位
-    // （只有坐不下整班时才会拆班，保证优先整班同区块）
+    // 例外兜底（仅 compact 开启时）：牺牲聚集换坐满，把"整班未排"的班散填进剩余碎片位
     const stillEmpty = [];
     zones.forEach(z => z.rows.forEach(rs => rs.forEach(s => { if (s.kind === 'empty') stillEmpty.push(s); })));
-    if (stillEmpty.length) {
+    if (input.compact && stillEmpty.length) {
       let k = 0;
       cls.forEach(c => {
         if (c.unseated <= 0) return;
