@@ -1,7 +1,8 @@
 /* hall-seating.js — 礼堂排座纯逻辑模块（无 DOM 依赖）
    场地数据来源：大礼堂1-2楼.pdf 矢量提取（2026-08 校准）
    每排 segs = [x起点, x终点, 座位数]，坐标为座位中心（PDF 单位）
-   排内座位号：从左到右 01 起连续编号 */
+   排内座位号：从左到右 01 起连续编号
+   区块：每层按过道分左/中/右三区，排座以区块为单位（v2 区块连座） */
 
 export const HALL = {
   f1: {
@@ -57,6 +58,10 @@ export const PALETTE = [
 export const COLOR_LEADER = '#6e7175';
 export const COLOR_AWARD = '#d9a62e';
 
+export const ZONE_NAMES = { L: '左区', M: '中区', R: '右区' };
+const ZONE_ORDER_MID = ['M', 'L', 'R'];
+const ZONE_ORDER_LTR = ['L', 'M', 'R'];
+
 const pad2 = n => String(n).padStart(2, '0');
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -67,6 +72,11 @@ function floorBounds(f) {
     r.segs.forEach(s => { xMin = Math.min(xMin, s[0]); xMax = Math.max(xMax, s[1]); });
   });
   return { xMin, xMax, yMin, yMax };
+}
+
+// 按段中心 x 归区：含楼层中心 → 中区；在其左 → 左区；在其右 → 右区
+function zoneOfSeg(seg, cx) {
+  return (seg[0] <= cx && seg[1] >= cx) ? 'M' : (seg[1] < cx ? 'L' : 'R');
 }
 
 function textColorFor(bg) {
@@ -83,15 +93,18 @@ export function allocate(input) {
   const floors = {};
   ['f1', 'f2'].forEach(fk => {
     const f = HALL[fk];
+    const fb = floorBounds(f);
+    const cx = (fb.xMin + fb.xMax) / 2;
     const rows = f.rows.map((r, ri) => {
       let n = 0;
       const rowSeats = [];
       r.segs.forEach(seg => {
         const [x0, x1, cnt] = seg;
+        const zk = zoneOfSeg(seg, cx);
         for (let k = 0; k < cnt; k++) {
           const x = cnt === 1 ? x0 : x0 + k * (x1 - x0) / (cnt - 1);
           rowSeats.push({
-            f: fk, fName: f.name, row: ri + 1, n: ++n, x, y: r.y,
+            f: fk, fName: f.name, row: ri + 1, n: ++n, x, y: r.y, zone: zk,
             kind: (fk === 'f2' && !use2) ? 'unused' : 'empty',
             classId: null, className: '', student: null, color: null
           });
@@ -153,24 +166,46 @@ export function allocate(input) {
 
   function assignFloor(fk, cls) {
     const rowsN = floors[fk].rows;
-    const ordered = input.direction === 'back'
-      ? rowsN.slice().reverse()
-      : rowsN;
-    const rows = ordered.map(rs => rs.filter(s => s.kind === 'empty'));
-    let ri = 0, si = 0;
+    // 区块：每层按过道拆左/中/右，填充顺序由 zoneOrder 决定；区内按 direction 取排
+    const zOrder = input.zoneOrder === 'ltr' ? ZONE_ORDER_LTR : ZONE_ORDER_MID;
+    const ordered = input.direction === 'back' ? rowsN.slice().reverse() : rowsN;
+    const zones = zOrder
+      .map(zk => ({
+        zk,
+        rows: ordered.map(rs => rs.filter(s => s.zone === zk && s.kind === 'empty')).filter(rs => rs.length)
+      }))
+      .filter(z => z.rows.length);
+
+    let zi = 0, ri = 0, si = 0;
+    const zoneRemaining = () => {
+      if (zi >= zones.length) return 0;
+      let rem = 0;
+      for (let i = ri; i < zones[zi].rows.length; i++) {
+        rem += i === ri ? zones[zi].rows[i].length - si : zones[zi].rows[i].length;
+      }
+      return rem;
+    };
+
     cls.forEach(c => {
       let need = c.count;
       c.floor = fk;
       c.parts = [];
       c.seated = 0;
-      while (need > 0 && ri < rows.length) {
-        const row = rows[ri];
+
+      // 区块连座：整班装不下本区块剩余 → 整班挪到下一区块，本区块尾部留空
+      while (need > 0 && !input.compact && zi < zones.length && need > zoneRemaining()) {
+        zi++; ri = 0; si = 0;
+      }
+
+      while (need > 0 && zi < zones.length) {
+        const z = zones[zi];
+        if (ri >= z.rows.length) { zi++; ri = 0; si = 0; continue; }
+        const row = z.rows[ri];
         if (si >= row.length) { ri++; si = 0; continue; }
         const rem = row.length - si;
-        // 整班优先：当前排剩余装不下 → 整班挪到下一排（前排留空）；
-        // 班级超过任何整排时，选择分段数更少的起点（两段优于三段）
-        if (need > rem && !input.compact && ri + 1 < rows.length) {
-          const nextCap = rows[ri + 1].length;
+        // 区内整班优先：本排剩余装不下 → 比较碎片数，整班跳下一排更省就跳
+        if (need > rem && !input.compact && ri + 1 < z.rows.length) {
+          const nextCap = z.rows[ri + 1].length;
           if (need <= nextCap) { ri++; si = 0; continue; }
           const fragsHere = 1 + Math.ceil((need - rem) / Math.max(nextCap, 1));
           const fragsJump = Math.ceil(need / Math.max(nextCap, 1));
@@ -178,24 +213,50 @@ export function allocate(input) {
         }
         const take = Math.min(need, rem);
         const seg = row.slice(si, si + take);
-        c.parts.push({ row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
+        c.parts.push({ zone: z.zk, row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
         seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; });
         need -= take; si += take; c.seated += take;
         if (si >= row.length) { ri++; si = 0; }
       }
       c.unseated = need;
-      if (input.granularity === 'student' && Array.isArray(c.names) && c.names.length) {
-        let k = 0;
+    });
+
+    // 兜底回填：区块规则排完后仍有人没排到、而场内还有空位 → 按班级顺序回填剩余空位
+    // （只有坐不下整班时才会拆班，保证优先整班同区块）
+    const stillEmpty = [];
+    zones.forEach(z => z.rows.forEach(rs => rs.forEach(s => { if (s.kind === 'empty') stillEmpty.push(s); })));
+    if (stillEmpty.length) {
+      let k = 0;
+      cls.forEach(c => {
+        if (c.unseated <= 0) return;
+        let cur = null;
+        while (c.unseated > 0 && k < stillEmpty.length) {
+          const s = stillEmpty[k];
+          s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id];
+          if (!cur || cur.row !== s.row || cur.zone !== s.zone || cur.to !== s.n - 1) {
+            cur = { zone: s.zone, row: s.row, from: s.n, to: s.n, count: 1 };
+            c.parts.push(cur);
+          } else { cur.to = s.n; cur.count++; }
+          k++; c.unseated--; c.seated++;
+        }
+      });
+    }
+
+    // 学生级：按 parts 顺序逐人对号（含回填新增的 parts）
+    if (input.granularity === 'student') {
+      cls.forEach(c => {
+        if (!Array.isArray(c.names) || !c.names.length) return;
+        let k2 = 0;
         c.parts.forEach(p => {
           const rowSeats = rowsN.find(rs => rs[0].row === p.row);
           rowSeats.forEach(s => {
             if (s.kind === 'class' && s.classId === c.id && s.n >= p.from && s.n <= p.to) {
-              s.student = c.names[k++] || null;
+              s.student = c.names[k2++] || null;
             }
           });
         });
-      }
-    });
+      });
+    }
   }
   assignFloor('f1', f1c);
   assignFloor('f2', f2c);
@@ -248,7 +309,7 @@ export function buildPlanSVG(res, opts = {}) {
     const X = (s.f === 'f1' ? X1 : X2)(s.x);
     const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
     const x = (X - SQ / 2).toFixed(1), y = (Y - SQ / 2).toFixed(1);
-    const tip = `${s.fName} ${s.row}排 ${pad2(s.n)}号` +
+    const tip = `${s.fName}${ZONE_NAMES[s.zone] || ''} ${s.row}排 ${pad2(s.n)}号` +
       (s.kind === 'class' ? ` · ${s.className}` : '') +
       (s.student ? ` · ${s.student}` : '');
     let cls = 'seat', fill = '';
@@ -280,6 +341,23 @@ export function buildPlanSVG(res, opts = {}) {
     });
   });
 
+  // 区块标签（左/中/右，画在各层第一排上方）
+  ['f1', 'f2'].forEach(fk => {
+    const Xf = fk === 'f1' ? X1 : X2, Yf = fk === 'f1' ? Y1 : Y2;
+    const b = fk === 'f1' ? b1 : b2;
+    const cx = (b.xMin + b.xMax) / 2;
+    const zx = { L: [Infinity, -Infinity], M: [Infinity, -Infinity], R: [Infinity, -Infinity] };
+    HALL[fk].rows.forEach(r => r.segs.forEach(sg => {
+      const z = zoneOfSeg(sg, cx);
+      zx[z][0] = Math.min(zx[z][0], sg[0]); zx[z][1] = Math.max(zx[z][1], sg[1]);
+    }));
+    const labelY = Yf(b.yMin) - 20;
+    Object.keys(zx).forEach(z => {
+      if (!isFinite(zx[z][0])) return;
+      g += `<text x="${Xf((zx[z][0] + zx[z][1]) / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" class="zone-label">${ZONE_NAMES[z]}</text>`;
+    });
+  });
+
   // 二楼分隔与标签
   g += `<line x1="${PAD - 22}" y1="${(f2Top - 44).toFixed(1)}" x2="${W - PAD + 22}" y2="${(f2Top - 44).toFixed(1)}" class="floor-sep"/>`;
   g += `<text x="${PAD - 26}" y="${(f2Top - 56).toFixed(1)}" class="floor-label">二楼 · 楼座</text>`;
@@ -308,21 +386,25 @@ export function buildSummaryHTML(res) {
   const st = res.stats;
   let rows = '';
   res.classes.forEach(c => {
+    const floorName = c.floor === 'f1' ? '一楼' : '二楼';
+    const zonesUsed = c.parts.length ? [...new Set(c.parts.map(p => p.zone))] : [];
+    const loc = zonesUsed.length === 1 ? `${floorName}·${ZONE_NAMES[zonesUsed[0]]}` : floorName;
     const seatStr = c.parts.length
-      ? c.parts.map(p => `${esc(c.floor === 'f1' ? '一楼' : '二楼')} ${esc(partText(p))}`).join('<br>')
+      ? c.parts.map(p => esc(partText(p))).join('<br>')
       : '<span class="miss">未排到座位</span>';
     const status = c.unseated > 0 ? `<span class="miss">差 ${c.unseated} 座</span>` : '✓';
-    rows += `<tr><td>${esc(c.name)}</td><td>${c.floor === 'f1' ? '一楼' : '二楼'}</td><td>${seatStr}</td><td>${c.seated}</td><td>${status}</td></tr>`;
+    rows += `<tr><td>${esc(c.name)}</td><td>${esc(loc)}</td><td>${seatStr}</td><td>${c.seated}</td><td>${status}</td></tr>`;
   });
   rows += `<tr class="total"><td>合计 ${st.classCount} 个班</td><td></td><td>领导席 ${st.leaderCount} · 颁奖席 ${st.awardCount}</td><td>${st.seated}</td><td>${st.unseated > 0 ? `<span class="miss">${st.unseated} 人未排</span>` : '✓'}</td></tr>`;
-  return `<table><thead><tr><th>班级</th><th>楼层</th><th>座位安排</th><th>人数</th><th>状态</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table><thead><tr><th>班级</th><th>位置</th><th>座位安排</th><th>人数</th><th>状态</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 export function buildGuideHTML(res, opts = {}) {
   let h = '';
   res.classes.forEach(c => {
+    const floorName = c.floor === 'f1' ? '一楼' : '二楼';
     const lines = c.parts.map(p =>
-      `<div class="gd-line"><span class="gd-row">${esc(c.floor === 'f1' ? '一楼' : '二楼')} · 第${p.row}排</span><span class="gd-seats">${pad2(p.from)} – ${pad2(p.to)} 号</span><span class="gd-n">${p.count} 人</span></div>`
+      `<div class="gd-line"><span class="gd-row">${esc(floorName)} · ${esc(ZONE_NAMES[p.zone] || '')} · 第${p.row}排</span><span class="gd-seats">${pad2(p.from)} – ${pad2(p.to)} 号</span><span class="gd-n">${p.count} 人</span></div>`
     ).join('');
     let names = '';
     if (opts.granularity === 'student' && Array.isArray(c.names) && c.names.length) {
