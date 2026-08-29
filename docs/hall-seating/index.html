@@ -104,6 +104,9 @@
   .floor-label { font-size:14px; font-weight:700; fill:var(--text-2); }
   .floor-note { font-size:10px; fill:var(--text-3); }
   .floor-sep { stroke:var(--border-strong); stroke-dasharray:6 6; }
+  .lg-swatch { stroke:var(--seat-stroke); stroke-width:1; }
+  .lg-empty { fill:var(--seat-empty); }
+  .lg-text { font-size:11px; fill:var(--text-2); font-family:-apple-system,"PingFang SC",sans-serif; }
 
   .legend { display:flex; flex-wrap:wrap; gap:7px 14px; padding:10px 6px 2px; }
   .lg-item { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-2); }
@@ -264,6 +267,7 @@
       <label class="tgl"><input type="checkbox" id="showNames" disabled> 姓名</label>
       <span class="spacer"></span>
       <button class="btn" id="printBtn">🖨 打印本页</button>
+      <button class="btn" id="pngBtn">🖼 下载大图 PNG</button>
       <button class="btn primary" id="excelBtn">导出 Excel</button>
     </div>
 
@@ -586,6 +590,56 @@ $('excelBtn').addEventListener('click', () => {
   const fn = `礼堂排座_${(state.meeting.name || '会议').replace(/[\\/:*?"<>|]/g, '')}_${state.meeting.date || ''}.xlsx`;
   XLSX.writeFile(wb, fn);
   toast('Excel 已生成下载');
+});
+
+/* ---------- 高清 PNG 大图导出（投大屏 / 打印） ---------- */
+const EXPORT_CSS = `<style>
+.seat{stroke:rgba(0,0,0,.16);stroke-width:.6;}.seat.empty{fill:#ececee;stroke:#d8d8dc;}.seat.unused{fill:none;stroke:#d8d8dc;stroke-dasharray:3 3;opacity:.4;}
+.seat-txt{font-size:8px;font-family:-apple-system,"PingFang SC",sans-serif;}.seat-name{font-size:6.6px;}
+.row-num{font-size:11px;fill:#6e6e73;font-family:-apple-system,sans-serif;}
+.zone-label{font-size:11px;font-weight:600;fill:#b0b0b4;letter-spacing:2px;font-family:-apple-system,"PingFang SC",sans-serif;}
+.stage-rect{fill:#f0f7ff;stroke:#0071e3;stroke-width:1.2;}.stage-label{font-size:17px;fill:#0071e3;font-weight:700;font-family:-apple-system,"PingFang SC",sans-serif;}
+.floor-label{font-size:14px;font-weight:700;fill:#6e6e73;font-family:-apple-system,"PingFang SC",sans-serif;}
+.floor-note{font-size:10px;fill:#b0b0b4;font-family:-apple-system,"PingFang SC",sans-serif;}
+.floor-sep{stroke:#d1d1d6;stroke-dasharray:6 6;}.lg-swatch{stroke:#d8d8dc;stroke-width:1;}.lg-empty{fill:#ececee;}
+.lg-text{font-size:11px;fill:#6e6e73;font-family:-apple-system,"PingFang SC",sans-serif;}
+text{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+</style>`;
+
+function svgToPng(svgStr, w, h, scale, filename) {
+  const blob = new Blob([svgStr.replace(/(<svg[^>]*>)/, `$1${EXPORT_CSS}`)], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(b => {
+      if (!b) { toast('导出失败，请重试'); return; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast('大图 PNG 已下载（白底 · 含图例与班级序号）');
+    }, 'image/png');
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); toast('SVG 渲染失败，请重试'); };
+  img.src = url;
+}
+$('pngBtn').addEventListener('click', () => {
+  if (!result) return;
+  const svg = buildPlanSVG(result, { showNumbers: true, showNames: false });
+  const m = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+  if (!m) { toast('无法导出'); return; }
+  const w = parseFloat(m[1]), h = parseFloat(m[2]);
+  const fn = `礼堂排座图_${(state.meeting.name || '会议').replace(/[\\/:*?"<>|]/g, '')}_${state.meeting.date || ''}.png`;
+  svgToPng(svg, w, h, 2, fn);
 });
 
 /* ---------- 历史 / 备份 ---------- */

@@ -189,6 +189,7 @@ export function allocate(input) {
 
     cls.forEach(c => {
       const need = c.count;
+      let seqNo = 0;
       c.floor = fk;
       c.parts = [];
       c.seated = 0;
@@ -207,7 +208,7 @@ export function allocate(input) {
           const take = Math.min(left, row.length - p.si);
           const seg = row.slice(p.si, p.si + take);
           c.parts.push({ zone: z.zk, row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
-          seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; });
+          seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; s.seq = ++seqNo; });
           left -= take; p.si += take; c.seated += take;
           if (p.si >= row.length) { p.ri++; p.si = 0; }
         }
@@ -223,10 +224,11 @@ export function allocate(input) {
       let k = 0;
       cls.forEach(c => {
         if (c.unseated <= 0) return;
+        let seqNo = c.seated;
         let cur = null;
         while (c.unseated > 0 && k < stillEmpty.length) {
           const s = stillEmpty[k];
-          s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id];
+          s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; s.seq = ++seqNo;
           if (!cur || cur.row !== s.row || cur.zone !== s.zone || cur.to !== s.n - 1) {
             cur = { zone: s.zone, row: s.row, from: s.n, to: s.n, count: 1 };
             c.parts.push(cur);
@@ -304,7 +306,7 @@ export function buildPlanSVG(res, opts = {}) {
     const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
     const x = (X - SQ / 2).toFixed(1), y = (Y - SQ / 2).toFixed(1);
     const tip = `${s.fName}${ZONE_NAMES[s.zone] || ''} ${s.row}排 ${pad2(s.n)}号` +
-      (s.kind === 'class' ? ` · ${s.className}` : '') +
+      (s.kind === 'class' ? ` · ${s.className}${s.seq ? ` · 第${s.seq}号` : ''}` : '') +
       (s.student ? ` · ${s.student}` : '');
     let cls = 'seat', fill = '';
     if (s.kind === 'class') { fill = ` fill="${s.color}"`; }
@@ -314,8 +316,12 @@ export function buildPlanSVG(res, opts = {}) {
     else { cls = 'seat empty'; }
     g += `<g><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"/><title>${esc(tip)}</title>`;
     let label = '';
-    if (s.kind === 'class' && opts.showNames && s.student) label = s.student;
-    else if (opts.showNumbers && s.kind !== 'unused') label = pad2(s.n);
+    if (s.kind === 'class') {
+      if (opts.showNames && s.student) label = s.student;
+      else if (opts.showNumbers && s.seq) label = String(s.seq);
+    } else if (opts.showNumbers && s.kind !== 'unused') {
+      label = pad2(s.n);
+    }
     if (label) {
       const tc = s.color ? textColorFor(s.color) : '';
       g += `<text x="${X.toFixed(1)}" y="${(Y + (opts.showNames && label.length > 2 ? 2.5 : 3)).toFixed(1)}" text-anchor="middle" class="seat-txt${opts.showNames && label.length > 2 ? ' seat-name' : ''}"${tc ? ` fill="${tc}"` : ''}>${esc(label)}</text>`;
@@ -357,7 +363,27 @@ export function buildPlanSVG(res, opts = {}) {
   g += `<text x="${PAD - 26}" y="${(f2Top - 56).toFixed(1)}" class="floor-label">二楼 · 楼座</text>`;
   g += `<text x="${(W - PAD + 26).toFixed(1)}" y="${(f2Top - 56).toFixed(1)}" text-anchor="end" class="floor-note">阶梯收窄 · 前排护栏</text>`;
 
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="plan-svg" role="img" aria-label="礼堂座位平面图">${g}</svg>`;
+  // 底部图例（内嵌于 SVG，随导出/打印一起带走）
+  const lg = [];
+  res.classes.forEach(c => lg.push({ color: res.colorOf[c.id], name: c.name, n: c.count }));
+  if (res.stats.leaderCount) lg.push({ color: COLOR_LEADER, name: '领导席', n: res.stats.leaderCount });
+  if (res.stats.awardCount) lg.push({ color: COLOR_AWARD, name: '颁奖席', n: res.stats.awardCount });
+  lg.push({ color: null, name: '空位', n: Math.max(res.stats.empty, 0) });
+
+  const lgPer = 9, lgbx = 16, lgby = 13, lgLine = 20;
+  const lgTop = H + 28;
+  let lgg = `<line x1="${PAD - 22}" y1="${(H + 14).toFixed(1)}" x2="${W - PAD + 22}" y2="${(H + 14).toFixed(1)}" class="floor-sep"/>`;
+  lg.forEach((it, i) => {
+    const col = i % lgPer, row = Math.floor(i / lgPer);
+    const sx = PAD + col * ((W - PAD * 2) / lgPer);
+    const sy = lgTop + row * lgLine;
+    lgg += `<rect x="${sx.toFixed(1)}" y="${(sy - lgby).toFixed(1)}" width="${lgbx}" height="${lgbx}" rx="3"${it.color ? ` fill="${it.color}"` : ''} class="lg-swatch${it.color ? '' : ' lg-empty'}"/>`;
+    lgg += `<text x="${(sx + lgbx + 6).toFixed(1)}" y="${(sy - lgby + 12).toFixed(1)}" class="lg-text">${esc(it.name)} · ${it.n}</text>`;
+  });
+  const lgRows = Math.ceil(lg.length / lgPer);
+  const H2 = Math.round(lgTop + lgRows * lgLine + 10);
+
+  return `<svg viewBox="0 0 ${W} ${H2}" xmlns="http://www.w3.org/2000/svg" class="plan-svg" role="img" aria-label="礼堂座位平面图">${g}${lgg}</svg>`;
 }
 
 /* ---------- 图例 / 汇总 / 班级指引 ---------- */
