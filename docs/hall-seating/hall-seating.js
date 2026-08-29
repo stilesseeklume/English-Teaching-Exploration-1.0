@@ -168,7 +168,7 @@ export function allocate(input) {
     const floorRows = floors[fk].rows;
     const zOrder = input.zoneOrder === 'ltr' ? ZONE_ORDER_LTR : ZONE_ORDER_MID;
     const back = input.direction === 'back';
-    // 区块 = 左/中/右三区；整班原子落单区，绝不跨左右过道（横过道属同区自然延伸，不算拆散）
+    // 区块 = 左/中/右三区；整班优先落单区，超大班整块跨相邻区（横过道属同区自然延伸，不算拆散）
     const zones = zOrder
       .map(zk => {
         let rows = floorRows.map(rs => rs.filter(s => s.zone === zk && s.kind === 'empty')).filter(rs => rs.length);
@@ -211,13 +211,31 @@ export function allocate(input) {
       c.seqNo = 0;
       if (need <= 0) { c.unseated = 0; return; }
 
-      // 聚集第一：找第一个能整班装下的区，整班连续坐进去（绝不跨左右过道）
-      for (let i = 0; i < zones.length; i++) {
+      // 聚集第一：优先整班装进单个区（绝不跨左右过道）
+      let placed = 0;
+      for (let i = 0; i < zones.length && placed === 0; i++) {
         if (zoneRemain(i) < need) continue;
-        c.seated += fillZone(c, i, need);
-        c.unseated = 0;
-        break;
+        placed = fillZone(c, i, need);
       }
+      // 超大班兜底：单个区装不下 → 整块连续跨"相邻"区（M-L / M-R），绝不 L-R 远距跳跃、绝不散填碎片。
+      // 先选剩余最多的区做主块（主体尽量是连续大块），剩余再向相邻区整块延伸。
+      if (placed === 0) {
+        let left = need;
+        const isAdj = (a, b) => zones[a].zk === 'M' || zones[b].zk === 'M';
+        const byRemain = zones.map((z, i) => i).sort((a, b) => zoneRemain(b) - zoneRemain(a));
+        const main = byRemain.length ? byRemain[0] : -1;
+        if (main >= 0) {
+          left -= fillZone(c, main, left);
+          for (const i of byRemain) {
+            if (left <= 0) break;
+            if (i === main || !isAdj(main, i)) continue;
+            left -= fillZone(c, i, left);
+          }
+        }
+        placed = need - left;
+      }
+      c.seated = placed;
+      c.unseated = need - placed;
     });
 
     // 例外兜底（仅 compact 开启时）：牺牲聚集换坐满，把"整班未排"的班散填进剩余碎片位
