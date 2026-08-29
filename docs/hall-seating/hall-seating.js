@@ -165,55 +165,58 @@ export function allocate(input) {
   classes.forEach((c, i) => { colorOf[c.id] = PALETTE[i % PALETTE.length]; });
 
   function assignFloor(fk, cls) {
-    const rowsN = floors[fk].rows;
-    // 区块：每层按过道拆左/中/右，填充顺序由 zoneOrder 决定；区内按 direction 取排
+    const floorRows = floors[fk].rows;
     const zOrder = input.zoneOrder === 'ltr' ? ZONE_ORDER_LTR : ZONE_ORDER_MID;
-    const ordered = input.direction === 'back' ? rowsN.slice().reverse() : rowsN;
+    const back = input.direction === 'back';
+    // 区块 = 左/中/右三区；整班原子落单区，绝不跨左右过道（横过道属同区自然延伸，不算拆散）
     const zones = zOrder
-      .map(zk => ({
-        zk,
-        rows: ordered.map(rs => rs.filter(s => s.zone === zk && s.kind === 'empty')).filter(rs => rs.length)
-      }))
+      .map(zk => {
+        let rows = floorRows.map(rs => rs.filter(s => s.zone === zk && s.kind === 'empty')).filter(rs => rs.length);
+        if (back) rows = rows.slice().reverse();
+        return { zk, rows };
+      })
       .filter(z => z.rows.length);
 
-    // 每区块独立指针；整班原子分配：要么整班落单区块（区内可跨相邻排），要么整班"未排"并提示差座
+    // 每区独立指针
     const cursors = zones.map(() => ({ ri: 0, si: 0 }));
     const zoneRemain = i => {
       const z = zones[i], p = cursors[i];
       let rem = 0;
-      for (let r = p.ri; r < z.rows.length; r++) {
-        rem += r === p.ri ? z.rows[r].length - p.si : z.rows[r].length;
-      }
+      for (let r = p.ri; r < z.rows.length; r++) rem += r === p.ri ? z.rows[r].length - p.si : z.rows[r].length;
       return rem;
+    };
+    // 在区 i 内从指针连续放 upTo 个座位（不跨出该区），并分配班内序号
+    const fillZone = (c, i, upTo) => {
+      const z = zones[i], p = cursors[i];
+      let left = upTo, placed = 0;
+      while (left > 0 && p.ri < z.rows.length) {
+        const row = z.rows[p.ri];
+        if (p.si >= row.length) { p.ri++; p.si = 0; continue; }
+        const take = Math.min(left, row.length - p.si);
+        const seg = row.slice(p.si, p.si + take);
+        c.parts.push({ zone: z.zk, row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
+        seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; s.seq = ++c.seqNo; });
+        left -= take; placed += take; p.si += take;
+        if (p.si >= row.length) { p.ri++; p.si = 0; }
+      }
+      return placed;
     };
 
     cls.forEach(c => {
       const need = c.count;
-      let seqNo = 0;
       c.floor = fk;
       c.parts = [];
       c.seated = 0;
       c.unseated = need;
+      c.seqNo = 0;
       if (need <= 0) { c.unseated = 0; return; }
 
-      // 聚集第一：按区块顺序找第一个能整班装下的区块，整班连续坐进去（不跨过道）
+      // 聚集第一：找第一个能整班装下的区，整班连续坐进去（绝不跨左右过道）
       for (let i = 0; i < zones.length; i++) {
-        if (zoneRemain(i) < need) continue; // 该区块剩余装不下整班 → 试下一区块
-        const z = zones[i], p = cursors[i];
-        let left = need;
-        while (left > 0) {
-          if (p.ri >= z.rows.length) break;
-          const row = z.rows[p.ri];
-          if (p.si >= row.length) { p.ri++; p.si = 0; continue; }
-          const take = Math.min(left, row.length - p.si);
-          const seg = row.slice(p.si, p.si + take);
-          c.parts.push({ zone: z.zk, row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
-          seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; s.seq = ++seqNo; });
-          left -= take; p.si += take; c.seated += take;
-          if (p.si >= row.length) { p.ri++; p.si = 0; }
-        }
-        c.unseated = left;
-        if (left === 0) break; // 整班排下，停在当前区块
+        if (zoneRemain(i) < need) continue;
+        c.seated += fillZone(c, i, need);
+        c.unseated = 0;
+        break;
       }
     });
 
@@ -224,7 +227,7 @@ export function allocate(input) {
       let k = 0;
       cls.forEach(c => {
         if (c.unseated <= 0) return;
-        let seqNo = c.seated;
+        let seqNo = c.seqNo;
         let cur = null;
         while (c.unseated > 0 && k < stillEmpty.length) {
           const s = stillEmpty[k];
@@ -244,7 +247,7 @@ export function allocate(input) {
         if (!Array.isArray(c.names) || !c.names.length) return;
         let k2 = 0;
         c.parts.forEach(p => {
-          const rowSeats = rowsN.find(rs => rs[0].row === p.row);
+          const rowSeats = floorRows.find(rs => rs[0].row === p.row);
           rowSeats.forEach(s => {
             if (s.kind === 'class' && s.classId === c.id && s.n >= p.from && s.n <= p.to) {
               s.student = c.names[k2++] || null;
@@ -254,8 +257,9 @@ export function allocate(input) {
       });
     }
   }
-  assignFloor('f1', f1c);
   assignFloor('f2', f2c);
+  // 二楼装不下的班整班挪回一楼（聚集第一：不拆散，只整体迁移到有空位的一楼大区）
+  assignFloor('f1', f1c.concat(f2c.filter(c => c.unseated > 0)));
 
   const leaderCount = seats.filter(s => s.kind === 'leader').length;
   const awardCount = seats.filter(s => s.kind === 'award').length;
@@ -327,6 +331,25 @@ export function buildPlanSVG(res, opts = {}) {
       g += `<text x="${X.toFixed(1)}" y="${(Y + (opts.showNames && label.length > 2 ? 2.5 : 3)).toFixed(1)}" text-anchor="middle" class="seat-txt${opts.showNames && label.length > 2 ? ' seat-name' : ''}"${tc ? ` fill="${tc}"` : ''}>${esc(label)}</text>`;
     }
     g += `</g>`;
+  });
+
+  // 班级名标签：直接标在每个班色块左上角（白底小标签），不用只看底部图例
+  res.classes.forEach(c => {
+    let mnX = Infinity, mnY = Infinity;
+    res.seats.forEach(s => {
+      if (s.classId !== c.id) return;
+      const X = (s.f === 'f1' ? X1 : X2)(s.x);
+      const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
+      if (X < mnX) mnX = X;
+      if (Y < mnY) mnY = Y;
+    });
+    if (!isFinite(mnX)) return;
+    const fs = 14;
+    const tw = [...c.name].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? fs : fs * 0.6), 0) + 12;
+    const bx = mnX - SQ / 2 + 1;
+    const by = mnY - SQ / 2 + 1;
+    g += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${tw.toFixed(1)}" height="17" rx="4" fill="#ffffff" fill-opacity=".95" stroke="${res.colorOf[c.id]}" stroke-width="1.2"/>`;
+    g += `<text x="${(bx + 6).toFixed(1)}" y="${(by + 13).toFixed(1)}" font-size="${fs}" font-weight="700" fill="#1d1d1f" style="font-family:-apple-system,'PingFang SC',sans-serif">${esc(c.name)}</text>`;
   });
 
   // 排号（双侧）
