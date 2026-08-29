@@ -1,0 +1,346 @@
+/* hall-seating.js — 礼堂排座纯逻辑模块（无 DOM 依赖）
+   场地数据来源：大礼堂1-2楼.pdf 矢量提取（2026-08 校准）
+   每排 segs = [x起点, x终点, 座位数]，坐标为座位中心（PDF 单位）
+   排内座位号：从左到右 01 起连续编号 */
+
+export const HALL = {
+  f1: {
+    name: '一楼',
+    rows: [
+      { y: 3290.6, segs: [[3589.0, 5909.1, 13]] },
+      { y: 3486.2, segs: [[808.0, 2161.4, 8], [3491.2, 6007.0, 14], [7317.2, 8670.5, 8]] },
+      { y: 3681.0, segs: [[808.0, 2161.4, 8], [3393.7, 6104.4, 15], [7317.2, 8670.5, 8]] },
+      { y: 3877.4, segs: [[614.7, 2161.4, 9], [3297.8, 6200.3, 16], [7317.2, 8863.8, 9]] },
+      { y: 4073.0, segs: [[513.0, 2059.6, 9], [3200.2, 6297.9, 17], [7418.9, 8965.6, 9]] },
+      { y: 4272.0, segs: [[411.2, 1959.1, 9], [3104.2, 6400.1, 18], [7525.9, 9073.9, 9]] },
+      { y: 4467.8, segs: [[309.4, 1857.3, 9], [3007.3, 6497.1, 19], [7627.8, 9175.7, 9]] },
+      { y: 4663.5, segs: [[411.2, 1765.6, 8], [2910.4, 6594.0, 20], [7719.4, 9073.9, 8]] },
+      { y: 4859.3, segs: [[314.5, 1668.9, 8], [2813.5, 6690.9, 21], [7816.2, 9170.6, 8]] },
+      { y: 5374.8, segs: [[2716.3, 6792.7, 22]] },
+      { y: 5568.6, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 5762.8, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 5957.0, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 6151.2, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 6345.4, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 6539.6, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 6733.7, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 6927.9, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 7122.1, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 7316.3, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 7510.5, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 7700.1, segs: [[101.8, 1657.3, 9], [2716.3, 6792.7, 22], [7827.8, 9383.3, 9]] },
+      { y: 7894.3, segs: [[295.6, 1657.3, 8], [2716.3, 6792.7, 22], [7827.8, 9189.4, 8]] },
+      { y: 8088.5, segs: [[295.6, 1657.3, 8], [2716.3, 6792.7, 22], [7827.8, 9189.4, 8]] },
+      { y: 8282.7, segs: [[295.6, 1657.3, 8], [2716.3, 6792.7, 22], [7827.8, 9189.4, 8]] },
+      { y: 8477.7, segs: [[489.5, 1657.3, 7], [7827.8, 8995.6, 7]] },
+      { y: 8671.7, segs: [[489.5, 1657.3, 7], [7827.8, 8995.6, 7]] }
+    ]
+  },
+  f2: {
+    name: '二楼',
+    rows: [
+      { y: 5491.0, segs: [[1015.8, 2356.5, 8], [3212.5, 7035.9, 21], [8156.9, 9499.6, 8]] },
+      { y: 5682.5, segs: [[1015.8, 2356.5, 8], [3212.5, 7035.9, 21], [8156.9, 9499.6, 8]] },
+      { y: 5873.9, segs: [[1015.8, 2356.5, 8], [3212.5, 7035.9, 21], [8156.9, 9499.6, 8]] },
+      { y: 6065.4, segs: [[1015.8, 2356.5, 8], [3212.5, 7035.9, 21], [8156.9, 9499.6, 8]] },
+      { y: 6256.9, segs: [[1207.0, 2356.5, 7], [3212.5, 7035.9, 21], [8156.9, 9308.4, 7]] },
+      { y: 6448.4, segs: [[1398.1, 2356.5, 6], [3212.5, 7035.9, 21], [8156.9, 9117.3, 6]] },
+      { y: 6639.9, segs: [[1782.3, 2356.5, 4], [3212.5, 7035.9, 21], [8156.9, 8924.3, 5]] }
+    ]
+  }
+};
+
+export const PALETTE = [
+  '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948',
+  '#b07aa1', '#ff9da7', '#9c755f', '#8cd17d', '#b6992d', '#d37295'
+];
+export const COLOR_LEADER = '#6e7175';
+export const COLOR_AWARD = '#d9a62e';
+
+const pad2 = n => String(n).padStart(2, '0');
+export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function floorBounds(f) {
+  let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+  f.rows.forEach(r => {
+    yMin = Math.min(yMin, r.y); yMax = Math.max(yMax, r.y);
+    r.segs.forEach(s => { xMin = Math.min(xMin, s[0]); xMax = Math.max(xMax, s[1]); });
+  });
+  return { xMin, xMax, yMin, yMax };
+}
+
+function textColorFor(bg) {
+  const c = bg.replace('#', '');
+  const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+  return (r * 0.299 + g * 0.587 + b * 0.114) > 150 ? '#1d1d1f' : '#ffffff';
+}
+
+/* ---------- 排座 ---------- */
+
+export function allocate(input) {
+  const use2 = (input.floor2Count | 0) > 0;
+  const seats = [];
+  const floors = {};
+  ['f1', 'f2'].forEach(fk => {
+    const f = HALL[fk];
+    const rows = f.rows.map((r, ri) => {
+      let n = 0;
+      const rowSeats = [];
+      r.segs.forEach(seg => {
+        const [x0, x1, cnt] = seg;
+        for (let k = 0; k < cnt; k++) {
+          const x = cnt === 1 ? x0 : x0 + k * (x1 - x0) / (cnt - 1);
+          rowSeats.push({
+            f: fk, fName: f.name, row: ri + 1, n: ++n, x, y: r.y,
+            kind: (fk === 'f2' && !use2) ? 'unused' : 'empty',
+            classId: null, className: '', student: null, color: null
+          });
+        }
+      });
+      return rowSeats;
+    });
+    floors[fk] = { key: fk, name: f.name, rows };
+    rows.forEach(rs => seats.push(...rs));
+  });
+
+  // 领导席：一楼从最前排左侧占起
+  let lead = input.leader && input.leader.enabled ? Math.max(0, input.leader.count | 0) : 0;
+  if (lead > 0) {
+    outer1:
+    for (const rowSeats of floors.f1.rows) {
+      for (const s of rowSeats) {
+        if (s.kind !== 'empty') continue;
+        s.kind = 'leader'; s.color = COLOR_LEADER;
+        if (--lead <= 0) break outer1;
+      }
+    }
+  }
+
+  // 颁奖席：一楼从前排、主席台右侧（每排最右号往左）占起
+  let aw = input.award && input.award.enabled ? Math.max(0, input.award.count | 0) : 0;
+  const awardSeats = [];
+  if (aw > 0) {
+    outer2:
+    for (const rowSeats of floors.f1.rows) {
+      for (let i = rowSeats.length - 1; i >= 0; i--) {
+        const s = rowSeats[i];
+        if (s.kind !== 'empty') continue;
+        s.kind = 'award'; s.color = COLOR_AWARD;
+        awardSeats.push(s);
+        if (--aw <= 0) break outer2;
+      }
+    }
+  }
+  if (input.award && Array.isArray(input.award.names)) {
+    input.award.names.forEach((nm, i) => { if (awardSeats[i]) awardSeats[i].student = nm; });
+  }
+
+  // 班级：顺序即列表顺序（抽签在 UI 层完成）
+  const classes = (input.classes || []).map(c => ({ ...c }));
+  classes.forEach(c => {
+    c.count = Math.max(0, c.count | 0);
+    if (input.granularity === 'student' && Array.isArray(c.names) && c.names.length) c.count = c.names.length;
+  });
+  const active = classes.filter(c => c.count > 0);
+
+  let n2 = Math.min(Math.max(input.floor2Count | 0, 0), Math.max(active.length - 1, 0));
+  if (!active.length) n2 = 0;
+  const f1c = active.slice(0, active.length - n2);
+  const f2c = n2 > 0 ? active.slice(active.length - n2) : [];
+
+  const colorOf = {};
+  classes.forEach((c, i) => { colorOf[c.id] = PALETTE[i % PALETTE.length]; });
+
+  function assignFloor(fk, cls) {
+    const rowsN = floors[fk].rows;
+    const ordered = input.direction === 'back'
+      ? rowsN.slice().reverse()
+      : rowsN;
+    const rows = ordered.map(rs => rs.filter(s => s.kind === 'empty'));
+    let ri = 0, si = 0;
+    cls.forEach(c => {
+      let need = c.count;
+      c.floor = fk;
+      c.parts = [];
+      c.seated = 0;
+      while (need > 0 && ri < rows.length) {
+        const row = rows[ri];
+        if (si >= row.length) { ri++; si = 0; continue; }
+        const rem = row.length - si;
+        // 整班优先：当前排剩余装不下 → 整班挪到下一排（前排留空）；
+        // 班级超过任何整排时，选择分段数更少的起点（两段优于三段）
+        if (need > rem && !input.compact && ri + 1 < rows.length) {
+          const nextCap = rows[ri + 1].length;
+          if (need <= nextCap) { ri++; si = 0; continue; }
+          const fragsHere = 1 + Math.ceil((need - rem) / Math.max(nextCap, 1));
+          const fragsJump = Math.ceil(need / Math.max(nextCap, 1));
+          if (fragsJump < fragsHere) { ri++; si = 0; continue; }
+        }
+        const take = Math.min(need, rem);
+        const seg = row.slice(si, si + take);
+        c.parts.push({ row: seg[0].row, from: seg[0].n, to: seg[seg.length - 1].n, count: take });
+        seg.forEach(s => { s.kind = 'class'; s.classId = c.id; s.className = c.name; s.color = colorOf[c.id]; });
+        need -= take; si += take; c.seated += take;
+        if (si >= row.length) { ri++; si = 0; }
+      }
+      c.unseated = need;
+      if (input.granularity === 'student' && Array.isArray(c.names) && c.names.length) {
+        let k = 0;
+        c.parts.forEach(p => {
+          const rowSeats = rowsN.find(rs => rs[0].row === p.row);
+          rowSeats.forEach(s => {
+            if (s.kind === 'class' && s.classId === c.id && s.n >= p.from && s.n <= p.to) {
+              s.student = c.names[k++] || null;
+            }
+          });
+        });
+      }
+    });
+  }
+  assignFloor('f1', f1c);
+  assignFloor('f2', f2c);
+
+  const leaderCount = seats.filter(s => s.kind === 'leader').length;
+  const awardCount = seats.filter(s => s.kind === 'award').length;
+  const capacity = use2 ? 1179 : 933;
+  const available = capacity - leaderCount - awardCount;
+  const seated = active.reduce((a, c) => a + c.seated, 0);
+  const totalPeople = active.reduce((a, c) => a + c.count, 0);
+
+  return {
+    seats, classes: active, colorOf,
+    awardSeats,
+    stats: {
+      classCount: active.length, totalPeople, capacity, available,
+      seated, empty: available - seated, unseated: totalPeople - seated,
+      leaderCount, awardCount, use2
+    }
+  };
+}
+
+/* ---------- 平面图 SVG ---------- */
+
+export function buildPlanSVG(res, opts = {}) {
+  const S = 0.15, PAD = 46, SQ = 27.5;
+  const b1 = floorBounds(HALL.f1), b2 = floorBounds(HALL.f2);
+  const W = Math.round((b1.xMax - b1.xMin) * S) + PAD * 2;
+  const c1 = (b1.xMin + b1.xMax) / 2, c2 = (b2.xMin + b2.xMax) / 2;
+  const X1 = x => (x - c1) * S + W / 2;
+  const X2 = x => (x - c2) * S + W / 2;
+  const STAGE_H = 76, GAP = 104;
+  const f1Top = STAGE_H + 30;
+  const Y1 = y => f1Top + (y - b1.yMin) * S;
+  const f1H = (b1.yMax - b1.yMin) * S;
+  const f2Top = f1Top + f1H + GAP;
+  const Y2 = y => f2Top + (y - b2.yMin) * S;
+  const f2H = (b2.yMax - b2.yMin) * S;
+  const H = Math.round(f2Top + f2H + PAD);
+
+  let g = '';
+  // 舞台
+  const sx0 = X1(2716), sx1 = X1(6793);
+  g += `<rect x="${(sx0).toFixed(1)}" y="10" width="${(sx1 - sx0).toFixed(1)}" height="${STAGE_H - 16}" rx="12" class="stage-rect"/>`;
+  g += `<text x="${(W / 2).toFixed(1)}" y="${(10 + (STAGE_H - 16) / 2 + 6).toFixed(1)}" text-anchor="middle" class="stage-label">主席台</text>`;
+  g += `<text x="${PAD - 26}" y="24" class="floor-label">一楼</text>`;
+
+  // 座位
+  res.seats.forEach(s => {
+    const X = (s.f === 'f1' ? X1 : X2)(s.x);
+    const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
+    const x = (X - SQ / 2).toFixed(1), y = (Y - SQ / 2).toFixed(1);
+    const tip = `${s.fName} ${s.row}排 ${pad2(s.n)}号` +
+      (s.kind === 'class' ? ` · ${s.className}` : '') +
+      (s.student ? ` · ${s.student}` : '');
+    let cls = 'seat', fill = '';
+    if (s.kind === 'class') { fill = ` fill="${s.color}"`; }
+    else if (s.kind === 'leader') { fill = ` fill="${COLOR_LEADER}"`; }
+    else if (s.kind === 'award') { fill = ` fill="${COLOR_AWARD}"`; }
+    else if (s.kind === 'unused') { cls = 'seat unused'; }
+    else { cls = 'seat empty'; }
+    g += `<g><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"/><title>${esc(tip)}</title>`;
+    let label = '';
+    if (s.kind === 'class' && opts.showNames && s.student) label = s.student;
+    else if (opts.showNumbers && s.kind !== 'unused') label = pad2(s.n);
+    if (label) {
+      const tc = s.color ? textColorFor(s.color) : '';
+      g += `<text x="${X.toFixed(1)}" y="${(Y + (opts.showNames && label.length > 2 ? 2.5 : 3)).toFixed(1)}" text-anchor="middle" class="seat-txt${opts.showNames && label.length > 2 ? ' seat-name' : ''}"${tc ? ` fill="${tc}"` : ''}>${esc(label)}</text>`;
+    }
+    g += `</g>`;
+  });
+
+  // 排号（双侧）
+  ['f1', 'f2'].forEach(fk => {
+    const Xf = fk === 'f1' ? X1 : X2, Yf = fk === 'f1' ? Y1 : Y2;
+    HALL[fk].rows.forEach((r, ri) => {
+      let mn = Infinity, mx = -Infinity;
+      r.segs.forEach(s => { mn = Math.min(mn, s[0]); mx = Math.max(mx, s[1]); });
+      const y = (Yf(r.y) + 3.5).toFixed(1);
+      g += `<text x="${(Xf(mn) - SQ / 2 - 18).toFixed(1)}" y="${y}" text-anchor="middle" class="row-num">${ri + 1}</text>`;
+      g += `<text x="${(Xf(mx) + SQ / 2 + 18).toFixed(1)}" y="${y}" text-anchor="middle" class="row-num">${ri + 1}</text>`;
+    });
+  });
+
+  // 二楼分隔与标签
+  g += `<line x1="${PAD - 22}" y1="${(f2Top - 44).toFixed(1)}" x2="${W - PAD + 22}" y2="${(f2Top - 44).toFixed(1)}" class="floor-sep"/>`;
+  g += `<text x="${PAD - 26}" y="${(f2Top - 56).toFixed(1)}" class="floor-label">二楼 · 楼座</text>`;
+  g += `<text x="${(W - PAD + 26).toFixed(1)}" y="${(f2Top - 56).toFixed(1)}" text-anchor="end" class="floor-note">阶梯收窄 · 前排护栏</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="plan-svg" role="img" aria-label="礼堂座位平面图">${g}</svg>`;
+}
+
+/* ---------- 图例 / 汇总 / 班级指引 ---------- */
+
+export function buildLegendHTML(res) {
+  const st = res.stats;
+  let h = '';
+  res.classes.forEach(c => {
+    h += `<span class="lg-item"><i style="background:${res.colorOf[c.id]}"></i>${esc(c.name)}<b>${c.count}</b></span>`;
+  });
+  if (st.leaderCount) h += `<span class="lg-item"><i style="background:${COLOR_LEADER}"></i>领导席<b>${st.leaderCount}</b></span>`;
+  if (st.awardCount) h += `<span class="lg-item"><i style="background:${COLOR_AWARD}"></i>颁奖席<b>${st.awardCount}</b></span>`;
+  h += `<span class="lg-item"><i class="lg-empty"></i>空位<b>${st.empty >= 0 ? st.empty : 0}</b></span>`;
+  return h;
+}
+
+const partText = p => `${p.row}排 ${pad2(p.from)}–${pad2(p.to)}号`;
+
+export function buildSummaryHTML(res) {
+  const st = res.stats;
+  let rows = '';
+  res.classes.forEach(c => {
+    const seatStr = c.parts.length
+      ? c.parts.map(p => `${esc(c.floor === 'f1' ? '一楼' : '二楼')} ${esc(partText(p))}`).join('<br>')
+      : '<span class="miss">未排到座位</span>';
+    const status = c.unseated > 0 ? `<span class="miss">差 ${c.unseated} 座</span>` : '✓';
+    rows += `<tr><td>${esc(c.name)}</td><td>${c.floor === 'f1' ? '一楼' : '二楼'}</td><td>${seatStr}</td><td>${c.seated}</td><td>${status}</td></tr>`;
+  });
+  rows += `<tr class="total"><td>合计 ${st.classCount} 个班</td><td></td><td>领导席 ${st.leaderCount} · 颁奖席 ${st.awardCount}</td><td>${st.seated}</td><td>${st.unseated > 0 ? `<span class="miss">${st.unseated} 人未排</span>` : '✓'}</td></tr>`;
+  return `<table><thead><tr><th>班级</th><th>楼层</th><th>座位安排</th><th>人数</th><th>状态</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+export function buildGuideHTML(res, opts = {}) {
+  let h = '';
+  res.classes.forEach(c => {
+    const lines = c.parts.map(p =>
+      `<div class="gd-line"><span class="gd-row">${esc(c.floor === 'f1' ? '一楼' : '二楼')} · 第${p.row}排</span><span class="gd-seats">${pad2(p.from)} – ${pad2(p.to)} 号</span><span class="gd-n">${p.count} 人</span></div>`
+    ).join('');
+    let names = '';
+    if (opts.granularity === 'student' && Array.isArray(c.names) && c.names.length) {
+      const detail = [];
+      c.parts.forEach(p => {
+        for (let n = p.from; n <= p.to; n++) {
+          const idx = detail.length;
+          detail.push(`<tr><td>第${p.row}排</td><td>${pad2(n)}号</td><td>${esc(c.names[idx] || '')}</td></tr>`);
+        }
+      });
+      names = `<table class="gd-table"><thead><tr><th>排</th><th>座号</th><th>姓名</th></tr></thead><tbody>${detail.join('')}</tbody></table>`;
+    }
+    h += `<div class="gd-card">
+      <div class="gd-head"><span class="gd-name">${esc(c.name)}</span><span class="gd-count">${c.count} 人${c.unseated > 0 ? `（差 ${c.unseated} 座）` : ''}</span></div>
+      ${lines || '<div class="gd-line"><span class="miss">未排到座位</span></div>'}
+      ${names}
+      <div class="gd-foot">按座位号从左到右、从前到后入座 · 班主任带队对号</div>
+    </div>`;
+  });
+  return h || '<p class="hint">先在左侧填班级和人数。</p>';
+}

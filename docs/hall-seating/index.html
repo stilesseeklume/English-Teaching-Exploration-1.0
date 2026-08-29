@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeklume · 礼堂排座</title>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg:#f5f5f7; --surface:#fff; --surface-2:#f0f0f2; --border:#e5e5ea; --border-strong:#d1d1d6;
+    --text:#1d1d1f; --text-2:#6e6e73; --text-3:#aeaeb2; --accent:#0071e3; --accent-bg:#f0f7ff;
+    --green:#34c759; --red:#ff3b30; --amber:#b8860b;
+    --seat-empty:#ececee; --seat-stroke:#d8d8dc; --shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  [data-theme="dark"] {
+    --bg:#1c1c1e; --surface:#2c2c2e; --surface-2:#3a3a3c; --border:#3a3a3c; --border-strong:#545458;
+    --text:#f5f5f7; --text-2:#98989d; --text-3:#636366; --accent:#409cff; --accent-bg:rgba(64,156,255,.15);
+    --green:#30d158; --red:#ff453a; --amber:#d9a62e;
+    --seat-empty:#3a3a3c; --seat-stroke:#48484a; --shadow:0 1px 3px rgba(0,0,0,.3);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    padding:0 0 60px; }
+  header.site { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px;
+    padding:0 22px; height:52px; background:var(--surface); border-bottom:1px solid var(--border); }
+  .logo { font-weight:700; color:var(--accent); font-size:16px; cursor:pointer; user-select:none; }
+  .logo a { color:inherit; text-decoration:none; }
+  .hdr-sub { color:var(--text-3); font-size:12px; }
+  .theme-toggle { margin-left:auto; background:none; border:none; cursor:pointer; font-size:15px;
+    padding:4px 8px; border-radius:6px; color:var(--text-2); }
+  .theme-toggle:hover { background:var(--surface-2); }
+
+  .layout { display:grid; grid-template-columns:352px minmax(0,1fr); gap:16px;
+    max-width:1560px; margin:0 auto; padding:18px 22px 0; }
+  @media (max-width:1020px){ .layout { grid-template-columns:1fr; } }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .card h2 { font-size:13px; margin:0 0 4px; letter-spacing:.3px; }
+  .card .sub { font-size:11.5px; color:var(--text-3); margin:0 0 12px; }
+  label.fld { display:block; font-size:12px; color:var(--text-2); margin:10px 0 4px; }
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px;
+    background:var(--surface); color:var(--text); font:inherit; font-size:13px; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .chk { display:flex; align-items:center; gap:8px; font-size:13px; margin:8px 0; cursor:pointer; }
+  .chk input { width:16px; height:16px; accent-color:var(--accent); }
+  .chk .cnt { width:74px; }
+  .hintline { font-size:11.5px; color:var(--text-3); margin:6px 0 0; }
+
+  .cls-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+  .cls-idx { width:18px; text-align:center; font-size:11px; color:var(--text-3); font-variant-numeric:tabular-nums; }
+  .cls-name { flex:1; min-width:0; }
+  .cls-count { width:64px; text-align:center; }
+  .mini { border:1px solid var(--border); background:var(--surface-2); color:var(--text-2);
+    border-radius:6px; min-width:26px; height:30px; font-size:12px; cursor:pointer; padding:0 5px; }
+  .mini:hover { border-color:var(--border-strong); color:var(--text); }
+  .mini.names { font-size:11px; }
+  .mini.names.has { border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px;
+    padding:0 16px; border-radius:999px; border:1px solid var(--border); background:var(--surface);
+    color:var(--text); font-size:13px; font-weight:600; cursor:pointer; }
+  .btn:hover { border-color:var(--border-strong); }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.sm { min-height:30px; padding:0 12px; font-size:12px; }
+  .btnrow { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+
+  .statsbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .chip { background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    padding:5px 13px; font-size:12.5px; color:var(--text-2); }
+  .chip b { color:var(--text); font-variant-numeric:tabular-nums; }
+  .chip.warn { background:rgba(255,59,48,.12); border-color:rgba(255,59,48,.4); color:var(--red); font-weight:600; }
+  .chip.ok { color:var(--green); }
+
+  .toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .tabs { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
+  .tab { border:none; background:none; padding:6px 15px; border-radius:999px; font-size:13px;
+    font-weight:600; color:var(--text-2); cursor:pointer; }
+  .tab.active { background:var(--accent); color:#fff; }
+  .tgl { display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--text-2); }
+  .tgl input { accent-color:var(--accent); width:14px; height:14px; }
+  .toolbar .spacer { flex:1; }
+
+  .view { display:none; }
+  .view.active { display:block; }
+  .print-head { font-size:15px; font-weight:700; margin:2px 0 10px; }
+  .print-head span { color:var(--text-3); font-weight:400; font-size:12.5px; margin-left:10px; }
+
+  .plan-scroll { overflow-x:auto; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:14px 8px 8px; }
+  .plan-svg { display:block; width:100%; min-width:920px; height:auto; }
+  .seat { stroke:rgba(0,0,0,.16); stroke-width:.6; }
+  .seat.empty { fill:var(--seat-empty); stroke:var(--seat-stroke); }
+  .seat.unused { fill:none; stroke:var(--seat-stroke); stroke-dasharray:3 3; opacity:.4; }
+  .seat-txt { font-size:8px; font-family:-apple-system,"PingFang SC",sans-serif; pointer-events:none; }
+  .seat-name { font-size:6.6px; }
+  .row-num { font-size:11px; fill:var(--text-2); font-family:-apple-system,sans-serif; }
+  .stage-rect { fill:var(--accent-bg); stroke:var(--accent); stroke-width:1.2; }
+  .stage-label { font-size:17px; fill:var(--accent); font-weight:700; }
+  .floor-label { font-size:14px; font-weight:700; fill:var(--text-2); }
+  .floor-note { font-size:10px; fill:var(--text-3); }
+  .floor-sep { stroke:var(--border-strong); stroke-dasharray:6 6; }
+
+  .legend { display:flex; flex-wrap:wrap; gap:7px 14px; padding:10px 6px 2px; }
+  .lg-item { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-2); }
+  .lg-item i { width:13px; height:13px; border-radius:3px; display:inline-block; border:1px solid rgba(0,0,0,.15); }
+  .lg-item b { color:var(--text); font-variant-numeric:tabular-nums; }
+  .lg-empty { background:var(--seat-empty); border:1px solid var(--seat-stroke); }
+
+  .table-scroll { overflow:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  table { border-collapse:collapse; width:100%; font-size:13px; white-space:nowrap; }
+  th, td { padding:8px 12px; border-bottom:1px solid var(--border); text-align:left; }
+  th { position:sticky; top:0; background:var(--surface-2); font-weight:600; }
+  tr.total td { font-weight:700; background:var(--surface-2); }
+  .miss { color:var(--red); font-weight:600; }
+
+  .gd-card { background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:20px 24px; margin-bottom:14px; break-inside:avoid; page-break-after:always; }
+  .gd-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+  .gd-name { font-size:20px; font-weight:800; }
+  .gd-count { font-size:14px; color:var(--text-2); }
+  .gd-line { display:flex; gap:18px; align-items:baseline; padding:8px 0; border-bottom:1px dashed var(--border); }
+  .gd-row { font-size:15px; font-weight:700; min-width:110px; }
+  .gd-seats { font-size:19px; font-weight:800; color:var(--accent); letter-spacing:1px; font-variant-numeric:tabular-nums; }
+  .gd-n { margin-left:auto; font-size:13px; color:var(--text-2); }
+  .gd-table { margin-top:10px; font-size:12.5px; }
+  .gd-table td, .gd-table th { padding:4px 10px; }
+  .gd-foot { margin-top:10px; font-size:11.5px; color:var(--text-3); }
+
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200;
+    align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    width:460px; max-width:100%; padding:22px; }
+  .modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .modal-head h3 { margin:0; font-size:16px; }
+  .modal textarea { min-height:200px; font-size:13px; line-height:1.7; }
+  .modal .note { font-size:12px; color:var(--text-3); margin-top:8px; }
+  .modal-actions { margin-top:14px; display:flex; gap:10px; }
+
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px);
+    background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:999px;
+    padding:9px 20px; font-size:13px; box-shadow:0 4px 20px rgba(0,0,0,.18); opacity:0;
+    transition:all .25s; pointer-events:none; z-index:300; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .privacy { margin:14px 0 0; padding:9px 14px; border:1px solid var(--border); border-radius:10px;
+    background:var(--surface); color:var(--text-2); font-size:12.5px; }
+  .hist-row { display:flex; gap:8px; margin-top:8px; }
+  .hist-row select { flex:1; }
+  a.back { color:var(--accent); text-decoration:none; font-size:13px; }
+  .empty-hint { color:var(--text-3); font-size:13px; padding:30px 0; text-align:center; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    header.site, .panel, .toolbar, .statsbar, .privacy, .toast, .modal-overlay, .no-print { display:none !important; }
+    .layout { display:block; padding:0; max-width:none; }
+    .view { display:none !important; }
+    body[data-view="plan"] #view-plan,
+    body[data-view="summary"] #view-summary,
+    body[data-view="guide"] #view-guide { display:block !important; }
+    .plan-scroll { overflow:visible; border:none; background:none; }
+    .plan-svg { width:100%; min-width:0; }
+    .gd-card { page-break-after:always; }
+    .table-scroll { overflow:visible; border:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="logo"><a href="../">Seeklume</a></div>
+  <div class="hdr-sub">礼堂排座 · Hall Seating</div>
+  <button class="theme-toggle" id="themeBtn" title="切换深浅色">◐</button>
+</header>
+
+<div class="layout">
+  <!-- ========== 左：参数面板 ========== -->
+  <aside class="panel">
+    <div class="card">
+      <h2>会议信息</h2>
+      <p class="sub">用于打印标题、文件名和存档</p>
+      <input type="text" id="mtgName" placeholder="如：高一年级期中表彰大会">
+      <label class="fld">日期</label>
+      <input type="date" id="mtgDate">
+    </div>
+
+    <div class="card">
+      <h2>班级与人数</h2>
+      <p class="sub">顺序即排座顺序；可抽签、可上下移动</p>
+      <div id="classList"></div>
+      <div class="btnrow">
+        <button class="btn sm" id="addClass">＋ 添加班级</button>
+        <button class="btn sm" id="drawBtn">🎲 抽签</button>
+        <button class="btn sm" id="resetOrder">还原顺序</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>排座规则</h2>
+      <label class="fld">排座方向</label>
+      <select id="direction">
+        <option value="front">前排 → 后排（先坐前排）</option>
+        <option value="back">后排 → 前排（先坐后排）</option>
+      </select>
+      <label class="fld">上二楼的班级数（排在队尾的班）</label>
+      <input type="number" id="floor2Count" min="0" max="20" value="4">
+      <p class="hintline" id="f2Hint"></p>
+      <label class="chk"><input type="checkbox" id="compact"> 紧凑排座（允许一个班拆到相邻两排，减少空位）</label>
+      <label class="chk"><input type="checkbox" id="leaderOn" checked> 领导席 · 一楼第 1 排起</label>
+      <div class="grid2">
+        <input type="number" id="leaderCount" min="0" max="60" value="13" title="领导席人数">
+        <span class="hintline" style="align-self:center">预留人数（默认整排 13）</span>
+      </div>
+      <label class="chk"><input type="checkbox" id="awardOn"> 颁奖席 · 前排靠主席台右侧</label>
+      <div class="grid2">
+        <input type="number" id="awardCount" min="0" max="80" value="10" title="颁奖席人数">
+        <button class="btn sm" id="awardNamesBtn" style="align-self:center">颁奖名单</button>
+      </div>
+      <label class="fld">输出粒度</label>
+      <label class="chk"><input type="radio" name="gran" value="class" checked> 班级级（只排号段）</label>
+      <label class="chk"><input type="radio" name="gran" value="student"> 学生级（贴名单逐人对号）</label>
+    </div>
+
+    <div class="card no-print">
+      <h2>历史与备份</h2>
+      <p class="sub">配置自动保存在本机浏览器</p>
+      <div class="hist-row">
+        <select id="histSel"><option value="">— 历史会议 —</option></select>
+        <button class="btn sm" id="histLoad">载入</button>
+        <button class="btn sm" id="histDel">删除</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn sm" id="histSave">存入历史</button>
+        <button class="btn sm" id="jsonExport">导出 JSON</button>
+        <button class="btn sm" id="jsonImportBtn">导入 JSON</button>
+        <input type="file" id="jsonImport" accept=".json" style="display:none">
+      </div>
+    </div>
+
+    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。</p>
+  </aside>
+
+  <!-- ========== 右：结果区 ========== -->
+  <main>
+    <div class="statsbar" id="statsbar"></div>
+
+    <div class="toolbar no-print">
+      <div class="tabs">
+        <button class="tab active" data-view="plan">平面图</button>
+        <button class="tab" data-view="summary">汇总表</button>
+        <button class="tab" data-view="guide">班级指引单</button>
+      </div>
+      <label class="tgl"><input type="checkbox" id="showNumbers" checked> 座位号</label>
+      <label class="tgl"><input type="checkbox" id="showNames" disabled> 姓名</label>
+      <span class="spacer"></span>
+      <button class="btn" id="printBtn">🖨 打印本页</button>
+      <button class="btn primary" id="excelBtn">导出 Excel</button>
+    </div>
+
+    <section class="view active" id="view-plan">
+      <div class="print-head" id="printHead"></div>
+      <div class="plan-scroll"><div id="planBox"></div></div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="view" id="view-summary">
+      <div class="table-scroll" id="summaryBox"></div>
+    </section>
+
+    <section class="view" id="view-guide">
+      <div id="guideBox"></div>
+    </section>
+  </main>
+</div>
+
+<!-- 名单编辑弹窗 -->
+<div class="modal-overlay" id="namesModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="namesTitle">名单</h3><button class="mini" id="namesClose">×</button></div>
+    <textarea id="namesArea" placeholder="每行一位，取每行最后一个词作姓名：&#10;01 张三&#10;02 李四&#10;王五"></textarea>
+    <div class="note" id="namesCount"></div>
+    <div class="modal-actions">
+      <button class="btn primary" id="namesSave">保存名单</button>
+      <button class="btn" id="namesClear">清空</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { HALL, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML } from './hall-seating.js';
+
+const $ = id => document.getElementById(id);
+const pad2 = n => String(n).padStart(2, '0');
+const LS_CUR = 'hall-seating-current-v1';
+const LS_HIST = 'hall-seating-history-v1';
+const TOTAL_SEATS = 1179;
+
+const state = {
+  meeting: { name: '', date: new Date().toISOString().slice(0, 10) },
+  classes: [],
+  settings: {
+    direction: 'front',
+    compact: false,
+    floor2Count: 4,
+    leader: { enabled: true, count: 13 },
+    award: { enabled: false, count: 10, names: [] },
+    granularity: 'class'
+  },
+  view: 'plan',
+  showNumbers: true,
+  showNames: false
+};
+let result = null;
+let namesTarget = null; // {type:'class', id} | {type:'award'}
+
+/* ---------- 持久化 ---------- */
+function snapshot() {
+  return {
+    meeting: { ...state.meeting },
+    classes: state.classes.map(c => ({ id: c.id, name: c.name, count: c.count, names: c.names || [], oi: c.oi })),
+    settings: JSON.parse(JSON.stringify(state.settings))
+  };
+}
+function saveCurrent() {
+  try { localStorage.setItem(LS_CUR, JSON.stringify({ ...snapshot(), savedAt: Date.now() })); } catch (e) {}
+}
+function loadCurrent() {
+  try {
+    const raw = localStorage.getItem(LS_CUR);
+    if (!raw) return false;
+    applyConfig(JSON.parse(raw));
+    return true;
+  } catch (e) { return false; }
+}
+function applyConfig(cfg) {
+  if (cfg.meeting) state.meeting = { ...state.meeting, ...cfg.meeting };
+  if (Array.isArray(cfg.classes)) state.classes = cfg.classes.map(c => ({ ...c, names: c.names || [] }));
+  if (cfg.settings) state.settings = { ...state.settings, ...cfg.settings };
+}
+function getHist() {
+  try { return JSON.parse(localStorage.getItem(LS_HIST)) || []; } catch (e) { return []; }
+}
+function setHist(h) { try { localStorage.setItem(LS_HIST, JSON.stringify(h)); } catch (e) {} }
+
+/* ---------- 班级列表 UI ---------- */
+function nextOi() { return state.classes.reduce((m, c) => Math.max(m, c.oi || 0), 0) + 1; }
+function uid() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function renderClassList() {
+  const box = $('classList');
+  if (!state.classes.length) {
+    box.innerHTML = '<p class="empty-hint" style="padding:10px 0;">还没有班级，点下方「添加班级」</p>';
+  } else {
+    box.innerHTML = state.classes.map((c, i) => `
+      <div class="cls-row" data-id="${c.id}">
+        <span class="cls-idx">${i + 1}</span>
+        <input class="cls-name" value="${c.name.replace(/"/g, '&quot;')}" placeholder="班级名称">
+        <input class="cls-count" type="number" min="0" max="200" value="${c.count}">
+        <button class="mini names${(c.names && c.names.length) ? ' has' : ''}" title="学生名单">名单${(c.names && c.names.length) ? '·' + c.names.length : ''}</button>
+        <button class="mini up" title="上移">↑</button>
+        <button class="mini down" title="下移">↓</button>
+        <button class="mini del" title="删除">×</button>
+      </div>`).join('');
+  }
+  const max2 = Math.max(0, state.classes.length - 1);
+  const fc = $('floor2Count');
+  fc.max = Math.max(max2, 0);
+  if (+fc.value > max2) fc.value = max2;
+  $('f2Hint').textContent = state.classes.length
+    ? `0 = 只用一楼；当前 ${state.classes.length} 个班${+fc.value > 0 ? ` → 末尾 ${Math.min(+fc.value, max2)} 个班坐二楼` : ''}`
+    : '先添加班级';
+}
+
+$('classList').addEventListener('input', e => {
+  const row = e.target.closest('.cls-row');
+  if (!row) return;
+  const c = state.classes.find(c => c.id === row.dataset.id);
+  if (!c) return;
+  if (e.target.classList.contains('cls-name')) c.name = e.target.value.trim();
+  if (e.target.classList.contains('cls-count')) c.count = Math.max(0, parseInt(e.target.value, 10) || 0);
+  scheduleRender();
+});
+$('classList').addEventListener('click', e => {
+  const row = e.target.closest('.cls-row');
+  if (!row) return;
+  const idx = state.classes.findIndex(c => c.id === row.dataset.id);
+  if (idx < 0) return;
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (btn.classList.contains('del')) { state.classes.splice(idx, 1); }
+  else if (btn.classList.contains('up') && idx > 0) { [state.classes[idx - 1], state.classes[idx]] = [state.classes[idx], state.classes[idx - 1]]; }
+  else if (btn.classList.contains('down') && idx < state.classes.length - 1) { [state.classes[idx + 1], state.classes[idx]] = [state.classes[idx], state.classes[idx + 1]]; }
+  else if (btn.classList.contains('names')) { openNames({ type: 'class', id: state.classes[idx].id }); return; }
+  else return;
+  renderClassList();
+  scheduleRender();
+});
+
+$('addClass').addEventListener('click', () => {
+  state.classes.push({ id: uid(), name: `班级${state.classes.length + 1}`, count: 45, names: [], oi: nextOi() });
+  renderClassList();
+  scheduleRender();
+});
+$('drawBtn').addEventListener('click', () => {
+  for (let i = state.classes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [state.classes[i], state.classes[j]] = [state.classes[j], state.classes[i]];
+  }
+  renderClassList();
+  scheduleRender();
+  toast('已抽签打乱顺序，可点「还原顺序」恢复');
+});
+$('resetOrder').addEventListener('click', () => {
+  state.classes.sort((a, b) => (a.oi || 0) - (b.oi || 0));
+  renderClassList();
+  scheduleRender();
+});
+
+/* ---------- 名单弹窗 ---------- */
+function openNames(target) {
+  namesTarget = target;
+  let names = [], title = '';
+  if (target.type === 'class') {
+    const c = state.classes.find(c => c.id === target.id);
+    names = (c && c.names) || [];
+    title = (c ? c.name : '') + ' · 学生名单';
+  } else {
+    names = state.settings.award.names || [];
+    title = '颁奖学生名单';
+  }
+  $('namesTitle').textContent = title;
+  $('namesArea').value = names.join('\n');
+  updateNamesCount();
+  $('namesModal').classList.add('show');
+  setTimeout(() => $('namesArea').focus(), 60);
+}
+function updateNamesCount() {
+  const n = $('namesArea').value.split('\n').map(s => s.trim()).filter(Boolean).length;
+  $('namesCount').textContent = n ? `共 ${n} 人（保存后自动作为该班实到人数）` : '还没有内容';
+}
+$('namesArea').addEventListener('input', updateNamesCount);
+$('namesClose').addEventListener('click', () => $('namesModal').classList.remove('show'));
+$('namesModal').addEventListener('click', e => { if (e.target === $('namesModal')) $('namesModal').classList.remove('show'); });
+$('namesClear').addEventListener('click', () => { $('namesArea').value = ''; updateNamesCount(); });
+$('namesSave').addEventListener('click', () => {
+  const names = $('namesArea').value.split('\n').map(l => {
+    const t = l.trim();
+    if (!t) return null;
+    const parts = t.split(/\s+/);
+    return parts[parts.length - 1];
+  }).filter(Boolean);
+  if (namesTarget.type === 'class') {
+    const c = state.classes.find(c => c.id === namesTarget.id);
+    if (c) { c.names = names; c.count = names.length; }
+  } else {
+    state.settings.award.names = names;
+    if (names.length) { state.settings.award.count = names.length; $('awardCount').value = names.length; }
+  }
+  $('namesModal').classList.remove('show');
+  renderClassList();
+  scheduleRender();
+  toast(`已保存 ${names.length} 人名单`);
+});
+$('awardNamesBtn').addEventListener('click', () => openNames({ type: 'award' }));
+
+/* ---------- 设置绑定 ---------- */
+$('mtgName').addEventListener('input', e => { state.meeting.name = e.target.value; scheduleRender(); });
+$('mtgDate').addEventListener('input', e => { state.meeting.date = e.target.value; scheduleRender(); });
+$('direction').addEventListener('change', e => { state.settings.direction = e.target.value; scheduleRender(); });
+$('floor2Count').addEventListener('input', e => { state.settings.floor2Count = Math.max(0, parseInt(e.target.value, 10) || 0); renderClassList(); scheduleRender(); });
+$('compact').addEventListener('change', e => { state.settings.compact = e.target.checked; scheduleRender(); });
+$('leaderOn').addEventListener('change', e => { state.settings.leader.enabled = e.target.checked; scheduleRender(); });
+$('leaderCount').addEventListener('input', e => { state.settings.leader.count = Math.max(0, parseInt(e.target.value, 10) || 0); scheduleRender(); });
+$('awardOn').addEventListener('change', e => { state.settings.award.enabled = e.target.checked; scheduleRender(); });
+$('awardCount').addEventListener('input', e => { state.settings.award.count = Math.max(0, parseInt(e.target.value, 10) || 0); scheduleRender(); });
+document.querySelectorAll('input[name=gran]').forEach(r => r.addEventListener('change', e => {
+  state.settings.granularity = e.target.value;
+  $('showNames').disabled = e.target.value !== 'student';
+  if (e.target.value !== 'student') { state.showNames = false; $('showNames').checked = false; }
+  scheduleRender();
+}));
+$('showNumbers').addEventListener('change', e => { state.showNumbers = e.target.checked; scheduleRender(); });
+$('showNames').addEventListener('change', e => { state.showNames = e.target.checked; scheduleRender(); });
+
+/* ---------- 视图切换 / 打印 ---------- */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  state.view = t.dataset.view;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  ['plan', 'summary', 'guide'].forEach(v => $('view-' + v).classList.toggle('active', v === state.view));
+  document.body.dataset.view = state.view;
+}));
+document.body.dataset.view = 'plan';
+
+const printPageStyle = document.createElement('style');
+document.head.appendChild(printPageStyle);
+$('printBtn').addEventListener('click', () => {
+  const size = state.view === 'plan' ? 'A3 landscape' : state.view === 'guide' ? 'A4 portrait' : 'A4 landscape';
+  printPageStyle.textContent = `@page { size: ${size}; margin: 10mm; }`;
+  document.body.dataset.view = state.view;
+  window.print();
+});
+
+/* ---------- 渲染 ---------- */
+let renderTimer = null;
+function scheduleRender() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => { render(); saveCurrent(); }, 220);
+}
+function render() {
+  result = allocate({
+    classes: state.classes,
+    direction: state.settings.direction,
+    compact: state.settings.compact,
+    floor2Count: state.settings.floor2Count,
+    leader: state.settings.leader,
+    award: state.settings.award,
+    granularity: state.settings.granularity
+  });
+  const st = result.stats;
+
+  const chips = [
+    `<span class="chip">班级 <b>${st.classCount}</b></span>`,
+    `<span class="chip">总人数 <b>${st.totalPeople}</b></span>`,
+    `<span class="chip">可用座位 <b>${st.available}</b>${st.use2 ? '（两层）' : '（仅一楼）'}</span>`,
+    `<span class="chip">已排 <b>${st.seated}</b></span>`,
+    `<span class="chip">空位 <b>${Math.max(st.empty, 0)}</b></span>`
+  ];
+  if (st.unseated > 0) chips.push(`<span class="chip warn">坐不下 · 差 ${st.unseated} 座</span>`);
+  $('statsbar').innerHTML = chips.join('');
+
+  $('printHead').innerHTML = `${state.meeting.name || '礼堂排座'}<span>${state.meeting.date || ''} · 共 ${st.totalPeople} 人 · ${st.classCount} 个班 · 领导席 ${st.leaderCount} · 颁奖席 ${st.awardCount}</span>`;
+  $('planBox').innerHTML = buildPlanSVG(result, { showNumbers: state.showNumbers, showNames: state.showNames });
+  $('legend').innerHTML = buildLegendHTML(result);
+  $('summaryBox').innerHTML = buildSummaryHTML(result);
+  $('guideBox').innerHTML = buildGuideHTML(result, { granularity: state.settings.granularity });
+}
+
+/* ---------- Excel 导出 ---------- */
+$('excelBtn').addEventListener('click', () => {
+  if (!result) return;
+  if (!window.XLSX) { toast('Excel 库未加载，请检查网络后刷新'); return; }
+  const st = result.stats;
+  const sum = [['班级', '楼层', '座位安排', '人数', '状态']];
+  result.classes.forEach(c => {
+    sum.push([
+      c.name, c.floor === 'f1' ? '一楼' : '二楼',
+      c.parts.map(p => `${p.row}排 ${pad2(p.from)}-${pad2(p.to)}号`).join('；'),
+      c.seated, c.unseated > 0 ? `差${c.unseated}座` : ''
+    ]);
+  });
+  sum.push([`合计 ${st.classCount} 个班`, '', `领导席${st.leaderCount} / 颁奖席${st.awardCount}`, st.seated,
+    st.unseated > 0 ? `${st.unseated}人未排` : '']);
+  const resv = [['类型', '楼层', '排', '座号', '姓名']];
+  result.seats.filter(s => s.kind === 'leader').forEach(s => resv.push(['领导席', '一楼', s.row, s.n, '']));
+  result.awardSeats.forEach(s => resv.push(['颁奖席', '一楼', s.row, s.n, s.student || '']));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), '汇总');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resv), '预留席位');
+  const det = [['楼层', '排', '座号', '类型', '班级', '姓名']];
+  let anyName = false;
+  result.seats.forEach(s => {
+    if (s.kind === 'class' || s.kind === 'award') {
+      det.push([s.fName, s.row, s.n, s.kind === 'award' ? '颁奖席' : '', s.className || '', s.student || '']);
+      if (s.student) anyName = true;
+    }
+  });
+  if (anyName) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(det), '逐人明细');
+  const fn = `礼堂排座_${(state.meeting.name || '会议').replace(/[\\/:*?"<>|]/g, '')}_${state.meeting.date || ''}.xlsx`;
+  XLSX.writeFile(wb, fn);
+  toast('Excel 已生成下载');
+});
+
+/* ---------- 历史 / 备份 ---------- */
+function renderHist() {
+  const h = getHist();
+  $('histSel').innerHTML = '<option value="">— 历史会议 —</option>' +
+    h.map(e => `<option value="${e.id}">${e.label}</option>`).join('');
+}
+$('histSave').addEventListener('click', () => {
+  const h = getHist();
+  h.unshift({ id: uid(), label: `${state.meeting.name || '未命名会议'} ${state.meeting.date || ''}`, savedAt: Date.now(), data: snapshot() });
+  setHist(h.slice(0, 30));
+  renderHist();
+  toast('已存入历史');
+});
+$('histLoad').addEventListener('click', () => {
+  const id = $('histSel').value;
+  if (!id) { toast('先在下拉里选一场会议'); return; }
+  const e = getHist().find(x => x.id === id);
+  if (e) { applyConfig(e.data); syncSettingsUI(); renderClassList(); scheduleRender(); toast('已载入：' + e.label); }
+});
+$('histDel').addEventListener('click', () => {
+  const id = $('histSel').value;
+  if (!id) { toast('先选择要删除的会议'); return; }
+  setHist(getHist().filter(x => x.id !== id));
+  renderHist();
+  toast('已删除');
+});
+$('jsonExport').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ version: 1, ...snapshot() }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `礼堂排座配置_${state.meeting.date || 'backup'}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$('jsonImportBtn').addEventListener('click', () => $('jsonImport').click());
+$('jsonImport').addEventListener('change', e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      applyConfig(JSON.parse(rd.result));
+      syncSettingsUI(); renderClassList(); scheduleRender();
+      toast('配置已导入');
+    } catch (err) { toast('文件解析失败：' + err.message); }
+  };
+  rd.readAsText(f);
+});
+
+function syncSettingsUI() {
+  $('mtgName').value = state.meeting.name || '';
+  $('mtgDate').value = state.meeting.date || '';
+  $('direction').value = state.settings.direction;
+  $('floor2Count').value = state.settings.floor2Count;
+  $('compact').checked = !!state.settings.compact;
+  $('leaderOn').checked = !!state.settings.leader.enabled;
+  $('leaderCount').value = state.settings.leader.count;
+  $('awardOn').checked = !!state.settings.award.enabled;
+  $('awardCount').value = state.settings.award.count;
+  const gran = state.settings.granularity || 'class';
+  document.querySelectorAll('input[name=gran]').forEach(r => { r.checked = r.value === gran; });
+  $('showNames').disabled = gran !== 'student';
+}
+
+/* ---------- 主题 / 提示 ---------- */
+$('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  if (cur === 'dark') { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
+  else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+});
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ---------- 启动 ---------- */
+if (!loadCurrent()) {
+  state.classes = [1, 2, 3, 4, 5, 6, 7, 8].map(i => ({
+    id: uid() + i, name: `高一(${i})班`, count: 43 + (i % 4), names: [], oi: i
+  }));
+  toast('已填入示例班级，可直接改成你的班级');
+}
+syncSettingsUI();
+renderClassList();
+renderHist();
+render();
+</script>
+</body>
+</html>
