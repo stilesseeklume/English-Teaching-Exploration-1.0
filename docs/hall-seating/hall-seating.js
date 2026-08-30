@@ -427,98 +427,83 @@ export function swapStudents(res, ia, ib) {
   return true;
 }
 
-// 整班挪动：把班级整体搬到「从 fromSeat 起的连续空位」。
-// 落位规则：与点击空位同层同区，从该座位起按排座顺序（前排→后排、排内左→右）
-// 连续收集空位，遇到已占座位即停；不够放下全班则失败还原。班内学生按原座位顺序跟过去。
-export function moveClass(res, id, fromSeat) {
-  const c = res.classes.find(x => x.id === id);
-  if (!c) return false;
-  const E = res.seats[fromSeat];
-  if (!E || E.kind !== 'empty') return false;
+// —— 让位级联落位（核心）——
+// 把一批"要动的人/班"整体插入到目标座位起的位置；后续所有占座依次向后顺延（互斥让位往下排）。
+// - 不限区、不限层：按全场排座阅读顺序（一楼→二楼、排→号）定义"向下"。
+// - 目标座可为空位、也可为已占位：被占的位置把原人挤到后面，绝不丢人、绝不因"空位不够连续"而失败。
+// - 人数守恒：总占用不变，仅重排位置；未选中的人/班保留各自班级归属。
+// moverIdxList：待移动座位下标（须为 kind==='class' 且有 classId）；targetIdx：目标座位下标。
+// 返回是否成功（仅目标为锁定座/全场无可排位时失败）。
+export function cascadePlace(res, moverIdxList, targetIdx) {
+  if (!Array.isArray(moverIdxList) || !moverIdxList.length) return false;
+  const T = res.seats[targetIdx];
+  if (!T || T.kind === 'unused' || T.kind === 'leader' || T.kind === 'award') return false;
 
-  const olds = [];
-  res.seats.forEach((s, i) => { if (s.kind === 'class' && s.classId === id) olds.push({ i, student: s.student }); });
-  if (!olds.length) return false;
+  const lock = k => k === 'unused' || k === 'leader' || k === 'award';
+  // 1) 全场可排座位有序表（排除锁定座），rankIdx：座位下标→阅读顺序位
+  const rank = [], rankIdx = new Map();
+  res.seats.forEach((s, i) => { if (!lock(s.kind)) { rankIdx.set(i, rank.length); rank.push({ i, s }); } });
+  const L = rank.length;
 
-  olds.forEach(o => {
-    const s = res.seats[o.i];
-    s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; s.seq = null;
+  // 2) mover（保留传入顺序＝点选/班内顺序），记录来源 rank
+  const movers = [], srcRanks = [];
+  for (const i of moverIdxList) {
+    const s = res.seats[i];
+    if (s.kind !== 'class' || !s.classId) continue;
+    movers.push({ student: s.student, classId: s.classId });
+    const r = rankIdx.get(i);
+    if (r != null) srcRanks.push(r);
+  }
+  if (!movers.length) return false;
+  const m = movers.length;
+
+  // 3) 占用序列（空位→null）
+  const occ = rank.map(({ i }) => {
+    const s = res.seats[i];
+    return (s.kind === 'class' && s.classId) ? { student: s.student, classId: s.classId } : null;
+  });
+  // 4) 移除 mover 来源占用（仅清 mover，空位结构保留）
+  srcRanks.forEach(r => { occ[r] = null; });
+
+  // 5) 在目标 rank k 处"插入"mover 块：
+  //    - [0..k) 保持原状（含自然空位）
+  //    - [k..k+m) 放 mover
+  //    - [k+m..L) 由原 [k..L) 中剩余的占座依阅读顺序依次填下（占位让位下排，无空洞）
+  const k = rankIdx.get(targetIdx) ?? L;
+  const tail = occ.slice(k).filter(x => x != null);
+
+  rank.forEach(({ i, s }, r) => {
+    let o;
+    if (r < k) o = occ[r];
+    else if (r < k + m) o = movers[r - k];
+    else o = tail[r - (k + m)] ?? null;
+    if (!o) {
+      if (s.kind === 'class') { s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; }
+      return;
+    }
+    const c = res.classes.find(x => x.id === o.classId);
+    s.kind = 'class'; s.classId = o.classId; s.className = c ? c.name : ''; s.color = c ? res.colorOf[o.classId] : null; s.student = o.student;
   });
 
-  const cand = res.seats
-    .map((s, i) => ({ s, i }))
-    .filter(o => o.s.f === E.f && o.s.zone === E.zone && o.s.kind !== 'unused'
-      && (o.s.row > E.row || (o.s.row === E.row && o.s.n >= E.n)))
-    .sort((a, b) => a.s.row - b.s.row || a.s.n - b.s.n);
-  const targets = [];
-  for (const o of cand) {
-    if (o.s.kind !== 'empty') break;
-    targets.push(o.i);
-    if (targets.length >= olds.length) break;
-  }
-  if (targets.length < olds.length) {
-    olds.forEach(o => {
-      const s = res.seats[o.i];
-      s.kind = 'class'; s.classId = id; s.className = c.name; s.color = res.colorOf[id]; s.student = o.student;
-    });
-    reindexRes(res);
-    return false;
-  }
-  targets.forEach((ti, k) => {
-    const s = res.seats[ti];
-    s.kind = 'class'; s.classId = id; s.className = c.name; s.color = res.colorOf[id]; s.student = olds[k].student ?? null;
-  });
   reindexRes(res);
   return true;
 }
 
-// 学生批量挪动：把多个学生（可跨班）按传入顺序搬到「从 toSeat 起的连续空位」。
-// 不足则整体还原，绝不做半截挪动。每个学生保留自己的班级归属。
+// 整班挪动：把班级整体级联插入到「从 fromSeat 起」的位置（跨区/跨楼，占位自动让位下排）。
+// 班内学生按原座位顺序跟过去。目标可为空位或已占用座。
+export function moveClass(res, id, fromSeat) {
+  const idxs = res.seats.map((s, i) => i)
+    .filter(i => res.seats[i].kind === 'class' && res.seats[i].classId === id)
+    .sort((a, b) => (res.seats[a].seq || 0) - (res.seats[b].seq || 0));
+  if (!idxs.length) return false;
+  return cascadePlace(res, idxs, fromSeat);
+}
+
+// 学生批量挪动：把多个学生（可跨班、跨区、跨楼）按点选顺序级联插入到「toSeat 起」的位置。
+// 自动让位下排：目标位及其后的占座会被依次挤后，不再要求"空位不够就失败"。
 export function moveStudents(res, fromIdxs, toIdx) {
   if (!Array.isArray(fromIdxs) || !fromIdxs.length) return false;
-  const E = res.seats[toIdx];
-  if (!E || E.kind !== 'empty') return false;
-
-  const moved = fromIdxs.map(i => {
-    const s = res.seats[i];
-    return { i, student: s.student, classId: s.classId };
-  });
-  if (moved.some(m => !res.seats[m.i] || res.seats[m.i].kind !== 'class')) return false;
-
-  moved.forEach(m => {
-    const s = res.seats[m.i];
-    s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; s.seq = null;
-  });
-
-  const cand = res.seats
-    .map((s, i) => ({ s, i }))
-    .filter(o => o.s.f === E.f && o.s.zone === E.zone && o.s.kind !== 'unused'
-      && (o.s.row > E.row || (o.s.row === E.row && o.s.n >= E.n)))
-    .sort((a, b) => a.s.row - b.s.row || a.s.n - b.s.n);
-  const targets = [];
-  for (const o of cand) {
-    if (o.s.kind !== 'empty') break;
-    targets.push(o.i);
-    if (targets.length >= moved.length) break;
-  }
-  if (targets.length < moved.length) {
-    moved.forEach(m => {
-      const s = res.seats[m.i];
-      s.student = m.student; s.classId = m.classId;
-      const c = res.classes.find(x => x.id === m.classId);
-      s.kind = 'class'; s.className = c ? c.name : ''; s.color = c ? res.colorOf[c.id] : null;
-    });
-    reindexRes(res);
-    return false;
-  }
-  moved.forEach((m, k) => {
-    const s = res.seats[targets[k]];
-    s.student = m.student; s.classId = m.classId; s.kind = 'class';
-    const c = res.classes.find(x => x.id === m.classId);
-    s.className = c ? c.name : ''; s.color = c ? res.colorOf[m.classId] : null;
-  });
-  reindexRes(res);
-  return true;
+  return cascadePlace(res, fromIdxs, toIdx);
 }
 
 /* ---------- 平面图 SVG ---------- */

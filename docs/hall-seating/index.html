@@ -268,7 +268,7 @@
       </div>
     </div>
 
-    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。<br>版本 2026.08.30.3（班级整班·绝不跨楼层·不碎块）</p>
+    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。<br>版本 2026.08.30.4（手动调整·整班/多生跨区跨楼级联落位·占位自动让位）</p>
   </aside>
 
   <!-- ========== 右：结果区 ========== -->
@@ -323,7 +323,7 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapClasses, swapStudents, moveClass, moveStudents } from './hall-seating.js';
+import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapClasses, swapStudents, cascadePlace, moveClass, moveStudents } from './hall-seating.js';
 
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, '0');
@@ -399,6 +399,7 @@ function renderClassList() {
         <input class="cls-name" value="${c.name.replace(/"/g, '&quot;')}" placeholder="班级名称">
         <input class="cls-count" type="number" min="0" max="200" value="${c.count}">
         <button class="mini names${(c.names && c.names.length) ? ' has' : ''}" title="学生名单">名单${(c.names && c.names.length) ? '·' + c.names.length : ''}</button>
+        <button class="mini sel" title="手动调整时：把该班全部已排座位选为待移动，再点任意座落位（跨区跨楼）">选</button>
         <button class="mini up" title="上移">↑</button>
         <button class="mini down" title="下移">↓</button>
         <button class="mini del" title="删除">×</button>
@@ -433,6 +434,7 @@ $('classList').addEventListener('click', e => {
   else if (btn.classList.contains('up') && idx > 0) { [state.classes[idx - 1], state.classes[idx]] = [state.classes[idx], state.classes[idx - 1]]; }
   else if (btn.classList.contains('down') && idx < state.classes.length - 1) { [state.classes[idx + 1], state.classes[idx]] = [state.classes[idx], state.classes[idx + 1]]; }
   else if (btn.classList.contains('names')) { openNames({ type: 'class', id: state.classes[idx].id }); return; }
+  else if (btn.classList.contains('sel')) { batSelectClass(state.classes[idx].id); return; }
   else return;
   renderClassList();
   scheduleRender();
@@ -547,19 +549,24 @@ function updateManualBar() {
   document.body.dataset.manual = state.manual ? '1' : '0';
   if (!state.manual) { bar.hidden = true; return; }
   bar.hidden = false;
-  const chips = `<button class="chip-btn${state.studentMode === 'move' ? ' on' : ''}" data-sm="move" title="点学生选中（可多选），再点空位批量挪过去">批量挪动</button><button class="chip-btn${state.studentMode === 'swap' ? ' on' : ''}" data-sm="swap" title="依次点两个学生，互换位置">两人互换</button>`;
+  const mk = (sm, label, tip) => `<button class="chip-btn${state.studentMode === sm ? ' on' : ''}" data-sm="${sm}" title="${tip}">${label}</button>`;
+  const chips = mk('move', '批量挪动', '点学生选中（可多选），再点空位批量挪过去') + mk('over', '覆盖落位', '按住 ⇧/⌘/Ctrl 点学生选中，再点任意座位即在此落位，被占座自动让位下排') + mk('swap', '两人互换', '依次点两个学生，互换位置');
   let msg;
-  if (state.selSeats.length) {
+  if (state.studentMode === 'over') {
+    msg = state.selSeats.length
+      ? `${chips}<b>已选 ${state.selSeats.length} 名/班</b> → 点<b>任意座位</b>在此落位（跨区跨楼，占位自动让位下排）· 按住 ⇧/⌘ 点学生追加选择`
+      : `${chips}点<b>任意座位</b>作为落位目标先选好学生：按住 <b>⇧/⌘/Ctrl 点学生</b>多选，再点任意座位落位`;
+  } else if (state.selSeats.length) {
     msg = state.studentMode === 'swap'
       ? `${chips}<b>再点一个学生</b>与之互换位置`
-      : `${chips}<b>已选 ${state.selSeats.length} 名学生</b> → 点空位批量挪过去（按点选顺序落座）· 再点已选学生可取消`;
+      : `${chips}<b>已选 ${state.selSeats.length} 名学生</b> → 点空位批量挪过去（跨区跨楼·占位自动让位下排）· 再点已选学生可取消`;
   } else if (state.selClass) {
     const cn = result ? result.classes.find(c => c.id === state.selClass) : null;
     msg = cn
       ? `${chips}<b>已选中「${esc(cn.name)}」${cn.count}人</b> → 点另一班互换 · 点空位整班挪过去`
       : chips;
   } else {
-    msg = `${chips}点座位上的<b>学生</b>可多选，再点<b>空位</b>批量挪过去；点班级色块可整班互换/挪动`;
+    msg = `${chips}点座位上的<b>学生</b>可多选，再点<b>空位</b>整批挪过去（跨区跨楼自动让位）；「覆盖落位」可落到任意被占座位；点班级色块可整班互换/挪动`;
   }
   bar.innerHTML = msg;
 }
@@ -573,6 +580,18 @@ $('manualBar').addEventListener('click', e => {
 });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// 手动调整：一键把某个班的全部已排座位选为待移动（跨区/跨楼落位）
+function batSelectClass(id) {
+  if (!state.manual || !result) { toast('请先开启「✋ 手动调整」再用「选」'); return; }
+  state.selSeats = [];
+  result.seats.forEach((s, i) => { if (s.kind === 'class' && s.classId === id) state.selSeats.push(i); });
+  state.selClass = null;
+  const cn = result.classes.find(c => c.id === id);
+  toast(`已选「${cn ? cn.name : ''}」全部 ${state.selSeats.length} 个座 → 点空位/任意座整班落位（跨区跨楼自动让位）`);
+  updateManualBar();
+  renderViews();
+}
+
 $('planBox').addEventListener('click', e => {
   if (!state.manual || !result) return;
   const gSeat = e.target.closest('g[data-seat]');
@@ -582,18 +601,43 @@ $('planBox').addEventListener('click', e => {
   if (!seat || seat.kind === 'leader' || seat.kind === 'award' || seat.kind === 'unused') return;
   const isPerson = seat.kind === 'class' && !!seat.student;
 
+  // —— 覆盖落位模式：点任意（含被占）座位落位；按住 ⇧/⌘/Ctrl 点学生则是追加/取消选择 ——
+  if (state.studentMode === 'over') {
+    const mod = e.metaKey || e.ctrlKey || e.shiftKey;
+    if (mod && isPerson) {
+      const at = state.selSeats.indexOf(si);
+      if (at >= 0) state.selSeats.splice(at, 1);
+      else state.selSeats.push(si);
+      state.selClass = null;
+      updateManualBar();
+      renderViews();
+      return;
+    }
+    if (!state.selSeats.length) {
+      toast('先选学生：按住 ⇧ / ⌘ 点座位上的学生多选，再点任意座位落位');
+      return;
+    }
+    const n = state.selSeats.length;
+    const ok = cascadePlace(result, state.selSeats.slice(), si);
+    state.selSeats = [];
+    toast(ok ? `已把 ${n} 名学生/班落到新位置（占位自动让位下排）` : '目标座位不可用');
+    updateManualBar();
+    renderViews();
+    return;
+  }
+
   // —— 空位：把已选学生批量挪过去；否则把已选整班挪过去 ——
   if (seat.kind === 'empty') {
     if (state.selSeats.length) {
       const n = state.selSeats.length;
       const okMove = moveStudents(result, state.selSeats.slice(), si);
       state.selSeats = [];
-      toast(okMove ? `已把 ${n} 名学生挪到新位置` : '这里往后连续空位不够，换个更空的位置再试');
+      toast(okMove ? `已把 ${n} 名学生挪到新位置` : '目标不可用');
     } else if (state.selClass) {
       const cn = result.classes.find(c => c.id === state.selClass);
       const okMove = moveClass(result, state.selClass, si);
       state.selClass = null;
-      toast(okMove ? `已把「${cn ? cn.name : ''}」整班挪到新位置` : '这里往后连续空位不够放下全班，换个更空的地方');
+      toast(okMove ? `已把「${cn ? cn.name : ''}」整班挪到新位置` : '目标不可用');
     } else {
       toast('先点一个学生（可多选）或一个班，再点空位挪过去');
     }
