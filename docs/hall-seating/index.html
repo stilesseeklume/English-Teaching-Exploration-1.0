@@ -60,6 +60,8 @@
   .mini:hover { border-color:var(--border-strong); color:var(--text); }
   .mini.names { font-size:11px; }
   .mini.names.has { border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .no-names-tag { flex:none; font-size:10px; color:var(--amber); border:1px dashed color-mix(in srgb, var(--amber) 60%, transparent);
+    border-radius:6px; padding:1px 4px; white-space:nowrap; cursor:help; }
   .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px;
     padding:0 16px; border-radius:999px; border:1px solid var(--border); background:var(--surface);
     color:var(--text); font-size:13px; font-weight:600; cursor:pointer; }
@@ -268,7 +270,7 @@
       </div>
     </div>
 
-    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。<br>版本 2026.08.30.4（手动调整·整班/多生跨区跨楼级联落位·占位自动让位）</p>
+    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。<br>版本 2026.08.30.5（手动调整·未贴名单提示·单点选学生须先贴名单）</p>
   </aside>
 
   <!-- ========== 右：结果区 ========== -->
@@ -397,6 +399,7 @@ function renderClassList() {
       <div class="cls-row" data-id="${c.id}">
         <span class="cls-idx">${i + 1}</span>
         <input class="cls-name" value="${c.name.replace(/"/g, '&quot;')}" placeholder="班级名称">
+        ${(c.names && c.names.length) ? '' : '<span class="no-names-tag" title="未粘贴学生名单 → 只能整班选择/挪动；要单独点选某个学生，请先点「名单」粘贴学生姓名">未贴名单</span>'}
         <input class="cls-count" type="number" min="0" max="200" value="${c.count}">
         <button class="mini names${(c.names && c.names.length) ? ' has' : ''}" title="学生名单">名单${(c.names && c.names.length) ? '·' + c.names.length : ''}</button>
         <button class="mini sel" title="手动调整时：把该班全部已排座位选为待移动，再点任意座落位（跨区跨楼）">选</button>
@@ -686,6 +689,10 @@ $('planBox').addEventListener('click', e => {
       state.selClass = null;
     } else {
       state.selClass = cid;
+      const cn = result.classes.find(c => c.id === cid);
+      if (cn && !cn.names.length) {
+        toast(`已选中整班「${esc(cn.name)}」（该班未贴名单，只能整班选择/挪动）· 若要单独点选某个学生，请先点该班「名单」粘贴学生`);
+      }
     }
     updateManualBar();
     renderViews();
