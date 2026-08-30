@@ -201,6 +201,8 @@ export function allocate(input) {
       }
       return placed;
     };
+    // 该班能否在本层不同区之间跨区凑出连续大块（配合兜底使用）
+    const isAdj = (a, b) => zones[a].zk === 'M' || zones[b].zk === 'M';
 
     let wingFlip = false;
     cls.forEach(c => {
@@ -211,6 +213,10 @@ export function allocate(input) {
       c.unseated = need;
       c.seqNo = 0;
       if (need <= 0) { c.unseated = 0; return; }
+
+      // 楼层级硬约束：班级绝不能跨楼层。二楼若无法让全班「聚集地」完整坐下，
+      // 则一个都不排在本层，整班留给一楼（f1 是最后一层，总能装下）。
+      // 该判定由下方兜底统一处理（单区能装→装；不能→跨区需形成整块，否则整班留一楼）。
 
       // 聚集第一：优先整班装进单个区（绝不跨左右过道）。
       // 中区优先模式下，中区装不下后两翼交替起填（左先/右先轮换）：
@@ -230,22 +236,44 @@ export function allocate(input) {
         if (zoneRemain(zi) < need) continue;
         placed = fillZone(c, zi, need);
       }
-      // 超大班兜底：单个区装不下 → 整块连续跨"相邻"区（M-L / M-R），绝不 L-R 远距跳跃、绝不散填碎片。
-      // 先选剩余最多的区做主块（主体尽量是连续大块），剩余再向相邻区整块延伸。
+      // 超大班兜底：单个区装不下 → 只在能形成「整块」时才跨相邻区（M-L / M-R），
+      // 拒绝碎尾巴孤悬。二楼凑不出整块就整班留一楼——班级绝不跨楼层、绝不碎块。
       if (placed === 0) {
-        let left = need;
-        const isAdj = (a, b) => zones[a].zk === 'M' || zones[b].zk === 'M';
+        const MIN_BLK = Math.max(6, Math.ceil(need * 0.12));
         const byRemain = zones.map((z, i) => i).sort((a, b) => zoneRemain(b) - zoneRemain(a));
-        const main = byRemain.length ? byRemain[0] : -1;
-        if (main >= 0) {
+        let done = false;
+        for (const main of byRemain) {
+          const tailNeed = need - zoneRemain(main);
+          if (tailNeed <= 0) continue;            // 单区已在前面整装
+          if (tailNeed < MIN_BLK) continue;       // 尾巴太小 = 碎块，换主区
+          const adj = byRemain.find(j => j !== main && isAdj(main, j) && zoneRemain(j) >= tailNeed);
+          if (adj == null) continue;
+          let left = need;
           left -= fillZone(c, main, left);
-          for (const i of byRemain) {
-            if (left <= 0) break;
-            if (i === main || !isAdj(main, i)) continue;
-            left -= fillZone(c, i, left);
+          left -= fillZone(c, adj, left);
+          placed = need - left;
+          done = true;
+          break;
+        }
+        if (!done) {
+          if (fk === 'f2') {
+            // 二楼凑不出整块 → 整班留一楼（f1 单区大，必能整装）
+            c.seated = 0; c.unseated = need; c.skipFloor = true;
+            return;
+          }
+          // 一楼兜底（楼层内）尽力整块延伸，避免超容
+          const main = byRemain.length ? byRemain[0] : -1;
+          if (main >= 0) {
+            let left = need;
+            left -= fillZone(c, main, left);
+            for (const i of byRemain) {
+              if (left <= 0) break;
+              if (i === main || !isAdj(main, i)) continue;
+              left -= fillZone(c, i, left);
+            }
+            placed = need - left;
           }
         }
-        placed = need - left;
       }
       c.seated = placed;
       c.unseated = need - placed;
@@ -509,6 +537,31 @@ export function buildPlanSVG(res, opts = {}) {
   g += `<text x="${(W / 2).toFixed(1)}" y="${(10 + (STAGE_H - 16) / 2 + 6).toFixed(1)}" text-anchor="middle" class="stage-label">主席台</text>`;
   g += `<text x="${PAD - 26}" y="24" class="floor-label">一楼</text>`;
 
+  // 班级名标签几何：按「同层·同区」分段，每段取包围盒中心定位
+  // （旧版取全局包围盒左上角：礼堂后排比前排宽，minX 来自后排、y 却在前排，
+  //   标签会飘到过道或邻区上空；跨区班级也只有 1 个标签）
+  const clsLabels = [];
+  const fs = 14, LBL_H = 17;
+  res.classes.forEach(c => {
+    const box = new Map();
+    res.seats.forEach(s => {
+      if (s.classId !== c.id) return;
+      const key = s.f + '|' + s.zone;
+      let b = box.get(key);
+      if (!b) { b = { mnX: Infinity, mxX: -Infinity, mnY: Infinity, mxY: -Infinity }; box.set(key, b); }
+      const X = (s.f === 'f1' ? X1 : X2)(s.x);
+      const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
+      if (X < b.mnX) b.mnX = X;
+      if (X > b.mxX) b.mxX = X;
+      if (Y < b.mnY) b.mnY = Y;
+      if (Y > b.mxY) b.mxY = Y;
+    });
+    box.forEach(b => {
+      const tw = [...c.name].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? fs : fs * 0.6), 0) + 12;
+      clsLabels.push({ x: (b.mnX + b.mxX) / 2 - tw / 2, y: (b.mnY + b.mxY) / 2 - LBL_H / 2, w: tw, h: LBL_H, color: res.colorOf[c.id], name: c.name });
+    });
+  });
+
   // 座位
   res.seats.forEach((s, si) => {
     const X = (s.f === 'f1' ? X1 : X2)(s.x);
@@ -536,30 +589,18 @@ export function buildPlanSVG(res, opts = {}) {
     } else if (opts.showNumbers && s.kind !== 'unused') {
       label = pad2(s.n);
     }
-    if (label) {
+    const covered = clsLabels.some(L => X >= L.x - 2 && X <= L.x + L.w + 2 && Y >= L.y - 2 && Y <= L.y + L.h + 2);
+    if (label && !covered) {
       const tc = s.color ? textColorFor(s.color) : '';
       g += `<text x="${X.toFixed(1)}" y="${(Y + (opts.showNames && label.length > 2 ? 2.5 : 3)).toFixed(1)}" text-anchor="middle" class="seat-txt${opts.showNames && label.length > 2 ? ' seat-name' : ''}"${tc ? ` fill="${tc}"` : ''}>${esc(label)}</text>`;
     }
     g += `</g>`;
   });
 
-  // 班级名标签：直接标在每个班色块左上角（白底小标签），不用只看底部图例
-  res.classes.forEach(c => {
-    let mnX = Infinity, mnY = Infinity;
-    res.seats.forEach(s => {
-      if (s.classId !== c.id) return;
-      const X = (s.f === 'f1' ? X1 : X2)(s.x);
-      const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
-      if (X < mnX) mnX = X;
-      if (Y < mnY) mnY = Y;
-    });
-    if (!isFinite(mnX)) return;
-    const fs = 14;
-    const tw = [...c.name].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? fs : fs * 0.6), 0) + 12;
-    const bx = mnX - SQ / 2 + 1;
-    const by = mnY - SQ / 2 + 1;
-    g += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${tw.toFixed(1)}" height="17" rx="4" fill="#ffffff" fill-opacity=".95" stroke="${res.colorOf[c.id]}" stroke-width="1.2" pointer-events="none"/>`;
-    g += `<text x="${(bx + 6).toFixed(1)}" y="${(by + 13).toFixed(1)}" font-size="${fs}" font-weight="700" fill="#1d1d1f" style="font-family:-apple-system,'PingFang SC',sans-serif" pointer-events="none">${esc(c.name)}</text>`;
+  // 班级名标签：白底 + 班级色描边，居中盖在每段色块正中，归属一目了然
+  clsLabels.forEach(L => {
+    g += `<rect x="${L.x.toFixed(1)}" y="${L.y.toFixed(1)}" width="${L.w.toFixed(1)}" height="${L.h}" rx="5" fill="#ffffff" fill-opacity=".96" stroke="${L.color}" stroke-width="1.4" pointer-events="none"/>`;
+    g += `<text x="${(L.x + L.w / 2).toFixed(1)}" y="${(L.y + 13).toFixed(1)}" font-size="${fs}" font-weight="700" fill="#1d1d1f" text-anchor="middle" style="font-family:-apple-system,'PingFang SC',sans-serif" pointer-events="none">${esc(L.name)}</text>`;
   });
 
   // 排号（双侧）
