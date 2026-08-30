@@ -171,6 +171,8 @@
     border-radius:999px; padding:3px 12px; font-size:12px; font-weight:600; cursor:pointer; }
   .chip-btn:hover { background:var(--accent-bg); }
   .chip-btn.on { background:var(--accent); color:#fff; }
+  .chip-btn.next { background:var(--accent); color:#fff; padding:4px 15px; }
+  .chip-btn[disabled] { opacity:.45; cursor:not-allowed; }
   body[data-manual="1"] .plan-svg g[data-seat] { cursor:pointer; }
 
   @media print {
@@ -270,7 +272,7 @@
       </div>
     </div>
 
-    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。<br>版本 2026.08.30.5（手动调整·未贴名单提示·单点选学生须先贴名单）</p>
+    <p class="privacy">🔒 班级名单只存在本机浏览器，不上传服务器；导出的文件只下载到你自己的电脑。<br>版本 2026.08.30.6（任意座位格可换 · 无需名单 · 可撤销）</p>
   </aside>
 
   <!-- ========== 右：结果区 ========== -->
@@ -285,7 +287,7 @@
       </div>
       <label class="tgl"><input type="checkbox" id="showNumbers" checked> 座位号</label>
       <label class="tgl"><input type="checkbox" id="showNames"> 姓名</label>
-      <button class="btn manual-btn" id="manualBtn" title="班级级：点两个班互换，或点班+空位整班挪动；学生级：选学生再点空位挪过去">✋ 手动调整</button>
+      <button class="btn manual-btn" id="manualBtn" title="先点一个或多个座位格（无需姓名），再选择目标座位">✋ 手动调整</button>
       <span class="spacer"></span>
       <button class="btn" id="printBtn">🖨 打印本页</button>
       <button class="btn" id="pngBtn">🖼 下载大图 PNG</button>
@@ -325,7 +327,7 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapClasses, swapStudents, cascadePlace, moveClass, moveStudents } from './hall-seating.js';
+import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapStudents, moveClass, moveStudents } from './hall-seating.js?v=2026083006';
 
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, '0');
@@ -352,7 +354,9 @@ const state = {
   manual: false,
   selClass: null,
   selSeats: [],
-  studentMode: 'move'
+  manualAction: 'move',
+  manualPhase: 'source',
+  manualUndo: []
 };
 let result = null;
 let namesTarget = null; // {type:'class', id} | {type:'award'}
@@ -399,10 +403,10 @@ function renderClassList() {
       <div class="cls-row" data-id="${c.id}">
         <span class="cls-idx">${i + 1}</span>
         <input class="cls-name" value="${c.name.replace(/"/g, '&quot;')}" placeholder="班级名称">
-        ${(c.names && c.names.length) ? '' : '<span class="no-names-tag" title="未粘贴学生名单 → 只能整班选择/挪动；要单独点选某个学生，请先点「名单」粘贴学生姓名">未贴名单</span>'}
+        ${(c.names && c.names.length) ? '' : '<span class="no-names-tag" title="未粘贴姓名也可以逐格移动；名单只用于在座位格上显示姓名">无姓名</span>'}
         <input class="cls-count" type="number" min="0" max="200" value="${c.count}">
         <button class="mini names${(c.names && c.names.length) ? ' has' : ''}" title="学生名单">名单${(c.names && c.names.length) ? '·' + c.names.length : ''}</button>
-        <button class="mini sel" title="手动调整时：把该班全部已排座位选为待移动，再点任意座落位（跨区跨楼）">选</button>
+        <button class="mini sel" title="选中整班：可与同人数班级换位，或移到同楼层同区的连续空白区">选</button>
         <button class="mini up" title="上移">↑</button>
         <button class="mini down" title="下移">↓</button>
         <button class="mini del" title="删除">×</button>
@@ -537,60 +541,98 @@ document.querySelectorAll('input[name=gran]').forEach(r => r.addEventListener('c
 $('showNumbers').addEventListener('change', e => { state.showNumbers = e.target.checked; renderViews(); });
 $('showNames').addEventListener('change', e => { state.showNames = e.target.checked; renderViews(); });
 
-/* ---------- 手动调整（班级互换/整班挪动 · 学生零散+批量调整） ---------- */
+/* ---------- 手动调整（明确的“选来源 → 选目标”两步流程） ---------- */
 $('manualBtn').addEventListener('click', () => {
   state.manual = !state.manual;
   state.selClass = null;
   state.selSeats = [];
+  state.manualPhase = 'source';
   $('manualBtn').classList.toggle('on', state.manual);
   updateManualBar();
   renderViews();
 });
+
+function selectedLabel() {
+  if (state.selClass && result) {
+    const c = result.classes.find(x => x.id === state.selClass);
+    return c ? `整班「${esc(c.name)}」${c.seated} 人` : '整班';
+  }
+  return state.selSeats.length ? `${state.selSeats.length} 个座位格` : '';
+}
+
+function clearManualSelection() {
+  state.selClass = null;
+  state.selSeats = [];
+  state.manualPhase = 'source';
+}
+
+function rememberManualResult() {
+  state.manualUndo.push(JSON.stringify(result));
+  if (state.manualUndo.length > 20) state.manualUndo.shift();
+}
 
 function updateManualBar() {
   const bar = $('manualBar');
   document.body.dataset.manual = state.manual ? '1' : '0';
   if (!state.manual) { bar.hidden = true; return; }
   bar.hidden = false;
-  const mk = (sm, label, tip) => `<button class="chip-btn${state.studentMode === sm ? ' on' : ''}" data-sm="${sm}" title="${tip}">${label}</button>`;
-  const chips = mk('move', '批量挪动', '点学生选中（可多选），再点空位批量挪过去') + mk('over', '覆盖落位', '按住 ⇧/⌘/Ctrl 点学生选中，再点任意座位即在此落位，被占座自动让位下排') + mk('swap', '两人互换', '依次点两个学生，互换位置');
-  let msg;
-  if (state.studentMode === 'over') {
+  const mode = (v, label) => `<button class="chip-btn${state.manualAction === v ? ' on' : ''}" data-mode="${v}">${label}</button>`;
+  const undo = `<button class="chip-btn" data-action="undo"${state.manualUndo.length ? '' : ' disabled'}>↶ 撤销上一步</button>`;
+  const modes = mode('move', '移动座位格 / 整班') + mode('swap', '两格互换') + undo;
+  const picked = selectedLabel();
+  let msg = '';
+  if (state.manualAction === 'swap') {
     msg = state.selSeats.length
-      ? `${chips}<b>已选 ${state.selSeats.length} 名/班</b> → 点<b>任意座位</b>在此落位（跨区跨楼，占位自动让位下排）· 按住 ⇧/⌘ 点学生追加选择`
-      : `${chips}点<b>任意座位</b>作为落位目标先选好学生：按住 <b>⇧/⌘/Ctrl 点学生</b>多选，再点任意座位落位`;
-  } else if (state.selSeats.length) {
-    msg = state.studentMode === 'swap'
-      ? `${chips}<b>再点一个学生</b>与之互换位置`
-      : `${chips}<b>已选 ${state.selSeats.length} 名学生</b> → 点空位批量挪过去（跨区跨楼·占位自动让位下排）· 再点已选学生可取消`;
-  } else if (state.selClass) {
-    const cn = result ? result.classes.find(c => c.id === state.selClass) : null;
-    msg = cn
-      ? `${chips}<b>已选中「${esc(cn.name)}」${cn.count}人</b> → 点另一班互换 · 点空位整班挪过去`
-      : chips;
+      ? `<b>已选第 1 个格子</b> → 直接点第 2 个格子完成互换 <button class="chip-btn" data-action="clear">取消选择</button>`
+      : `依次点两个班级座位格，直接互换；不需要姓名名单`;
+  } else if (state.manualPhase === 'target') {
+    const targetTip = state.selClass
+      ? '点同人数班级可整班换位；点同楼层同区、足够大的连续空白区可整班移动。'
+      : '可点空位，也可点已占格；目标原有格会回填到来源位置。';
+    msg = `<b>第 2 步：现在点目标座位</b> · 已选 ${picked}。${targetTip}<button class="chip-btn" data-action="back">返回选择</button>`;
+  } else if (picked) {
+    msg = `<b>第 1 步：已选 ${picked}</b> <button class="chip-btn next" data-action="target">下一步：选择目标座位</button> <button class="chip-btn" data-action="clear">取消选择</button>`;
   } else {
-    msg = `${chips}点座位上的<b>学生</b>可多选，再点<b>空位</b>整批挪过去（跨区跨楼自动让位）；「覆盖落位」可落到任意被占座位；点班级色块可整班互换/挪动`;
+    msg = `<b>第 1 步：点选要移动的座位格</b> · 每个有班级颜色的格子都能选，可连续点多个；不需要姓名。要选整班请点左侧“选”。`;
   }
-  bar.innerHTML = msg;
+  bar.innerHTML = `${modes}<span>${msg}</span>`;
 }
 $('manualBar').addEventListener('click', e => {
-  const b = e.target.closest('.chip-btn');
+  const b = e.target.closest('button');
   if (!b) return;
-  state.studentMode = b.dataset.sm;
-  state.selSeats = [];
+  if (b.dataset.mode) {
+    state.manualAction = b.dataset.mode;
+    clearManualSelection();
+  } else if (b.dataset.action === 'target') {
+    if (!state.selClass && !state.selSeats.length) { toast('请先选择要移动的座位格或班级'); return; }
+    state.manualPhase = 'target';
+  } else if (b.dataset.action === 'back') {
+    state.manualPhase = 'source';
+  } else if (b.dataset.action === 'clear') {
+    clearManualSelection();
+  } else if (b.dataset.action === 'undo' && state.manualUndo.length) {
+    result = JSON.parse(state.manualUndo.pop());
+    clearManualSelection();
+    toast('已撤销上一步手动调整');
+  }
   updateManualBar();
   renderViews();
 });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-// 手动调整：一键把某个班的全部已排座位选为待移动（跨区/跨楼落位）
+// 左侧“选”始终代表整班；若尚未打开手动模式，自动打开，少一步操作。
 function batSelectClass(id) {
-  if (!state.manual || !result) { toast('请先开启「✋ 手动调整」再用「选」'); return; }
+  if (!result) return;
+  if (!state.manual) {
+    state.manual = true;
+    $('manualBtn').classList.add('on');
+  }
   state.selSeats = [];
-  result.seats.forEach((s, i) => { if (s.kind === 'class' && s.classId === id) state.selSeats.push(i); });
-  state.selClass = null;
+  state.selClass = id;
+  state.manualAction = 'move';
+  state.manualPhase = 'source';
   const cn = result.classes.find(c => c.id === id);
-  toast(`已选「${cn ? cn.name : ''}」全部 ${state.selSeats.length} 个座 → 点空位/任意座整班落位（跨区跨楼自动让位）`);
+  toast(`已选整班「${cn ? cn.name : ''}」→ 点“下一步”，再点目标座位`);
   updateManualBar();
   renderViews();
 }
@@ -602,101 +644,74 @@ $('planBox').addEventListener('click', e => {
   const si = parseInt(gSeat.getAttribute('data-seat'), 10);
   const seat = result.seats[si];
   if (!seat || seat.kind === 'leader' || seat.kind === 'award' || seat.kind === 'unused') return;
-  const isPerson = seat.kind === 'class' && !!seat.student;
+  const isClassSeat = seat.kind === 'class' && !!seat.classId;
 
-  // —— 覆盖落位模式：点任意（含被占）座位落位；按住 ⇧/⌘/Ctrl 点学生则是追加/取消选择 ——
-  if (state.studentMode === 'over') {
-    const mod = e.metaKey || e.ctrlKey || e.shiftKey;
-    if (mod && isPerson) {
-      const at = state.selSeats.indexOf(si);
-      if (at >= 0) state.selSeats.splice(at, 1);
-      else state.selSeats.push(si);
-      state.selClass = null;
-      updateManualBar();
-      renderViews();
-      return;
-    }
-    if (!state.selSeats.length) {
-      toast('先选学生：按住 ⇧ / ⌘ 点座位上的学生多选，再点任意座位落位');
-      return;
-    }
-    const n = state.selSeats.length;
-    const ok = cascadePlace(result, state.selSeats.slice(), si);
-    state.selSeats = [];
-    toast(ok ? `已把 ${n} 名学生/班落到新位置（占位自动让位下排）` : '目标座位不可用');
-    updateManualBar();
-    renderViews();
-    return;
-  }
-
-  // —— 空位：把已选学生批量挪过去；否则把已选整班挪过去 ——
-  if (seat.kind === 'empty') {
+  // 两格互换：不依赖姓名，任意两个班级座位格都能直接交换。
+  if (state.manualAction === 'swap') {
+    if (!isClassSeat) { toast('请点一个有班级颜色的座位格'); return; }
     if (state.selSeats.length) {
-      const n = state.selSeats.length;
-      const okMove = moveStudents(result, state.selSeats.slice(), si);
-      state.selSeats = [];
-      toast(okMove ? `已把 ${n} 名学生挪到新位置` : '目标不可用');
-    } else if (state.selClass) {
-      const cn = result.classes.find(c => c.id === state.selClass);
-      const okMove = moveClass(result, state.selClass, si);
-      state.selClass = null;
-      toast(okMove ? `已把「${cn ? cn.name : ''}」整班挪到新位置` : '目标不可用');
-    } else {
-      toast('先点一个学生（可多选）或一个班，再点空位挪过去');
-    }
-    updateManualBar();
-    renderViews();
-    return;
-  }
-
-  // —— 学生（座位上有具体姓名）：多选 / 互换 ——
-  if (isPerson) {
-    state.selClass = null; // 切到学生选择时取消整班选择
-    if (state.studentMode === 'swap') {
-      if (state.selSeats.length) {
-        const a = result.seats[state.selSeats[0]];
-        const okSwap = swapStudents(result, state.selSeats[0], si);
+      const from = state.selSeats[0], a = result.seats[from];
+      const an = a.student || `${a.className}第${a.seq}格`;
+      const bn = seat.student || `${seat.className}第${seat.seq}格`;
+      if (from === si) { state.selSeats = []; toast('已取消选择'); }
+      else {
+        rememberManualResult();
+        const okSwap = swapStudents(result, from, si);
+        if (!okSwap) state.manualUndo.pop();
         state.selSeats = [];
-        toast(okSwap ? `已互换「${a.student}」和「${seat.student}」` : '无法互换该座位');
-      } else {
-        state.selSeats = [si];
-        toast(`已选中「${seat.student}」，再点另一学生互换`);
+        toast(okSwap ? `已互换「${an}」和「${bn}」` : '无法互换这两个座位');
       }
     } else {
-      const at = state.selSeats.indexOf(si);
-      if (at >= 0) state.selSeats.splice(at, 1);
-      else state.selSeats.push(si);
+      state.selSeats = [si];
+      toast(`已选中「${seat.student || `${seat.className}第${seat.seq}格`}」，再点另一个格子`);
     }
     updateManualBar();
     renderViews();
     return;
   }
 
-  // —— 班级块（未贴名单的色块）：整班互换 / 选中 ——
-  if (state.selSeats.length) { toast('已选中学生，请点空位批量挪，或切回「批量挪动」再点学生'); return; }
-  const cid = gSeat.getAttribute('data-class');
-  if (cid) {
-    if (state.selClass === cid) { state.selClass = null; }
-    else if (state.selClass) {
-      const ca = result.classes.find(c => c.id === state.selClass);
-      const cb = result.classes.find(c => c.id === cid);
-      if (ca && cb && ca.seated === cb.seated && ca.seated > 0 && !ca.names.length && !cb.names.length) {
-        swapClasses(result, state.selClass, cid);
-        toast('已互换两个班的座位');
-      } else {
-        toast('两班人数不同或已贴名单：可点住一个班再点空位整班挪动');
-      }
-      state.selClass = null;
+  // 第 2 步：当前这一下只解释为“目标”，不再与多选动作冲突。
+  if (state.manualPhase === 'target') {
+    rememberManualResult();
+    let ok = false, success = '';
+    if (state.selClass) {
+      const cn = result.classes.find(c => c.id === state.selClass);
+      ok = moveClass(result, state.selClass, si);
+      success = seat.kind === 'class'
+        ? `已将「${cn ? cn.name : ''}」与目标班级整班换位`
+        : `已将「${cn ? cn.name : ''}」整班移到空白区`;
+    } else if (state.selSeats.length) {
+      const n = state.selSeats.length;
+      ok = moveStudents(result, state.selSeats.slice(), si);
+      success = `已移动 ${n} 个座位格；目标原有格已回填到来源位置`;
+    }
+    if (!ok) {
+      state.manualUndo.pop();
+      toast(state.selClass && seat.kind === 'class'
+        ? '两班人数不同，不能整班互换；请选择同人数班级或足够大的连续空白区'
+        : '这里放不下完整目标块，请换一个更靠前的连续空白位置');
     } else {
-      state.selClass = cid;
-      const cn = result.classes.find(c => c.id === cid);
-      if (cn && !cn.names.length) {
-        toast(`已选中整班「${esc(cn.name)}」（该班未贴名单，只能整班选择/挪动）· 若要单独点选某个学生，请先点该班「名单」粘贴学生`);
-      }
+      clearManualSelection();
+      toast(success);
     }
     updateManualBar();
     renderViews();
     return;
+  }
+
+  // 第 1 步：每次普通点击都只负责选择/取消来源，不需要按快捷键。
+  if (isClassSeat) {
+    state.selClass = null;
+    const at = state.selSeats.indexOf(si);
+    if (at >= 0) state.selSeats.splice(at, 1);
+    else state.selSeats.push(si);
+    updateManualBar();
+    renderViews();
+    return;
+  }
+
+  if (seat.kind === 'empty') {
+    toast('这是空位。请先选择座位格或班级，再点“下一步”选择目标');
   }
 });
 
@@ -737,6 +752,8 @@ function render() {
   });
   state.selClass = null;
   state.selSeats = [];
+  state.manualPhase = 'source';
+  state.manualUndo = [];
   renderViews();
 }
 function renderViews() {

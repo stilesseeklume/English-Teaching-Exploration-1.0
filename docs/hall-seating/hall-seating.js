@@ -300,8 +300,8 @@ export function allocate(input) {
       });
     }
 
-    // 学生对号：凡该班贴了名单就把姓名填到座位上（不限于学生级粒度，
-    // 这样手动调整时点"座位上的学生"在任何粒度都可用）
+    // 学生对号：凡该班贴了名单就把姓名填到座位上（不限于学生级粒度）。
+    // 手动调整始终按座位格工作，是否有姓名不影响移动能力。
     cls.forEach(c => {
       if (!Array.isArray(c.names) || !c.names.length) return;
       let k2 = 0;
@@ -341,11 +341,11 @@ export function allocate(input) {
 
 // 交换两个班的全部座位（身份对调），并重排班内序号与 parts；几何块形状不变，绝不新增拆散
 export function swapClasses(res, idA, idB) {
-  if (!idA || !idB || idA === idB) return;
+  if (!idA || !idB || idA === idB) return false;
   const byId = {};
   res.classes.forEach(c => { byId[c.id] = c; });
   const ca = byId[idA], cb = byId[idB];
-  if (!ca || !cb) return;
+  if (!ca || !cb || ca.seated <= 0 || ca.seated !== cb.seated) return false;
   // 1) 互换两块区域的班级归属
   res.seats.forEach(s => {
     if (s.kind !== 'class') return;
@@ -396,23 +396,22 @@ export function reindexRes(res) {
   });
 }
 
-// 零散调整：互换两个座位的"学生 + 班级归属"，座位物理位置不变。
-// - 两个学生座位互换 → 两学生互换位置（可跨班）
-// - 学生 ↔ 空座位互换 → 学生挪到空位（空位变成该生班级座位），原座位释放为空
+// 零散调整：互换两个座位格的"姓名（可空）+ 班级归属"，座位物理位置不变。
+// 不依赖名单：只要是班级座位格，即使 student 为空也能移动/互换。
 export function swapStudents(res, ia, ib) {
   const a = res.seats[ia], b = res.seats[ib];
   if (!a || !b || ia === ib) return false;
   const lock = k => k === 'leader' || k === 'award' || k === 'unused';
   if (lock(a.kind) || lock(b.kind)) return false;
 
-  const isPerson = s => s.kind === 'class' && !!s.student;
-  if (!isPerson(a) && !isPerson(b)) return false;
+  const isClassSeat = s => s.kind === 'class' && !!s.classId;
+  if (!isClassSeat(a) && !isClassSeat(b)) return false;
 
   // 互换"学生 + 班级归属"；空座位 classId 为 null，正好把空位内容换过去
   ['student', 'classId'].forEach(k => { const t = a[k]; a[k] = b[k]; b[k] = t; });
 
   [a, b].forEach(s => {
-    if (s.student) {
+    if (s.classId) {
       s.kind = 'class';
       const c = res.classes.find(x => x.id === s.classId);
       s.className = c ? c.name : (s.className || '');
@@ -427,13 +426,13 @@ export function swapStudents(res, ia, ib) {
   return true;
 }
 
-// —— 让位级联落位（核心）——
-// 把一批"要动的人/班"整体插入到目标座位起的位置；后续所有占座依次向后顺延（互斥让位往下排）。
-// - 不限区、不限层：按全场排座阅读顺序（一楼→二楼、排→号）定义"向下"。
-// - 目标座可为空位、也可为已占位：被占的位置把原人挤到后面，绝不丢人、绝不因"空位不够连续"而失败。
-// - 人数守恒：总占用不变，仅重排位置；未选中的人/班保留各自班级归属。
+// —— 局部目标块落位（核心）——
+// 把一批"要动的人"放到目标座位起的连续位置；目标块原有人回填到来源座位。
+// - 不限区、不限层：按全场排座阅读顺序（一楼→二楼、排→号）确定目标块。
+// - 只改来源块和目标块，不整体洗牌后续座位；向前/向后移动都严格人数守恒。
+// - 整班移动另由 moveClass 加上同楼层、同区、等人数互换等硬约束。
 // moverIdxList：待移动座位下标（须为 kind==='class' 且有 classId）；targetIdx：目标座位下标。
-// 返回是否成功（仅目标为锁定座/全场无可排位时失败）。
+// 返回是否成功（目标为锁定座或目标块越界时失败）。
 export function cascadePlace(res, moverIdxList, targetIdx) {
   if (!Array.isArray(moverIdxList) || !moverIdxList.length) return false;
   const T = res.seats[targetIdx];
@@ -447,7 +446,7 @@ export function cascadePlace(res, moverIdxList, targetIdx) {
 
   // 2) mover（保留传入顺序＝点选/班内顺序），记录来源 rank
   const movers = [], srcRanks = [];
-  for (const i of moverIdxList) {
+  for (const i of [...new Set(moverIdxList)]) {
     const s = res.seats[i];
     if (s.kind !== 'class' || !s.classId) continue;
     movers.push({ student: s.student, classId: s.classId });
@@ -465,20 +464,26 @@ export function cascadePlace(res, moverIdxList, targetIdx) {
   // 4) 移除 mover 来源占用（仅清 mover，空位结构保留）
   srcRanks.forEach(r => { occ[r] = null; });
 
-  // 5) 在目标 rank k 处"插入"mover 块：
-  //    - [0..k) 保持原状（含自然空位）
-  //    - [k..k+m) 放 mover
-  //    - [k+m..L) 由原 [k..L) 中剩余的占座依阅读顺序依次填下（占位让位下排，无空洞）
+  // 5) 将 mover 放进目标块；目标块原有人员回填到 mover 的原座位。
+  //    这是一种可逆、局部的“块交换”：不会把目标之后的全场座位整体洗牌，
+  //    也不会在向后移动时把末尾人员挤出礼堂。
   const k = rankIdx.get(targetIdx) ?? L;
-  const tail = occ.slice(k).filter(x => x != null);
+  const targetRanks = Array.from({ length: m }, (_, j) => k + j).filter(r => r < L);
+  if (targetRanks.length !== m) return false;
+  const targetSet = new Set(targetRanks);
+  const sourceOutside = srcRanks.filter(r => !targetSet.has(r));
+  const displaced = targetRanks.map(r => occ[r]).filter(Boolean);
+  if (displaced.length > sourceOutside.length) return false;
 
-  rank.forEach(({ i, s }, r) => {
-    let o;
-    if (r < k) o = occ[r];
-    else if (r < k + m) o = movers[r - k];
-    else o = tail[r - (k + m)] ?? null;
+  const writes = new Map();
+  srcRanks.forEach(r => writes.set(r, null));
+  targetRanks.forEach((r, j) => writes.set(r, movers[j]));
+  sourceOutside.forEach((r, j) => writes.set(r, displaced[j] ?? null));
+
+  writes.forEach((o, r) => {
+    const { s } = rank[r];
     if (!o) {
-      if (s.kind === 'class') { s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; }
+      s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; s.seq = null;
       return;
     }
     const c = res.classes.find(x => x.id === o.classId);
@@ -489,18 +494,49 @@ export function cascadePlace(res, moverIdxList, targetIdx) {
   return true;
 }
 
-// 整班挪动：把班级整体级联插入到「从 fromSeat 起」的位置（跨区/跨楼，占位自动让位下排）。
-// 班内学生按原座位顺序跟过去。目标可为空位或已占用座。
+// 整班挪动：空白目标需在同楼层同区放得下完整班级；已占目标仅允许与同人数班级换位。
+// 班内姓名按原座位顺序跟随，绝不拆班、跨楼或把其他班挤散。
 export function moveClass(res, id, fromSeat) {
   const idxs = res.seats.map((s, i) => i)
     .filter(i => res.seats[i].kind === 'class' && res.seats[i].classId === id)
     .sort((a, b) => (res.seats[a].seq || 0) - (res.seats[b].seq || 0));
   if (!idxs.length) return false;
-  return cascadePlace(res, idxs, fromSeat);
+  const target = res.seats[fromSeat];
+  if (!target || target.kind === 'unused' || target.kind === 'leader' || target.kind === 'award') return false;
+  if (target.kind === 'class') {
+    if (target.classId === id) return false;
+    return swapClasses(res, id, target.classId);
+  }
+
+  // 整班移到空位时，目标块必须位于同一楼层、同一区，且从目标座起连续为空。
+  // 不允许为了“挪进去”而把其他班拆散或推到另一层。
+  const zoneIdxs = res.seats.map((s, i) => i).filter(i => {
+    const s = res.seats[i];
+    return s.f === target.f && s.zone === target.zone && s.kind !== 'unused' && s.kind !== 'leader' && s.kind !== 'award';
+  });
+  const at = zoneIdxs.indexOf(fromSeat);
+  if (at < 0) return false;
+  const targets = zoneIdxs.slice(at, at + idxs.length);
+  if (targets.length !== idxs.length || targets.some(i => res.seats[i].kind !== 'empty' && res.seats[i].classId !== id)) return false;
+
+  // cascadePlace 的全场目标块与“同区目标块”不一定相同，因此在这里做局部搬移。
+  const people = idxs.map(i => ({ student: res.seats[i].student, classId: id }));
+  const targetSet = new Set(targets);
+  idxs.forEach(i => {
+    if (targetSet.has(i)) return;
+    const s = res.seats[i];
+    s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; s.seq = null;
+  });
+  targets.forEach((i, j) => {
+    const s = res.seats[i], c = res.classes.find(x => x.id === id);
+    s.kind = 'class'; s.classId = id; s.className = c ? c.name : ''; s.color = res.colorOf[id]; s.student = people[j].student;
+  });
+  reindexRes(res);
+  return true;
 }
 
-// 学生批量挪动：把多个学生（可跨班、跨区、跨楼）按点选顺序级联插入到「toSeat 起」的位置。
-// 自动让位下排：目标位及其后的占座会被依次挤后，不再要求"空位不够就失败"。
+// 座位格批量挪动：把多个班级座位格（可跨班、跨区、跨楼）按点选顺序放到「toSeat 起」的位置。
+// 目标块原有人回填到来源座位，动作局部、可预期且人数守恒。
 export function moveStudents(res, fromIdxs, toIdx) {
   if (!Array.isArray(fromIdxs) || !fromIdxs.length) return false;
   return cascadePlace(res, fromIdxs, toIdx);
