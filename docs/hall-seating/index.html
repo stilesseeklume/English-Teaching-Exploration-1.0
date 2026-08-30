@@ -282,7 +282,7 @@
         <button class="tab" data-view="guide">班级指引单</button>
       </div>
       <label class="tgl"><input type="checkbox" id="showNumbers" checked> 座位号</label>
-      <label class="tgl"><input type="checkbox" id="showNames" disabled> 姓名</label>
+      <label class="tgl"><input type="checkbox" id="showNames"> 姓名</label>
       <button class="btn manual-btn" id="manualBtn" title="班级级：点两个班互换，或点班+空位整班挪动；学生级：选学生再点空位挪过去">✋ 手动调整</button>
       <span class="spacer"></span>
       <button class="btn" id="printBtn">🖨 打印本页</button>
@@ -527,8 +527,6 @@ $('awardOn').addEventListener('change', e => { state.settings.award.enabled = e.
 $('awardCount').addEventListener('input', e => { state.settings.award.count = Math.max(0, parseInt(e.target.value, 10) || 0); scheduleRender(); });
 document.querySelectorAll('input[name=gran]').forEach(r => r.addEventListener('change', e => {
   state.settings.granularity = e.target.value;
-  $('showNames').disabled = e.target.value !== 'student';
-  if (e.target.value !== 'student') { state.showNames = false; $('showNames').checked = false; }
   scheduleRender();
 }));
 $('showNumbers').addEventListener('change', e => { state.showNumbers = e.target.checked; renderViews(); });
@@ -549,19 +547,21 @@ function updateManualBar() {
   document.body.dataset.manual = state.manual ? '1' : '0';
   if (!state.manual) { bar.hidden = true; return; }
   bar.hidden = false;
-  if (state.settings.granularity === 'student') {
-    const chips = `<button class="chip-btn${state.studentMode === 'move' ? ' on' : ''}" data-sm="move" title="点学生选中（可多选），再点空位批量挪过去">批量挪动</button><button class="chip-btn${state.studentMode === 'swap' ? ' on' : ''}" data-sm="swap" title="依次点两个学生，互换位置">两人互换</button>`;
-    bar.innerHTML = state.studentMode === 'swap'
-      ? `${chips}<b>互换</b>：依次点两个学生（可跨班）即互换位置`
-      : state.selSeats.length
-        ? `${chips}<b>已选 ${state.selSeats.length} 名学生</b> → 点空位批量挪过去（按点击顺序落座）· 点已选学生取消`
-        : `${chips}<b>批量挪动</b>：点学生选中（可多选）→ 点空位挪过去`;
+  const chips = `<button class="chip-btn${state.studentMode === 'move' ? ' on' : ''}" data-sm="move" title="点学生选中（可多选），再点空位批量挪过去">批量挪动</button><button class="chip-btn${state.studentMode === 'swap' ? ' on' : ''}" data-sm="swap" title="依次点两个学生，互换位置">两人互换</button>`;
+  let msg;
+  if (state.selSeats.length) {
+    msg = state.studentMode === 'swap'
+      ? `${chips}<b>再点一个学生</b>与之互换位置`
+      : `${chips}<b>已选 ${state.selSeats.length} 名学生</b> → 点空位批量挪过去（按点选顺序落座）· 再点已选学生可取消`;
+  } else if (state.selClass) {
+    const cn = result ? result.classes.find(c => c.id === state.selClass) : null;
+    msg = cn
+      ? `${chips}<b>已选中「${esc(cn.name)}」${cn.count}人</b> → 点另一班互换 · 点空位整班挪过去`
+      : chips;
   } else {
-    const cn = state.selClass && result ? result.classes.find(c => c.id === state.selClass) : null;
-    bar.innerHTML = cn
-      ? `<b>已选中「${esc(cn.name)}」${cn.count} 人</b> → 点另一班互换 · 点空位整班挪过去 · 再点该班取消`
-      : `<b>班级调整</b>：点一个班 → 点另一个班互换，或点空位把整班挪过去（人数不同也可挪）`;
+    msg = `${chips}点座位上的<b>学生</b>可多选，再点<b>空位</b>批量挪过去；点班级色块可整班互换/挪动`;
   }
+  bar.innerHTML = msg;
 }
 $('manualBar').addEventListener('click', e => {
   const b = e.target.closest('.chip-btn');
@@ -580,58 +580,64 @@ $('planBox').addEventListener('click', e => {
   const si = parseInt(gSeat.getAttribute('data-seat'), 10);
   const seat = result.seats[si];
   if (!seat || seat.kind === 'leader' || seat.kind === 'award' || seat.kind === 'unused') return;
+  const isPerson = seat.kind === 'class' && !!seat.student;
 
-  // —— 学生级：批量挪动 / 两人互换 ——
-  if (state.settings.granularity === 'student') {
-    if (state.studentMode === 'swap') {
-      if (seat.kind === 'class' && seat.student) {
-        if (state.selSeats.length) {
-          const a = result.seats[state.selSeats[0]];
-          const okSwap = swapStudents(result, state.selSeats[0], si);
-          state.selSeats = [];
-          toast(okSwap ? `已互换「${a.student}」和「${seat.student}」` : '无法互换该座位');
-        } else {
-          state.selSeats = [si];
-          toast(`已选中「${seat.student}」，再点另一学生互换`);
-        }
-        updateManualBar();
-        renderViews();
-      }
-      return;
-    }
-    // 批量挪动模式
-    if (seat.kind === 'class' && seat.student) {
-      const at = state.selSeats.indexOf(si);
-      if (at >= 0) state.selSeats.splice(at, 1);
-      else state.selSeats.push(si);
-      updateManualBar();
-      renderViews();
-      return;
-    }
-    if (seat.kind === 'empty') {
-      if (!state.selSeats.length) { toast('先点学生选中（可多选），再点空位挪过去'); return; }
+  // —— 空位：把已选学生批量挪过去；否则把已选整班挪过去 ——
+  if (seat.kind === 'empty') {
+    if (state.selSeats.length) {
       const n = state.selSeats.length;
       const okMove = moveStudents(result, state.selSeats.slice(), si);
       state.selSeats = [];
-      toast(okMove ? `已把 ${n} 名学生挪到新位置` : '这里连续空位不够，换个更空的位置再试');
-      updateManualBar();
-      renderViews();
+      toast(okMove ? `已把 ${n} 名学生挪到新位置` : '这里往后连续空位不够，换个更空的位置再试');
+    } else if (state.selClass) {
+      const cn = result.classes.find(c => c.id === state.selClass);
+      const okMove = moveClass(result, state.selClass, si);
+      state.selClass = null;
+      toast(okMove ? `已把「${cn ? cn.name : ''}」整班挪到新位置` : '这里往后连续空位不够放下全班，换个更空的地方');
+    } else {
+      toast('先点一个学生（可多选）或一个班，再点空位挪过去');
     }
+    updateManualBar();
+    renderViews();
     return;
   }
 
-  // —— 班级级：点班互换 / 点班+空位整班挪动 ——
+  // —— 学生（座位上有具体姓名）：多选 / 互换 ——
+  if (isPerson) {
+    state.selClass = null; // 切到学生选择时取消整班选择
+    if (state.studentMode === 'swap') {
+      if (state.selSeats.length) {
+        const a = result.seats[state.selSeats[0]];
+        const okSwap = swapStudents(result, state.selSeats[0], si);
+        state.selSeats = [];
+        toast(okSwap ? `已互换「${a.student}」和「${seat.student}」` : '无法互换该座位');
+      } else {
+        state.selSeats = [si];
+        toast(`已选中「${seat.student}」，再点另一学生互换`);
+      }
+    } else {
+      const at = state.selSeats.indexOf(si);
+      if (at >= 0) state.selSeats.splice(at, 1);
+      else state.selSeats.push(si);
+    }
+    updateManualBar();
+    renderViews();
+    return;
+  }
+
+  // —— 班级块（未贴名单的色块）：整班互换 / 选中 ——
+  if (state.selSeats.length) { toast('已选中学生，请点空位批量挪，或切回「批量挪动」再点学生'); return; }
   const cid = gSeat.getAttribute('data-class');
   if (cid) {
     if (state.selClass === cid) { state.selClass = null; }
     else if (state.selClass) {
       const ca = result.classes.find(c => c.id === state.selClass);
       const cb = result.classes.find(c => c.id === cid);
-      if (ca && cb && ca.seated === cb.seated && ca.seated > 0) {
+      if (ca && cb && ca.seated === cb.seated && ca.seated > 0 && !ca.names.length && !cb.names.length) {
         swapClasses(result, state.selClass, cid);
         toast('已互换两个班的座位');
       } else {
-        toast('两班人数不同不能直接互换；可点住一个班再点空位整班挪动');
+        toast('两班人数不同或已贴名单：可点住一个班再点空位整班挪动');
       }
       state.selClass = null;
     } else {
@@ -640,15 +646,6 @@ $('planBox').addEventListener('click', e => {
     updateManualBar();
     renderViews();
     return;
-  }
-  if (seat.kind === 'empty') {
-    if (!state.selClass) { toast('先点一个班，再点空位即可整班挪过去'); return; }
-    const cn = result.classes.find(c => c.id === state.selClass);
-    const ok = moveClass(result, state.selClass, si);
-    state.selClass = null;
-    toast(ok ? `已把「${cn ? cn.name : ''}」整班挪到新位置` : '这里往后连续空位不够放下全班，换个更空的地方');
-    updateManualBar();
-    renderViews();
   }
 });
 
@@ -863,7 +860,7 @@ function syncSettingsUI() {
   $('awardCount').value = state.settings.award.count;
   const gran = state.settings.granularity || 'class';
   document.querySelectorAll('input[name=gran]').forEach(r => { r.checked = r.value === gran; });
-  $('showNames').disabled = gran !== 'student';
+  $('showNames').checked = !!state.showNames;
   $('gradeName').value = state.settings.grade || '高一';
 }
 

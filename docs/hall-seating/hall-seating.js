@@ -300,21 +300,20 @@ export function allocate(input) {
       });
     }
 
-    // 学生级：按 parts 顺序逐人对号（含回填新增的 parts）
-    if (input.granularity === 'student') {
-      cls.forEach(c => {
-        if (!Array.isArray(c.names) || !c.names.length) return;
-        let k2 = 0;
-        c.parts.forEach(p => {
-          const rowSeats = floorRows.find(rs => rs[0].row === p.row);
-          rowSeats.forEach(s => {
-            if (s.kind === 'class' && s.classId === c.id && s.n >= p.from && s.n <= p.to) {
-              s.student = c.names[k2++] || null;
-            }
-          });
+    // 学生对号：凡该班贴了名单就把姓名填到座位上（不限于学生级粒度，
+    // 这样手动调整时点"座位上的学生"在任何粒度都可用）
+    cls.forEach(c => {
+      if (!Array.isArray(c.names) || !c.names.length) return;
+      let k2 = 0;
+      c.parts.forEach(p => {
+        const rowSeats = floorRows.find(rs => rs[0].row === p.row);
+        rowSeats.forEach(s => {
+          if (s.kind === 'class' && s.classId === c.id && s.n >= p.from && s.n <= p.to) {
+            s.student = c.names[k2++] || null;
+          }
         });
       });
-    }
+    });
   }
   assignFloor('f2', f2c);
   // 二楼装不下的班整班挪回一楼（聚集第一：不拆散，只整体迁移到有空位的一楼大区）
@@ -347,12 +346,22 @@ export function swapClasses(res, idA, idB) {
   res.classes.forEach(c => { byId[c.id] = c; });
   const ca = byId[idA], cb = byId[idB];
   if (!ca || !cb) return;
+  // 1) 互换两块区域的班级归属
   res.seats.forEach(s => {
     if (s.kind !== 'class') return;
     if (s.classId === idA) { s.classId = idB; s.className = cb.name; s.color = res.colorOf[idB]; }
     else if (s.classId === idB) { s.classId = idA; s.className = ca.name; s.color = res.colorOf[idA]; }
   });
+  // 2) 重排序号 + 按各自名单对号，保证学生姓名跟随整班（贴名单班也能安全互换）
   reindexRes(res);
+  [ca, cb].forEach(c => {
+    const seats = res.seats.filter(s => s.classId === c.id).sort((a, b) => a.seq - b.seq);
+    seats.forEach(s => { s.student = null; });
+    if (Array.isArray(c.names) && c.names.length) {
+      seats.forEach((s, i) => { s.student = c.names[i] != null ? c.names[i] : null; });
+    }
+  });
+  return true;
 }
 
 // 依据当前 seats 的 classId 现状，重建每个班的 parts、班内序号、已坐/未坐
