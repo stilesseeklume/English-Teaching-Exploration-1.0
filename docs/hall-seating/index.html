@@ -201,6 +201,11 @@
         <button class="btn sm" id="drawBtn">🎲 抽签</button>
         <button class="btn sm" id="resetOrder">还原顺序</button>
       </div>
+      <label class="fld">统一命名 · 年级（高X）</label>
+      <div class="grid2">
+        <input type="text" id="gradeName" placeholder="如：高一、高二、高三">
+        <button class="btn sm" id="renameBtn" style="align-self:center">统一重命名</button>
+      </div>
     </div>
 
     <div class="card">
@@ -304,7 +309,7 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapClasses } from './hall-seating.js';
+import { HALL, ZONE_NAMES, allocate, buildPlanSVG, buildLegendHTML, buildSummaryHTML, buildGuideHTML, swapClasses, swapStudents } from './hall-seating.js';
 
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, '0');
@@ -322,13 +327,15 @@ const state = {
     floor2Count: 4,
     leader: { enabled: true, count: 13 },
     award: { enabled: false, count: 10, names: [] },
-    granularity: 'class'
+    granularity: 'class',
+    grade: '高一'
   },
   view: 'plan',
   showNumbers: true,
   showNames: false,
   manual: false,
-  selClass: null
+  selClass: null,
+  selSeat: null
 };
 let result = null;
 let namesTarget = null; // {type:'class', id} | {type:'award'}
@@ -435,6 +442,15 @@ $('resetOrder').addEventListener('click', () => {
   renderClassList();
   scheduleRender();
 });
+$('gradeName').addEventListener('input', e => { state.settings.grade = e.target.value.trim(); });
+$('renameBtn').addEventListener('click', () => {
+  const grade = (state.settings.grade || '高一').trim() || '高一';
+  if (!state.classes.length) { toast('还没有班级，先添加班级'); return; }
+  state.classes.forEach((c, i) => { c.name = `${grade}（${i + 1}）班`; });
+  renderClassList();
+  scheduleRender();
+  toast(`已按顺序统一命名：${grade}（1）班 … ${grade}（${state.classes.length}）班`);
+});
 
 /* ---------- 名单弹窗 ---------- */
 function openNames(target) {
@@ -503,16 +519,50 @@ document.querySelectorAll('input[name=gran]').forEach(r => r.addEventListener('c
 $('showNumbers').addEventListener('change', e => { state.showNumbers = e.target.checked; renderViews(); });
 $('showNames').addEventListener('change', e => { state.showNames = e.target.checked; renderViews(); });
 
-/* ---------- 手动调整（平面图上互换班级） ---------- */
+/* ---------- 手动调整（班级互换 / 学生级零散调整） ---------- */
 $('manualMode').addEventListener('change', e => {
   state.manual = e.target.checked;
   state.selClass = null;
-  if (state.manual) toast('手动调整已开启：在平面图上依次点两个班即可互换座位');
+  state.selSeat = null;
+  if (state.manual) {
+    toast(state.settings.granularity === 'student'
+      ? '学生级调整已开启：先点一个学生，再点另一个学生（互换）或空位（挪过去）'
+      : '手动调整已开启：在平面图上依次点两个班即可互换座位');
+  }
   renderViews();
 });
 
 $('planBox').addEventListener('click', e => {
   if (!state.manual || !result) return;
+
+  // —— 学生级：零散调整个别学生（互换 / 挪空位，可跨班） ——
+  if (state.settings.granularity === 'student') {
+    const sg = e.target.closest('g[data-seat]');
+    if (!sg) return;
+    const si = parseInt(sg.getAttribute('data-seat'), 10);
+    const seat = result.seats[si];
+    if (!seat) return;
+    if (seat.kind === 'leader' || seat.kind === 'award' || seat.kind === 'unused') return;
+
+    if (state.selSeat == null) {
+      if (seat.kind === 'class' && seat.student) {
+        state.selSeat = si;
+        toast(`已选中「${seat.student}」(${seat.className})，再点另一个学生互换，或点空位挪过去`);
+        renderViews();
+      }
+      return;
+    }
+    if (state.selSeat === si) { state.selSeat = null; renderViews(); return; }
+
+    const a0 = result.seats[state.selSeat];
+    const ok = swapStudents(result, state.selSeat, si);
+    state.selSeat = null;
+    toast(ok ? '已调整学生座位' : '无法调整该座位');
+    renderViews();
+    return;
+  }
+
+  // —— 班级级：整班互换 ——
   const g = e.target.closest('g[data-class]');
   const cid = g ? g.getAttribute('data-class') : null;
   if (!cid) { if (state.selClass) { state.selClass = null; renderViews(); } return; }
@@ -578,6 +628,7 @@ function render() {
     granularity: state.settings.granularity
   });
   state.selClass = null;
+  state.selSeat = null;
   renderViews();
 }
 function renderViews() {
@@ -594,7 +645,7 @@ function renderViews() {
   $('statsbar').innerHTML = chips.join('');
 
   $('printHead').innerHTML = `${state.meeting.name || '礼堂排座'}<span>${state.meeting.date || ''} · 共 ${st.totalPeople} 人 · ${st.classCount} 个班 · 领导席 ${st.leaderCount} · 颁奖席 ${st.awardCount}</span>`;
-  $('planBox').innerHTML = buildPlanSVG(result, { showNumbers: state.showNumbers, showNames: state.showNames, highlightClass: state.manual ? state.selClass : null });
+  $('planBox').innerHTML = buildPlanSVG(result, { showNumbers: state.showNumbers, showNames: state.showNames, highlightClass: state.manual ? state.selClass : null, highlightSeat: state.manual ? state.selSeat : null });
   $('legend').innerHTML = buildLegendHTML(result);
   $('summaryBox').innerHTML = buildSummaryHTML(result);
   $('guideBox').innerHTML = buildGuideHTML(result, { granularity: state.settings.granularity });
@@ -752,6 +803,7 @@ function syncSettingsUI() {
   const gran = state.settings.granularity || 'class';
   document.querySelectorAll('input[name=gran]').forEach(r => { r.checked = r.value === gran; });
   $('showNames').disabled = gran !== 'student';
+  $('gradeName').value = state.settings.grade || '高一';
 }
 
 /* ---------- 主题 / 提示 ---------- */
@@ -772,7 +824,7 @@ function toast(msg) {
 /* ---------- 启动 ---------- */
 if (!loadCurrent()) {
   state.classes = [1, 2, 3, 4, 5, 6, 7, 8].map(i => ({
-    id: uid() + i, name: `高一(${i})班`, count: 43 + (i % 4), names: [], oi: i
+    id: uid() + i, name: `高一（${i}）班`, count: 43 + (i % 4), names: [], oi: i
   }));
   toast('已填入示例班级，可直接改成你的班级');
 }

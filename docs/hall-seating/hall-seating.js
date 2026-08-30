@@ -346,6 +346,37 @@ export function reindexRes(res) {
   });
 }
 
+// 零散调整：互换两个座位的"学生 + 班级归属"，座位物理位置不变。
+// - 两个学生座位互换 → 两学生互换位置（可跨班）
+// - 学生 ↔ 空座位互换 → 学生挪到空位（空位变成该生班级座位），原座位释放为空
+export function swapStudents(res, ia, ib) {
+  const a = res.seats[ia], b = res.seats[ib];
+  if (!a || !b || ia === ib) return false;
+  const lock = k => k === 'leader' || k === 'award' || k === 'unused';
+  if (lock(a.kind) || lock(b.kind)) return false;
+
+  const isPerson = s => s.kind === 'class' && !!s.student;
+  if (!isPerson(a) && !isPerson(b)) return false;
+
+  // 互换"学生 + 班级归属"；空座位 classId 为 null，正好把空位内容换过去
+  ['student', 'classId'].forEach(k => { const t = a[k]; a[k] = b[k]; b[k] = t; });
+
+  [a, b].forEach(s => {
+    if (s.student) {
+      s.kind = 'class';
+      const c = res.classes.find(x => x.id === s.classId);
+      s.className = c ? c.name : (s.className || '');
+      s.color = c ? res.colorOf[c.id] : s.color;
+    } else {
+      s.kind = 'empty';
+      s.classId = null; s.className = ''; s.color = null; s.seq = null;
+    }
+  });
+
+  reindexRes(res);
+  return true;
+}
+
 /* ---------- 平面图 SVG ---------- */
 
 export function buildPlanSVG(res, opts = {}) {
@@ -372,7 +403,7 @@ export function buildPlanSVG(res, opts = {}) {
   g += `<text x="${PAD - 26}" y="24" class="floor-label">一楼</text>`;
 
   // 座位
-  res.seats.forEach(s => {
+  res.seats.forEach((s, si) => {
     const X = (s.f === 'f1' ? X1 : X2)(s.x);
     const Y = (s.f === 'f1' ? Y1 : Y2)(s.y);
     const x = (X - SQ / 2).toFixed(1), y = (Y - SQ / 2).toFixed(1);
@@ -385,10 +416,11 @@ export function buildPlanSVG(res, opts = {}) {
     else if (s.kind === 'award') { fill = ` fill="${COLOR_AWARD}"`; }
     else if (s.kind === 'unused') { cls = 'seat unused'; }
     else { cls = 'seat empty'; }
-    const isSel = opts.highlightClass && s.kind === 'class' && s.classId === opts.highlightClass;
+    const isSel = (opts.highlightClass && s.kind === 'class' && s.classId === opts.highlightClass)
+      || (opts.highlightSeat != null && si === opts.highlightSeat);
     const dc = s.kind === 'class' && s.classId ? ` data-class="${esc(s.classId)}"` : '';
     const selStyle = isSel ? ' style="stroke:#111111;stroke-width:2.8"' : '';
-    g += `<g${dc}><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"${selStyle}/><title>${esc(tip)}</title>`;
+    g += `<g data-seat="${si}"${dc}><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"${selStyle}/><title>${esc(tip)}</title>`;
     let label = '';
     if (s.kind === 'class') {
       if (opts.showNames && s.student) label = s.student;
