@@ -202,6 +202,7 @@ export function allocate(input) {
       return placed;
     };
 
+    let wingFlip = false;
     cls.forEach(c => {
       const need = c.count;
       c.floor = fk;
@@ -211,11 +212,23 @@ export function allocate(input) {
       c.seqNo = 0;
       if (need <= 0) { c.unseated = 0; return; }
 
-      // 聚集第一：优先整班装进单个区（绝不跨左右过道）
+      // 聚集第一：优先整班装进单个区（绝不跨左右过道）。
+      // 中区优先模式下，中区装不下后两翼交替起填（左先/右先轮换）：
+      // 两翼都从前往后坐，空位集中在两翼后排，避免一边填满、另一边全空。
+      let tryOrder = zones;
+      if (input.zoneOrder !== 'ltr') {
+        const mid = zones.filter(z => z.zk === 'M');
+        const wings = zones.filter(z => z.zk !== 'M');
+        if (wings.length === 2) {
+          tryOrder = wingFlip ? [...mid, wings[1], wings[0]] : [...mid, ...wings];
+          wingFlip = !wingFlip;
+        }
+      }
       let placed = 0;
-      for (let i = 0; i < zones.length && placed === 0; i++) {
-        if (zoneRemain(i) < need) continue;
-        placed = fillZone(c, i, need);
+      for (let i = 0; i < tryOrder.length && placed === 0; i++) {
+        const zi = zones.indexOf(tryOrder[i]);
+        if (zoneRemain(zi) < need) continue;
+        placed = fillZone(c, zi, need);
       }
       // 超大班兜底：单个区装不下 → 整块连续跨"相邻"区（M-L / M-R），绝不 L-R 远距跳跃、绝不散填碎片。
       // 先选剩余最多的区做主块（主体尽量是连续大块），剩余再向相邻区整块延伸。
@@ -377,6 +390,100 @@ export function swapStudents(res, ia, ib) {
   return true;
 }
 
+// 整班挪动：把班级整体搬到「从 fromSeat 起的连续空位」。
+// 落位规则：与点击空位同层同区，从该座位起按排座顺序（前排→后排、排内左→右）
+// 连续收集空位，遇到已占座位即停；不够放下全班则失败还原。班内学生按原座位顺序跟过去。
+export function moveClass(res, id, fromSeat) {
+  const c = res.classes.find(x => x.id === id);
+  if (!c) return false;
+  const E = res.seats[fromSeat];
+  if (!E || E.kind !== 'empty') return false;
+
+  const olds = [];
+  res.seats.forEach((s, i) => { if (s.kind === 'class' && s.classId === id) olds.push({ i, student: s.student }); });
+  if (!olds.length) return false;
+
+  olds.forEach(o => {
+    const s = res.seats[o.i];
+    s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; s.seq = null;
+  });
+
+  const cand = res.seats
+    .map((s, i) => ({ s, i }))
+    .filter(o => o.s.f === E.f && o.s.zone === E.zone && o.s.kind !== 'unused'
+      && (o.s.row > E.row || (o.s.row === E.row && o.s.n >= E.n)))
+    .sort((a, b) => a.s.row - b.s.row || a.s.n - b.s.n);
+  const targets = [];
+  for (const o of cand) {
+    if (o.s.kind !== 'empty') break;
+    targets.push(o.i);
+    if (targets.length >= olds.length) break;
+  }
+  if (targets.length < olds.length) {
+    olds.forEach(o => {
+      const s = res.seats[o.i];
+      s.kind = 'class'; s.classId = id; s.className = c.name; s.color = res.colorOf[id]; s.student = o.student;
+    });
+    reindexRes(res);
+    return false;
+  }
+  targets.forEach((ti, k) => {
+    const s = res.seats[ti];
+    s.kind = 'class'; s.classId = id; s.className = c.name; s.color = res.colorOf[id]; s.student = olds[k].student ?? null;
+  });
+  reindexRes(res);
+  return true;
+}
+
+// 学生批量挪动：把多个学生（可跨班）按传入顺序搬到「从 toSeat 起的连续空位」。
+// 不足则整体还原，绝不做半截挪动。每个学生保留自己的班级归属。
+export function moveStudents(res, fromIdxs, toIdx) {
+  if (!Array.isArray(fromIdxs) || !fromIdxs.length) return false;
+  const E = res.seats[toIdx];
+  if (!E || E.kind !== 'empty') return false;
+
+  const moved = fromIdxs.map(i => {
+    const s = res.seats[i];
+    return { i, student: s.student, classId: s.classId };
+  });
+  if (moved.some(m => !res.seats[m.i] || res.seats[m.i].kind !== 'class')) return false;
+
+  moved.forEach(m => {
+    const s = res.seats[m.i];
+    s.kind = 'empty'; s.classId = null; s.className = ''; s.color = null; s.student = null; s.seq = null;
+  });
+
+  const cand = res.seats
+    .map((s, i) => ({ s, i }))
+    .filter(o => o.s.f === E.f && o.s.zone === E.zone && o.s.kind !== 'unused'
+      && (o.s.row > E.row || (o.s.row === E.row && o.s.n >= E.n)))
+    .sort((a, b) => a.s.row - b.s.row || a.s.n - b.s.n);
+  const targets = [];
+  for (const o of cand) {
+    if (o.s.kind !== 'empty') break;
+    targets.push(o.i);
+    if (targets.length >= moved.length) break;
+  }
+  if (targets.length < moved.length) {
+    moved.forEach(m => {
+      const s = res.seats[m.i];
+      s.student = m.student; s.classId = m.classId;
+      const c = res.classes.find(x => x.id === m.classId);
+      s.kind = 'class'; s.className = c ? c.name : ''; s.color = c ? res.colorOf[c.id] : null;
+    });
+    reindexRes(res);
+    return false;
+  }
+  moved.forEach((m, k) => {
+    const s = res.seats[targets[k]];
+    s.student = m.student; s.classId = m.classId; s.kind = 'class';
+    const c = res.classes.find(x => x.id === m.classId);
+    s.className = c ? c.name : ''; s.color = c ? res.colorOf[m.classId] : null;
+  });
+  reindexRes(res);
+  return true;
+}
+
 /* ---------- 平面图 SVG ---------- */
 
 export function buildPlanSVG(res, opts = {}) {
@@ -417,7 +524,8 @@ export function buildPlanSVG(res, opts = {}) {
     else if (s.kind === 'unused') { cls = 'seat unused'; }
     else { cls = 'seat empty'; }
     const isSel = (opts.highlightClass && s.kind === 'class' && s.classId === opts.highlightClass)
-      || (opts.highlightSeat != null && si === opts.highlightSeat);
+      || (opts.highlightSeat != null && si === opts.highlightSeat)
+      || (Array.isArray(opts.highlightSeats) && opts.highlightSeats.includes(si));
     const dc = s.kind === 'class' && s.classId ? ` data-class="${esc(s.classId)}"` : '';
     const selStyle = isSel ? ' style="stroke:#111111;stroke-width:2.8"' : '';
     g += `<g data-seat="${si}"${dc}><rect x="${x}" y="${y}" width="${SQ}" height="${SQ}" rx="4"${fill} class="${cls}"${selStyle}/><title>${esc(tip)}</title>`;
