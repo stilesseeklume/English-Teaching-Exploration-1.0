@@ -614,8 +614,8 @@
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(18px);
-    transition: opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), visibility 0s linear .45s;
+    transform: translateY(12px);
+    transition: opacity .3s ease, transform .3s ease;
     pointer-events: none;
   }
   .panel.active {
@@ -623,9 +623,7 @@
     visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
-    transition: opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), visibility 0s;
   }
-  .panel.panel-0 { transform: translateY(-18px); }
 
   .hero-title {
     font-family: var(--font-display);
@@ -892,7 +890,10 @@
                 <span class="entry-subtitle">Seeklume English Teaching</span>
                 <span class="entry-title">语法填空讲评</span>
               </a>
-              <p style="font-size:13px;color:rgba(255,255,255,0.5);text-shadow:0 1px 8px rgba(0,0,0,0.6);max-width:320px;line-height:1.6;">套题讲评 · 按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
+              <a class="project-entry-glass" href="./read-along/" style="min-width:280px;">
+                <span class="entry-subtitle">Morning Reading Practice</span>
+                <span class="entry-title">课文跟读器</span>
+              </a>
             </div>
           </div>
         </div>
