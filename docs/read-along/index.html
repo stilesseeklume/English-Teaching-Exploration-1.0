@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seeklume · Read Along</title>
+<title>Seeklume · Echo Reading</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600&display=swap');
 
@@ -31,7 +31,7 @@
   body{margin:0;min-height:100vh;font-family:var(--font-body);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;}
 
   header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);}
-  .back-link{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--accent);font-size:14px;font-weight:500;}
+  .back-link{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;}
   .back-link:hover{opacity:0.7;}
   .logo-text{font-family:var(--font-display);font-size:18px;color:var(--text);}
   .header-right{display:flex;align-items:center;gap:8px;}
@@ -42,21 +42,44 @@
   [data-theme="dark"] .theme-toggle .icon-moon{display:none;}
 
   main{max-width:780px;margin:0 auto;padding:32px 24px 100px;}
-  .lesson-header{text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--accent);}
-  .lesson-header .unit-tag{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.15em;margin-bottom:10px;text-transform:uppercase;}
-  .lesson-header h1{font-family:var(--font-display);font-size:34px;font-weight:400;margin:0 0 6px;color:var(--text);}
-  .lesson-header .sub{font-size:13px;color:var(--text-3);}
+  .view{display:none;animation:viewIn .35s ease;}
+  .view.active{display:block;}
+  @keyframes viewIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 
-  /* ===== 课程切换标签 ===== */
-  .lesson-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
-  .lesson-tab{padding:8px 18px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
-  .lesson-tab .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--surface-3);color:var(--text-2);font-size:11px;font-weight:700;}
-  .lesson-tab.active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;box-shadow:0 0 0 1px var(--accent);}
-  .lesson-tab.active .tab-num{background:var(--accent);color:#fff;}
-  .lesson-tab:hover{border-color:var(--text-3);}
-  .lesson-tab.active:hover{border-color:var(--accent);}
+  /* ===== 书架页 ===== */
+  .shelf-hero{text-align:center;margin-bottom:32px;}
+  .shelf-hero .unit-tag{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.15em;margin-bottom:10px;text-transform:uppercase;}
+  .shelf-hero h1{font-family:var(--font-display);font-size:38px;font-weight:400;margin:0 0 8px;color:var(--text);}
+  .shelf-hero .sub{font-size:14px;color:var(--text-3);}
+  .shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:22px;padding:8px 4px;}
+  .book-card{cursor:pointer;transition:transform .25s ease;text-align:center;}
+  .book-card:hover{transform:translateY(-6px);}
+  .book-cover{width:100%;aspect-ratio:140/190;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.05);position:relative;background:var(--surface-3);}
+  .book-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .book-cover .soon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(128,128,128,.45);color:#fff;font-size:12px;font-weight:600;letter-spacing:.08em;backdrop-filter:blur(1px);}
+  .book-name{margin-top:10px;font-size:14px;font-weight:600;color:var(--text);}
+  .book-en{font-size:11px;color:var(--text-3);margin-top:2px;}
+  .book-card.disabled{cursor:default;opacity:.75;}
+  .book-card.disabled:hover{transform:none;}
 
-  /* ===== 语音选择器 ===== */
+  /* ===== 目录页 ===== */
+  .toc-head{display:flex;gap:20px;align-items:flex-end;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+  .toc-cover{width:84px;aspect-ratio:140/190;border-radius:6px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.15);flex-shrink:0;}
+  .toc-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .toc-head-text h1{font-family:var(--font-display);font-size:30px;font-weight:400;margin:0 0 4px;}
+  .toc-head-text .sub{font-size:13px;color:var(--text-3);}
+  .toc-unit{margin-bottom:26px;}
+  .toc-unit-title{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;padding-left:2px;}
+  .toc-item{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer;transition:all .2s;margin-bottom:10px;}
+  .toc-item:hover{border-color:var(--accent);box-shadow:var(--shadow-lg);transform:translateX(4px);}
+  .toc-item-icon{width:38px;height:38px;border-radius:9px;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .toc-item-body{flex:1;min-width:0;}
+  .toc-item-sec{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+  .toc-item-title{font-size:15px;font-weight:600;color:var(--text);margin-top:2px;}
+  .toc-item-meta{font-size:12px;color:var(--text-3);flex-shrink:0;}
+  .toc-item-arrow{color:var(--text-3);font-size:16px;flex-shrink:0;}
+
+  /* ===== 播放页 ===== */
   .voice-panel{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
   .voice-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .voice-label{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;min-width:52px;}
@@ -65,6 +88,11 @@
   .voice-btn.active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;box-shadow:0 0 0 1px var(--accent);}
   .voice-btn:hover{border-color:var(--text-3);}
   .voice-btn.active:hover{border-color:var(--accent);}
+
+  .player-head{text-align:center;margin-bottom:20px;}
+  .player-head .unit-tag{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.15em;margin-bottom:8px;text-transform:uppercase;}
+  .player-head h1{font-family:var(--font-display);font-size:30px;font-weight:400;margin:0 0 4px;}
+  .player-head .sub{font-size:13px;color:var(--text-3);}
 
   .controls-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .ctrl-group{display:flex;align-items:center;gap:6px;}
@@ -90,70 +118,22 @@
   .status-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.4s ease infinite;}
   @keyframes pulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
 
-  /* ===== 课本风格课文 ===== */
-  .textbook{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:40px 44px 40px 40px;
-    position:relative;
-  }
-  .textbook::before{
-    content:'';
-    position:absolute;
-    left:0;top:40px;bottom:40px;
-    width:3px;
-    background:var(--accent);
-    border-radius:0 2px 2px 0;
-    opacity:0.6;
-  }
-  .textbook-title{
-    font-family:var(--font-display);
-    font-size:15px;
-    font-weight:600;
-    color:var(--text-2);
-    text-transform:uppercase;
-    letter-spacing:0.12em;
-    margin-bottom:4px;
-  }
-  .textbook-subtitle{
-    font-family:var(--font-display);
-    font-size:28px;
-    font-weight:400;
-    color:var(--text);
-    margin:0 0 20px;
-    line-height:1.2;
-  }
+  .textbook{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:40px 44px 40px 40px;position:relative;}
+  .textbook::before{content:'';position:absolute;left:0;top:40px;bottom:40px;width:3px;background:var(--accent);border-radius:0 2px 2px 0;opacity:0.6;}
+  .textbook-title{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;}
+  .textbook-subtitle{font-family:var(--font-display);font-size:28px;font-weight:400;color:var(--text);margin:0 0 20px;line-height:1.2;}
   .text-block{margin-bottom:26px;position:relative;}
   .text-block:last-child{margin-bottom:0;}
-  .time-stamp{
-    display:inline-block;
-    font-family:var(--font-hand);
-    font-size:22px;
-    font-weight:600;
-    color:var(--accent);
-    margin-bottom:6px;
-    padding:0 0 2px;
-    border-bottom:1.5px solid var(--accent);
-    opacity:0.85;
-  }
-  /* 人物档案卡（Lesson 2 风格） */
-  .profile-head{
-    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
-    margin-bottom:6px;padding-bottom:6px;border-bottom:1.5px dashed var(--border);
-  }
+  .time-stamp{display:inline-block;font-family:var(--font-hand);font-size:22px;font-weight:600;color:var(--accent);margin-bottom:6px;padding:0 0 2px;border-bottom:1.5px solid var(--accent);opacity:0.85;}
+  .profile-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px;padding-bottom:6px;border-bottom:1.5px dashed var(--border);}
   .profile-name{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--text);}
   .profile-meta{font-size:13px;color:var(--accent);font-weight:600;}
-  .profile-school{font-size:12px;color:var(--text-3);}
   .passage-text{margin:0;font-size:var(--passage-size);line-height:2;color:var(--text);transition:font-size .2s;}
   .sent{position:relative;transition:background .2s,color .2s;border-radius:3px;padding:1px 2px;cursor:pointer;}
   .sent:hover{background:var(--surface-3);}
   .sent.active{background:var(--accent-bg);color:var(--accent);font-weight:500;box-shadow:0 0 0 1.5px var(--accent);}
   .sent.read{color:var(--text-3);}
 
-  .trans-toggle{display:block;width:100%;padding:10px;margin-top:20px;border:none;background:var(--surface-2);color:var(--text-2);font:inherit;font-size:13px;cursor:pointer;border-radius:6px;}
-  .trans-toggle:hover{background:var(--surface-3);color:var(--text);}
   .translation{display:none;margin-top:16px;padding:20px 24px;background:var(--surface-2);border-radius:6px;font-size:14px;line-height:1.8;color:var(--text-2);}
   .show-trans .translation{display:block;animation:fadeIn .3s ease;}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
@@ -170,79 +150,100 @@
   .countdown-bar-fill{height:100%;background:var(--accent);width:100%;transform-origin:right;}
 
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
-  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}}
+  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}}
 </style>
 </head>
 <body>
 <header>
-  <a class="back-link" href="../index.html"><span>←</span><span>Back</span></a>
+  <a class="back-link" id="backLink"><span>←</span><span id="backLabel">Back</span></a>
   <div class="logo-text">Seeklume</div>
   <div class="header-right">
     <button class="theme-toggle" onclick="toggleTheme()"><span class="icon-moon">🌙</span><span class="icon-sun">☀️</span></button>
   </div>
 </header>
 <main>
-  <div class="lesson-header">
-    <div class="unit-tag" id="unitTag">Welcome Unit · Reading and Thinking</div>
-    <h1 id="lessonTitle">First Impressions</h1>
-    <div class="sub" id="lessonSub">Han Jing's World · New Senior High English · Book 1</div>
+
+  <!-- ========== 书架页 ========== -->
+  <div class="view" id="view-shelf">
+    <div class="shelf-hero">
+      <div class="unit-tag">Morning Reading Practice</div>
+      <h1>Echo Reading</h1>
+      <div class="sub">Pick a textbook, echo every sentence, own the accent.</div>
+    </div>
+    <div class="shelf-grid" id="shelfGrid"></div>
   </div>
 
-  <!-- 课程切换 -->
-  <div class="lesson-tabs" id="lessonTabs"></div>
-
-  <!-- 语音选择 -->
-  <div class="voice-panel">
-    <div class="voice-row">
-      <span class="voice-label">Accent</span>
-      <button class="voice-btn active" data-accent="uk" onclick="setAccent('uk',this)"><span class="flag">🇬🇧</span>British</button>
-      <button class="voice-btn" data-accent="us" onclick="setAccent('us',this)"><span class="flag">🇺🇸</span>American</button>
-      <button class="voice-btn" data-accent="au" onclick="setAccent('au',this)"><span class="flag">🇦🇺</span>Australian</button>
+  <!-- ========== 目录页 ========== -->
+  <div class="view" id="view-toc">
+    <div class="toc-head">
+      <div class="toc-cover"><img id="tocCoverImg" alt=""></div>
+      <div class="toc-head-text">
+        <h1 id="tocBookName"></h1>
+        <div class="sub" id="tocBookSub"></div>
+      </div>
     </div>
-    <div class="voice-row">
-      <span class="voice-label">Voice</span>
-      <button class="voice-btn active" data-gender="f" onclick="setGender('f',this)">♀ Female</button>
-      <button class="voice-btn" data-gender="m" onclick="setGender('m',this)">♂ Male</button>
-    </div>
+    <div id="tocUnits"></div>
   </div>
 
-  <div class="controls-bar">
-    <div class="ctrl-group">
-      <span class="ctrl-label">Speed</span>
-      <button class="pill-btn" data-speed="0.8" onclick="setSpeed(0.8,this)">0.8×</button>
-      <button class="pill-btn active" data-speed="1.0" onclick="setSpeed(1.0,this)">1.0×</button>
-      <button class="pill-btn" data-speed="1.2" onclick="setSpeed(1.2,this)">1.2×</button>
+  <!-- ========== 播放页 ========== -->
+  <div class="view" id="view-player">
+    <div class="player-head">
+      <div class="unit-tag" id="unitTag"></div>
+      <h1 id="lessonTitle"></h1>
+      <div class="sub" id="lessonSub"></div>
     </div>
-    <div class="ctrl-group">
-      <span class="ctrl-label">Gap</span>
-      <button class="pill-btn" data-gap="1.0" onclick="setGap(1.0,this)">Short</button>
-      <button class="pill-btn active" data-gap="1.5" onclick="setGap(1.5,this)">Mid</button>
-      <button class="pill-btn" data-gap="2.0" onclick="setGap(2.0,this)">Long</button>
+
+    <div class="voice-panel">
+      <div class="voice-row">
+        <span class="voice-label">Accent</span>
+        <button class="voice-btn active" data-accent="uk" onclick="setAccent('uk',this)"><span class="flag">🇬🇧</span>British</button>
+        <button class="voice-btn" data-accent="us" onclick="setAccent('us',this)"><span class="flag">🇺🇸</span>American</button>
+        <button class="voice-btn" data-accent="au" onclick="setAccent('au',this)"><span class="flag">🇦🇺</span>Australian</button>
+      </div>
+      <div class="voice-row">
+        <span class="voice-label">Voice</span>
+        <button class="voice-btn active" data-gender="f" onclick="setGender('f',this)">♀ Female</button>
+        <button class="voice-btn" data-gender="m" onclick="setGender('m',this)">♂ Male</button>
+      </div>
     </div>
-    <div class="ctrl-group">
-      <span class="ctrl-label">A</span>
-      <button class="font-btn" onclick="decFont()">−</button>
-      <button class="font-btn" onclick="incFont()">+</button>
+
+    <div class="controls-bar">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Speed</span>
+        <button class="pill-btn" data-speed="0.8" onclick="setSpeed(0.8,this)">0.8×</button>
+        <button class="pill-btn active" data-speed="1.0" onclick="setSpeed(1.0,this)">1.0×</button>
+        <button class="pill-btn" data-speed="1.2" onclick="setSpeed(1.2,this)">1.2×</button>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Gap</span>
+        <button class="pill-btn" data-gap="1.0" onclick="setGap(1.0,this)">Short</button>
+        <button class="pill-btn active" data-gap="1.5" onclick="setGap(1.5,this)">Mid</button>
+        <button class="pill-btn" data-gap="2.0" onclick="setGap(2.0,this)">Long</button>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">A</span>
+        <button class="font-btn" onclick="decFont()">−</button>
+        <button class="font-btn" onclick="incFont()">+</button>
+      </div>
+      <button class="start-btn" id="startBtn" onclick="toggleReading()">Start Reading</button>
+      <button class="ghost-btn" onclick="toggleTrans()" id="transBtn">Show Translation</button>
     </div>
-    <button class="start-btn" id="startBtn" onclick="toggleReading()">Start Reading</button>
-    <button class="ghost-btn" onclick="toggleTrans()" id="transBtn">Show Translation</button>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="status-row">
+      <span class="status-badge idle" id="statusBadge"><span class="dot"></span><span id="statusText">Ready</span></span>
+    </div>
+
+    <div class="textbook">
+      <div class="textbook-title" id="tbTitle"></div>
+      <h2 class="textbook-subtitle" id="tbSubtitle"></h2>
+      <div id="passage"></div>
+    </div>
+
+    <div class="translation" id="translation"></div>
+    <div class="footer-note">Click any sentence to start reading from there · Pre-generated audio</div>
   </div>
 
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <div class="status-row">
-    <span class="status-badge idle" id="statusBadge"><span class="dot"></span><span id="statusText">Ready</span></span>
-  </div>
-
-  <!-- 课本风格课文 -->
-  <div class="textbook">
-    <div class="textbook-title" id="tbTitle">Reading and Thinking</div>
-    <h2 class="textbook-subtitle" id="tbSubtitle">Han Jing's World</h2>
-    <div id="passage"></div>
-  </div>
-
-  <button class="trans-toggle" onclick="toggleTrans()" id="transToggle" style="display:none;">Show Translation</button>
-  <div class="translation" id="translation"></div>
-  <div class="footer-note">Click any sentence to start reading from there · Pre-generated audio</div>
 </main>
 <audio id="audioPlayer" preload="auto"></audio>
 <div class="countdown" id="countdown">
@@ -252,14 +253,29 @@
   <div class="countdown-bar"><div class="countdown-bar-fill" id="countdownBarFill"></div></div>
 </div>
 <script>
-/* ================= 课程数据 ================= */
-var LESSONS = [
+/* ================= 数据：书架 → 课本 → 单元 → 课文 ================= */
+var BOOKS = [
 {
+  id:"bixiu1", name:"\u5fc5\u4fee\u4e00", en:"Book 1", cover:"../grammar-fill/images/textbook-covers/bixiu-1.jpg", ready:true,
+  units:[
+    { name:"Welcome Unit", lessons:["hj","sp"] }
+  ]
+},
+{ id:"bixiu2", name:"\u5fc5\u4fee\u4e8c", en:"Book 2", cover:"../grammar-fill/images/textbook-covers/bixiu-2.jpg", ready:false },
+{ id:"bixiu3", name:"\u5fc5\u4fee\u4e09", en:"Book 3", cover:"../grammar-fill/images/textbook-covers/bixiu-3.jpg", ready:false },
+{ id:"xuanbi1", name:"\u9009\u5fc5\u4e00", en:"Selective 1", cover:"../grammar-fill/images/textbook-covers/xuanbi-1.jpg", ready:false },
+{ id:"xuanbi2", name:"\u9009\u5fc5\u4e8c", en:"Selective 2", cover:"../grammar-fill/images/textbook-covers/xuanbi-2.jpg", ready:false },
+{ id:"xuanbi3", name:"\u9009\u5fc5\u4e09", en:"Selective 3", cover:"../grammar-fill/images/textbook-covers/xuanbi-3.jpg", ready:false },
+{ id:"xuanbi4", name:"\u9009\u5fc5\u56db", en:"Selective 4", cover:"../grammar-fill/images/textbook-covers/xuanbi-4.jpg", ready:false }
+];
+
+var LESSONS = {
+"hj":{
   id:"hj",
   tab:"Han Jing's World",
   unitTag:"Welcome Unit · Reading and Thinking",
   title:"First Impressions",
-  sub:"Han Jing's World · New Senior High English · Book 1",
+  sub:"Han Jing's World",
   tbTitle:"Reading and Thinking",
   tbSubtitle:"Han Jing's World",
   blockStyle:"timestamp",
@@ -294,12 +310,12 @@ var LESSONS = [
   ]}
   ]
 },
-{
+"sp":{
   id:"sp",
   tab:"Student Profiles",
   unitTag:"Welcome Unit · Reading for Writing",
   title:"Student Profiles",
-  sub:"Ann & Thando · New Senior High English · Book 1",
+  sub:"Ann & Thando",
   tbTitle:"Reading for Writing",
   tbSubtitle:"Student Profiles",
   blockStyle:"profile",
@@ -326,30 +342,124 @@ var LESSONS = [
   ]}
   ]
 }
-];
+};
 
-/* ================= 状态 ================= */
-var lessonIdx = 0;
+/* ================= 全局状态 ================= */
+var state = { view:"shelf", bookId:null, lessonId:null };
 var allSent = [];
 var speed = 1.0, gapMul = 1.5, isReading = false, curIdx = -1;
 var accent = 'uk', gender = 'f';
 var audio = document.getElementById('audioPlayer');
 
-/* ================= 渲染 ================= */
-function renderTabs(){
-  var tabs = document.getElementById('lessonTabs');
-  tabs.innerHTML = '';
-  LESSONS.forEach(function(L, i){
-    var b = document.createElement('button');
-    b.className = 'lesson-tab' + (i === lessonIdx ? ' active' : '');
-    b.innerHTML = '<span class="tab-num">' + (i+1) + '</span>' + L.tab;
-    b.onclick = function(){ switchLesson(i); };
-    tabs.appendChild(b);
+/* ================= 路由 ================= */
+function route(){
+  var h = location.hash.replace(/^#\/?/, '');
+  var parts = h.split('/').filter(Boolean);
+  if (parts.length === 0) { showShelf(); }
+  else if (parts.length === 1) { showToc(parts[0]); }
+  else { showPlayer(parts[0], parts[1]); }
+}
+window.addEventListener('hashchange', route);
+
+function go(hash){ location.hash = hash; }
+
+function setBack(label, fn){
+  document.getElementById('backLabel').textContent = label;
+  document.getElementById('backLink').onclick = fn;
+}
+function showView(id){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ================= 书架页 ================= */
+function showShelf(){
+  if (isReading) stopReading();
+  state = { view:"shelf", bookId:null, lessonId:null };
+  setBack('Home', function(){ location.href = '../index.html'; });
+  var grid = document.getElementById('shelfGrid');
+  grid.innerHTML = '';
+  BOOKS.forEach(function(b){
+    var card = document.createElement('div');
+    card.className = 'book-card' + (b.ready ? '' : ' disabled');
+    var soon = b.ready ? '' : '<div class="soon">COMING SOON</div>';
+    card.innerHTML = '<div class="book-cover"><img src="' + b.cover + '" alt="' + b.name + '" loading="lazy">' + soon + '</div>' +
+                     '<div class="book-name">' + b.name + '</div>' +
+                     '<div class="book-en">' + b.en + '</div>';
+    if (b.ready) card.onclick = function(){ go('/' + b.id); };
+    grid.appendChild(card);
   });
+  showView('view-shelf');
+}
+
+/* ================= 目录页 ================= */
+function showToc(bookId){
+  if (isReading) stopReading();
+  var book = BOOKS.find(function(b){ return b.id === bookId && b.ready; });
+  if (!book) { go('/'); return; }
+  state = { view:"toc", bookId:bookId, lessonId:null };
+  setBack('Shelf', function(){ go('/'); });
+  document.getElementById('tocCoverImg').src = book.cover;
+  document.getElementById('tocBookName').textContent = book.name + ' · ' + book.en;
+  var total = book.units.reduce(function(n,u){ return n + u.lessons.length; }, 0);
+  document.getElementById('tocBookSub').textContent = book.units.length + ' unit(s) · ' + total + ' lesson(s)';
+
+  var box = document.getElementById('tocUnits');
+  box.innerHTML = '';
+  book.units.forEach(function(u){
+    var ud = document.createElement('div');
+    ud.className = 'toc-unit';
+    var ut = document.createElement('div');
+    ut.className = 'toc-unit-title';
+    ut.textContent = u.name;
+    ud.appendChild(ut);
+    u.lessons.forEach(function(lid){
+      var L = LESSONS[lid];
+      if (!L) return;
+      var count = L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
+      var item = document.createElement('div');
+      item.className = 'toc-item';
+      item.innerHTML = '<div class="toc-item-icon">\u{1F3A7}</div>' +
+        '<div class="toc-item-body">' +
+          '<div class="toc-item-sec">' + L.tbTitle + '</div>' +
+          '<div class="toc-item-title">' + L.title + '</div>' +
+        '</div>' +
+        '<div class="toc-item-meta">' + count + ' sentences</div>' +
+        '<div class="toc-item-arrow">›</div>';
+      item.onclick = function(){ go('/' + bookId + '/' + lid); };
+      ud.appendChild(item);
+    });
+    box.appendChild(ud);
+  });
+  showView('view-toc');
+}
+
+/* ================= 播放页 ================= */
+function currentLesson(){ return LESSONS[state.lessonId]; }
+
+function showPlayer(bookId, lessonId){
+  var book = BOOKS.find(function(b){ return b.id === bookId && b.ready; });
+  var L = LESSONS[lessonId];
+  if (!book || !L) { go('/'); return; }
+  if (isReading) stopReading();
+  var firstOpen = state.lessonId !== lessonId;
+  state = { view:"player", bookId:bookId, lessonId:lessonId };
+  setBack('Contents', function(){ go('/' + bookId); });
+  if (firstOpen) {
+    curIdx = -1;
+    document.getElementById('startBtn').textContent = 'Start Reading';
+    updateStatus('idle', 'Ready');
+    document.body.classList.remove('show-trans');
+    document.getElementById('transBtn').textContent = 'Show Translation';
+  }
+  renderLesson();
+  updateProgress();
+  showView('view-player');
 }
 
 function renderLesson(){
-  var L = LESSONS[lessonIdx];
+  var L = currentLesson();
   document.getElementById('unitTag').textContent = L.unitTag;
   document.getElementById('lessonTitle').textContent = L.title;
   document.getElementById('lessonSub').textContent = L.sub;
@@ -393,7 +503,6 @@ function renderLesson(){
     div.appendChild(p);
     passageEl.appendChild(div);
 
-    // 翻译块
     var tb = document.createElement('div');
     tb.className = 'trans-block';
     var tt = document.createElement('div');
@@ -406,24 +515,11 @@ function renderLesson(){
     tb.appendChild(tp);
     transEl.appendChild(tb);
   });
-  renderTabs();
-}
-
-function switchLesson(i){
-  if (isReading) { stopReading(); }
-  lessonIdx = i;
-  curIdx = -1;
-  renderLesson();
-  updateProgress();
-  updateStatus('idle', 'Ready');
-  document.getElementById('startBtn').textContent = 'Start Reading';
-  window.scrollTo({top: 0, behavior: 'smooth'});
-  try { localStorage.setItem('readLesson', i); } catch(e){}
 }
 
 /* ================= 音频 ================= */
 function getAudioFile(idx){
-  return 'audio/' + LESSONS[lessonIdx].id + '/' + accent + '_' + gender + '/sent_' + String(idx).padStart(2,'0') + '.mp3';
+  return 'audio/' + state.lessonId + '/' + accent + '_' + gender + '/sent_' + String(idx).padStart(2,'0') + '.mp3';
 }
 
 function setAccent(a, btn){
@@ -520,10 +616,7 @@ function toggleTheme(){
 try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
 function toggleTrans(){
   document.body.classList.toggle('show-trans');
-  var show = document.body.classList.contains('show-trans');
-  document.getElementById('transBtn').textContent = show ? 'Hide Translation' : 'Show Translation';
-  var t = document.getElementById('transToggle');
-  if (t) t.textContent = show ? 'Hide Translation' : 'Show Translation';
+  document.getElementById('transBtn').textContent = document.body.classList.contains('show-trans') ? 'Hide Translation' : 'Show Translation';
 }
 function updateStatus(s, t){
   document.getElementById('statusBadge').className = 'status-badge ' + s;
@@ -572,13 +665,11 @@ function showCountdown(sec){
 function hideCountdown(){ document.getElementById('countdown').classList.remove('show'); }
 
 /* ================= 初始化 ================= */
-try { var sl = localStorage.getItem('readLesson'); if (sl !== null && LESSONS[+sl]) lessonIdx = +sl; } catch(e){}
-renderLesson();
+route();
 
 window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.toggleTrans = toggleTrans;
 window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
-window.switchLesson = switchLesson;
 </script>
 </body>
 </html>
