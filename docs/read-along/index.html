@@ -133,6 +133,8 @@
   .sent:hover{background:var(--surface-3);}
   .sent.active{background:var(--accent-bg);color:var(--accent);font-weight:500;box-shadow:0 0 0 1.5px var(--accent);}
   .sent.read{color:var(--text-3);}
+  .player-head h1.sent,.textbook-subtitle.sent{display:inline-block;padding:0 2px;border-radius:4px;}
+  .player-head h1.sent.active,.textbook-subtitle.sent.active{font-weight:inherit;}
 
   .translation{display:none;margin-top:16px;padding:20px 24px;background:var(--surface-2);border-radius:6px;font-size:14px;line-height:1.8;color:var(--text-2);}
   .show-trans .translation{display:block;animation:fadeIn .3s ease;}
@@ -279,6 +281,10 @@ var LESSONS = {
   tbTitle:"Reading and Thinking",
   tbSubtitle:"Han Jing's World",
   blockStyle:"timestamp",
+  titleSents:[
+    {en:"First Impressions",zh:"\u7b2c\u4e00\u5370\u8c61"},
+    {en:"Han Jing's World",zh:"\u97e9\u9759\u7684\u4e16\u754c"}
+  ],
   blocks:[
   {label:"7:00 a.m.",sentences:[
     {en:"So this is it \u2014 senior high school at last!",zh:"\u5c31\u662f\u8fd9\u6837\u2014\u2014\u7ec8\u4e8e\u5230\u9ad8\u4e2d\u4e86\uff01"},
@@ -319,6 +325,9 @@ var LESSONS = {
   tbTitle:"Reading for Writing",
   tbSubtitle:"Student Profiles",
   blockStyle:"profile",
+  titleSents:[
+    {en:"Student Profiles",zh:"\u5b66\u751f\u6863\u6848"}
+  ],
   blocks:[
   {label:"Ann", meta:"15 · Lakeside High School · USA",sentences:[
     {en:"My name is Ann Wells and I'm a Grade 10 student at Lakeside High School.",zh:"\u6211\u53eb\u5b89\u00b7\u97e6\u5c14\u65af\uff0c\u662f\u6e56\u6ee8\u9ad8\u4e2d10\u5e74\u7ea7\u7684\u5b66\u751f\u3002"},
@@ -417,7 +426,7 @@ function showToc(bookId){
     u.lessons.forEach(function(lid){
       var L = LESSONS[lid];
       if (!L) return;
-      var count = L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
+      var count = (L.titleSents ? L.titleSents.length : 0) + L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
       var item = document.createElement('div');
       item.className = 'toc-item';
       item.innerHTML = '<div class="toc-item-icon">\u{1F3A7}</div>' +
@@ -467,11 +476,32 @@ function renderLesson(){
   document.getElementById('tbSubtitle').textContent = L.tbSubtitle;
 
   allSent = [];
+  var titleCount = L.titleSents ? L.titleSents.length : 0;
+  var h1 = document.getElementById('lessonTitle');
+  h1.classList.add('sent'); h1.dataset.index = 0;
+  h1.onclick = function(){ onSentenceClick(0); };
+  var h2 = document.getElementById('tbSubtitle');
+  var h2Idx = titleCount > 1 ? 1 : 0;
+  h2.classList.add('sent'); h2.dataset.index = h2Idx;
+  h2.onclick = function(){ onSentenceClick(h2Idx); };
+  if (L.titleSents) L.titleSents.forEach(function(s){ allSent.push(s); });
   var passageEl = document.getElementById('passage');
   var transEl = document.getElementById('translation');
   passageEl.innerHTML = '';
   transEl.innerHTML = '';
 
+  if (L.titleSents && L.titleSents.length) {
+    var tbT = document.createElement('div');
+    tbT.className = 'trans-block';
+    var ttT = document.createElement('div');
+    ttT.className = 'trans-time';
+    ttT.textContent = 'Title';
+    var tpT = document.createElement('p');
+    tpT.style.margin = '0';
+    tpT.textContent = L.titleSents.map(function(s){ return s.zh; }).join(' \u00b7 ');
+    tbT.appendChild(ttT); tbT.appendChild(tpT);
+    transEl.appendChild(tbT);
+  }
   L.blocks.forEach(function(blk){
     var div = document.createElement('div');
     div.className = 'text-block';
@@ -519,7 +549,9 @@ function renderLesson(){
 
 /* ================= 音频 ================= */
 function getAudioFile(idx){
-  return 'audio/' + state.lessonId + '/' + accent + '_' + gender + '/sent_' + String(idx).padStart(2,'0') + '.mp3?v=2';
+  var tn = currentLesson().titleSents ? currentLesson().titleSents.length : 0;
+  var name = idx < tn ? 'title_' + String(idx).padStart(2,'0') : 'sent_' + String(idx - tn).padStart(2,'0');
+  return 'audio/' + state.lessonId + '/' + accent + '_' + gender + '/' + name + '.mp3?v=3';
 }
 
 function setAccent(a, btn){
