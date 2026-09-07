@@ -5,16 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seeklume · Read Along</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600&display=swap');
+
   :root {
     --bg:#f5f5f7; --surface:#ffffff; --surface-2:#fafafa; --surface-3:#f0f0f2;
     --border:#e5e5ea; --text:#1d1d1f; --text-2:#6e6e73; --text-3:#aeaeb2;
     --accent:#0071e3; --accent-bg:#f0f7ff; --green:#34c759; --green-bg:#e8f8ed;
-    --radius:10px; --shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
+    --radius:10px;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
     --shadow-lg:0 4px 16px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
     --font-display:'Instrument Serif',Georgia,serif;
     --font-body:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;
-    --passage-size:18px;
+    --font-hand:'Caveat',cursive;
+    --passage-size:17px;
   }
   [data-theme="dark"] {
     --bg:#1c1c1e; --surface:#2c2c2e; --surface-2:#3a3a3c; --surface-3:#48484a;
@@ -38,13 +41,23 @@
   [data-theme="dark"] .theme-toggle .icon-sun{display:inline;}
   [data-theme="dark"] .theme-toggle .icon-moon{display:none;}
 
-  main{max-width:720px;margin:0 auto;padding:32px 24px 100px;}
+  main{max-width:780px;margin:0 auto;padding:32px 24px 100px;}
   .lesson-header{text-align:center;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid var(--accent);}
-  .lesson-header .unit-tag{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:0.1em;margin-bottom:8px;}
-  .lesson-header h1{font-family:var(--font-display);font-size:32px;font-weight:400;margin:0 0 4px;color:var(--text);}
+  .lesson-header .unit-tag{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.15em;margin-bottom:10px;text-transform:uppercase;}
+  .lesson-header h1{font-family:var(--font-display);font-size:34px;font-weight:400;margin:0 0 6px;color:var(--text);}
   .lesson-header .sub{font-size:13px;color:var(--text-3);}
 
-  .controls-bar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  /* ===== 语音选择器 ===== */
+  .voice-panel{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .voice-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .voice-label{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;min-width:52px;}
+  .voice-btn{padding:6px 14px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+  .voice-btn .flag{font-size:16px;}
+  .voice-btn.active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;box-shadow:0 0 0 1px var(--accent);}
+  .voice-btn:hover{border-color:var(--text-3);}
+  .voice-btn.active:hover{border-color:var(--accent);}
+
+  .controls-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .ctrl-group{display:flex;align-items:center;gap:6px;}
   .ctrl-label{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
   .pill-btn{padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:12px;cursor:pointer;transition:all .15s;}
@@ -68,14 +81,60 @@
   .status-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.4s ease infinite;}
   @keyframes pulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
 
-  .passage{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:40px 36px;line-height:2;font-size:var(--passage-size);color:var(--text);transition:font-size .2s;}
-  .text-block{margin-bottom:28px;}
+  /* ===== 课本风格课文 ===== */
+  .textbook{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:40px 44px 40px 40px;
+    position:relative;
+  }
+  /* 课本左侧装饰线 */
+  .textbook::before{
+    content:'';
+    position:absolute;
+    left:0;top:40px;bottom:40px;
+    width:3px;
+    background:var(--accent);
+    border-radius:0 2px 2px 0;
+    opacity:0.6;
+  }
+  .textbook-title{
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:600;
+    color:var(--text-2);
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    margin-bottom:4px;
+  }
+  .textbook-subtitle{
+    font-family:var(--font-display);
+    font-size:28px;
+    font-weight:400;
+    color:var(--text);
+    margin:0 0 20px;
+    line-height:1.2;
+  }
+  .text-block{margin-bottom:26px;position:relative;}
   .text-block:last-child{margin-bottom:0;}
-  .time-stamp{font-family:var(--font-display);font-size:18px;color:var(--accent);font-weight:400;margin-bottom:6px;display:block;}
-  .passage-text{margin:0;font-size:var(--passage-size);line-height:2;color:var(--text);}
-  .sent{position:relative;transition:background .2s ease,color .2s ease;border-radius:3px;padding:1px 2px;cursor:pointer;}
+  /* 时间戳 - 课本风格 */
+  .time-stamp{
+    display:inline-block;
+    font-family:var(--font-hand);
+    font-size:22px;
+    font-weight:600;
+    color:var(--accent);
+    margin-bottom:6px;
+    padding:0 0 2px;
+    border-bottom:1.5px solid var(--accent);
+    opacity:0.85;
+  }
+  .passage-text{margin:0;font-size:var(--passage-size);line-height:2;color:var(--text);transition:font-size .2s;}
+  .sent{position:relative;transition:background .2s,color .2s;border-radius:3px;padding:1px 2px;cursor:pointer;}
   .sent:hover{background:var(--surface-3);}
-  .sent.active{background:var(--accent-bg);color:var(--accent);font-weight:500;box-shadow:0 0 0 1px var(--accent);}
+  .sent.active{background:var(--accent-bg);color:var(--accent);font-weight:500;box-shadow:0 0 0 1.5px var(--accent);}
   .sent.read{color:var(--text-3);}
 
   .trans-toggle{display:block;width:100%;padding:10px;margin-top:20px;border:none;background:var(--surface-2);color:var(--text-2);font:inherit;font-size:13px;cursor:pointer;border-radius:6px;}
@@ -96,7 +155,7 @@
   .countdown-bar-fill{height:100%;background:var(--accent);width:100%;transform-origin:right;}
 
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
-  @media(max-width:640px){.passage{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}}
+  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}}
 </style>
 </head>
 <body>
@@ -109,10 +168,26 @@
 </header>
 <main>
   <div class="lesson-header">
-    <div class="unit-tag">WELCOME UNIT · READING AND THINKING</div>
-    <h1>Han Jing's World</h1>
-    <div class="sub">New Senior High English · Book 1 · British English</div>
+    <div class="unit-tag">Welcome Unit · Reading and Thinking</div>
+    <h1>First Impressions</h1>
+    <div class="sub">Han Jing's World · New Senior High English · Book 1</div>
   </div>
+
+  <!-- 语音选择 -->
+  <div class="voice-panel">
+    <div class="voice-row">
+      <span class="voice-label">Accent</span>
+      <button class="voice-btn active" data-accent="uk" onclick="setAccent('uk',this)"><span class="flag">🇬🇧</span>British</button>
+      <button class="voice-btn" data-accent="us" onclick="setAccent('us',this)"><span class="flag">🇺🇸</span>American</button>
+      <button class="voice-btn" data-accent="au" onclick="setAccent('au',this)"><span class="flag">🇦🇺</span>Australian</button>
+    </div>
+    <div class="voice-row">
+      <span class="voice-label">Voice</span>
+      <button class="voice-btn active" data-gender="f" onclick="setGender('f',this)">♀ Female</button>
+      <button class="voice-btn" data-gender="m" onclick="setGender('m',this)">♂ Male</button>
+    </div>
+  </div>
+
   <div class="controls-bar">
     <div class="ctrl-group">
       <span class="ctrl-label">Speed</span>
@@ -134,14 +209,22 @@
     <button class="start-btn" id="startBtn" onclick="toggleReading()">Start Reading</button>
     <button class="ghost-btn" onclick="toggleTrans()" id="transBtn">Show Translation</button>
   </div>
+
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="status-row">
     <span class="status-badge idle" id="statusBadge"><span class="dot"></span><span id="statusText">Ready</span></span>
   </div>
-  <div class="passage" id="passage"></div>
+
+  <!-- 课本风格课文 -->
+  <div class="textbook">
+    <div class="textbook-title">Reading and Thinking</div>
+    <h2 class="textbook-subtitle">Han Jing's World</h2>
+    <div id="passage"></div>
+  </div>
+
   <button class="trans-toggle" onclick="toggleTrans()" id="transToggle" style="display:none;">Show Translation</button>
   <div class="translation" id="translation"></div>
-  <div class="footer-note">Click any sentence to start reading from there · British English audio</div>
+  <div class="footer-note">Click any sentence to start reading from there · Pre-generated audio</div>
 </main>
 <audio id="audioPlayer" preload="auto"></audio>
 <div class="countdown" id="countdown">
@@ -153,32 +236,32 @@
 <script>
 var PASSAGE=[
 {time:"7:00 a.m.",sentences:[
-{en:"So this is it \u2014 senior high school at last!",zh:"\u5c31\u8fd9\u6837\u4e86\u2014\u2014\u7ec8\u4e8e\u5230\u9ad8\u4e2d\u4e86\uff01",audio:"audio/sent_00.mp3"},
-{en:"I'm not outgoing so I'm a little anxious right now.",zh:"\u6211\u4e0d\u592a\u5916\u5411\uff0c\u6240\u4ee5\u73b0\u5728\u6709\u70b9\u7d27\u5f20\u3002",audio:"audio/sent_01.mp3"},
-{en:"I want to make a good first impression.",zh:"\u6211\u60f3\u7559\u4e0b\u4e00\u4e2a\u597d\u7684\u7b2c\u4e00\u5370\u8c61\u3002",audio:"audio/sent_02.mp3"},
-{en:"Will I make any friends?",zh:"\u6211\u4f1a\u4ea4\u5230\u670b\u53cb\u5417\uff1f",audio:"audio/sent_03.mp3"},
-{en:"What if no one talks to me?",zh:"\u8981\u662f\u6ca1\u4eba\u8ddf\u6211\u8bf4\u8bdd\u600e\u4e48\u529e\uff1f",audio:"audio/sent_04.mp3"}
+{en:"So this is it \u2014 senior high school at last!",zh:"\u5c31\u8fd9\u6837\u4e86\u2014\u2014\u7ec8\u4e8e\u5230\u9ad8\u4e2d\u4e86\uff01"},
+{en:"I'm not outgoing so I'm a little anxious right now.",zh:"\u6211\u4e0d\u592a\u5916\u5411\uff0c\u6240\u4ee5\u73b0\u5728\u6709\u70b9\u7d27\u5f20\u3002"},
+{en:"I want to make a good first impression.",zh:"\u6211\u60f3\u7559\u4e0b\u4e00\u4e2a\u597d\u7684\u7b2c\u4e00\u5370\u8c61\u3002"},
+{en:"Will I make any friends?",zh:"\u6211\u4f1a\u4ea4\u5230\u670b\u53cb\u5417\uff1f"},
+{en:"What if no one talks to me?",zh:"\u8981\u662f\u6ca1\u4eba\u8ddf\u6211\u8bf4\u8bdd\u600e\u4e48\u529e\uff1f"}
 ]},
 {time:"12:30 p.m.",sentences:[
-{en:"I just had my first maths class at senior high school!",zh:"\u6211\u521a\u4e0a\u5b8c\u9ad8\u4e2d\u7684\u7b2c\u4e00\u8282\u6570\u5b66\u8bfe\uff01",audio:"audio/sent_05.mp3"},
-{en:"The class was difficult, but the teacher was kind and friendly.",zh:"\u8bfe\u5f88\u96be\uff0c\u4f46\u8001\u5e08\u5f88\u548c\u853d\u53cb\u597d\u3002",audio:"audio/sent_06.mp3"},
-{en:"He even told us a funny story, and everyone laughed so much!",zh:"\u4ed6\u751a\u81f3\u8bb2\u4e86\u4e00\u4e2a\u6709\u8da3\u7684\u6545\u4e8b\uff0c\u5927\u5bb6\u90fd\u7b11\u5f97\u4e0d\u884c\uff01",audio:"audio/sent_07.mp3"},
-{en:"I found most of my classmates and teachers friendly and helpful.",zh:"\u6211\u53d1\u73b0\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u53cb\u597d\u3001\u5f88\u4e50\u4e8e\u52a9\u4eba\u3002",audio:"audio/sent_08.mp3"}
+{en:"I just had my first maths class at senior high school!",zh:"\u6211\u521a\u4e0a\u5b8c\u9ad8\u4e2d\u7684\u7b2c\u4e00\u8282\u6570\u5b66\u8bfe\uff01"},
+{en:"The class was difficult, but the teacher was kind and friendly.",zh:"\u8bfe\u5f88\u96be\uff0c\u4f46\u8001\u5e08\u5f88\u548c\u853d\u53cb\u597d\u3002"},
+{en:"He even told us a funny story, and everyone laughed so much!",zh:"\u4ed6\u751a\u81f3\u8bb2\u4e86\u4e00\u4e2a\u6709\u8da3\u7684\u6545\u4e8b\uff0c\u5927\u5bb6\u90fd\u7b11\u5f97\u4e0d\u884c\uff01"},
+{en:"I found most of my classmates and teachers friendly and helpful.",zh:"\u6211\u53d1\u73b0\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u53cb\u597d\u3001\u5f88\u4e50\u4e8e\u52a9\u4eba\u3002"}
 ]},
 {time:"5:32 p.m.",sentences:[
-{en:"This afternoon, we had our chemistry class in the science lab.",zh:"\u4eca\u5929\u4e0b\u5348\uff0c\u6211\u4eec\u5728\u79d1\u5b66\u5b9e\u9a8c\u5ba4\u4e0a\u4e86\u5316\u5b66\u8bfe\u3002",audio:"audio/sent_09.mp3"},
-{en:"The lab is new and the lesson was great, but the guy next to me tried to talk to me the whole time.",zh:"\u5b9e\u9a8c\u5ba4\u662f\u65b0\u7684\uff0c\u8bfe\u4e5f\u5f88\u68d2\uff0c\u4f46\u65c1\u8fb9\u7684\u7537\u751f\u4e00\u76f4\u60f3\u8ddf\u6211\u8bf4\u8bdd\u3002",audio:"audio/sent_10.mp3"},
-{en:"I couldn't concentrate on the experiment.",zh:"\u6211\u65e0\u6cd5\u96c6\u4e2d\u7cbe\u529b\u505a\u5b9e\u9a8c\u3002",audio:"audio/sent_11.mp3"},
-{en:"I really wanted to tell him to please be quiet and leave me alone!",zh:"\u6211\u771f\u60f3\u544a\u8bc9\u4ed6\u8bf7\u5b89\u9759\uff0c\u522b\u70e6\u6211\uff01",audio:"audio/sent_12.mp3"}
+{en:"This afternoon, we had our chemistry class in the science lab.",zh:"\u4eca\u5929\u4e0b\u5348\uff0c\u6211\u4eec\u5728\u79d1\u5b66\u5b9e\u9a8c\u5ba4\u4e0a\u4e86\u5316\u5b66\u8bfe\u3002"},
+{en:"The lab is new and the lesson was great, but the guy next to me tried to talk to me the whole time.",zh:"\u5b9e\u9a8c\u5ba4\u662f\u65b0\u7684\uff0c\u8bfe\u4e5f\u5f88\u68d2\uff0c\u4f46\u65c1\u8fb9\u7684\u7537\u751f\u4e00\u76f4\u60f3\u8ddf\u6211\u8bf4\u8bdd\u3002"},
+{en:"I couldn't concentrate on the experiment.",zh:"\u6211\u65e0\u6cd5\u96c6\u4e2d\u7cbe\u529b\u505a\u5b9e\u9a8c\u3002"},
+{en:"I really wanted to tell him to please be quiet and leave me alone!",zh:"\u6211\u771f\u60f3\u544a\u8bc9\u4ed6\u8bf7\u5b89\u9759\uff0c\u522b\u70e6\u6211\uff01"}
 ]},
 {time:"10:29 p.m.",sentences:[
-{en:"What a day!",zh:"\u8fd9\u4e00\u5929\u554a\uff01",audio:"audio/sent_13.mp3"},
-{en:"This morning, I was worried that no one would talk to me.",zh:"\u4eca\u5929\u65e9\u6668\uff0c\u6211\u8fd8\u62c5\u5fc3\u6ca1\u4eba\u4f1a\u8ddf\u6211\u8bf4\u8bdd\u3002",audio:"audio/sent_14.mp3"},
-{en:"But that was just a wrong guess.",zh:"\u4f46\u90a3\u53ea\u662f\u4e00\u4e2a\u9519\u8bef\u7684\u731c\u6d4b\u3002",audio:"audio/sent_15.mp3"},
-{en:"Most of my classmates and teachers are helpful and I like them.",zh:"\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u4e50\u4e8e\u52a9\u4eba\uff0c\u6211\u5f88\u559c\u6b22\u4ed6\u4eec\u3002",audio:"audio/sent_16.mp3"},
-{en:"I feel much more confident now.",zh:"\u6211\u73b0\u5728\u611f\u89c9\u81ea\u4fe1\u591a\u4e86\u3002",audio:"audio/sent_17.mp3"},
-{en:"I think I'll make new friends here.",zh:"\u6211\u60f3\u6211\u4f1a\u5728\u8fd9\u91cc\u4ea4\u5230\u65b0\u670b\u53cb\u7684\u3002",audio:"audio/sent_18.mp3"},
-{en:"I'm sure I'll be doing fine.",zh:"\u6211\u76f8\u4fe1\u6211\u4f1a\u4e00\u5207\u987a\u5229\u7684\u3002",audio:"audio/sent_19.mp3"}
+{en:"What a day!",zh:"\u8fd9\u4e00\u5929\u554a\uff01"},
+{en:"This morning, I was worried that no one would talk to me.",zh:"\u4eca\u5929\u65e9\u6668\uff0c\u6211\u8fd8\u62c5\u5fc3\u6ca1\u4eba\u4f1a\u8ddf\u6211\u8bf4\u8bdd\u3002"},
+{en:"But that was just a wrong guess.",zh:"\u4f46\u90a3\u53ea\u662f\u4e00\u4e2a\u9519\u8bef\u7684\u731c\u6d4b\u3002"},
+{en:"Most of my classmates and teachers are helpful and I like them.",zh:"\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u4e50\u4e8e\u52a9\u4eba\uff0c\u6211\u5f88\u559c\u6b22\u4ed6\u4eec\u3002"},
+{en:"I feel much more confident now.",zh:"\u6211\u73b0\u5728\u611f\u89c9\u81ea\u4fe1\u591a\u4e86\u3002"},
+{en:"I think I'll make new friends here.",zh:"\u6211\u60f3\u6211\u4f1a\u5728\u8fd9\u91cc\u4ea4\u5230\u65b0\u670b\u53cb\u7684\u3002"},
+{en:"I'm sure I'll be doing fine.",zh:"\u6211\u76f8\u4fe1\u6211\u4f1a\u4e00\u5207\u987a\u5229\u7684\u3002"}
 ]}
 ];
 
@@ -208,6 +291,40 @@ PASSAGE.forEach(function(blk){
   tb.appendChild(tp);transEl.appendChild(tb);
 });
 
+// 语音选择
+var accent='uk', gender='f';
+var voiceMap={
+  'uk_f':'en-GB-SoniaNeural', 'uk_m':'en-GB-RyanNeural',
+  'us_f':'en-US-AriaNeural',  'us_m':'en-US-ChristopherNeural',
+  'au_f':'en-AU-NatashaNeural','au_m':'en-AU-WilliamMultilingualNeural'
+};
+var audioDirMap={
+  'uk_f':'uk_f','uk_m':'uk_m','us_f':'us_f','us_m':'us_m','au_f':'au_f','au_m':'au_m'
+};
+
+function getAudioDir(){return audioDirMap[accent+'_'+gender];}
+function getAudioFile(idx){return 'audio/'+getAudioDir()+'/sent_'+String(idx).padStart(2,'0')+'.mp3';}
+
+function setAccent(a,btn){
+  accent=a;
+  document.querySelectorAll('[data-accent]').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  // 如果正在跟读，切换口音后从当前句重新播放
+  if(isReading&&curIdx>=0){
+    audio.pause();
+    speak(curIdx);
+  }
+}
+function setGender(g,btn){
+  gender=g;
+  document.querySelectorAll('[data-gender]').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  if(isReading&&curIdx>=0){
+    audio.pause();
+    speak(curIdx);
+  }
+}
+
 var speed=1.0,gapMul=1.5,isReading=false,curIdx=-1;
 var audio=document.getElementById('audioPlayer');
 audio.playbackRate=1.0;
@@ -222,12 +339,11 @@ function updateProgress(){var pct=((curIdx+1)/allSent.length)*100;document.getEl
 function highlightSent(idx){document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');if(parseInt(s.dataset.index)<idx)s.classList.add('read');else s.classList.remove('read');});if(idx>=0&&idx<allSent.length){var el=document.querySelector('.sent[data-index="'+idx+'"]');if(el){el.classList.add('active');el.classList.remove('read');scrollSentToCenter(el);}}}
 function scrollSentToCenter(el){if(!el)return;var rect=el.getBoundingClientRect();var offset=rect.top+rect.height/2-window.innerHeight/2;window.scrollTo({top:window.scrollY+offset,behavior:'smooth'});}
 
-// 字号调节
-var _fontSize=18;
+var _fontSize=17;
 function applyFont(){document.documentElement.style.setProperty('--passage-size',_fontSize+'px');try{localStorage.setItem('readFont',_fontSize);}catch(e){}}
 function incFont(){_fontSize=Math.min(36,_fontSize+1);applyFont();}
 function decFont(){_fontSize=Math.max(12,_fontSize-1);applyFont();}
-try{var sf=localStorage.getItem('readFont');if(sf){_fontSize=parseInt(sf)||18;applyFont();}}catch(e){}
+try{var sf=localStorage.getItem('readFont');if(sf){_fontSize=parseInt(sf)||17;applyFont();}}catch(e){}
 
 function calcEcho(text){var w=text.split(/\s+/).length;return Math.max(2.5,(w*0.45+1.5)*gapMul);}
 function showCountdown(sec){var o=document.getElementById('countdown');var n=document.getElementById('countdownNum');var b=document.getElementById('countdownBarFill');o.classList.add('show');n.textContent=Math.ceil(sec);b.style.transition='none';b.style.transform='scaleX(1)';b.offsetHeight;b.style.transition='transform '+sec+'s linear';b.style.transform='scaleX(0)';}
@@ -237,7 +353,7 @@ function speak(idx){
   if(idx>=allSent.length){finish();return;}
   curIdx=idx;highlightSent(idx);updateProgress();
   updateStatus('reading','Playing... ('+(idx+1)+'/'+allSent.length+')');
-  audio.src=allSent[idx].audio;
+  audio.src=getAudioFile(idx);
   audio.playbackRate=speed;
   audio.play().catch(function(e){console.error('Audio play failed:',e);if(isReading)setTimeout(function(){speak(idx+1);},500);});
 }
@@ -268,41 +384,18 @@ function toggleReading(){
   }
 }
 
-// 点击句子：如果正在跟读则忽略；否则从该句开始自动跟读
 function onSentenceClick(idx){
   if(isReading){
-    // 跟读中点击 = 跳转到该句
-    curIdx=idx-1; // 让 speak(idx) 时 curIdx 还是上一个
-    // 清除该句之后的 read 标记
-    document.querySelectorAll('.sent').forEach(function(s){
-      if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');
-    });
+    document.querySelectorAll('.sent').forEach(function(s){if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');});
+    curIdx=idx-1;
     speak(idx);
     return;
   }
-  // 不在跟读模式：从该句开始自动跟读
-  // 清除该句之后的标记
-  document.querySelectorAll('.sent').forEach(function(s){
-    if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');
-  });
+  document.querySelectorAll('.sent').forEach(function(s){if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');});
   curIdx=idx-1;
   isReading=true;
   document.getElementById('startBtn').textContent='Stop';
   speak(idx);
-}
-
-function speakSingle(idx){
-  if(isReading)return;
-  audio.pause();
-  document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');});
-  var el=document.querySelector('.sent[data-index="'+idx+'"]');
-  if(el)el.classList.add('active');
-  audio.src=allSent[idx].audio;
-  audio.playbackRate=speed;
-  audio.onended=function(){if(el)el.classList.remove('active');};
-  audio.play().catch(function(e){console.error(e);});
-  // 恢复默认 onended
-  audio.onended=function(){if(el)el.classList.remove('active');};
 }
 
 function finish(){
@@ -312,7 +405,7 @@ function finish(){
   curIdx=-1;
 }
 
-window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;window.onSentenceClick=onSentenceClick;window.incFont=incFont;window.decFont=decFont;
+window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=function(){};window.onSentenceClick=onSentenceClick;window.incFont=incFont;window.decFont=decFont;window.setAccent=setAccent;window.setGender=setGender;
 </script>
 </body>
 </html>
