@@ -255,60 +255,56 @@
     max-width: 720px;
     margin: 0 auto;
   }
-  .module-card {
+  .project-entry-glass {
     position: relative;
     display: block;
     text-decoration: none;
-    color: var(--text);
-    padding: 32px 28px;
-    border-radius: 22px;
-    background: var(--surface);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid var(--border);
+    color: #fff;
+    padding: 28px 32px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(14,18,28,0.4), rgba(255,255,255,0.08));
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.22);
     box-shadow:
-      inset 0 1px 1px rgba(255,255,255,0.08),
-      0 12px 40px rgba(0,0,0,0.25);
-    transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .35s ease, border-color .35s;
+      inset 0 1px 1px rgba(255,255,255,0.18),
+      inset 0 -18px 34px rgba(255,255,255,0.04),
+      0 18px 48px rgba(0,0,0,0.32);
+    text-shadow: 0 2px 18px rgba(0,0,0,0.72);
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .35s ease;
     overflow: hidden;
-    opacity: 0;
-    animation: fadeRise .8s cubic-bezier(.16,1,.3,1) .5s both;
   }
-  .module-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 40%, rgba(95,176,255,0.25) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    opacity: 0.6;
-  }
-  .module-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 40%);
-    opacity: 0;
-    transition: opacity .4s ease;
-    pointer-events: none;
-  }
-  .module-card:hover {
-    transform: translateY(-6px) scale(1.02);
-    border-color: var(--accent);
+  .project-entry-glass:hover {
+    transform: translateY(-4px) scale(1.025);
     box-shadow:
-      inset 0 1px 1px rgba(255,255,255,0.12),
-      0 20px 50px rgba(0,0,0,0.35),
-      0 0 0 1px var(--accent);
+      inset 0 1px 1px rgba(255,255,255,0.24),
+      inset 0 -18px 34px rgba(255,255,255,0.06),
+      0 22px 58px rgba(0,0,0,0.4);
   }
-  .module-card:hover::after { opacity: 0.5; }
-  .module-card.available { cursor: pointer; }
+  [data-theme="light"] .project-entry-glass {
+    color: #0f2440;
+    background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(15,36,64,0.06));
+    border-color: rgba(15,36,64,0.18);
+    text-shadow: none;
+  }
+  .project-entry-glass .entry-subtitle {
+    display: block;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+  }
+  [data-theme="light"] .project-entry-glass .entry-subtitle { color: rgba(15,36,64,0.55); text-shadow: none; }
+  .project-entry-glass .entry-title {
+    display: block;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  [data-theme="light"] .project-entry-glass .entry-title { color: #0f2440; text-shadow: none; }
 
   .module-badge {
     display: inline-block;
@@ -532,6 +528,279 @@
   .view { display: none; }
   .view.active { display: block; }
 
+
+  /* ===== 视频背景 Hero ===== */
+  .hero-video {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0 -24px;
+  }
+  .video-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    filter: contrast(1.06) saturate(1.08);
+  }
+  .bg-video.active { opacity: 1; }
+  .video-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(to bottom,
+      rgba(6,22,40,0.45) 0%,
+      rgba(6,22,40,0.15) 35%,
+      rgba(6,22,40,0.15) 65%,
+      rgba(6,22,40,0.6) 100%);
+  }
+  [data-theme="light"] .video-overlay {
+    background: linear-gradient(to bottom,
+      rgba(244,246,249,0.55) 0%,
+      rgba(244,246,249,0.25) 35%,
+      rgba(244,246,249,0.35) 65%,
+      rgba(244,246,249,0.7) 100%);
+  }
+  .video-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    box-shadow: inset 0 0 180px rgba(0,0,0,0.55);
+  }
+  [data-theme="light"] .video-vignette {
+    box-shadow: inset 0 0 120px rgba(15,36,64,0.2);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 90px 24px 60px;
+  }
+  .panel-stage {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px);
+    transition: opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), visibility 0s linear .45s;
+    pointer-events: none;
+  }
+  .panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), visibility 0s;
+  }
+  .panel.panel-0 { transform: translateY(-18px); }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(56px, 12vw, 128px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -2.5px;
+    color: #fff;
+    margin: 0 0 20px;
+    text-shadow: 0 4px 40px rgba(0,0,0,0.6);
+  }
+  [data-theme="light"] .hero-title {
+    color: #0f2440;
+    text-shadow: 0 4px 30px rgba(255,255,255,0.5);
+  }
+  .hero-sub {
+    font-size: clamp(15px, 1.6vw, 19px);
+    color: rgba(255,255,255,0.78);
+    max-width: 620px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+    font-weight: 300;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+  }
+  [data-theme="light"] .hero-sub {
+    color: rgba(15,36,64,0.75);
+    text-shadow: 0 2px 16px rgba(255,255,255,0.6);
+  }
+  .liquid-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 40px;
+    border-radius: 9999px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    background: rgba(255,255,255,0.06);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(6px) saturate(140%);
+    -webkit-backdrop-filter: blur(6px) saturate(140%);
+    border: none;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.18);
+    position: relative;
+    overflow: hidden;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
+  }
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.5) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.5;
+  }
+  .liquid-glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(ellipse 90% 40% at 50% 0%, rgba(255,255,255,0.18) 0%, transparent 55%), radial-gradient(ellipse 60% 35% at 65% 10%, rgba(255,255,255,0.08) 0%, transparent 50%);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  .liquid-glass:hover {
+    transform: scale(1.04);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.18), 0 12px 40px rgba(0,0,0,0.28);
+  }
+  .liquid-glass:hover::before { opacity: 0.7; }
+  [data-theme="light"] .liquid-glass {
+    color: #0f2440;
+    text-shadow: none;
+    background: rgba(15,36,64,0.06);
+  }
+
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 400;
+    color: #fff;
+    margin: 0 0 32px;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+  }
+  [data-theme="light"] .panel-title {
+    color: #0f2440;
+    text-shadow: 0 2px 16px rgba(255,255,255,0.5);
+  }
+
+  /* 视频进度点 */
+  .video-dots {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 48px;
+    z-index: 10;
+  }
+  .dot {
+    height: 8px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all .5s ease;
+    padding: 0;
+  }
+  .dot.active {
+    width: 32px;
+    background: #fff;
+  }
+  .dot:not(.active) { width: 8px; }
+  .dot:not(.active):hover { background: rgba(255,255,255,0.55); }
+  [data-theme="light"] .dot { background: rgba(15,36,64,0.25); }
+  [data-theme="light"] .dot.active { background: #0f2440; }
+
+  /* Scroll 提示 */
+  .scroll-cue {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    text-shadow: 0 2px 14px rgba(0,0,0,0.75);
+    z-index: 10;
+    transition: color .3s;
+  }
+  [data-theme="light"] .scroll-cue { color: rgba(15,36,64,0.5); }
+  .scroll-cue:hover { color: #fff; }
+  [data-theme="light"] .scroll-cue:hover { color: #0f2440; }
+  .scroll-cue-line {
+    width: 1px;
+    height: 34px;
+    border-radius: 999px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9), transparent);
+    animation: scrollCue 1.8s ease-in-out infinite;
+  }
+  [data-theme="light"] .scroll-cue-line {
+    background: linear-gradient(to bottom, transparent, rgba(15,36,64,0.6), transparent);
+  }
+  @keyframes scrollCue {
+    0% { transform: translateY(-8px) scaleY(0.5); opacity: 0; }
+    35% { opacity: 0.9; }
+    100% { transform: translateY(10px) scaleY(1); opacity: 0; }
+  }
+
+  .shot-credit {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    z-index: 10;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    text-shadow: 0 2px 14px rgba(0,0,0,0.75);
+    pointer-events: none;
+  }
+  [data-theme="light"] .shot-credit { color: rgba(15,36,64,0.3); }
+
   /* ===== Responsive ===== */
   @media (max-width: 640px) {
     .logo .en-sub { display: none; }
@@ -592,20 +861,54 @@
 
   <!-- ========== 单页 · 访客与登录后共用（has-session 切换头区文案） ========== -->
   <div class="view active" id="view-modules">
-    <div class="hero" style="padding: 72px 24px 48px;">
-      <div class="eyebrow" id="modulesGreeting">Pilot · Grammar First</div>
-      <h1><span class="guest-only">Seeklume</span><span class="auth-only">选一个模块开始</span></h1>
-      <p class="sub"><span class="guest-only">English Teaching web 初步探索 · 选一个模块开始</span><span class="auth-only">当前可以使用语法填空讲评。其他题型会随着课堂流程和知识框架逐步接入。</span></p>
-    </div>
-    <div class="modules-grid">
-      <a class="module-card available" href="./grammar-fill/">
-        <span class="module-badge live">开放</span>
-        <div class="module-num">01</div>
-        <h3>语法填空</h3>
-        <p>套题讲评 · 按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
-        <div class="module-meta">免登录即可讲评 · 错题本/备课需登录</div>
-      </a>
-    </div>
+    <section class="hero-video">
+      <div class="video-layer">
+        <video class="bg-video active" muted loop playsinline preload="auto" poster="./assets/home/bg1-poster.jpg" data-index="0" onended="nextVideo()">
+          <source src="./assets/home/bg1-web.mp4" type="video/mp4">
+        </video>
+        <video class="bg-video" muted loop playsinline preload="metadata" poster="./assets/home/bg2-poster.jpg" data-index="1" onended="nextVideo()">
+          <source src="./assets/home/bg2-web.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="video-overlay"></div>
+      <div class="video-vignette"></div>
+
+      <div class="hero-content">
+        <div class="panel-stage">
+          <!-- Panel 0: 品牌 -->
+          <div class="panel panel-0 active" data-panel="0">
+            <div class="eyebrow" id="modulesGreeting" style="animation:fadeRise .8s cubic-bezier(.16,1,.3,1) .05s both;">Pilot · Grammar First</div>
+            <h1 class="hero-title"><span class="guest-only">Seeklume</span><span class="auth-only">选一个模块开始</span></h1>
+            <p class="hero-sub"><span class="guest-only">English Teaching web 初步探索 · 选一个模块开始</span><span class="auth-only">当前可以使用语法填空讲评。其他题型会随着课堂流程和知识框架逐步接入。</span></p>
+            <button class="liquid-glass" onclick="switchPanel(1)">进入模块 <span style="font-size:18px;line-height:1;">→</span></button>
+          </div>
+          <!-- Panel 1: 模块列表 -->
+          <div class="panel panel-1" data-panel="1">
+            <h2 class="panel-title">选择模块</h2>
+            <div style="display:flex;flex-direction:column;gap:16px;align-items:center;">
+              <a class="project-entry-glass" href="./grammar-fill/" style="min-width:280px;">
+                <span class="entry-subtitle">Seeklume English Teaching</span>
+                <span class="entry-title">语法填空讲评</span>
+              </a>
+              <p style="font-size:13px;color:rgba(255,255,255,0.5);text-shadow:0 1px 8px rgba(0,0,0,0.6);max-width:320px;line-height:1.6;">套题讲评 · 按考点训练 · 跨卷迁移 · 错题本与备课资料</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="video-dots">
+          <button class="dot active" onclick="jumpToVideo(0)" aria-label="切换到视频 1"></button>
+          <button class="dot" onclick="jumpToVideo(1)" aria-label="切换到视频 2"></button>
+        </div>
+
+        <button class="scroll-cue" onclick="switchPanel(1)" aria-label="向下滚动查看模块">
+          <span>Scroll</span>
+          <span class="scroll-cue-line"></span>
+        </button>
+      </div>
+
+      <div class="shot-credit">Shot by Stiles</div>
+    </section>
+
     <div class="footer-contact">
       <p>遇到问题、想要新功能、或者觉得方法论可以更好——都欢迎联系。<br>
       <a href="mailto:liuzhenlzstiles@icloud.com" style="color:var(--text);">liuzhenlzstiles@icloud.com</a>
@@ -871,6 +1174,76 @@
   window.doLogout = doLogout;
   window.goHome = goHome;
   window.toggleTheme = toggleTheme;
+
+  /* ===== 视频背景轮播 + 双面板切换 ===== */
+  var _videos = document.querySelectorAll('.bg-video');
+  var _videoIdx = 0;
+  var _panelIdx = 0;
+  var _panelCount = 2;
+  var _wheelLock = false;
+
+  function playVideo(idx) {
+    _videos.forEach(function(v, i) {
+      if (i === idx) {
+        v.currentTime = 0;
+        v.play().catch(function(){});
+        v.classList.add('active');
+      } else {
+        v.pause();
+        v.classList.remove('active');
+      }
+    });
+    var dots = document.querySelectorAll('.dot');
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+    _videoIdx = idx;
+  }
+  function nextVideo() { playVideo((_videoIdx + 1) % _videos.length); }
+  function prevVideo() { playVideo((_videoIdx - 1 + _videos.length) % _videos.length); }
+  function jumpToVideo(idx) { playVideo(idx); }
+
+  function switchPanel(idx) {
+    if (idx < 0 || idx >= _panelCount) return;
+    _panelIdx = idx;
+    var panels = document.querySelectorAll('.panel');
+    panels.forEach(function(p, i) { p.classList.toggle('active', i === idx); });
+    // 隐藏/显示 scroll cue：panel 0 显示，panel 1 隐藏
+    var cue = document.querySelector('.scroll-cue');
+    if (cue) {
+      cue.style.opacity = idx === 0 ? '1' : '0';
+      cue.style.pointerEvents = idx === 0 ? 'auto' : 'none';
+      cue.style.transform = idx === 0 ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(12px)';
+      cue.style.transition = 'all .4s ease';
+    }
+  }
+
+  window.nextVideo = nextVideo;
+  window.prevVideo = prevVideo;
+  window.jumpToVideo = jumpToVideo;
+  window.switchPanel = switchPanel;
+
+  // 键盘 + 滚轮交互
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextVideo(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevVideo(); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); switchPanel(Math.min(_panelIdx + 1, _panelCount - 1)); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); switchPanel(Math.max(_panelIdx - 1, 0)); }
+  });
+  window.addEventListener('wheel', function(e) {
+    if (Math.abs(e.deltaY) < 18 || _wheelLock) return;
+    // 只在 hero 区域内响应
+    var hero = document.querySelector('.hero-video');
+    if (!hero) return;
+    var rect = hero.getBoundingClientRect();
+    if (rect.bottom > 0 && rect.top < window.innerHeight) {
+      e.preventDefault();
+      _wheelLock = true;
+      switchPanel(e.deltaY > 0 ? Math.min(_panelIdx + 1, _panelCount - 1) : Math.max(_panelIdx - 1, 0));
+      setTimeout(function() { _wheelLock = false; }, 760);
+    }
+  }, { passive: false });
+
+  // 自动播放第一个视频
+  setTimeout(function() { if (_videos[0]) _videos[0].play().catch(function(){}); }, 300);
 
   (function syncInitView() {
     // 单页：始终展示模块网格；has-session 仅切换头区文案（CSS 处理）
