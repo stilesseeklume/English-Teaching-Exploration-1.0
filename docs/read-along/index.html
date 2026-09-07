@@ -141,7 +141,7 @@
   <div class="passage" id="passage"></div>
   <button class="trans-toggle" onclick="toggleTrans()" id="transToggle" style="display:none;">Show Translation</button>
   <div class="translation" id="translation"></div>
-  <div class="footer-note">Click any sentence to hear it · British English audio (pre-generated)</div>
+  <div class="footer-note">Click any sentence to start reading from there · British English audio</div>
 </main>
 <audio id="audioPlayer" preload="auto"></audio>
 <div class="countdown" id="countdown">
@@ -194,7 +194,7 @@ PASSAGE.forEach(function(blk){
     var idx=allSent.length;allSent.push(s);
     var span=document.createElement('span');span.className='sent';span.dataset.index=idx;
     span.textContent=s.en;
-    span.onclick=function(){speakSingle(idx);};
+    span.onclick=function(){onSentenceClick(idx);};
     p.appendChild(span);
     if(i<blk.sentences.length-1)p.appendChild(document.createTextNode(' '));
   });
@@ -262,10 +262,33 @@ function toggleReading(){
     document.getElementById('startBtn').textContent='Resume';
   }else{
     isReading=true;document.getElementById('startBtn').textContent='Stop';
-    var si=curIdx>=0?curIdx+1:0;
+    var si=curIdx>=0?curIdx:0;
     if(si>=allSent.length){si=0;document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('read','active');});curIdx=-1;}
     speak(si);
   }
+}
+
+// 点击句子：如果正在跟读则忽略；否则从该句开始自动跟读
+function onSentenceClick(idx){
+  if(isReading){
+    // 跟读中点击 = 跳转到该句
+    curIdx=idx-1; // 让 speak(idx) 时 curIdx 还是上一个
+    // 清除该句之后的 read 标记
+    document.querySelectorAll('.sent').forEach(function(s){
+      if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');
+    });
+    speak(idx);
+    return;
+  }
+  // 不在跟读模式：从该句开始自动跟读
+  // 清除该句之后的标记
+  document.querySelectorAll('.sent').forEach(function(s){
+    if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');
+  });
+  curIdx=idx-1;
+  isReading=true;
+  document.getElementById('startBtn').textContent='Stop';
+  speak(idx);
 }
 
 function speakSingle(idx){
@@ -289,7 +312,7 @@ function finish(){
   curIdx=-1;
 }
 
-window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;window.incFont=incFont;window.decFont=decFont;
+window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;window.onSentenceClick=onSentenceClick;window.incFont=incFont;window.decFont=decFont;
 </script>
 </body>
 </html>
