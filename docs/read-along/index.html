@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seeklume · 跟读器</title>
+<title>Seeklume · Read Along</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -21,10 +21,7 @@
     --accent-bg: #f0f7ff;
     --green: #34c759;
     --green-bg: #e8f8ed;
-    --red: #ff3b30;
-    --orange: #ff9500;
     --radius: 10px;
-    --radius-sm: 6px;
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
     --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
     --font-display: 'Instrument Serif', Georgia, serif;
@@ -40,7 +37,6 @@
     --text-2: #98989d;
     --text-3: #636366;
     --accent: #409cff;
-    --accent-light: #70b5ff;
     --accent-bg: rgba(64,156,255,0.15);
     --green: #30d158;
     --green-bg: rgba(48,209,88,0.15);
@@ -48,514 +44,331 @@
     --shadow-lg: 0 4px 16px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.06);
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: var(--font-body);
-    color: var(--text);
-    background: var(--bg);
-    -webkit-font-smoothing: antialiased;
-  }
+  body { margin:0; min-height:100vh; font-family:var(--font-body); color:var(--text); background:var(--bg); -webkit-font-smoothing:antialiased; }
 
-  /* ===== Header ===== */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 52px;
-    padding: 0 20px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
-  .back-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    text-decoration: none;
-    color: var(--accent);
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .back-link:hover { opacity: 0.7; }
-  .logo-text {
-    font-family: var(--font-display);
-    font-size: 19px;
-    color: var(--text);
-  }
-  .header-right { display: flex; align-items: center; gap: 8px; }
-  .theme-toggle {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    font-size: 15px;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    color: var(--text-2);
-  }
-  .theme-toggle:hover { background: var(--surface-3); }
-  .theme-toggle .icon-sun { display: none; }
-  [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
-  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+  /* Header */
+  header { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; height:48px; padding:0 20px; background:var(--surface); border-bottom:1px solid var(--border); }
+  .back-link { display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--accent); font-size:14px; font-weight:500; }
+  .back-link:hover { opacity:0.7; }
+  .logo-text { font-family:var(--font-display); font-size:18px; color:var(--text); }
+  .header-right { display:flex; align-items:center; gap:8px; }
+  .theme-toggle { background:var(--surface-2); border:1px solid var(--border); cursor:pointer; font-size:14px; padding:4px 10px; border-radius:6px; color:var(--text-2); }
+  .theme-toggle:hover { background:var(--surface-3); }
+  .theme-toggle .icon-sun { display:none; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display:inline; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display:none; }
 
-  /* ===== Main ===== */
-  main {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 32px 20px 80px;
-  }
+  /* Main - textbook page */
+  main { max-width:720px; margin:0 auto; padding:32px 24px 100px; }
 
-  /* ===== 课文信息 ===== */
-  .lesson-info {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  .lesson-info .eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-  .lesson-info h1 {
-    font-family: var(--font-display);
-    font-size: 36px;
-    font-weight: 400;
-    margin: 0 0 6px;
-    color: var(--text);
-  }
-  .lesson-info .subtitle {
-    font-size: 14px;
-    color: var(--text-2);
-  }
+  /* Lesson header */
+  .lesson-header { text-align:center; margin-bottom:32px; padding-bottom:20px; border-bottom:2px solid var(--accent); }
+  .lesson-header .unit-tag { font-size:12px; font-weight:600; color:var(--accent); letter-spacing:0.1em; margin-bottom:8px; }
+  .lesson-header h1 { font-family:var(--font-display); font-size:32px; font-weight:400; margin:0 0 4px; color:var(--text); }
+  .lesson-header .sub { font-size:13px; color:var(--text-3); }
 
-  /* ===== 控制面板 ===== */
-  .controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    padding: 14px 20px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-  }
-  .control-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .control-label {
-    font-size: 12px;
-    color: var(--text-3);
-    font-weight: 600;
-    margin-right: 2px;
-  }
-  .speed-btn, .gap-btn {
-    padding: 5px 12px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-2);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .speed-btn.active, .gap-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 600;
-  }
-  .speed-btn:hover, .gap-btn:hover {
-    border-color: var(--text-3);
-  }
-  .speed-btn.active:hover, .gap-btn.active:hover { border-color: var(--accent); }
+  /* Controls bar */
+  .controls-bar { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .ctrl-group { display:flex; align-items:center; gap:6px; }
+  .ctrl-label { font-size:11px; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; }
+  .pill-btn { padding:5px 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); font:inherit; font-size:12px; cursor:pointer; transition:all .15s; }
+  .pill-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .pill-btn:hover { border-color:var(--text-3); }
+  .pill-btn.active:hover { border-color:var(--accent); }
+  .start-btn { padding:8px 28px; border-radius:6px; border:none; background:var(--accent); color:#fff; font:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .15s; }
+  .start-btn:hover { opacity:0.85; }
+  .ghost-btn { padding:7px 16px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); font:inherit; font-size:13px; cursor:pointer; }
+  .ghost-btn:hover { background:var(--surface-2); color:var(--text); }
 
-  .btn-primary {
-    padding: 8px 28px;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-primary:disabled { opacity: .4; }
-  .btn-secondary {
-    padding: 7px 18px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .btn-secondary:hover { background: var(--surface-2); }
-
-  /* ===== 进度条 ===== */
-  .progress-bar {
-    height: 3px;
-    background: var(--surface-3);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width .4s ease;
-  }
-
-  /* ===== 状态标签 ===== */
-  .status-row {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .status-badge.idle { background: var(--surface-3); color: var(--text-2); }
-  .status-badge.reading { background: var(--accent-bg); color: var(--accent); }
-  .status-badge.echoing { background: var(--green-bg); color: var(--green); }
-  .status-badge .dot {
-    width: 6px; height: 6px; border-radius: 50%; background: currentColor;
-    animation: pulse 1.4s ease infinite;
-  }
+  /* Progress */
+  .progress-bar { height:3px; background:var(--surface-3); border-radius:999px; overflow:hidden; margin-bottom:12px; }
+  .progress-fill { height:100%; background:var(--accent); width:0%; transition:width .4s ease; }
+  .status-row { text-align:center; margin-bottom:24px; }
+  .status-badge { display:inline-flex; align-items:center; gap:6px; padding:3px 12px; border-radius:999px; font-size:12px; font-weight:500; }
+  .status-badge.idle { background:var(--surface-3); color:var(--text-2); }
+  .status-badge.reading { background:var(--accent-bg); color:var(--accent); }
+  .status-badge.echoing { background:var(--green-bg); color:var(--green); }
+  .status-badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:pulse 1.4s ease infinite; }
   @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
 
-  /* ===== 课文段落 ===== */
-  .text-section { margin-bottom: 28px; }
-  .time-marker {
-    display: inline-block;
-    font-family: var(--font-display);
-    font-size: 20px;
-    color: var(--accent);
-    margin-bottom: 10px;
-    padding: 2px 12px;
-    background: var(--accent-bg);
-    border-radius: var(--radius-sm);
+  /* Textbook passage */
+  .passage {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:40px 36px;
+    line-height:2;
+    font-size:17px;
+    color:var(--text);
   }
-  .sentence-card {
-    position: relative;
-    padding: 14px 18px 14px 48px;
-    margin-bottom: 6px;
-    border-radius: var(--radius);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    transition: all .2s ease;
-    cursor: pointer;
-  }
-  .sentence-card:hover {
-    box-shadow: var(--shadow-lg);
-  }
-  .sentence-card.active {
-    background: var(--accent-bg);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent), 0 2px 12px rgba(0,113,227,0.15);
-  }
-  .sentence-card.read { opacity: 0.5; }
-  .sentence-card.read .check-mark { opacity: 1; }
-  .check-mark {
-    position: absolute;
-    top: 14px; right: 14px;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: var(--green);
-    opacity: 0;
-    transition: opacity .3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: #fff;
-    font-weight: 700;
-  }
-  .sentence-num {
-    position: absolute;
-    left: 14px; top: 16px;
-    width: 26px; height: 26px;
-    border-radius: var(--radius-sm);
-    background: var(--surface-3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-3);
-    transition: all .2s;
-  }
-  .sentence-card.active .sentence-num {
-    background: var(--accent);
-    color: #fff;
-  }
-  .sentence-en {
-    font-size: 16px;
-    line-height: 1.65;
-    color: var(--text);
-    margin: 0 0 4px;
-  }
-  .sentence-zh {
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-3);
-    margin: 0;
-    display: none;
-  }
-  .show-translation .sentence-zh { display: block; }
+  [data-theme="dark"] .passage { box-shadow:var(--shadow); }
 
-  /* ===== 跟读倒计时 ===== */
-  .countdown-overlay {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 18px 36px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: var(--shadow-lg);
-    opacity: 0;
-    transition: transform .3s cubic-bezier(.16,1,.3,1), opacity .3s ease;
-    pointer-events: none;
+  .text-block { margin-bottom:28px; }
+  .text-block:last-child { margin-bottom:0; }
+  .time-stamp {
+    font-family:var(--font-display);
+    font-size:18px;
+    color:var(--accent);
+    font-weight:400;
+    margin-bottom:6px;
+    display:block;
   }
-  .countdown-overlay.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-  .countdown-label {
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 600;
-  }
-  .countdown-number {
-    font-family: var(--font-display);
-    font-size: 42px;
-    font-weight: 400;
-    color: var(--text);
-    line-height: 1;
-  }
-  .countdown-hint {
-    font-size: 12px;
-    color: var(--text-2);
-  }
-  .countdown-bar {
-    width: 100px;
-    height: 3px;
-    background: var(--surface-3);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .countdown-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    width: 100%;
-    transform-origin: right;
-  }
+  .passage-text { margin:0; font-size:17px; line-height:2; color:var(--text); }
+  .sent { position:relative; transition:background .2s ease, color .2s ease; border-radius:3px; padding:1px 2px; }
+  .sent:hover { background:var(--surface-3); cursor:pointer; }
+  .sent.active { background:var(--accent-bg); color:var(--accent); font-weight:500; box-shadow:0 0 0 1px var(--accent); }
+  .sent.read { color:var(--text-3); }
+  .sent .check { position:absolute; top:-2px; right:-12px; font-size:10px; color:var(--green); opacity:0; }
+  .sent.read .check { opacity:0.6; }
 
-  /* ===== Footer ===== */
-  .footer-note {
-    text-align: center;
-    padding: 28px 0 0;
-    font-size: 12px;
-    color: var(--text-3);
+  /* Translation (collapsed) */
+  .trans-toggle {
+    display:block;
+    width:100%;
+    padding:10px;
+    margin-top:20px;
+    border:none;
+    background:var(--surface-2);
+    color:var(--text-2);
+    font:inherit;
+    font-size:13px;
+    cursor:pointer;
+    border-radius:6px;
+    transition:all .15s;
   }
+  .trans-toggle:hover { background:var(--surface-3); color:var(--text); }
+  .translation {
+    display:none;
+    margin-top:16px;
+    padding:20px 24px;
+    background:var(--surface-2);
+    border-radius:6px;
+    font-size:14px;
+    line-height:1.8;
+    color:var(--text-2);
+  }
+  .show-trans .translation { display:block; animation:fadeIn .3s ease; }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+  .trans-block { margin-bottom:12px; }
+  .trans-block:last-child { margin-bottom:0; }
+  .trans-time { font-size:12px; color:var(--accent); font-weight:600; margin-bottom:2px; }
 
-  @media (max-width: 640px) {
-    .controls { flex-direction: column; gap: 10px; }
-    .control-group { flex-wrap: wrap; justify-content: center; }
-    .sentence-card { padding: 12px 14px 12px 44px; }
-    .sentence-en { font-size: 15px; }
+  /* Countdown */
+  .countdown { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); z-index:200; display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px 32px; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); opacity:0; transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .3s ease; pointer-events:none; }
+  .countdown.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .countdown-label { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); font-weight:600; }
+  .countdown-num { font-family:var(--font-display); font-size:36px; color:var(--text); line-height:1; }
+  .countdown-hint { font-size:12px; color:var(--text-2); }
+  .countdown-bar { width:100px; height:3px; background:var(--surface-3); border-radius:999px; overflow:hidden; }
+  .countdown-bar-fill { height:100%; background:var(--accent); width:100%; transform-origin:right; }
+
+  .footer-note { text-align:center; padding:24px 0 0; font-size:12px; color:var(--text-3); }
+
+  @media(max-width:640px) {
+    .passage { padding:24px 20px; font-size:16px; }
+    .passage-text { font-size:16px; }
+    .controls-bar { flex-direction:column; gap:8px; }
   }
 </style>
 </head>
 <body>
+
 <header>
-  <a class="back-link" href="../index.html"><span style="font-size:18px;">←</span><span>返回首页</span></a>
+  <a class="back-link" href="../index.html"><span>←</span><span>Back</span></a>
   <div class="logo-text">Seeklume</div>
   <div class="header-right">
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="切换主题"><span class="icon-moon">🌙</span><span class="icon-sun">☀️</span></button>
+    <button class="theme-toggle" onclick="toggleTheme()"><span class="icon-moon">🌙</span><span class="icon-sun">☀️</span></button>
   </div>
 </header>
+
 <main>
-  <div class="lesson-info">
-    <div class="eyebrow">Welcome Unit · Reading and Thinking</div>
+  <div class="lesson-header">
+    <div class="unit-tag">WELCOME UNIT · READING AND THINKING</div>
     <h1>Han Jing's World</h1>
-    <p class="subtitle">新人教版高中英语必修一 · 跟读训练</p>
+    <div class="sub">New Senior High English · Book 1</div>
   </div>
-  <div class="controls">
-    <div class="control-group">
-      <span class="control-label">语速</span>
-      <button class="speed-btn" data-speed="0.8" onclick="setSpeed(0.8,this)">0.8×</button>
-      <button class="speed-btn active" data-speed="0.9" onclick="setSpeed(0.9,this)">0.9×</button>
-      <button class="speed-btn" data-speed="1.0" onclick="setSpeed(1.0,this)">1.0×</button>
+
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Speed</span>
+      <button class="pill-btn" data-speed="0.8" onclick="setSpeed(0.8,this)">0.8×</button>
+      <button class="pill-btn active" data-speed="0.9" onclick="setSpeed(0.9,this)">0.9×</button>
+      <button class="pill-btn" data-speed="1.0" onclick="setSpeed(1.0,this)">1.0×</button>
     </div>
-    <div class="control-group">
-      <span class="control-label">跟读间隔</span>
-      <button class="gap-btn" data-gap="1.0" onclick="setGap(1.0,this)">短</button>
-      <button class="gap-btn active" data-gap="1.5" onclick="setGap(1.5,this)">中</button>
-      <button class="gap-btn" data-gap="2.0" onclick="setGap(2.0,this)">长</button>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Gap</span>
+      <button class="pill-btn" data-gap="1.0" onclick="setGap(1.0,this)">Short</button>
+      <button class="pill-btn active" data-gap="1.5" onclick="setGap(1.5,this)">Mid</button>
+      <button class="pill-btn" data-gap="2.0" onclick="setGap(2.0,this)">Long</button>
     </div>
-    <button class="btn-primary" id="startBtn" onclick="toggleReading()">开始跟读</button>
-    <button class="btn-secondary" onclick="toggleTranslation()" id="transBtn">显示中文</button>
+    <button class="start-btn" id="startBtn" onclick="toggleReading()">Start Reading</button>
+    <button class="ghost-btn" onclick="toggleTrans()" id="transBtn">Show Translation</button>
   </div>
+
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <div style="text-align:center;margin-bottom:24px;">
-    <span class="status-badge idle" id="statusBadge"><span class="dot"></span><span id="statusText">准备就绪</span></span>
+  <div class="status-row">
+    <span class="status-badge idle" id="statusBadge"><span class="dot"></span><span id="statusText">Ready</span></span>
   </div>
-  <div id="textContent"></div>
-  <div class="footer-note">点击任意句子可单独朗读 · 建议佩戴耳机使用</div>
+
+  <div class="passage" id="passage"></div>
+
+  <button class="trans-toggle" onclick="toggleTrans()" id="transToggle" style="display:none;">Show Translation</button>
+  <div class="translation" id="translation"></div>
+
+  <div class="footer-note">Click any sentence to hear it · Best with headphones</div>
 </main>
-<div class="countdown-overlay" id="countdownOverlay">
-  <div class="countdown-label">请跟读</div>
-  <div class="countdown-number" id="countdownNum">3</div>
-  <div class="countdown-hint" id="countdownHint">模仿语音语调，大声朗读</div>
+
+<div class="countdown" id="countdown">
+  <div class="countdown-label">Echo</div>
+  <div class="countdown-num" id="countdownNum">3</div>
+  <div class="countdown-hint">Read aloud, imitate the tone</div>
   <div class="countdown-bar"><div class="countdown-bar-fill" id="countdownBarFill"></div></div>
 </div>
+
 <script>
-var TEXT_DATA=[
+var PASSAGE=[
 {time:"7:00 a.m.",sentences:[
-{en:"So this is it — senior high school at last!",zh:"就这样了——终于到高中了！"},
-{en:"I'm not outgoing so I'm a little anxious right now.",zh:"我不太外向，所以现在有点紧张。"},
-{en:"I want to make a good first impression.",zh:"我想留下一个好的第一印象。"},
-{en:"Will I make any friends?",zh:"我会交到朋友吗？"},
-{en:"What if no one talks to me?",zh:"要是没人跟我说话怎么办？"}
+{en:"So this is it \u2014 senior high school at last!",zh:"\u5c31\u8fd9\u6837\u4e86\u2014\u2014\u7ec8\u4e8e\u5230\u9ad8\u4e2d\u4e86\uff01"},
+{en:"I'm not outgoing so I'm a little anxious right now.",zh:"\u6211\u4e0d\u592a\u5916\u5411\uff0c\u6240\u4ee5\u73b0\u5728\u6709\u70b9\u7d27\u5f20\u3002"},
+{en:"I want to make a good first impression.",zh:"\u6211\u60f3\u7559\u4e0b\u4e00\u4e2a\u597d\u7684\u7b2c\u4e00\u5370\u8c61\u3002"},
+{en:"Will I make any friends?",zh:"\u6211\u4f1a\u4ea4\u5230\u670b\u53cb\u5417\uff1f"},
+{en:"What if no one talks to me?",zh:"\u8981\u662f\u6ca1\u4eba\u8ddf\u6211\u8bf4\u8bdd\u600e\u4e48\u529e\uff1f"}
 ]},
 {time:"12:30 p.m.",sentences:[
-{en:"I just had my first maths class at senior high school!",zh:"我刚上完高中的第一节数学课！"},
-{en:"The class was difficult, but the teacher was kind and friendly.",zh:"课很难，但老师很和蔼友好。"},
-{en:"He even told us a funny story, and everyone laughed so much!",zh:"他甚至讲了一个有趣的故事，大家都笑得不行！"},
-{en:"I found most of my classmates and teachers friendly and helpful.",zh:"我发现大多数同学和老师都很友好、很乐于助人。"}
+{en:"I just had my first maths class at senior high school!",zh:"\u6211\u521a\u4e0a\u5b8c\u9ad8\u4e2d\u7684\u7b2c\u4e00\u8282\u6570\u5b66\u8bfe\uff01"},
+{en:"The class was difficult, but the teacher was kind and friendly.",zh:"\u8bfe\u5f88\u96be\uff0c\u4f46\u8001\u5e08\u5f88\u548c\u853d\u53cb\u597d\u3002"},
+{en:"He even told us a funny story, and everyone laughed so much!",zh:"\u4ed6\u751a\u81f3\u8bb2\u4e86\u4e00\u4e2a\u6709\u8da3\u7684\u6545\u4e8b\uff0c\u5927\u5bb6\u90fd\u7b11\u5f97\u4e0d\u884c\uff01"},
+{en:"I found most of my classmates and teachers friendly and helpful.",zh:"\u6211\u53d1\u73b0\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u53cb\u597d\u3001\u5f88\u4e50\u4e8e\u52a9\u4eba\u3002"}
 ]},
 {time:"5:32 p.m.",sentences:[
-{en:"This afternoon, we had our chemistry class in the science lab.",zh:"今天下午，我们在科学实验室上了化学课。"},
-{en:"The lab is new and the lesson was great, but the guy next to me tried to talk to me the whole time.",zh:"实验室是新的，课也很棒，但旁边的男生一直想跟我说话。"},
-{en:"I couldn't concentrate on the experiment.",zh:"我无法集中精力做实验。"},
-{en:"I really wanted to tell him to please be quiet and leave me alone!",zh:"我真想告诉他请安静，别烦我！"}
+{en:"This afternoon, we had our chemistry class in the science lab.",zh:"\u4eca\u5929\u4e0b\u5348\uff0c\u6211\u4eec\u5728\u79d1\u5b66\u5b9e\u9a8c\u5ba4\u4e0a\u4e86\u5316\u5b66\u8bfe\u3002"},
+{en:"The lab is new and the lesson was great, but the guy next to me tried to talk to me the whole time.",zh:"\u5b9e\u9a8c\u5ba4\u662f\u65b0\u7684\uff0c\u8bfe\u4e5f\u5f88\u68d2\uff0c\u4f46\u65c1\u8fb9\u7684\u7537\u751f\u4e00\u76f4\u60f3\u8ddf\u6211\u8bf4\u8bdd\u3002"},
+{en:"I couldn't concentrate on the experiment.",zh:"\u6211\u65e0\u6cd5\u96c6\u4e2d\u7cbe\u529b\u505a\u5b9e\u9a8c\u3002"},
+{en:"I really wanted to tell him to please be quiet and leave me alone!",zh:"\u6211\u771f\u60f3\u544a\u8bc9\u4ed6\u8bf7\u5b89\u9759\uff0c\u522b\u70e6\u6211\uff01"}
 ]},
 {time:"10:29 p.m.",sentences:[
-{en:"What a day!",zh:"这一天啊！"},
-{en:"This morning, I was worried that no one would talk to me.",zh:"今天早上，我还担心没人会跟我说话。"},
-{en:"But that was just a wrong guess.",zh:"但那只是一个错误的猜测。"},
-{en:"Most of my classmates and teachers are helpful and I like them.",zh:"大多数同学和老师都很乐于助人，我很喜欢他们。"},
-{en:"I feel much more confident now.",zh:"我现在感觉自信多了。"},
-{en:"I think I'll make new friends here.",zh:"我想我会在这里交到新朋友的。"},
-{en:"I'm sure I'll be doing fine.",zh:"我相信我会一切顺利的。"}
+{en:"What a day!",zh:"\u8fd9\u4e00\u5929\u554a\uff01"},
+{en:"This morning, I was worried that no one would talk to me.",zh:"\u4eca\u5929\u65e9\u6668\uff0c\u6211\u8fd8\u62c5\u5fc3\u6ca1\u4eba\u4f1a\u8ddf\u6211\u8bf4\u8bdd\u3002"},
+{en:"But that was just a wrong guess.",zh:"\u4f46\u90a3\u53ea\u662f\u4e00\u4e2a\u9519\u8bef\u7684\u731c\u6d4b\u3002"},
+{en:"Most of my classmates and teachers are helpful and I like them.",zh:"\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u4e50\u4e8e\u52a9\u4eba\uff0c\u6211\u5f88\u559c\u6b22\u4ed6\u4eec\u3002"},
+{en:"I feel much more confident now.",zh:"\u6211\u73b0\u5728\u611f\u89c9\u81ea\u4fe1\u591a\u4e86\u3002"},
+{en:"I think I'll make new friends here.",zh:"\u6211\u60f3\u6211\u4f1a\u5728\u8fd9\u91cc\u4ea4\u5230\u65b0\u670b\u53cb\u7684\u3002"},
+{en:"I'm sure I'll be doing fine.",zh:"\u6211\u76f8\u4fe1\u6211\u4f1a\u4e00\u5207\u987a\u5229\u7684\u3002"}
 ]}
 ];
-var allSentences=[],contentEl=document.getElementById('textContent');
-TEXT_DATA.forEach(function(section){
-  var sec=document.createElement('div');sec.className='text-section';
-  var marker=document.createElement('div');marker.className='time-marker';marker.textContent=section.time;
-  sec.appendChild(marker);
-  section.sentences.forEach(function(s){
-    var idx=allSentences.length;allSentences.push(s);
-    var card=document.createElement('div');card.className='sentence-card';card.dataset.index=idx;
-    card.innerHTML='<div class="check-mark">✓</div><div class="sentence-num">'+(idx+1)+'</div><p class="sentence-en">'+s.en+'</p><p class="sentence-zh">'+s.zh+'</p>';
-    card.onclick=function(){speakSingle(idx);};
-    sec.appendChild(card);
+
+var allSent=[];
+var passageEl=document.getElementById('passage');
+var transEl=document.getElementById('translation');
+
+PASSAGE.forEach(function(blk){
+  var div=document.createElement('div');
+  div.className='text-block';
+  var ts=document.createElement('span');
+  ts.className='time-stamp';
+  ts.textContent=blk.time;
+  div.appendChild(ts);
+  var p=document.createElement('p');
+  p.className='passage-text';
+  blk.sentences.forEach(function(s,i){
+    var idx=allSent.length;
+    allSent.push(s);
+    var span=document.createElement('span');
+    span.className='sent';
+    span.dataset.index=idx;
+    span.innerHTML=s.en+'<span class="check">\u2713</span>';
+    span.onclick=function(){speakSingle(idx);};
+    p.appendChild(span);
+    if(i<blk.sentences.length-1) p.appendChild(document.createTextNode(' '));
   });
-  contentEl.appendChild(sec);
+  div.appendChild(p);
+  passageEl.appendChild(div);
 });
-var speed=0.9,gapMultiplier=1.5,isReading=false,currentIdx=-1,utterance=null;
-function setSpeed(s,btn){speed=s;document.querySelectorAll('.speed-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');}
-function setGap(g,btn){gapMultiplier=g;document.querySelectorAll('.gap-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');}
-function toggleTheme(){var cur=document.documentElement.getAttribute('data-theme');var next=cur==='dark'?'':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('theme',next==='dark'?'dark':'light');}catch(e){}}
-try{var saved=localStorage.getItem('theme');if(saved==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}
-function toggleTranslation(){document.body.classList.toggle('show-translation');var btn=document.getElementById('transBtn');var showing=document.body.classList.contains('show-translation');btn.textContent=showing?'隐藏中文':'显示中文';}
-function updateStatus(state,text){var badge=document.getElementById('statusBadge');var txt=document.getElementById('statusText');badge.className='status-badge '+state;txt.textContent=text;}
-function updateProgress(){var pct=((currentIdx+1)/allSentences.length)*100;document.getElementById('progressFill').style.width=pct+'%';}
-function highlightCard(idx){document.querySelectorAll('.sentence-card').forEach(function(c){c.classList.remove('active');if(parseInt(c.dataset.index)<idx)c.classList.add('read');});if(idx>=0&&idx<allSentences.length){var card=document.querySelector('.sentence-card[data-index="'+idx+'"]');if(card){card.classList.add('active');card.classList.remove('read');card.scrollIntoView({behavior:'smooth',block:'center'});}}}
-function calcEchoTime(text){var words=text.split(/\s+/).length;return Math.max(2,(words*0.4+1.5)*gapMultiplier);}
-function showCountdown(seconds){var overlay=document.getElementById('countdownOverlay');var num=document.getElementById('countdownNum');var bar=document.getElementById('countdownBarFill');overlay.classList.add('show');var remaining=Math.ceil(seconds);num.textContent=remaining;bar.style.transition='none';bar.style.transform='scaleX(1)';bar.offsetHeight;bar.style.transition='transform '+seconds+'s linear';bar.style.transform='scaleX(0)';}
-function hideCountdown(){document.getElementById('countdownOverlay').classList.remove('show');}
-function speakSentence(idx){
-  if(idx>=allSentences.length){finishReading();return;}
-  currentIdx=idx;highlightCard(idx);updateProgress();
-  updateStatus('reading','朗读中…（第 '+(idx+1)+'/'+allSentences.length+' 句）');
-  var text=allSentences[idx].en.replace(/—/g,', ').replace(/–/g,', ');
-  if(utterance){window.speechSynthesis.cancel();}
-  utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang='en-US';utterance.rate=speed;
-  utterance.onend=function(){
+
+// Translation blocks
+PASSAGE.forEach(function(blk){
+  var tb=document.createElement('div');
+  tb.className='trans-block';
+  var tt=document.createElement('div');
+  tt.className='trans-time';
+  tt.textContent=blk.time;
+  tb.appendChild(tt);
+  var tp=document.createElement('p');
+  tp.style.margin='0';
+  tp.textContent=blk.sentences.map(function(s){return s.zh;}).join(' ');
+  tb.appendChild(tp);
+  transEl.appendChild(tb);
+});
+
+var speed=0.9,gapMul=1.5,isReading=false,curIdx=-1,utt=null;
+
+function setSpeed(s,b){speed=s;document.querySelectorAll('.pill-btn[data-speed]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');}
+function setGap(g,b){gapMul=g;document.querySelectorAll('.pill-btn[data-gap]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');}
+function toggleTheme(){var c=document.documentElement.getAttribute('data-theme');var n=c==='dark'?'':'dark';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('theme',n==='dark'?'dark':'light');}catch(e){}}
+try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}
+function toggleTrans(){document.body.classList.toggle('show-trans');var b=document.getElementById('transBtn');var t=document.getElementById('transToggle');var show=document.body.classList.contains('show-trans');b.textContent=show?'Hide Translation':'Show Translation';if(t)t.textContent=show?'Hide Translation':'Show Translation';}
+function updateStatus(s,t){var b=document.getElementById('statusBadge');var x=document.getElementById('statusText');b.className='status-badge '+s;x.textContent=t;}
+function updateProgress(){var pct=((curIdx+1)/allSent.length)*100;document.getElementById('progressFill').style.width=pct+'%';}
+function highlightSent(idx){document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');if(parseInt(s.dataset.index)<idx)s.classList.add('read');else s.classList.remove('read');});if(idx>=0&&idx<allSent.length){var el=document.querySelector('.sent[data-index="'+idx+'"]');if(el){el.classList.add('active');el.classList.remove('read');el.scrollIntoView({behavior:'smooth',block:'center'});}}}
+function calcEcho(text){var w=text.split(/\s+/).length;return Math.max(2,(w*0.4+1.5)*gapMul);}
+function showCountdown(sec){var o=document.getElementById('countdown');var n=document.getElementById('countdownNum');var b=document.getElementById('countdownBarFill');o.classList.add('show');n.textContent=Math.ceil(sec);b.style.transition='none';b.style.transform='scaleX(1)';b.offsetHeight;b.style.transition='transform '+sec+'s linear';b.style.transform='scaleX(0)';}
+function hideCountdown(){document.getElementById('countdown').classList.remove('show');}
+function speak(idx){
+  if(idx>=allSent.length){finish();return;}
+  curIdx=idx;highlightSent(idx);updateProgress();
+  updateStatus('reading','Reading... ('+(idx+1)+'/'+allSent.length+')');
+  var text=allSent[idx].en.replace(/\u2014/g,', ');
+  if(utt)speechSynthesis.cancel();
+  utt=new SpeechSynthesisUtterance(text);
+  utt.lang='en-US';utt.rate=speed;
+  utt.onend=function(){
     if(!isReading)return;
-    var echoTime=calcEchoTime(allSentences[idx].en);
-    updateStatus('echoing','请跟读…（'+Math.ceil(echoTime)+' 秒）');
-    showCountdown(echoTime);
+    var et=calcEcho(allSent[idx].en);
+    updateStatus('echoing','Echo... ('+Math.ceil(et)+'s)');
+    showCountdown(et);
     setTimeout(function(){
       if(!isReading)return;
       hideCountdown();
-      var card=document.querySelector('.sentence-card[data-index="'+idx+'"]');
-      if(card){card.classList.add('read');card.classList.remove('active');}
-      speakSentence(idx+1);
-    },echoTime*1000);
+      var el=document.querySelector('.sent[data-index="'+idx+'"]');
+      if(el){el.classList.add('read');el.classList.remove('active');}
+      speak(idx+1);
+    },et*1000);
   };
-  utterance.onerror=function(){if(!isReading)return;setTimeout(function(){speakSentence(idx+1);},500);};
-  window.speechSynthesis.speak(utterance);
+  utt.onerror=function(){if(!isReading)return;setTimeout(function(){speak(idx+1);},300);};
+  speechSynthesis.speak(utt);
 }
 function toggleReading(){
   if(isReading){
-    isReading=false;window.speechSynthesis.cancel();hideCountdown();highlightCard(-1);
-    updateStatus('idle','已暂停');
-    document.getElementById('startBtn').textContent='继续跟读';
+    isReading=false;speechSynthesis.cancel();hideCountdown();highlightSent(-1);
+    updateStatus('idle','Paused');
+    document.getElementById('startBtn').textContent='Resume';
   }else{
-    isReading=true;document.getElementById('startBtn').textContent='停止';
-    var startIdx=currentIdx>=0?currentIdx+1:0;
-    if(startIdx>=allSentences.length){
-      startIdx=0;
-      document.querySelectorAll('.sentence-card').forEach(function(c){c.classList.remove('read','active');});
-      currentIdx=-1;
-    }
-    speakSentence(startIdx);
+    isReading=true;document.getElementById('startBtn').textContent='Stop';
+    var si=curIdx>=0?curIdx+1:0;
+    if(si>=allSent.length){si=0;document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('read','active');});curIdx=-1;}
+    speak(si);
   }
 }
 function speakSingle(idx){
   if(isReading)return;
-  var text=allSentences[idx].en.replace(/—/g,', ').replace(/–/g,', ');
-  if(utterance){window.speechSynthesis.cancel();}
-  document.querySelectorAll('.sentence-card').forEach(function(c){c.classList.remove('active');});
-  var card=document.querySelector('.sentence-card[data-index="'+idx+'"]');
-  if(card)card.classList.add('active');
-  utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang='en-US';utterance.rate=speed;
-  utterance.onend=function(){if(card)card.classList.remove('active');};
-  window.speechSynthesis.speak(utterance);
+  var text=allSent[idx].en.replace(/\u2014/g,', ');
+  if(utt)speechSynthesis.cancel();
+  document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');});
+  var el=document.querySelector('.sent[data-index="'+idx+'"]');
+  if(el)el.classList.add('active');
+  utt=new SpeechSynthesisUtterance(text);
+  utt.lang='en-US';utt.rate=speed;
+  utt.onend=function(){if(el)el.classList.remove('active');};
+  speechSynthesis.speak(utt);
 }
-function finishReading(){
+function finish(){
   isReading=false;hideCountdown();
-  updateStatus('idle','跟读完成！');
-  document.getElementById('startBtn').textContent='重新跟读';
-  currentIdx=-1;
+  updateStatus('idle','Complete!');
+  document.getElementById('startBtn').textContent='Restart';
+  curIdx=-1;
 }
-window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTranslation=toggleTranslation;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;
+window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;
 </script>
 </body>
 </html>
