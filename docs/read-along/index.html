@@ -26,6 +26,7 @@
     --shadow-lg: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    --passage-size: 17px;
   }
   [data-theme="dark"] {
     --bg: #1c1c1e;
@@ -69,6 +70,9 @@
 
   /* Controls bar */
   .controls-bar { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .ctrl-group.font-size { gap:4px; }
+  .font-btn { width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); font:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; }
+  .font-btn:hover { border-color:var(--text-3); color:var(--text); }
   .ctrl-group { display:flex; align-items:center; gap:6px; }
   .ctrl-label { font-size:11px; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; }
   .pill-btn { padding:5px 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); font:inherit; font-size:12px; cursor:pointer; transition:all .15s; }
@@ -99,7 +103,7 @@
     box-shadow:var(--shadow);
     padding:40px 36px;
     line-height:2;
-    font-size:17px;
+    font-size:var(--passage-size);
     color:var(--text);
   }
   [data-theme="dark"] .passage { box-shadow:var(--shadow); }
@@ -114,7 +118,7 @@
     margin-bottom:6px;
     display:block;
   }
-  .passage-text { margin:0; font-size:17px; line-height:2; color:var(--text); }
+  .passage-text { margin:0; font-size:var(--passage-size); line-height:2; color:var(--text); }
   .sent { position:relative; transition:background .2s ease, color .2s ease; border-radius:3px; padding:1px 2px; }
   .sent:hover { background:var(--surface-3); cursor:pointer; }
   .sent.active { background:var(--accent-bg); color:var(--accent); font-weight:500; box-shadow:0 0 0 1px var(--accent); }
@@ -166,8 +170,8 @@
   .footer-note { text-align:center; padding:24px 0 0; font-size:12px; color:var(--text-3); }
 
   @media(max-width:640px) {
-    .passage { padding:24px 20px; font-size:16px; }
-    .passage-text { font-size:16px; }
+    .passage { padding:24px 20px; }
+    .passage-text { font-size:var(--passage-size); }
     .controls-bar { flex-direction:column; gap:8px; }
   }
 </style>
@@ -201,6 +205,11 @@
       <button class="pill-btn" data-gap="1.0" onclick="setGap(1.0,this)">Short</button>
       <button class="pill-btn active" data-gap="1.5" onclick="setGap(1.5,this)">Mid</button>
       <button class="pill-btn" data-gap="2.0" onclick="setGap(2.0,this)">Long</button>
+    </div>
+    <div class="ctrl-group font-size">
+      <span class="ctrl-label">A</span>
+      <button class="font-btn" onclick="decFont()" aria-label="缩小字号">−</button>
+      <button class="font-btn" onclick="incFont()" aria-label="放大字号">+</button>
     </div>
     <button class="start-btn" id="startBtn" onclick="toggleReading()">Start Reading</button>
     <button class="ghost-btn" onclick="toggleTrans()" id="transBtn">Show Translation</button>
@@ -303,6 +312,50 @@ PASSAGE.forEach(function(blk){
 
 var speed=0.9,gapMul=1.5,isReading=false,curIdx=-1,utt=null;
 
+// 英式英语语音选择
+var _britVoice=null,_voicesLoaded=false;
+function getBritishVoice(){
+  if(_britVoice)return _britVoice;
+  var voices=speechSynthesis.getVoices();
+  // 优先选择 en-GB 的优质语音
+  var prefs=['Google UK English Female','Google UK English Male','Samantha','Daniel','Karen','Serena','Microsoft Hazel - English (United Kingdom)','Microsoft George - English (United Kingdom)','Microsoft Susan - English (United Kingdom)'];
+  for(var i=0;i<prefs.length;i++){
+    for(var j=0;j<voices.length;j++){
+      if(voices[j].name===prefs[i]&&voices[j].lang.startsWith('en')){
+        _britVoice=voices[j];return _britVoice;
+      }
+    }
+  }
+  // 退而求其次：任意 en-GB 语音
+  for(var j=0;j<voices.length;j++){
+    if(voices[j].lang==='en-GB'){_britVoice=voices[j];return _britVoice;}
+  }
+  // 最后退到任意 en 语音
+  for(var j=0;j<voices.length;j++){
+    if(voices[j].lang.startsWith('en')){_britVoice=voices[j];return _britVoice;}
+  }
+  return null;
+}
+// 语音列表可能异步加载
+if(typeof speechSynthesis!=='undefined'){
+  speechSynthesis.onvoiceschanged=function(){_britVoice=null;getBritishVoice();};
+}
+
+// 字号调节
+var _fontSize=17;
+function applyFont(){document.documentElement.style.setProperty('--passage-size',_fontSize+'px');try{localStorage.setItem('readFont',_fontSize);}catch(e){}}
+function incFont(){_fontSize=Math.min(32,_fontSize+1);applyFont();}
+function decFont(){_fontSize=Math.max(12,_fontSize-1);applyFont();}
+try{var sf=localStorage.getItem('readFont');if(sf){_fontSize=parseInt(sf)||17;applyFont();}}catch(e){}
+
+// 居中滚动：让当前句保持在视口中央
+function scrollSentenceToCenter(el){
+  if(!el)return;
+  var rect=el.getBoundingClientRect();
+  var offset=rect.top+rect.height/2-window.innerHeight/2;
+  window.scrollTo({top:window.scrollY+offset,behavior:'smooth'});
+}
+
 function setSpeed(s,b){speed=s;document.querySelectorAll('.pill-btn[data-speed]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');}
 function setGap(g,b){gapMul=g;document.querySelectorAll('.pill-btn[data-gap]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');}
 function toggleTheme(){var c=document.documentElement.getAttribute('data-theme');var n=c==='dark'?'':'dark';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('theme',n==='dark'?'dark':'light');}catch(e){}}
@@ -310,7 +363,7 @@ try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttrib
 function toggleTrans(){document.body.classList.toggle('show-trans');var b=document.getElementById('transBtn');var t=document.getElementById('transToggle');var show=document.body.classList.contains('show-trans');b.textContent=show?'Hide Translation':'Show Translation';if(t)t.textContent=show?'Hide Translation':'Show Translation';}
 function updateStatus(s,t){var b=document.getElementById('statusBadge');var x=document.getElementById('statusText');b.className='status-badge '+s;x.textContent=t;}
 function updateProgress(){var pct=((curIdx+1)/allSent.length)*100;document.getElementById('progressFill').style.width=pct+'%';}
-function highlightSent(idx){document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');if(parseInt(s.dataset.index)<idx)s.classList.add('read');else s.classList.remove('read');});if(idx>=0&&idx<allSent.length){var el=document.querySelector('.sent[data-index="'+idx+'"]');if(el){el.classList.add('active');el.classList.remove('read');el.scrollIntoView({behavior:'smooth',block:'center'});}}}
+function highlightSent(idx){document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');if(parseInt(s.dataset.index)<idx)s.classList.add('read');else s.classList.remove('read');});if(idx>=0&&idx<allSent.length){var el=document.querySelector('.sent[data-index="'+idx+'"]');if(el){el.classList.add('active');el.classList.remove('read');scrollSentenceToCenter(el);}}}
 function calcEcho(text){var w=text.split(/\s+/).length;return Math.max(2,(w*0.4+1.5)*gapMul);}
 function showCountdown(sec){var o=document.getElementById('countdown');var n=document.getElementById('countdownNum');var b=document.getElementById('countdownBarFill');o.classList.add('show');n.textContent=Math.ceil(sec);b.style.transition='none';b.style.transform='scaleX(1)';b.offsetHeight;b.style.transition='transform '+sec+'s linear';b.style.transform='scaleX(0)';}
 function hideCountdown(){document.getElementById('countdown').classList.remove('show');}
@@ -321,7 +374,8 @@ function speak(idx){
   var text=allSent[idx].en.replace(/\u2014/g,', ');
   if(utt)speechSynthesis.cancel();
   utt=new SpeechSynthesisUtterance(text);
-  utt.lang='en-US';utt.rate=speed;
+  utt.lang='en-GB';utt.rate=speed;
+  var v=getBritishVoice();if(v)utt.voice=v;
   utt.onend=function(){
     if(!isReading)return;
     var et=calcEcho(allSent[idx].en);
@@ -358,7 +412,8 @@ function speakSingle(idx){
   var el=document.querySelector('.sent[data-index="'+idx+'"]');
   if(el)el.classList.add('active');
   utt=new SpeechSynthesisUtterance(text);
-  utt.lang='en-US';utt.rate=speed;
+  utt.lang='en-GB';utt.rate=speed;
+  var v=getBritishVoice();if(v)utt.voice=v;
   utt.onend=function(){if(el)el.classList.remove('active');};
   speechSynthesis.speak(utt);
 }
@@ -368,7 +423,7 @@ function finish(){
   document.getElementById('startBtn').textContent='Restart';
   curIdx=-1;
 }
-window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;
+window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=speakSingle;window.incFont=incFont;window.decFont=decFont;window.getBritishVoice=getBritishVoice;
 </script>
 </body>
 </html>
