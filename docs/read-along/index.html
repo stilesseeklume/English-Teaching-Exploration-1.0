@@ -42,10 +42,19 @@
   [data-theme="dark"] .theme-toggle .icon-moon{display:none;}
 
   main{max-width:780px;margin:0 auto;padding:32px 24px 100px;}
-  .lesson-header{text-align:center;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid var(--accent);}
+  .lesson-header{text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--accent);}
   .lesson-header .unit-tag{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.15em;margin-bottom:10px;text-transform:uppercase;}
   .lesson-header h1{font-family:var(--font-display);font-size:34px;font-weight:400;margin:0 0 6px;color:var(--text);}
   .lesson-header .sub{font-size:13px;color:var(--text-3);}
+
+  /* ===== 课程切换标签 ===== */
+  .lesson-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
+  .lesson-tab{padding:8px 18px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
+  .lesson-tab .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--surface-3);color:var(--text-2);font-size:11px;font-weight:700;}
+  .lesson-tab.active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;box-shadow:0 0 0 1px var(--accent);}
+  .lesson-tab.active .tab-num{background:var(--accent);color:#fff;}
+  .lesson-tab:hover{border-color:var(--text-3);}
+  .lesson-tab.active:hover{border-color:var(--accent);}
 
   /* ===== 语音选择器 ===== */
   .voice-panel{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
@@ -90,7 +99,6 @@
     padding:40px 44px 40px 40px;
     position:relative;
   }
-  /* 课本左侧装饰线 */
   .textbook::before{
     content:'';
     position:absolute;
@@ -119,7 +127,6 @@
   }
   .text-block{margin-bottom:26px;position:relative;}
   .text-block:last-child{margin-bottom:0;}
-  /* 时间戳 - 课本风格 */
   .time-stamp{
     display:inline-block;
     font-family:var(--font-hand);
@@ -131,6 +138,14 @@
     border-bottom:1.5px solid var(--accent);
     opacity:0.85;
   }
+  /* 人物档案卡（Lesson 2 风格） */
+  .profile-head{
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    margin-bottom:6px;padding-bottom:6px;border-bottom:1.5px dashed var(--border);
+  }
+  .profile-name{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--text);}
+  .profile-meta{font-size:13px;color:var(--accent);font-weight:600;}
+  .profile-school{font-size:12px;color:var(--text-3);}
   .passage-text{margin:0;font-size:var(--passage-size);line-height:2;color:var(--text);transition:font-size .2s;}
   .sent{position:relative;transition:background .2s,color .2s;border-radius:3px;padding:1px 2px;cursor:pointer;}
   .sent:hover{background:var(--surface-3);}
@@ -168,10 +183,13 @@
 </header>
 <main>
   <div class="lesson-header">
-    <div class="unit-tag">Welcome Unit · Reading and Thinking</div>
-    <h1>First Impressions</h1>
-    <div class="sub">Han Jing's World · New Senior High English · Book 1</div>
+    <div class="unit-tag" id="unitTag">Welcome Unit · Reading and Thinking</div>
+    <h1 id="lessonTitle">First Impressions</h1>
+    <div class="sub" id="lessonSub">Han Jing's World · New Senior High English · Book 1</div>
   </div>
+
+  <!-- 课程切换 -->
+  <div class="lesson-tabs" id="lessonTabs"></div>
 
   <!-- 语音选择 -->
   <div class="voice-panel">
@@ -217,8 +235,8 @@
 
   <!-- 课本风格课文 -->
   <div class="textbook">
-    <div class="textbook-title">Reading and Thinking</div>
-    <h2 class="textbook-subtitle">Han Jing's World</h2>
+    <div class="textbook-title" id="tbTitle">Reading and Thinking</div>
+    <h2 class="textbook-subtitle" id="tbSubtitle">Han Jing's World</h2>
     <div id="passage"></div>
   </div>
 
@@ -234,178 +252,333 @@
   <div class="countdown-bar"><div class="countdown-bar-fill" id="countdownBarFill"></div></div>
 </div>
 <script>
-var PASSAGE=[
-{time:"7:00 a.m.",sentences:[
-{en:"So this is it \u2014 senior high school at last!",zh:"\u5c31\u8fd9\u6837\u4e86\u2014\u2014\u7ec8\u4e8e\u5230\u9ad8\u4e2d\u4e86\uff01"},
-{en:"I'm not outgoing so I'm a little anxious right now.",zh:"\u6211\u4e0d\u592a\u5916\u5411\uff0c\u6240\u4ee5\u73b0\u5728\u6709\u70b9\u7d27\u5f20\u3002"},
-{en:"I want to make a good first impression.",zh:"\u6211\u60f3\u7559\u4e0b\u4e00\u4e2a\u597d\u7684\u7b2c\u4e00\u5370\u8c61\u3002"},
-{en:"Will I make any friends?",zh:"\u6211\u4f1a\u4ea4\u5230\u670b\u53cb\u5417\uff1f"},
-{en:"What if no one talks to me?",zh:"\u8981\u662f\u6ca1\u4eba\u8ddf\u6211\u8bf4\u8bdd\u600e\u4e48\u529e\uff1f"}
-]},
-{time:"12:30 p.m.",sentences:[
-{en:"I just had my first maths class at senior high school!",zh:"\u6211\u521a\u4e0a\u5b8c\u9ad8\u4e2d\u7684\u7b2c\u4e00\u8282\u6570\u5b66\u8bfe\uff01"},
-{en:"The class was difficult, but the teacher was kind and friendly.",zh:"\u8bfe\u5f88\u96be\uff0c\u4f46\u8001\u5e08\u5f88\u548c\u853d\u53cb\u597d\u3002"},
-{en:"He even told us a funny story, and everyone laughed so much!",zh:"\u4ed6\u751a\u81f3\u8bb2\u4e86\u4e00\u4e2a\u6709\u8da3\u7684\u6545\u4e8b\uff0c\u5927\u5bb6\u90fd\u7b11\u5f97\u4e0d\u884c\uff01"},
-{en:"I found most of my classmates and teachers friendly and helpful.",zh:"\u6211\u53d1\u73b0\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u53cb\u597d\u3001\u5f88\u4e50\u4e8e\u52a9\u4eba\u3002"}
-]},
-{time:"5:32 p.m.",sentences:[
-{en:"This afternoon, we had our chemistry class in the science lab.",zh:"\u4eca\u5929\u4e0b\u5348\uff0c\u6211\u4eec\u5728\u79d1\u5b66\u5b9e\u9a8c\u5ba4\u4e0a\u4e86\u5316\u5b66\u8bfe\u3002"},
-{en:"The lab is new and the lesson was great, but the guy next to me tried to talk to me the whole time.",zh:"\u5b9e\u9a8c\u5ba4\u662f\u65b0\u7684\uff0c\u8bfe\u4e5f\u5f88\u68d2\uff0c\u4f46\u65c1\u8fb9\u7684\u7537\u751f\u4e00\u76f4\u60f3\u8ddf\u6211\u8bf4\u8bdd\u3002"},
-{en:"I couldn't concentrate on the experiment.",zh:"\u6211\u65e0\u6cd5\u96c6\u4e2d\u7cbe\u529b\u505a\u5b9e\u9a8c\u3002"},
-{en:"I really wanted to tell him to please be quiet and leave me alone!",zh:"\u6211\u771f\u60f3\u544a\u8bc9\u4ed6\u8bf7\u5b89\u9759\uff0c\u522b\u70e6\u6211\uff01"}
-]},
-{time:"10:29 p.m.",sentences:[
-{en:"What a day!",zh:"\u8fd9\u4e00\u5929\u554a\uff01"},
-{en:"This morning, I was worried that no one would talk to me.",zh:"\u4eca\u5929\u65e9\u6668\uff0c\u6211\u8fd8\u62c5\u5fc3\u6ca1\u4eba\u4f1a\u8ddf\u6211\u8bf4\u8bdd\u3002"},
-{en:"But I was wrong.",zh:"\u4f46\u6211\u9519\u4e86\u3002"},
-{en:"I didn't feel awkward or frightened at all.",zh:"\u6211\u4e00\u70b9\u513f\u4e5f\u4e0d\u89c9\u5f97\u5c34\u5c2c\u6216\u5bb3\u6015\u3002"},
-{en:"I miss my friends from junior high school, but I believe I will make new friends here, and there's a lot to explore at senior high.",zh:"\u6211\u60f3\u5ff5\u521d\u4e2d\u7684\u670b\u53cb\u4eec\uff0c\u4f46\u6211\u76f8\u4fe1\u6211\u4f1a\u5728\u8fd9\u91cc\u7ed3\u4ea4\u65b0\u670b\u53cb\uff0c\u800c\u4e14\u9ad8\u4e2d\u6709\u5f88\u591a\u4e8b\u7269\u7b49\u7740\u6211\u53bb\u63a2\u7d22\u3002"},
-{en:"I feel much more confident than I felt this morning.",zh:"\u6211\u611f\u89c9\u6bd4\u4eca\u5929\u65e9\u4e0a\u81ea\u4fe1\u591a\u4e86\u3002"},
-{en:"I think that tomorrow will be a great day!",zh:"\u6211\u76f8\u4fe1\uff0c\u660e\u5929\u5c06\u662f\u975e\u5e38\u4e0d\u9519\u7684\u4e00\u5929\uff01"}
-]}
+/* ================= 课程数据 ================= */
+var LESSONS = [
+{
+  id:"hj",
+  tab:"Han Jing's World",
+  unitTag:"Welcome Unit · Reading and Thinking",
+  title:"First Impressions",
+  sub:"Han Jing's World · New Senior High English · Book 1",
+  tbTitle:"Reading and Thinking",
+  tbSubtitle:"Han Jing's World",
+  blockStyle:"timestamp",
+  blocks:[
+  {label:"7:00 a.m.",sentences:[
+    {en:"So this is it \u2014 senior high school at last!",zh:"\u5c31\u662f\u8fd9\u6837\u2014\u2014\u7ec8\u4e8e\u5230\u9ad8\u4e2d\u4e86\uff01"},
+    {en:"I'm not outgoing so I'm a little anxious right now.",zh:"\u6211\u6027\u683c\u5e76\u4e0d\u5916\u5411\uff0c\u6240\u4ee5\u73b0\u5728\u6709\u70b9\u513f\u7126\u8651\u3002"},
+    {en:"I want to make a good first impression.",zh:"\u6211\u60f3\u7ed9\u522b\u4eba\u7559\u4e0b\u597d\u7684\u7b2c\u4e00\u5370\u8c61\u3002"},
+    {en:"Will I make any friends?",zh:"\u6211\u4f1a\u4ea4\u5230\u670b\u53cb\u5417\uff1f"},
+    {en:"What if no one talks to me?",zh:"\u8981\u662f\u6ca1\u4eba\u8ddf\u6211\u8bf4\u8bdd\u600e\u4e48\u529e\uff1f"}
+  ]},
+  {label:"12:30 p.m.",sentences:[
+    {en:"I just had my first maths class at senior high school!",zh:"\u6211\u521a\u521a\u4e0a\u5b8c\u9ad8\u4e2d\u7684\u7b2c\u4e00\u8282\u6570\u5b66\u8bfe\uff01"},
+    {en:"The class was difficult, but the teacher was kind and friendly.",zh:"\u8fd9\u5802\u8bfe\u5f88\u96be\uff0c\u4f46\u8001\u5e08\u5f88\u548c\u853c\u53ef\u4eb2\u3002"},
+    {en:"He even told us a funny story, and everyone laughed so much!",zh:"\u4ed6\u8fd8\u7ed9\u6211\u4eec\u8bb2\u4e86\u4e00\u4e2a\u6709\u8da3\u7684\u6545\u4e8b\uff0c\u6bcf\u4e2a\u4eba\u90fd\u7b11\u5f97\u5f88\u5f00\u5fc3\uff01"},
+    {en:"I found most of my classmates and teachers friendly and helpful.",zh:"\u6211\u53d1\u73b0\u6211\u7684\u5927\u591a\u6570\u540c\u5b66\u548c\u8001\u5e08\u90fd\u5f88\u53cb\u597d\uff0c\u800c\u4e14\u4e50\u4e8e\u52a9\u4eba\u3002"}
+  ]},
+  {label:"5:32 p.m.",sentences:[
+    {en:"This afternoon, we had our chemistry class in the science lab.",zh:"\u4eca\u5929\u4e0b\u5348\uff0c\u6211\u4eec\u5728\u79d1\u5b66\u5b9e\u9a8c\u5ba4\u4e0a\u4e86\u5316\u5b66\u8bfe\u3002"},
+    {en:"The lab is new and the lesson was great, but the guy next to me tried to talk to me the whole time.",zh:"\u5b9e\u9a8c\u5ba4\u662f\u65b0\u7684\uff0c\u8fd9\u8282\u8bfe\u4e5f\u5f88\u7cbe\u5f69\uff0c\u4f46\u5750\u5728\u6211\u65c1\u8fb9\u7684\u90a3\u4e2a\u5bb6\u4f19\u4e00\u76f4\u8bd5\u56fe\u8ddf\u6211\u8bf4\u8bdd\u3002"},
+    {en:"I couldn't concentrate on the experiment.",zh:"\u6211\u65e0\u6cd5\u96c6\u4e2d\u7cbe\u529b\u505a\u5b9e\u9a8c\u3002"},
+    {en:"I really wanted to tell him to please be quiet and leave me alone!",zh:"\u6211\u771f\u60f3\u5bf9\u4ed6\u8bf4\uff1a\u8bf7\u5b89\u9759\u70b9\uff0c\u522b\u70e6\u6211\uff01"}
+  ]},
+  {label:"10:29 p.m.",sentences:[
+    {en:"What a day!",zh:"\u591a\u597d\u7684\u4e00\u5929\u554a\uff01"},
+    {en:"This morning, I was worried that no one would talk to me.",zh:"\u4eca\u5929\u65e9\u4e0a\uff0c\u6211\u62c5\u5fc3\u6ca1\u6709\u4eba\u4f1a\u8ddf\u6211\u8bf4\u8bdd\u3002"},
+    {en:"But I was wrong.",zh:"\u4f46\u6211\u9519\u4e86\u3002"},
+    {en:"I didn't feel awkward or frightened at all.",zh:"\u6211\u4e00\u70b9\u513f\u4e5f\u4e0d\u89c9\u5f97\u5c34\u5c2c\u6216\u5bb3\u6015\u3002"},
+    {en:"I miss my friends from junior high school, but I believe I will make new friends here, and there's a lot to explore at senior high.",zh:"\u6211\u60f3\u5ff5\u521d\u4e2d\u7684\u670b\u53cb\uff0c\u4f46\u6211\u76f8\u4fe1\u6211\u4f1a\u5728\u8fd9\u91cc\u7ed3\u4ea4\u5230\u65b0\u670b\u53cb\uff0c\u800c\u4e14\u9ad8\u4e2d\u6709\u5f88\u591a\u4e8b\u7269\u7b49\u7740\u6211\u53bb\u63a2\u7d22\u3002"},
+    {en:"I feel much more confident than I felt this morning.",zh:"\u6211\u611f\u89c9\u6bd4\u4eca\u5929\u65e9\u4e0a\u81ea\u4fe1\u591a\u4e86\u3002"},
+    {en:"I think that tomorrow will be a great day!",zh:"\u6211\u76f8\u4fe1\uff0c\u660e\u5929\u5c06\u662f\u975e\u5e38\u4e0d\u9519\u7684\u4e00\u5929\uff01"}
+  ]}
+  ]
+},
+{
+  id:"sp",
+  tab:"Student Profiles",
+  unitTag:"Welcome Unit · Reading for Writing",
+  title:"Student Profiles",
+  sub:"Ann & Thando · New Senior High English · Book 1",
+  tbTitle:"Reading for Writing",
+  tbSubtitle:"Student Profiles",
+  blockStyle:"profile",
+  blocks:[
+  {label:"Ann", meta:"15 · Lakeside High School · USA",sentences:[
+    {en:"My name is Ann Wells and I'm a Grade 10 student at Lakeside High School.",zh:"\u6211\u53eb\u5b89\u00b7\u97e6\u5c14\u65af\uff0c\u662f\u6e56\u6ee8\u9ad8\u4e2d10\u5e74\u7ea7\u7684\u5b66\u751f\u3002"},
+    {en:"I'm an active person and I love sports.",zh:"\u6211\u6027\u683c\u6d3b\u6cfc\uff0c\u559c\u6b22\u8fd0\u52a8\u3002"},
+    {en:"I'm curious about everything.",zh:"\u6211\u5bf9\u4e00\u5207\u4e8b\u7269\u90fd\u5145\u6ee1\u597d\u5947\u3002"},
+    {en:"I often ask questions, but I learn best by doing.",zh:"\u6211\u7ecf\u5e38\u63d0\u51fa\u95ee\u9898\uff0c\u52a8\u624b\u64cd\u4f5c\u65f6\u6211\u7684\u5b66\u4e60\u6548\u679c\u6700\u597d\u3002"},
+    {en:"My favourite subject is physics.",zh:"\u6211\u6700\u559c\u6b22\u7684\u79d1\u76ee\u662f\u7269\u7406\u3002"},
+    {en:"Dancing and skating are my hobbies, and I also like to read short stories.",zh:"\u6211\u7684\u7231\u597d\u662f\u8df3\u821e\u548c\u6ed1\u51b0\uff0c\u6211\u4e5f\u559c\u6b22\u8bfb\u77ed\u7bc7\u6545\u4e8b\u3002"},
+    {en:"I plan to become an engineer in the future.",zh:"\u6211\u8ba1\u5212\u5c06\u6765\u8981\u6210\u4e3a\u4e00\u540d\u5de5\u7a0b\u5e08\u3002"}
+  ]},
+  {label:"Thando", meta:"16 · South Hill High School · South Africa",sentences:[
+    {en:"I'm Thando Gowon.",zh:"\u6211\u662f\u6851\u591a\u00b7\u6208\u7fc1\u3002"},
+    {en:"I'm 16 this year.",zh:"\u6211\u4eca\u5e7416\u5c81\u3002"},
+    {en:"I come from South Africa.",zh:"\u6211\u6765\u81ea\u5357\u975e\u3002"},
+    {en:"I'm a Grade 10 student at South Hill High School.",zh:"\u6211\u662f\u5357\u5c71\u9ad8\u4e2d10\u5e74\u7ea7\u7684\u5b66\u751f\u3002"},
+    {en:"I look good, think fast, and play hard.",zh:"\u6211\u5916\u5f62\u6e05\u723d\u3001\u601d\u7ef4\u654f\u6377\uff0c\u505a\u4e8b\u5168\u529b\u4ee5\u8d74\u3002"},
+    {en:"You'll never see me without a book or a pen.",zh:"\u4e0d\u8bba\u4ec0\u4e48\u65f6\u5019\uff0c\u4f60\u90fd\u4f1a\u770b\u5230\u6211\u62ff\u7740\u4e66\u6216\u63e1\u7740\u7b14\u3002"},
+    {en:"If I'm not in class, I'm either in the library or in the computer lab.",zh:"\u5982\u679c\u6211\u4e0d\u5728\u4e0a\u8bfe\uff0c\u5c31\u4e00\u5b9a\u5728\u56fe\u4e66\u9986\u6216\u8ba1\u7b97\u673a\u5b9e\u9a8c\u5ba4\u3002"},
+    {en:"At the weekends, I play computer games if I'm not busy studying.",zh:"\u5468\u672b\u5982\u679c\u4e0d\u5fd9\u4e8e\u5b66\u4e60\uff0c\u6211\u5c31\u73a9\u7535\u8111\u6e38\u620f\u3002"},
+    {en:"My dream is to start my own IT company!",zh:"\u6211\u7684\u68a6\u60f3\u662f\u521b\u529e\u4e00\u5bb6\u81ea\u5df1\u7684\u4fe1\u606f\u6280\u672f\u516c\u53f8\uff01"}
+  ]}
+  ]
+}
 ];
 
-var allSent=[];
-var passageEl=document.getElementById('passage');
-var transEl=document.getElementById('translation');
-PASSAGE.forEach(function(blk){
-  var div=document.createElement('div');div.className='text-block';
-  var ts=document.createElement('span');ts.className='time-stamp';ts.textContent=blk.time;
-  div.appendChild(ts);
-  var p=document.createElement('p');p.className='passage-text';
-  blk.sentences.forEach(function(s,i){
-    var idx=allSent.length;allSent.push(s);
-    var span=document.createElement('span');span.className='sent';span.dataset.index=idx;
-    span.textContent=s.en;
-    span.onclick=function(){onSentenceClick(idx);};
-    p.appendChild(span);
-    if(i<blk.sentences.length-1)p.appendChild(document.createTextNode(' '));
+/* ================= 状态 ================= */
+var lessonIdx = 0;
+var allSent = [];
+var speed = 1.0, gapMul = 1.5, isReading = false, curIdx = -1;
+var accent = 'uk', gender = 'f';
+var audio = document.getElementById('audioPlayer');
+
+/* ================= 渲染 ================= */
+function renderTabs(){
+  var tabs = document.getElementById('lessonTabs');
+  tabs.innerHTML = '';
+  LESSONS.forEach(function(L, i){
+    var b = document.createElement('button');
+    b.className = 'lesson-tab' + (i === lessonIdx ? ' active' : '');
+    b.innerHTML = '<span class="tab-num">' + (i+1) + '</span>' + L.tab;
+    b.onclick = function(){ switchLesson(i); };
+    tabs.appendChild(b);
   });
-  div.appendChild(p);passageEl.appendChild(div);
-});
-PASSAGE.forEach(function(blk){
-  var tb=document.createElement('div');tb.className='trans-block';
-  var tt=document.createElement('div');tt.className='trans-time';tt.textContent=blk.time;
-  tb.appendChild(tt);
-  var tp=document.createElement('p');tp.style.margin='0';tp.textContent=blk.sentences.map(function(s){return s.zh;}).join(' ');
-  tb.appendChild(tp);transEl.appendChild(tb);
-});
-
-// 语音选择
-var accent='uk', gender='f';
-var voiceMap={
-  'uk_f':'en-GB-SoniaNeural', 'uk_m':'en-GB-RyanNeural',
-  'us_f':'en-US-AriaNeural',  'us_m':'en-US-ChristopherNeural',
-  'au_f':'en-AU-NatashaNeural','au_m':'en-AU-WilliamMultilingualNeural'
-};
-var audioDirMap={
-  'uk_f':'uk_f','uk_m':'uk_m','us_f':'us_f','us_m':'us_m','au_f':'au_f','au_m':'au_m'
-};
-
-function getAudioDir(){return audioDirMap[accent+'_'+gender];}
-function getAudioFile(idx){return 'audio/'+getAudioDir()+'/sent_'+String(idx).padStart(2,'0')+'.mp3';}
-
-function setAccent(a,btn){
-  accent=a;
-  document.querySelectorAll('[data-accent]').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  // 如果正在跟读，切换口音后从当前句重新播放
-  if(isReading&&curIdx>=0){
-    audio.pause();
-    speak(curIdx);
-  }
-}
-function setGender(g,btn){
-  gender=g;
-  document.querySelectorAll('[data-gender]').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  if(isReading&&curIdx>=0){
-    audio.pause();
-    speak(curIdx);
-  }
 }
 
-var speed=1.0,gapMul=1.5,isReading=false,curIdx=-1;
-var audio=document.getElementById('audioPlayer');
-audio.playbackRate=1.0;
+function renderLesson(){
+  var L = LESSONS[lessonIdx];
+  document.getElementById('unitTag').textContent = L.unitTag;
+  document.getElementById('lessonTitle').textContent = L.title;
+  document.getElementById('lessonSub').textContent = L.sub;
+  document.getElementById('tbTitle').textContent = L.tbTitle;
+  document.getElementById('tbSubtitle').textContent = L.tbSubtitle;
 
-function setSpeed(s,b){speed=s;audio.playbackRate=s;document.querySelectorAll('.pill-btn[data-speed]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');}
-function setGap(g,b){gapMul=g;document.querySelectorAll('.pill-btn[data-gap]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');}
-function toggleTheme(){var c=document.documentElement.getAttribute('data-theme');var n=c==='dark'?'':'dark';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('theme',n==='dark'?'dark':'light');}catch(e){}}
-try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}
-function toggleTrans(){document.body.classList.toggle('show-trans');var b=document.getElementById('transBtn');var t=document.getElementById('transToggle');var show=document.body.classList.contains('show-trans');b.textContent=show?'Hide Translation':'Show Translation';if(t)t.textContent=show?'Hide Translation':'Show Translation';}
-function updateStatus(s,t){var b=document.getElementById('statusBadge');var x=document.getElementById('statusText');b.className='status-badge '+s;x.textContent=t;}
-function updateProgress(){var pct=((curIdx+1)/allSent.length)*100;document.getElementById('progressFill').style.width=pct+'%';}
-function highlightSent(idx){document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('active');if(parseInt(s.dataset.index)<idx)s.classList.add('read');else s.classList.remove('read');});if(idx>=0&&idx<allSent.length){var el=document.querySelector('.sent[data-index="'+idx+'"]');if(el){el.classList.add('active');el.classList.remove('read');scrollSentToCenter(el);}}}
-function scrollSentToCenter(el){if(!el)return;var rect=el.getBoundingClientRect();var offset=rect.top+rect.height/2-window.innerHeight/2;window.scrollTo({top:window.scrollY+offset,behavior:'smooth'});}
+  allSent = [];
+  var passageEl = document.getElementById('passage');
+  var transEl = document.getElementById('translation');
+  passageEl.innerHTML = '';
+  transEl.innerHTML = '';
 
-var _fontSize=17;
-function applyFont(){document.documentElement.style.setProperty('--passage-size',_fontSize+'px');try{localStorage.setItem('readFont',_fontSize);}catch(e){}}
-function incFont(){_fontSize=Math.min(36,_fontSize+1);applyFont();}
-function decFont(){_fontSize=Math.max(12,_fontSize-1);applyFont();}
-try{var sf=localStorage.getItem('readFont');if(sf){_fontSize=parseInt(sf)||17;applyFont();}}catch(e){}
+  L.blocks.forEach(function(blk){
+    var div = document.createElement('div');
+    div.className = 'text-block';
+    if (L.blockStyle === 'profile') {
+      var head = document.createElement('div');
+      head.className = 'profile-head';
+      head.innerHTML = '<span class="profile-name">' + blk.label + '</span>' +
+                       '<span class="profile-meta">' + blk.meta + '</span>';
+      div.appendChild(head);
+    } else {
+      var ts = document.createElement('span');
+      ts.className = 'time-stamp';
+      ts.textContent = blk.label;
+      div.appendChild(ts);
+    }
+    var p = document.createElement('p');
+    p.className = 'passage-text';
+    blk.sentences.forEach(function(s, i){
+      var idx = allSent.length;
+      allSent.push(s);
+      var span = document.createElement('span');
+      span.className = 'sent';
+      span.dataset.index = idx;
+      span.textContent = s.en;
+      span.onclick = function(){ onSentenceClick(idx); };
+      p.appendChild(span);
+      if (i < blk.sentences.length - 1) p.appendChild(document.createTextNode(' '));
+    });
+    div.appendChild(p);
+    passageEl.appendChild(div);
 
-function calcEcho(text){var w=text.split(/\s+/).length;return Math.max(2.5,(w*0.45+1.5)*gapMul);}
-function showCountdown(sec){var o=document.getElementById('countdown');var n=document.getElementById('countdownNum');var b=document.getElementById('countdownBarFill');o.classList.add('show');n.textContent=Math.ceil(sec);b.style.transition='none';b.style.transform='scaleX(1)';b.offsetHeight;b.style.transition='transform '+sec+'s linear';b.style.transform='scaleX(0)';}
-function hideCountdown(){document.getElementById('countdown').classList.remove('show');}
+    // 翻译块
+    var tb = document.createElement('div');
+    tb.className = 'trans-block';
+    var tt = document.createElement('div');
+    tt.className = 'trans-time';
+    tt.textContent = blk.label + (blk.meta ? ' · ' + blk.meta : '');
+    tb.appendChild(tt);
+    var tp = document.createElement('p');
+    tp.style.margin = '0';
+    tp.textContent = blk.sentences.map(function(s){ return s.zh; }).join(' ');
+    tb.appendChild(tp);
+    transEl.appendChild(tb);
+  });
+  renderTabs();
+}
+
+function switchLesson(i){
+  if (isReading) { stopReading(); }
+  lessonIdx = i;
+  curIdx = -1;
+  renderLesson();
+  updateProgress();
+  updateStatus('idle', 'Ready');
+  document.getElementById('startBtn').textContent = 'Start Reading';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  try { localStorage.setItem('readLesson', i); } catch(e){}
+}
+
+/* ================= 音频 ================= */
+function getAudioFile(idx){
+  return 'audio/' + LESSONS[lessonIdx].id + '/' + accent + '_' + gender + '/sent_' + String(idx).padStart(2,'0') + '.mp3';
+}
+
+function setAccent(a, btn){
+  accent = a;
+  document.querySelectorAll('[data-accent]').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (isReading && curIdx >= 0) { audio.pause(); speak(curIdx); }
+}
+function setGender(g, btn){
+  gender = g;
+  document.querySelectorAll('[data-gender]').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (isReading && curIdx >= 0) { audio.pause(); speak(curIdx); }
+}
 
 function speak(idx){
-  if(idx>=allSent.length){finish();return;}
-  curIdx=idx;highlightSent(idx);updateProgress();
-  updateStatus('reading','Playing... ('+(idx+1)+'/'+allSent.length+')');
-  audio.src=getAudioFile(idx);
-  audio.playbackRate=speed;
-  audio.play().catch(function(e){console.error('Audio play failed:',e);if(isReading)setTimeout(function(){speak(idx+1);},500);});
+  if (idx >= allSent.length) { finish(); return; }
+  curIdx = idx;
+  highlightSent(idx);
+  updateProgress();
+  updateStatus('reading', 'Playing... (' + (idx+1) + '/' + allSent.length + ')');
+  audio.src = getAudioFile(idx);
+  audio.playbackRate = speed;
+  audio.play().catch(function(e){
+    console.error('Audio play failed:', e);
+    if (isReading) setTimeout(function(){ speak(idx+1); }, 500);
+  });
 }
-audio.onended=function(){
-  if(!isReading)return;
-  var echoTime=calcEcho(allSent[curIdx].en);
-  updateStatus('echoing','Echo... ('+Math.ceil(echoTime)+'s)');
+audio.onended = function(){
+  if (!isReading) return;
+  var echoTime = calcEcho(allSent[curIdx].en);
+  updateStatus('echoing', 'Echo... (' + Math.ceil(echoTime) + 's)');
   showCountdown(echoTime);
   setTimeout(function(){
-    if(!isReading)return;
+    if (!isReading) return;
     hideCountdown();
-    var el=document.querySelector('.sent[data-index="'+curIdx+'"]');
-    if(el){el.classList.add('read');el.classList.remove('active');}
-    speak(curIdx+1);
-  },echoTime*1000);
+    var el = document.querySelector('.sent[data-index="' + curIdx + '"]');
+    if (el) { el.classList.add('read'); el.classList.remove('active'); }
+    speak(curIdx + 1);
+  }, echoTime * 1000);
 };
 
+/* ================= 控制 ================= */
 function toggleReading(){
-  if(isReading){
-    isReading=false;audio.pause();hideCountdown();highlightSent(-1);
-    updateStatus('idle','Paused');
-    document.getElementById('startBtn').textContent='Resume';
-  }else{
-    isReading=true;document.getElementById('startBtn').textContent='Stop';
-    var si=curIdx>=0?curIdx:0;
-    if(si>=allSent.length){si=0;document.querySelectorAll('.sent').forEach(function(s){s.classList.remove('read','active');});curIdx=-1;}
+  if (isReading) {
+    stopReading();
+    updateStatus('idle', 'Paused');
+    document.getElementById('startBtn').textContent = 'Resume';
+  } else {
+    isReading = true;
+    document.getElementById('startBtn').textContent = 'Stop';
+    var si = curIdx >= 0 ? curIdx : 0;
+    if (si >= allSent.length) { si = 0; resetMarks(); curIdx = -1; }
     speak(si);
   }
 }
-
+function stopReading(){
+  isReading = false;
+  audio.pause();
+  hideCountdown();
+  highlightSent(-1);
+}
 function onSentenceClick(idx){
-  if(isReading){
-    document.querySelectorAll('.sent').forEach(function(s){if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');});
-    curIdx=idx-1;
-    speak(idx);
-    return;
+  document.querySelectorAll('.sent').forEach(function(s){
+    if (parseInt(s.dataset.index) >= idx) s.classList.remove('read', 'active');
+  });
+  curIdx = idx - 1;
+  if (!isReading) {
+    isReading = true;
+    document.getElementById('startBtn').textContent = 'Stop';
   }
-  document.querySelectorAll('.sent').forEach(function(s){if(parseInt(s.dataset.index)>=idx)s.classList.remove('read','active');});
-  curIdx=idx-1;
-  isReading=true;
-  document.getElementById('startBtn').textContent='Stop';
   speak(idx);
 }
-
 function finish(){
-  isReading=false;hideCountdown();
-  updateStatus('idle','Complete!');
-  document.getElementById('startBtn').textContent='Restart';
-  curIdx=-1;
+  isReading = false;
+  hideCountdown();
+  updateStatus('idle', 'Complete!');
+  document.getElementById('startBtn').textContent = 'Restart';
+  curIdx = -1;
+}
+function resetMarks(){
+  document.querySelectorAll('.sent').forEach(function(s){ s.classList.remove('read', 'active'); });
 }
 
-window.toggleReading=toggleReading;window.toggleTheme=toggleTheme;window.toggleTrans=toggleTrans;window.setSpeed=setSpeed;window.setGap=setGap;window.speakSingle=function(){};window.onSentenceClick=onSentenceClick;window.incFont=incFont;window.decFont=decFont;window.setAccent=setAccent;window.setGender=setGender;
+/* ================= UI 辅助 ================= */
+function setSpeed(s, b){ speed = s; audio.playbackRate = s; document.querySelectorAll('.pill-btn[data-speed]').forEach(function(x){ x.classList.remove('active'); }); b.classList.add('active'); }
+function setGap(g, b){ gapMul = g; document.querySelectorAll('.pill-btn[data-gap]').forEach(function(x){ x.classList.remove('active'); }); b.classList.add('active'); }
+function toggleTheme(){
+  var c = document.documentElement.getAttribute('data-theme');
+  var n = c === 'dark' ? '' : 'dark';
+  document.documentElement.setAttribute('data-theme', n);
+  try { localStorage.setItem('theme', n === 'dark' ? 'dark' : 'light'); } catch(e){}
+}
+try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
+function toggleTrans(){
+  document.body.classList.toggle('show-trans');
+  var show = document.body.classList.contains('show-trans');
+  document.getElementById('transBtn').textContent = show ? 'Hide Translation' : 'Show Translation';
+  var t = document.getElementById('transToggle');
+  if (t) t.textContent = show ? 'Hide Translation' : 'Show Translation';
+}
+function updateStatus(s, t){
+  document.getElementById('statusBadge').className = 'status-badge ' + s;
+  document.getElementById('statusText').textContent = t;
+}
+function updateProgress(){
+  var pct = allSent.length ? ((curIdx + 1) / allSent.length) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+function highlightSent(idx){
+  document.querySelectorAll('.sent').forEach(function(s){
+    s.classList.remove('active');
+    if (parseInt(s.dataset.index) < idx) s.classList.add('read');
+    else s.classList.remove('read');
+  });
+  if (idx >= 0 && idx < allSent.length) {
+    var el = document.querySelector('.sent[data-index="' + idx + '"]');
+    if (el) { el.classList.add('active'); el.classList.remove('read'); scrollSentToCenter(el); }
+  }
+}
+function scrollSentToCenter(el){
+  if (!el) return;
+  var rect = el.getBoundingClientRect();
+  var offset = rect.top + rect.height / 2 - window.innerHeight / 2;
+  window.scrollTo({ top: window.scrollY + offset, behavior: 'smooth' });
+}
+
+var _fontSize = 17;
+function applyFont(){ document.documentElement.style.setProperty('--passage-size', _fontSize + 'px'); try { localStorage.setItem('readFont', _fontSize); } catch(e){} }
+function incFont(){ _fontSize = Math.min(36, _fontSize + 1); applyFont(); }
+function decFont(){ _fontSize = Math.max(12, _fontSize - 1); applyFont(); }
+try { var sf = localStorage.getItem('readFont'); if (sf) { _fontSize = parseInt(sf) || 17; applyFont(); } } catch(e){}
+
+function calcEcho(text){ var w = text.split(/\s+/).length; return Math.max(2.5, (w * 0.45 + 1.5) * gapMul); }
+function showCountdown(sec){
+  var o = document.getElementById('countdown');
+  document.getElementById('countdownNum').textContent = Math.ceil(sec);
+  var b = document.getElementById('countdownBarFill');
+  o.classList.add('show');
+  b.style.transition = 'none';
+  b.style.transform = 'scaleX(1)';
+  b.offsetHeight;
+  b.style.transition = 'transform ' + sec + 's linear';
+  b.style.transform = 'scaleX(0)';
+}
+function hideCountdown(){ document.getElementById('countdown').classList.remove('show'); }
+
+/* ================= 初始化 ================= */
+try { var sl = localStorage.getItem('readLesson'); if (sl !== null && LESSONS[+sl]) lessonIdx = +sl; } catch(e){}
+renderLesson();
+
+window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.toggleTrans = toggleTrans;
+window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
+window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
+window.switchLesson = switchLesson;
 </script>
 </body>
 </html>
