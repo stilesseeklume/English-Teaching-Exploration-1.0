@@ -30,7 +30,7 @@ test('Shadow Reading warms the Windows audio path before every sentence', async 
   await expect(page.locator('#statusText')).toContainText('Playing');
   const plays = await page.evaluate(() => window.__audioPlays.slice());
   expect(plays).toHaveLength(2);
-  expect(plays[1]).toContain('/docs/read-along/audio/hj/uk_f/title_00.mp3?v=3');
+  expect(plays[1]).toContain(`${siteRoot}/read-along/audio/hj/uk_f/title_00.mp3?v=3`);
   await expect(page.locator('#audioPlayer')).toHaveJSProperty('currentTime', 0);
 
   await page.locator('#audioPlayer').evaluate((el) => el.dispatchEvent(new Event('ended')));
