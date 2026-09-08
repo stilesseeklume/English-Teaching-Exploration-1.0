@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+const homeUrl = process.env.SEEKLUME_BASE_URL ? '/' : '/docs/';
+
 test('student home leads with Shadow Reading and keeps grammar secondary', async ({ page }) => {
-  await page.goto('/docs/');
+  await page.goto(homeUrl);
 
   await expect(page).toHaveTitle(/\u82f1\u8bed\u5b66\u4e60\u7cfb\u7edf/);
   await expect(page.getByRole('button', { name: /\u5f00\u59cb Shadow Reading/ })).toBeVisible();

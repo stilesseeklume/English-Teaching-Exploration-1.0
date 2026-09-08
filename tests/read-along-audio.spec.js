@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+const siteRoot = process.env.SEEKLUME_BASE_URL ? '' : '/docs';
+const shadowUrl = `${siteRoot}/read-along/#/bixiu1/hj`;
+
 test('Shadow Reading warms the Windows audio path before every sentence', async ({ page }) => {
   await page.addInitScript(() => {
     window.__audioPlays = [];
@@ -13,7 +16,7 @@ test('Shadow Reading warms the Windows audio path before every sentence', async 
     HTMLMediaElement.prototype.pause = function() {};
   });
 
-  await page.goto('/docs/read-along/#/bixiu1/hj');
+  await page.goto(shadowUrl);
   await page.getByRole('button', { name: 'Start Reading' }).click();
 
   await expect(page.locator('#statusText')).toContainText('Preparing audio');
@@ -46,7 +49,7 @@ test('pausing invalidates a pending audio-ready callback', async ({ page }) => {
     HTMLMediaElement.prototype.pause = function() {};
   });
 
-  await page.goto('/docs/read-along/#/bixiu1/hj');
+  await page.goto(shadowUrl);
   await page.getByRole('button', { name: 'Start Reading' }).click();
   await page.locator('#audioPlayer').evaluate((el) => el.dispatchEvent(new Event('ended')));
   await page.locator('#startBtn').click();
@@ -57,7 +60,7 @@ test('pausing invalidates a pending audio-ready callback', async ({ page }) => {
 });
 
 test('students can save lesson completion on this device', async ({ page }) => {
-  await page.goto('/docs/read-along/#/bixiu1/hj');
+  await page.goto(shadowUrl);
   await page.getByRole('button', { name: 'Mark complete' }).click();
 
   await expect(page.getByRole('button', { name: 'Completed ✓' })).toBeVisible();
@@ -88,7 +91,7 @@ test('students can record and listen back without uploading audio', async ({ pag
     window.MediaRecorder = FakeMediaRecorder;
   });
 
-  await page.goto('/docs/read-along/#/bixiu1/hj');
+  await page.goto(shadowUrl);
   await page.getByRole('button', { name: 'Start recording' }).click();
   await expect(page.locator('#recordingStatus')).toContainText('Recording now');
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
