@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seeklume · Echo Reading</title>
+<title>Seeklume · Shadow Reading</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600&display=swap');
 
@@ -151,8 +151,22 @@
   .countdown-bar{width:100px;height:3px;background:var(--surface-3);border-radius:999px;overflow:hidden;}
   .countdown-bar-fill{height:100%;background:var(--accent);width:100%;transform-origin:right;}
 
+  .practice-panel{margin-top:16px;padding:20px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .practice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;}
+  .practice-title{font-size:15px;font-weight:700;margin:0 0 4px;}
+  .practice-hint{font-size:12px;line-height:1.6;color:var(--text-3);margin:0;}
+  .practice-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .record-btn{padding:8px 15px;border-radius:7px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+  .record-btn.primary{border-color:#ff453a;background:#ff453a;color:#fff;}
+  .record-btn.complete{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+  .record-btn:disabled{cursor:not-allowed;opacity:.45;}
+  .recording-status{font-size:12px;color:var(--text-2);margin-top:10px;min-height:18px;}
+  .recording-status.live{color:#ff453a;font-weight:600;}
+  .recording-player{display:none;width:100%;height:36px;margin-top:10px;}
+  .recording-player.ready{display:block;}
+
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
-  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}}
+  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.practice-head{flex-direction:column;}.practice-actions{width:100%;}.record-btn{flex:1;}}
 </style>
 </head>
 <body>
@@ -169,8 +183,8 @@
   <div class="view" id="view-shelf">
     <div class="shelf-hero">
       <div class="unit-tag">Morning Reading Practice</div>
-      <h1>Echo Reading</h1>
-      <div class="sub">Pick a textbook, echo every sentence, own the accent.</div>
+      <h1>Shadow Reading</h1>
+      <div class="sub">Listen closely, imitate the rhythm, and make English your own.</div>
     </div>
     <div class="shelf-grid" id="shelfGrid"></div>
   </div>
@@ -243,15 +257,32 @@
     </div>
 
     <div class="translation" id="translation"></div>
-    <div class="footer-note">Click any sentence to start reading from there · Pre-generated audio</div>
+
+    <section class="practice-panel" aria-labelledby="practiceTitle">
+      <div class="practice-head">
+        <div>
+          <h2 class="practice-title" id="practiceTitle">Record your shadow</h2>
+          <p class="practice-hint">Choose a sentence, listen once, then record yourself. Your recording stays on this device.</p>
+        </div>
+        <button class="record-btn" id="completeBtn" onclick="toggleLessonComplete()">Mark complete</button>
+      </div>
+      <div class="practice-actions">
+        <button class="record-btn primary" id="recordBtn" onclick="startRecording()">Start recording</button>
+        <button class="record-btn" id="stopRecordBtn" onclick="stopRecording()" disabled>Stop</button>
+      </div>
+      <div class="recording-status" id="recordingStatus">Select or play a sentence before recording.</div>
+      <audio class="recording-player" id="recordingPlayer" controls></audio>
+    </section>
+
+    <div class="footer-note">Click any sentence to start · Listen, shadow, record, improve</div>
   </div>
 
 </main>
 <audio id="audioPlayer" preload="auto"></audio>
 <div class="countdown" id="countdown">
-  <div class="countdown-label">Echo</div>
+  <div class="countdown-label">Shadow</div>
   <div class="countdown-num" id="countdownNum">3</div>
-  <div class="countdown-hint">Read aloud, imitate the tone</div>
+  <div class="countdown-hint">Speak with the same rhythm and tone</div>
   <div class="countdown-bar"><div class="countdown-bar-fill" id="countdownBarFill"></div></div>
 </div>
 <script>
@@ -359,6 +390,43 @@ var allSent = [];
 var speed = 1.0, gapMul = 1.5, isReading = false, curIdx = -1;
 var accent = 'uk', gender = 'f';
 var audio = document.getElementById('audioPlayer');
+var audioPhase = 'idle', audioPlayToken = 0, audioReadyTimer = null, audioRetryCount = 0;
+var AUDIO_WARMUP_MS = 700;
+var AUDIO_READY_TIMEOUT_MS = 2500;
+var SHADOW_PROGRESS_KEY = 'seeklume-shadow-progress-v1';
+var mediaRecorder = null, recordingStream = null, recordingChunks = [], recordingUrl = '';
+
+/*
+ * Windows classroom PCs often power down the audio endpoint during the echo
+ * gap.  If the MP3 starts while the endpoint is waking, its first words are
+ * physically lost even though the browser reports normal playback.  A short
+ * PCM-silence clip keeps the same <audio> pipeline active before every
+ * sentence, so the real speech starts only after the endpoint is ready.
+ */
+function makeSilentWavUrl(durationMs){
+  var sampleRate = 8000;
+  var sampleCount = Math.ceil(sampleRate * durationMs / 1000);
+  var buffer = new ArrayBuffer(44 + sampleCount * 2);
+  var view = new DataView(buffer);
+  function writeText(offset, text){
+    for (var i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i));
+  }
+  writeText(0, 'RIFF');
+  view.setUint32(4, 36 + sampleCount * 2, true);
+  writeText(8, 'WAVE');
+  writeText(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeText(36, 'data');
+  view.setUint32(40, sampleCount * 2, true);
+  return URL.createObjectURL(new Blob([buffer], {type:'audio/wav'}));
+}
+var audioWarmupUrl = makeSilentWavUrl(AUDIO_WARMUP_MS);
 
 /* ================= 路由 ================= */
 function route(){
@@ -429,12 +497,13 @@ function showToc(bookId){
       var count = (L.titleSents ? L.titleSents.length : 0) + L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
       var item = document.createElement('div');
       item.className = 'toc-item';
-      item.innerHTML = '<div class="toc-item-icon">\u{1F3A7}</div>' +
+      var completed = isLessonComplete(lid);
+      item.innerHTML = '<div class="toc-item-icon">' + (completed ? '\u2713' : '\u{1F3A7}') + '</div>' +
         '<div class="toc-item-body">' +
           '<div class="toc-item-sec">' + L.tbTitle + '</div>' +
           '<div class="toc-item-title">' + L.title + '</div>' +
         '</div>' +
-        '<div class="toc-item-meta">' + count + ' sentences</div>' +
+        '<div class="toc-item-meta">' + (completed ? 'Completed \u00b7 ' : '') + count + ' sentences</div>' +
         '<div class="toc-item-arrow">›</div>';
       item.onclick = function(){ go('/' + bookId + '/' + lid); };
       ud.appendChild(item);
@@ -456,6 +525,7 @@ function showPlayer(bookId, lessonId){
   state = { view:"player", bookId:bookId, lessonId:lessonId };
   setBack('Contents', function(){ go('/' + bookId); });
   if (firstOpen) {
+    clearRecording();
     curIdx = -1;
     document.getElementById('startBtn').textContent = 'Start Reading';
     updateStatus('idle', 'Ready');
@@ -464,6 +534,7 @@ function showPlayer(bookId, lessonId){
   }
   renderLesson();
   updateProgress();
+  updateCompleteButton();
   showView('view-player');
 }
 
@@ -567,21 +638,74 @@ function setGender(g, btn){
   if (isReading && curIdx >= 0) { audio.pause(); speak(curIdx); }
 }
 
-function speak(idx){
+function speak(idx, isRetry){
   if (idx >= allSent.length) { finish(); return; }
+  var token = ++audioPlayToken;
+  clearTimeout(audioReadyTimer);
   curIdx = idx;
+  if (!isRetry) audioRetryCount = 0;
   highlightSent(idx);
   updateProgress();
-  updateStatus('reading', 'Playing... (' + (idx+1) + '/' + allSent.length + ')');
+  updateStatus('reading', 'Preparing audio... (' + (idx+1) + '/' + allSent.length + ')');
+  audioPhase = 'warmup';
+  audio.src = audioWarmupUrl;
+  audio.playbackRate = 1;
+  audio.load();
+  audio.play().catch(function(e){
+    console.warn('Audio warm-up failed; trying speech directly:', e);
+    startSentenceAudio(idx, token);
+  });
+}
+
+function startSentenceAudio(idx, token){
+  if (!isReading || token !== audioPlayToken || idx !== curIdx) return;
+  clearTimeout(audioReadyTimer);
+  audioPhase = 'loading';
   audio.src = getAudioFile(idx);
   audio.playbackRate = speed;
-  audio.play().catch(function(e){
-    console.error('Audio play failed:', e);
-    if (isReading) setTimeout(function(){ speak(idx+1); }, 500);
-  });
+  audio.load();
+
+  var started = false;
+  function begin(){
+    if (started || !isReading || token !== audioPlayToken || idx !== curIdx) return;
+    started = true;
+    clearTimeout(audioReadyTimer);
+    audio.removeEventListener('canplay', begin);
+    audioPhase = 'playing';
+    audio.currentTime = 0;
+    audio.playbackRate = speed;
+    updateStatus('reading', 'Playing... (' + (idx+1) + '/' + allSent.length + ')');
+    audio.play().catch(function(e){ handleAudioFailure(idx, token, e); });
+  }
+  audio.addEventListener('canplay', begin);
+  audioReadyTimer = setTimeout(begin, AUDIO_READY_TIMEOUT_MS);
+}
+
+function handleAudioFailure(idx, token, error){
+  if (!isReading || token !== audioPlayToken) return;
+  console.error('Audio play failed:', error);
+  clearTimeout(audioReadyTimer);
+  if (audioRetryCount < 1) {
+    audioRetryCount += 1;
+    updateStatus('reading', 'Retrying audio... (' + (idx+1) + '/' + allSent.length + ')');
+    setTimeout(function(){
+      if (isReading && token === audioPlayToken) speak(idx, true);
+    }, 500);
+    return;
+  }
+  isReading = false;
+  audioPhase = 'idle';
+  document.getElementById('startBtn').textContent = 'Resume';
+  updateStatus('idle', 'Audio failed — click Resume');
 }
 audio.onended = function(){
   if (!isReading) return;
+  if (audioPhase === 'warmup') {
+    startSentenceAudio(curIdx, audioPlayToken);
+    return;
+  }
+  if (audioPhase !== 'playing') return;
+  audioPhase = 'echo';
   var echoTime = calcEcho(allSent[curIdx].en);
   updateStatus('echoing', 'Echo... (' + Math.ceil(echoTime) + 's)');
   showCountdown(echoTime);
@@ -610,6 +734,9 @@ function toggleReading(){
 }
 function stopReading(){
   isReading = false;
+  audioPlayToken += 1;
+  audioPhase = 'idle';
+  clearTimeout(audioReadyTimer);
   audio.pause();
   hideCountdown();
   highlightSent(-1);
@@ -630,10 +757,112 @@ function finish(){
   hideCountdown();
   updateStatus('idle', 'Complete!');
   document.getElementById('startBtn').textContent = 'Restart';
+  saveLessonComplete(true);
+  updateCompleteButton();
   curIdx = -1;
 }
 function resetMarks(){
   document.querySelectorAll('.sent').forEach(function(s){ s.classList.remove('read', 'active'); });
+}
+
+/* ================= Shadow 录音与本机进度 ================= */
+function getShadowProgress(){
+  try { return JSON.parse(localStorage.getItem(SHADOW_PROGRESS_KEY) || '{}') || {}; }
+  catch(e) { return {}; }
+}
+function isLessonComplete(lessonId){ return !!getShadowProgress()[lessonId]; }
+function saveLessonComplete(done){
+  if (!state.lessonId) return;
+  var progress = getShadowProgress();
+  if (done) progress[state.lessonId] = {completedAt:new Date().toISOString()};
+  else delete progress[state.lessonId];
+  try { localStorage.setItem(SHADOW_PROGRESS_KEY, JSON.stringify(progress)); } catch(e){}
+}
+function updateCompleteButton(){
+  var btn = document.getElementById('completeBtn');
+  if (!btn || !state.lessonId) return;
+  var done = isLessonComplete(state.lessonId);
+  btn.textContent = done ? 'Completed \u2713' : 'Mark complete';
+  btn.classList.toggle('complete', done);
+}
+function toggleLessonComplete(){
+  saveLessonComplete(!isLessonComplete(state.lessonId));
+  updateCompleteButton();
+}
+function setRecordingStatus(text, live){
+  var el = document.getElementById('recordingStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle('live', !!live);
+}
+function pauseForRecording(){
+  if (isReading) {
+    var selected = curIdx;
+    stopReading();
+    curIdx = selected;
+    if (selected >= 0) highlightSent(selected);
+    document.getElementById('startBtn').textContent = 'Resume';
+    updateStatus('idle', 'Paused for recording');
+  }
+}
+async function startRecording(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    setRecordingStatus('Recording is not supported in this browser. Try the latest Chrome or Edge.');
+    return;
+  }
+  pauseForRecording();
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recordingChunks = [];
+    mediaRecorder = new MediaRecorder(recordingStream);
+    mediaRecorder.ondataavailable = function(event){ if (event.data && event.data.size) recordingChunks.push(event.data); };
+    mediaRecorder.onstop = finishRecording;
+    mediaRecorder.start();
+    document.getElementById('recordBtn').disabled = true;
+    document.getElementById('stopRecordBtn').disabled = false;
+    setRecordingStatus('Recording now' + (curIdx >= 0 ? ' \u00b7 sentence ' + (curIdx + 1) : '') + '\u2026', true);
+  } catch(e) {
+    releaseRecordingStream();
+    setRecordingStatus(e && e.name === 'NotAllowedError' ? 'Microphone permission was not granted.' : 'Could not start the microphone. Please try again.');
+  }
+}
+function stopRecording(){
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+function finishRecording(){
+  var mime = mediaRecorder && mediaRecorder.mimeType ? mediaRecorder.mimeType : 'audio/webm';
+  var blob = new Blob(recordingChunks, {type:mime});
+  if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+  recordingUrl = URL.createObjectURL(blob);
+  var player = document.getElementById('recordingPlayer');
+  player.src = recordingUrl;
+  player.classList.add('ready');
+  document.getElementById('recordBtn').disabled = false;
+  document.getElementById('recordBtn').textContent = 'Record again';
+  document.getElementById('stopRecordBtn').disabled = true;
+  setRecordingStatus('Recording ready. Listen back and compare your rhythm.');
+  releaseRecordingStream();
+}
+function releaseRecordingStream(){
+  if (recordingStream) recordingStream.getTracks().forEach(function(track){ track.stop(); });
+  recordingStream = null;
+}
+function clearRecording(){
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = null;
+    mediaRecorder.stop();
+  }
+  mediaRecorder = null;
+  releaseRecordingStream();
+  if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+  recordingUrl = '';
+  var player = document.getElementById('recordingPlayer');
+  if (player) { player.removeAttribute('src'); player.classList.remove('ready'); }
+  var recordBtn = document.getElementById('recordBtn');
+  var stopBtn = document.getElementById('stopRecordBtn');
+  if (recordBtn) { recordBtn.disabled = false; recordBtn.textContent = 'Start recording'; }
+  if (stopBtn) stopBtn.disabled = true;
+  setRecordingStatus('Select or play a sentence before recording.');
 }
 
 /* ================= UI 辅助 ================= */
@@ -702,6 +931,7 @@ route();
 window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.toggleTrans = toggleTrans;
 window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
+window.startRecording = startRecording; window.stopRecording = stopRecording; window.toggleLessonComplete = toggleLessonComplete;
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seeklume · English Teaching System</title>
+<title>Seeklume · 英语学习系统</title>
 <script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
   /* ===== 字体：Instrument Serif（展示）+ Inter（正文）===== */
@@ -844,7 +844,7 @@
 
 
 <header>
-  <div class="logo" onclick="location.href='https://seeklume.work/'" style="cursor:pointer;">Seeklume<span class="en-sub">English Teaching</span></div>
+  <div class="logo" onclick="location.href='https://seeklume.work/'" style="cursor:pointer;">Seeklume<span class="en-sub">English Learning</span></div>
   <div style="display:flex;align-items:center;gap:4px;">
     <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
       <span class="icon-sun">&#9788;</span>
@@ -852,7 +852,7 @@
     </button>
     <div class="header-right" id="headerRight">
     <button class="header-btn ghost" onclick="openModal('signin')">登录 / 注册</button>
-    <button class="header-btn primary" onclick="location.href='./grammar-fill/'">进入语法填空</button>
+    <button class="header-btn primary" onclick="location.href='./read-along/'">开始学习</button>
   </div>
   </div>
 </header>
@@ -877,22 +877,22 @@
         <div class="panel-stage">
           <!-- Panel 0: 品牌 -->
           <div class="panel panel-0 active" data-panel="0">
-            <div class="eyebrow" id="modulesGreeting" style="animation:fadeRise .8s cubic-bezier(.16,1,.3,1) .05s both;">Pilot · Grammar First</div>
-            <h1 class="hero-title"><span class="guest-only">Seeklume</span><span class="auth-only">选一个模块开始</span></h1>
-            <p class="hero-sub"><span class="guest-only">English Teaching web 初步探索 · 选一个模块开始</span><span class="auth-only">当前可以使用语法填空讲评。其他题型会随着课堂流程和知识框架逐步接入。</span></p>
-            <button class="liquid-glass" onclick="switchPanel(1)">进入模块 <span style="font-size:18px;line-height:1;">→</span></button>
+            <div class="eyebrow" id="modulesGreeting" style="animation:fadeRise .8s cubic-bezier(.16,1,.3,1) .05s both;">Listen · Read · Speak</div>
+            <h1 class="hero-title"><span class="guest-only">Seeklume</span><span class="auth-only">今天想练什么？</span></h1>
+            <p class="hero-sub"><span class="guest-only">用真实的英语内容练听力、阅读与表达</span><span class="auth-only">先听懂，再跟读，一点点让英语成为自己的声音。</span></p>
+            <button class="liquid-glass" onclick="location.href='./read-along/'">开始 Shadow Reading <span style="font-size:18px;line-height:1;">→</span></button>
           </div>
           <!-- Panel 1: 模块列表 -->
           <div class="panel panel-1" data-panel="1">
-            <h2 class="panel-title">选择模块</h2>
+            <h2 class="panel-title">选择学习方式</h2>
             <div style="display:flex;flex-direction:column;gap:16px;align-items:center;">
-              <a class="project-entry-glass" href="./grammar-fill/" style="min-width:280px;">
-                <span class="entry-subtitle">Seeklume English Teaching</span>
-                <span class="entry-title">语法填空讲评</span>
-              </a>
               <a class="project-entry-glass" href="./read-along/" style="min-width:280px;">
-                <span class="entry-subtitle">Morning Reading Practice</span>
-                <span class="entry-title">Echo Reading</span>
+                <span class="entry-subtitle">Listen · Imitate · Record</span>
+                <span class="entry-title">Shadow Reading</span>
+              </a>
+              <a class="project-entry-glass" href="./grammar-fill/" style="min-width:280px;">
+                <span class="entry-subtitle">Focused Practice</span>
+                <span class="entry-title">语法专项练习</span>
               </a>
             </div>
           </div>
@@ -1011,25 +1011,24 @@
     if (state.user) {
       var nm = displayName();
       var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
-      var tag = state.isAdmin ? '<button onclick="location.href=\'./grammar-fill/?admin\'" title="管理员面板" style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;border:none;cursor:pointer;margin-right:6px;font-family:inherit;">管理员</button>' : '';
-      el.innerHTML = tag +
+      el.innerHTML =
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
-        '<button class="header-btn primary" onclick="location.href=\'./grammar-fill/\'">语法填空</button>' +
+        '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">Shadow Reading</button>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
       el.innerHTML = '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录 / 注册</button>' +
-        '<button class="header-btn primary" onclick="location.href=\'./grammar-fill/\'">进入语法填空</button>';
+        '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">开始学习</button>';
     }
   }
 
   function showPrivacyNotice() {
-    alert('这个模块还在建设中，当前请先使用「语法填空讲评」。');
+    alert('这个学习内容还在准备中，当前可以先使用 Shadow Reading。');
   }
 
   function renderGreeting() {
     var el = document.getElementById('modulesGreeting');
     if (!el) return;
-    if (!state.user) { el.textContent = 'Pilot · Grammar First'; return; }
+    if (!state.user) { el.textContent = 'Listen · Read · Speak'; return; }
     var h = new Date().getHours();
     var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
           : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
