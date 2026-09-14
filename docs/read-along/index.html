@@ -94,6 +94,19 @@
   .player-head h1{font-family:var(--font-display);font-size:30px;font-weight:400;margin:0 0 4px;}
   .player-head .sub{font-size:13px;color:var(--text-3);}
 
+  /* ===== 舞台：置顶居中大字展示（教室后排可见） ===== */
+  .stage{position:sticky;top:60px;z-index:40;min-height:170px;display:flex;align-items:center;justify-content:center;text-align:center;padding:26px 24px;margin:0 0 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);}
+  .stage-box{max-width:100%;}
+  .stage-anim{animation:stageIn .35s ease;}
+  @keyframes stageIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .stage-sent{font-family:var(--font-display);color:var(--text);line-height:1.4;word-break:break-word;}
+  .stage-word{font-family:var(--font-display);font-size:56px;font-weight:600;color:var(--text);line-height:1.2;word-break:break-word;}
+  .stage-word.long{font-size:44px;}
+  .stage-meaning{font-size:19px;color:var(--text-2);margin-top:10px;font-weight:500;line-height:1.5;}
+  .stage-hint{font-size:12px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+  body.words-playing .textbook{display:none;}
+  .voice-sep{width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0;}
+
   .controls-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .ctrl-group{display:flex;align-items:center;gap:6px;}
   .ctrl-label{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
@@ -217,7 +230,7 @@
   .plan-skip-btn:hover{color:var(--text);border-color:var(--text-3);}
 
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
-  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.word-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}.plan-footer{flex-direction:column;align-items:stretch;text-align:center;}}
+  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.stage{min-height:120px;top:56px;padding:18px 14px;}.stage-word{font-size:40px;}.stage-word.long{font-size:32px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.word-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}.plan-footer{flex-direction:column;align-items:stretch;text-align:center;}}
 </style>
 </head>
 <body>
@@ -273,6 +286,7 @@
       <div class="plan-banner-text" id="planBannerText"></div>
       <button class="plan-skip-btn" id="planSkipBtn" onclick="planSkip()">Skip ›</button>
     </div>
+    <div class="stage" id="stage"><div class="stage-box" id="stageBox"></div></div>
     <div class="player-head">
       <div class="unit-tag" id="unitTag"></div>
       <h1 id="lessonTitle"></h1>
@@ -285,8 +299,7 @@
         <button class="voice-btn active" data-accent="uk" onclick="setAccent('uk',this)"><span class="flag">🇬🇧</span>British</button>
         <button class="voice-btn" data-accent="us" onclick="setAccent('us',this)"><span class="flag">🇺🇸</span>American</button>
         <button class="voice-btn" data-accent="au" onclick="setAccent('au',this)"><span class="flag">🇦🇺</span>Australian</button>
-      </div>
-      <div class="voice-row">
+        <span class="voice-sep"></span>
         <span class="voice-label">Voice</span>
         <button class="voice-btn active" data-gender="f" onclick="setGender('f',this)">♀ Female</button>
         <button class="voice-btn" data-gender="m" onclick="setGender('m',this)">♂ Male</button>
@@ -765,6 +778,7 @@ function renderLesson(){
     tb.appendChild(tp);
     transEl.appendChild(tb);
   });
+  updateStage(0);
 }
 
 /* ================= 单词页渲染 ================= */
@@ -787,32 +801,23 @@ function renderWords(L){
   var grid = document.createElement('div');
   grid.className = 'word-grid';
   L.words.forEach(function(wd, i){
-    var enIdx = allSent.length;
-    allSent.push({ en: wd.en, part:'en', w:i });
-    allSent.push({ en: wd.zh, part:'zh', w:i });
+    allSent.push({ en: wd.en, zh: wd.zh, w:i });
     var card = document.createElement('div');
     card.className = 'word-card';
-    var en = document.createElement('span');
-    en.className = 'sent w-en';
-    en.dataset.index = enIdx;
-    en.textContent = wd.en;
-    var zh = document.createElement('span');
-    zh.className = 'w-zh';
-    zh.dataset.index = enIdx + 1;
-    zh.textContent = wd.zh;
-    card.appendChild(en); card.appendChild(zh);
-    card.onclick = function(){ onSentenceClick(enIdx); };
+    card.dataset.index = i;
+    card.innerHTML = '<span class="w-en">' + escapeHtml(wd.en) + '</span><span class="w-zh">' + escapeHtml(wd.zh) + '</span>';
+    card.onclick = function(){ onSentenceClick(i); };
     grid.appendChild(card);
   });
   passageEl.appendChild(grid);
+  updateStage(0);
 }
 
 /* ================= 音频 ================= */
 function getAudioFile(idx){
   if (state.lessonId === 'words') {
     var s = allSent[idx];
-    var folder = s.part === 'zh' ? ('zh_' + gender) : (accent + '_' + gender);
-    return 'audio/wu_words/' + folder + '/word_' + String(s.w).padStart(2,'0') + '.mp3';
+    return 'audio/wu_words/' + accent + '_' + gender + '/word_' + String(s.w).padStart(2,'0') + '.mp3';
   }
   var tn = currentLesson().titleSents ? currentLesson().titleSents.length : 0;
   var name = idx < tn ? 'title_' + String(idx).padStart(2,'0') : 'sent_' + String(idx - tn).padStart(2,'0');
@@ -832,11 +837,34 @@ function setGender(g, btn){
   if (isReading && curIdx >= 0) { audio.pause(); speak(curIdx); }
 }
 
-function statusText(idx){
-  if (state.lessonId === 'words') {
+/* ================= 舞台大字展示 ================= */
+function escapeHtml(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function updateStage(idx){
+  var box = document.getElementById('stageBox');
+  if (!box) return;
+  var L = currentLesson();
+  var html = '';
+  if (!L || idx < 0 || idx >= allSent.length) {
+    html = '<div class="stage-anim"><div class="stage-hint">Click any ' + (L && L.type === 'words' ? 'word' : 'sentence') + ' to start</div></div>';
+  } else if (L.type === 'words') {
     var s = allSent[idx];
-    if (s && s.part) return (s.part === 'en' ? 'Word ' : 'Meaning · ') + (s.w + 1) + '/' + allSent.length / 2;
+    html = '<div class="stage-anim"><div class="stage-word' + (s.en.length > 20 ? ' long' : '') + '">' + escapeHtml(s.en) + '</div>' +
+           '<div class="stage-meaning">' + escapeHtml(s.zh) + '</div></div>';
+  } else {
+    var t = allSent[idx].en;
+    var len = t.length;
+    var size = 38;
+    if (len > 34) size = 32;
+    if (len > 56) size = 27;
+    if (len > 84) size = 23;
+    if (len > 120) size = 20;
+    if (len > 170) size = 17;
+    html = '<div class="stage-anim"><div class="stage-sent" style="font-size:' + size + 'px">' + escapeHtml(t) + '</div></div>';
   }
+  box.innerHTML = html;
+}
+function statusText(idx){
+  if (state.lessonId === 'words') return 'Word ' + (idx + 1) + '/' + allSent.length;
   return 'Playing... (' + (idx+1) + '/' + allSent.length + ')';
 }
 function speak(idx, isRetry){
@@ -845,7 +873,13 @@ function speak(idx, isRetry){
   clearTimeout(audioReadyTimer);
   curIdx = idx;
   if (!isRetry) audioRetryCount = 0;
+  var L0 = currentLesson();
+  if (L0 && L0.type === 'words') {
+    if (!isRetry) wordPass = 1;
+    document.body.classList.add('words-playing');
+  }
   highlightSent(idx);
+  updateStage(idx);
   updateProgress();
   updateStatus('reading', 'Loading · ' + statusText(idx));
   audioPhase = 'warmup';
@@ -862,8 +896,6 @@ function startSentenceAudio(idx, token){
   if (!isReading || token !== audioPlayToken || idx !== curIdx) return;
   clearTimeout(audioReadyTimer);
   audioPhase = 'loading';
-  var s0 = allSent[idx];
-  if (state.lessonId === 'words' && s0 && s0.part === 'en') wordPass = 1;
   updateStatus('reading', statusText(idx));
   audio.src = getAudioFile(idx);
   audio.playbackRate = speed;
@@ -899,6 +931,7 @@ function handleAudioFailure(idx, token, error){
   }
   isReading = false;
   audioPhase = 'idle';
+  document.body.classList.remove('words-playing');
   document.getElementById('startBtn').textContent = 'Resume';
   updateStatus('idle', 'Audio failed — click Resume');
 }
@@ -910,30 +943,26 @@ audio.onended = function(){
   }
   if (audioPhase !== 'playing') return;
   audioPhase = 'echo';
-  var s = allSent[curIdx];
-  if (s && s.part) {
-    /* 单词模式：英文连读两遍，无跟读倒计时；释义后词间自然间隔 */
-    if (s.part === 'en') {
-      if (wordPass < 2) {
-        wordPass = 2;
-        updateStatus('reading', 'Word ' + (s.w + 1) + '/' + (allSent.length / 2) + ' · 2nd time');
-        setTimeout(function(){
-          if (!isReading) return;
-          audioPhase = 'playing';
-          audio.currentTime = 0;
-          audio.playbackRate = speed;
-          audio.play().catch(function(){});
-        }, 650);
-        return;
-      }
-      updateStatus('reading', 'Word ' + (s.w + 1) + '/' + (allSent.length / 2) + ' · meaning');
-      setTimeout(function(){ if (isReading) advanceWord(); }, 450);
+  var L = currentLesson();
+  if (L && L.type === 'words') {
+    /* 单词模式：只读英文，连读两遍，词与词之间自然间隔 */
+    if (wordPass < 2) {
+      wordPass = 2;
+      updateStatus('reading', 'Word ' + (curIdx + 1) + '/' + allSent.length + ' · 2nd time');
+      setTimeout(function(){
+        if (!isReading) return;
+        audioPhase = 'playing';
+        audio.currentTime = 0;
+        audio.playbackRate = speed;
+        audio.play().catch(function(){});
+      }, 650);
     } else {
+      updateStatus('reading', 'Word ' + (curIdx + 1) + '/' + allSent.length + ' · done');
       setTimeout(function(){ if (isReading) advanceWord(); }, Math.round(1300 * gapMul));
     }
     return;
   }
-  var echoTime = calcEcho(s.en);
+  var echoTime = calcEcho(allSent[curIdx].en);
   updateStatus('echoing', 'Echo... (' + Math.ceil(echoTime) + 's)');
   showCountdown(echoTime);
   setTimeout(function(){
@@ -945,14 +974,9 @@ audio.onended = function(){
   }, echoTime * 1000);
 };
 function advanceWord(){
-  var el = document.querySelector('.sent[data-index="' + curIdx + '"]');
-  if (el) el.classList.remove('active');
-  var zhEl = document.querySelector('.w-zh[data-index="' + curIdx + '"]');
-  if (zhEl) {
-    zhEl.classList.remove('active');
-    var card = zhEl.closest('.word-card');
-    if (card) card.classList.add('read');
-  }
+  var s = allSent[curIdx];
+  var card = s ? document.querySelector('.word-card[data-index="' + s.w + '"]') : null;
+  if (card) card.classList.add('read');
   speak(curIdx + 1);
 }
 
@@ -975,6 +999,7 @@ function stopReading(){
   isReading = false;
   audioPlayToken += 1;
   audioPhase = 'idle';
+  document.body.classList.remove('words-playing');
   clearTimeout(audioReadyTimer);
   audio.pause();
   hideCountdown();
@@ -985,8 +1010,7 @@ function onSentenceClick(idx){
     if (parseInt(s.dataset.index) >= idx) s.classList.remove('read', 'active');
   });
   document.querySelectorAll('.word-card').forEach(function(card){
-    var zh = card.querySelector('.w-zh');
-    if (zh && parseInt(zh.dataset.index) >= idx) card.classList.remove('read');
+    if (parseInt(card.dataset.index) >= idx) card.classList.remove('read');
   });
   curIdx = idx - 1;
   if (!isReading) {
@@ -999,6 +1023,7 @@ function finish(){
   hideCountdown();
   if (plan.running) { planNext(); return; }
   isReading = false;
+  document.body.classList.remove('words-playing');
   updateStatus('idle', 'Complete!');
   document.getElementById('startBtn').textContent = 'Restart';
   saveLessonComplete(true);
@@ -1008,7 +1033,6 @@ function finish(){
 function resetMarks(){
   document.querySelectorAll('.sent').forEach(function(s){ s.classList.remove('read', 'active'); });
   document.querySelectorAll('.word-card').forEach(function(w){ w.classList.remove('read'); });
-  document.querySelectorAll('.w-zh').forEach(function(z){ z.classList.remove('active'); });
 }
 
 /* ================= Shadow 录音与本机进度 ================= */
@@ -1139,10 +1163,6 @@ function highlightSent(idx){
     if (parseInt(s.dataset.index) < idx) s.classList.add('read');
     else s.classList.remove('read');
   });
-  document.querySelectorAll('.w-zh').forEach(function(z){
-    z.classList.remove('active');
-    if (parseInt(z.dataset.index) === idx) z.classList.add('active');
-  });
   if (idx >= 0 && idx < allSent.length) {
     var el = document.querySelector('.sent[data-index="' + idx + '"]');
     if (el) { el.classList.add('active'); el.classList.remove('read'); scrollSentToCenter(el); }
@@ -1260,7 +1280,7 @@ function updatePlanEst(){
     var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
     var it = planItems(state.bookId).find(function(x){ return x.id === div.dataset.id; });
     if (!it) return;
-    sec += (it.type === 'words' ? it.count * 6.5 : it.count * 8.5) * rep;
+    sec += (it.type === 'words' ? it.count * 4.5 : it.count * 8.5) * rep;
     n++;
   });
   var est = document.getElementById('planEst');
@@ -1348,6 +1368,7 @@ function planComplete(){
 function endPlan(){
   plan = { running:false, done:false, bookId:null, queue:[], pos:0, rep:1 };
   isReading = false;
+  document.body.classList.remove('words-playing');
   audio.pause();
   hideCountdown();
   var banner = document.getElementById('planBanner');
