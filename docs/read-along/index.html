@@ -99,13 +99,32 @@
   .stage-box{max-width:100%;}
   .stage-anim{animation:stageIn .35s ease;}
   @keyframes stageIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-  .stage-sent{font-family:var(--font-display);color:var(--text);line-height:1.4;word-break:break-word;}
+  .stage-sent{font-family:var(--font-display);color:var(--text);line-height:1.4;word-break:break-word;font-size:var(--sent-size,38px);}
   .stage-word{font-family:var(--font-display);font-size:56px;font-weight:600;color:var(--text);line-height:1.2;word-break:break-word;}
   .stage-word.long{font-size:44px;}
   .stage-meaning{font-size:19px;color:var(--text-2);margin-top:10px;font-weight:500;line-height:1.5;}
   .stage-hint{font-size:12px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
   body.words-playing .textbook{display:none;}
   .voice-sep{width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0;}
+
+  /* ===== 沉浸播放模式：全屏只显示大字 ===== */
+  body.focus-mode header,body.focus-mode .player-head,body.focus-mode .voice-panel,
+  body.focus-mode .controls-bar,body.focus-mode .progress-bar,body.focus-mode .status-row,
+  body.focus-mode .textbook,body.focus-mode .translation,body.focus-mode .practice-panel,
+  body.focus-mode .footer-note,body.focus-mode .plan-banner{display:none !important;}
+  body.focus-mode{overflow:hidden;}
+  body.focus-mode .stage{position:fixed;inset:0;top:0;min-height:100vh;border-radius:0;margin:0;border:none;box-shadow:none;background:var(--bg);z-index:150;}
+  body.focus-mode .stage-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;}
+  body.focus-mode .stage-word{font-size:clamp(56px,12vw,110px);}
+  body.focus-mode .stage-word.long{font-size:clamp(40px,9vw,78px);}
+  body.focus-mode .stage-meaning{font-size:clamp(20px,3.2vw,30px);margin-top:0;}
+  body.focus-mode .stage-sent{font-size:calc(var(--sent-size,38px) * 1.55);}
+  body.focus-mode .stage-hint{font-size:14px;}
+  .stage-focus-status{display:none;font-size:14px;color:var(--text-2);font-weight:600;letter-spacing:.05em;}
+  body.focus-mode .stage-focus-status{display:block;animation:stageIn .3s ease;}
+  .focus-exit{display:none;position:fixed;top:18px;right:18px;z-index:160;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);font:inherit;font-size:15px;cursor:pointer;align-items:center;justify-content:center;}
+  body.focus-mode .focus-exit{display:flex;}
+  .focus-exit:hover{color:var(--text);border-color:var(--text-3);}
 
   .controls-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .ctrl-group{display:flex;align-items:center;gap:6px;}
@@ -230,7 +249,7 @@
   .plan-skip-btn:hover{color:var(--text);border-color:var(--text-3);}
 
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
-  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.stage{min-height:120px;top:56px;padding:18px 14px;}.stage-word{font-size:40px;}.stage-word.long{font-size:32px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.word-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}.plan-footer{flex-direction:column;align-items:stretch;text-align:center;}}
+  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.stage{min-height:120px;top:56px;padding:18px 14px;}.stage-word{font-size:40px;}.stage-word.long{font-size:32px;}body.focus-mode .stage-word{font-size:clamp(44px,13vw,72px);}body.focus-mode .stage-word.long{font-size:clamp(32px,9vw,52px);}body.focus-mode .stage-sent{font-size:calc(var(--sent-size,38px) * 1.35);}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.word-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}.plan-footer{flex-direction:column;align-items:stretch;text-align:center;}}
 </style>
 </head>
 <body>
@@ -286,7 +305,7 @@
       <div class="plan-banner-text" id="planBannerText"></div>
       <button class="plan-skip-btn" id="planSkipBtn" onclick="planSkip()">Skip ›</button>
     </div>
-    <div class="stage" id="stage"><div class="stage-box" id="stageBox"></div></div>
+    <div class="stage" id="stage"><div class="stage-box" id="stageBox"></div><div class="stage-focus-status" id="stageFocusStatus"></div></div>
     <div class="player-head">
       <div class="unit-tag" id="unitTag"></div>
       <h1 id="lessonTitle"></h1>
@@ -362,6 +381,7 @@
 
 </main>
 <audio id="audioPlayer" preload="auto"></audio>
+<button class="focus-exit" id="focusExitBtn" onclick="exitFocus()" title="退出沉浸模式 (Esc)">✕</button>
 <div class="countdown" id="countdown">
   <div class="countdown-label">Shadow</div>
   <div class="countdown-num" id="countdownNum">3</div>
@@ -837,6 +857,11 @@ function setGender(g, btn){
   if (isReading && curIdx >= 0) { audio.pause(); speak(curIdx); }
 }
 
+/* ================= 沉浸播放模式 ================= */
+function enterFocus(){ document.body.classList.add('focus-mode'); }
+function exitFocus(){ document.body.classList.remove('focus-mode'); }
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') exitFocus(); });
+
 /* ================= 舞台大字展示 ================= */
 function escapeHtml(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function updateStage(idx){
@@ -859,7 +884,7 @@ function updateStage(idx){
     if (len > 84) size = 23;
     if (len > 120) size = 20;
     if (len > 170) size = 17;
-    html = '<div class="stage-anim"><div class="stage-sent" style="font-size:' + size + 'px">' + escapeHtml(t) + '</div></div>';
+    html = '<div class="stage-anim"><div class="stage-sent" style="--sent-size:' + size + 'px">' + escapeHtml(t) + '</div></div>';
   }
   box.innerHTML = html;
 }
@@ -932,6 +957,7 @@ function handleAudioFailure(idx, token, error){
   isReading = false;
   audioPhase = 'idle';
   document.body.classList.remove('words-playing');
+  exitFocus();
   document.getElementById('startBtn').textContent = 'Resume';
   updateStatus('idle', 'Audio failed — click Resume');
 }
@@ -958,7 +984,7 @@ audio.onended = function(){
       }, 650);
     } else {
       updateStatus('reading', 'Word ' + (curIdx + 1) + '/' + allSent.length + ' · done');
-      setTimeout(function(){ if (isReading) advanceWord(); }, Math.round(1300 * gapMul));
+      setTimeout(function(){ if (isReading) advanceWord(); }, Math.round(1000 * gapMul));
     }
     return;
   }
@@ -985,11 +1011,13 @@ function toggleReading(){
   if (plan.done) { endPlan(); go('/' + plan.bookId + '/plan'); return; }
   if (isReading) {
     stopReading();
+    exitFocus();
     updateStatus('idle', 'Paused');
     document.getElementById('startBtn').textContent = 'Resume';
   } else {
     isReading = true;
     document.getElementById('startBtn').textContent = 'Stop';
+    enterFocus();
     var si = curIdx >= 0 ? curIdx : 0;
     if (si >= allSent.length) { si = 0; resetMarks(); curIdx = -1; }
     speak(si);
@@ -1000,6 +1028,7 @@ function stopReading(){
   audioPlayToken += 1;
   audioPhase = 'idle';
   document.body.classList.remove('words-playing');
+  exitFocus();
   clearTimeout(audioReadyTimer);
   audio.pause();
   hideCountdown();
@@ -1024,6 +1053,7 @@ function finish(){
   if (plan.running) { planNext(); return; }
   isReading = false;
   document.body.classList.remove('words-playing');
+  exitFocus();
   updateStatus('idle', 'Complete!');
   document.getElementById('startBtn').textContent = 'Restart';
   saveLessonComplete(true);
@@ -1152,6 +1182,8 @@ function toggleTrans(){
 function updateStatus(s, t){
   document.getElementById('statusBadge').className = 'status-badge ' + s;
   document.getElementById('statusText').textContent = t;
+  var fs = document.getElementById('stageFocusStatus');
+  if (fs) fs.textContent = t;
 }
 function updateProgress(){
   var pct = allSent.length ? ((curIdx + 1) / allSent.length) * 100 : 0;
@@ -1358,6 +1390,8 @@ function planComplete(){
   plan.running = false;
   plan.done = true;
   isReading = false;
+  document.body.classList.remove('words-playing');
+  exitFocus();
   hideCountdown();
   highlightSent(-1);
   document.getElementById('planBannerText').textContent = 'Morning plan complete — well done! ☀';
@@ -1383,7 +1417,7 @@ window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.t
 window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
 window.startRecording = startRecording; window.stopRecording = stopRecording; window.toggleLessonComplete = toggleLessonComplete;
-window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep;
+window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep; window.exitFocus = exitFocus;
 </script>
 </body>
 </html>
