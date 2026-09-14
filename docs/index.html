@@ -708,6 +708,21 @@
     background: rgba(15,36,64,0.06);
   }
 
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .liquid-glass.secondary {
+    padding: 16px 32px;
+    background: rgba(255,255,255,0.03);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.08), 0 6px 24px rgba(0,0,0,0.14);
+  }
+  [data-theme="light"] .liquid-glass.secondary { background: rgba(255,255,255,0.35); }
+
   .panel-title {
     font-family: var(--font-display);
     font-size: clamp(36px, 6vw, 56px);
@@ -880,7 +895,10 @@
             <div class="eyebrow" id="modulesGreeting" style="animation:fadeRise .8s cubic-bezier(.16,1,.3,1) .05s both;">Listen · Read · Speak</div>
             <h1 class="hero-title"><span class="guest-only">Seeklume</span><span class="auth-only">今天想练什么？</span></h1>
             <p class="hero-sub"><span class="guest-only">用真实的英语内容练听力、阅读与表达</span><span class="auth-only">先听懂，再跟读，一点点让英语成为自己的声音。</span></p>
-            <button class="liquid-glass" onclick="location.href='./read-along/'">开始 Shadow Reading <span style="font-size:18px;line-height:1;">→</span></button>
+            <div class="hero-actions">
+              <button class="liquid-glass" onclick="location.href='./read-along/'">开始 Shadow Reading <span style="font-size:18px;line-height:1;">→</span></button>
+              <button class="liquid-glass secondary" onclick="location.href='./grammar-fill/'">语法专项练习</button>
+            </div>
           </div>
           <!-- Panel 1: 模块列表 -->
           <div class="panel panel-1" data-panel="1">
@@ -1014,10 +1032,12 @@
       el.innerHTML =
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
         '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">Shadow Reading</button>' +
+        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">语法练习</button>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
       el.innerHTML = '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录 / 注册</button>' +
-        '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">开始学习</button>';
+        '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">开始学习</button>' +
+        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">语法练习</button>';
     }
   }
 
