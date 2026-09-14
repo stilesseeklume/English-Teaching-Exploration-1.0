@@ -165,8 +165,59 @@
   .recording-player{display:none;width:100%;height:36px;margin-top:10px;}
   .recording-player.ready{display:block;}
 
+  
+  /* ===== 单词页 ===== */
+  .word-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px;}
+  .word-card{display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;}
+  .word-card:hover{border-color:var(--accent);}
+  .w-en{font-family:var(--font-display);font-size:21px;font-weight:500;color:var(--text);border-radius:4px;padding:1px 3px;position:relative;transition:background .2s,color .2s;}
+  .w-en.sent.active{background:var(--accent-bg);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent);}
+  .w-en.sent.read{color:var(--text-3);}
+  .w-zh{font-size:12.5px;color:var(--text-2);padding:1px 3px;border-radius:4px;transition:color .2s;}
+  .w-zh.active{color:var(--accent);font-weight:600;}
+  .word-card.read .w-en{color:var(--text-3);}
+  .word-card.read .w-zh{color:var(--text-3);opacity:.75;}
+
+  /* ===== 早读计划 ===== */
+  .plan-entry{display:flex;align-items:center;gap:14px;padding:16px 18px;margin-bottom:24px;background:linear-gradient(135deg,var(--green-bg),var(--accent-bg));border:1px solid var(--green);border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer;transition:all .2s;}
+  .plan-entry:hover{transform:translateX(4px);box-shadow:var(--shadow-lg);}
+  .plan-entry-icon{font-size:26px;flex-shrink:0;}
+  .plan-entry-body{flex:1;min-width:0;}
+  .plan-entry-title{font-weight:700;font-size:15px;color:var(--text);}
+  .plan-entry-sub{font-size:12px;color:var(--text-2);margin-top:2px;}
+  .plan-entry-arrow{color:var(--text-2);font-size:18px;}
+
+  .plan-hero{text-align:center;margin-bottom:28px;}
+  .plan-hero .unit-tag{font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.15em;margin-bottom:10px;text-transform:uppercase;}
+  .plan-hero h1{font-family:var(--font-display);font-size:34px;font-weight:400;margin:0 0 8px;}
+  .plan-hero .sub{font-size:14px;color:var(--text-3);}
+  .plan-item{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;transition:all .2s;opacity:.55;}
+  .plan-item.on{opacity:1;border-color:var(--green);}
+  .plan-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--text-3);flex-shrink:0;cursor:pointer;transition:all .15s;}
+  .plan-item.on .plan-check{background:var(--green);border-color:var(--green);}
+  .plan-item.on .plan-check::after{content:'✓';display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:13px;font-weight:700;}
+  .plan-item-body{flex:1;min-width:0;}
+  .plan-item-title{font-size:15px;font-weight:600;color:var(--text);}
+  .plan-item-meta{font-size:12px;color:var(--text-3);margin-top:2px;}
+  .plan-reps{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .rep-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font:inherit;font-size:15px;font-weight:600;cursor:pointer;color:var(--text-2);display:flex;align-items:center;justify-content:center;}
+  .rep-btn:hover{border-color:var(--text-3);color:var(--text);}
+  .rep-num{font-weight:700;font-size:14px;min-width:30px;text-align:center;color:var(--text);}
+  .plan-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);flex-wrap:wrap;}
+  .plan-est{font-size:13px;color:var(--text-2);}
+  .plan-est strong{color:var(--green);font-size:16px;}
+  .plan-start-btn{padding:12px 32px;border-radius:8px;border:none;background:var(--green);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(52,199,89,.35);transition:opacity .15s,transform .15s;}
+  .plan-start-btn:hover{opacity:.9;transform:translateY(-2px);}
+
+  .plan-banner{display:none;align-items:center;gap:12px;padding:10px 16px;margin-bottom:16px;background:linear-gradient(135deg,var(--green-bg),var(--accent-bg));border:1px solid var(--green);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .plan-banner.show{display:flex;animation:viewIn .3s ease;}
+  .plan-banner-sun{font-size:20px;flex-shrink:0;}
+  .plan-banner-text{flex:1;font-size:13px;font-weight:600;color:var(--text);min-width:0;}
+  .plan-skip-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font:inherit;font-size:12px;cursor:pointer;color:var(--text-2);flex-shrink:0;}
+  .plan-skip-btn:hover{color:var(--text);border-color:var(--text-3);}
+
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
-  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.practice-head{flex-direction:column;}.practice-actions{width:100%;}.record-btn{flex:1;}}
+  @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.word-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}.plan-footer{flex-direction:column;align-items:stretch;text-align:center;}}
 </style>
 </head>
 <body>
@@ -201,8 +252,27 @@
     <div id="tocUnits"></div>
   </div>
 
+  <!-- ========== 早读计划配置页 ========== -->
+  <div class="view" id="view-plan">
+    <div class="plan-hero">
+      <div class="unit-tag">Morning Reading</div>
+      <h1>☀ Morning Plan</h1>
+      <div class="sub">Pick what to read this morning — it plays itself, no clicking needed.</div>
+    </div>
+    <div id="planList"></div>
+    <div class="plan-footer">
+      <div class="plan-est" id="planEst">~ <strong>10</strong> min</div>
+      <button class="plan-start-btn" onclick="startPlan()">Start Morning Reading</button>
+    </div>
+  </div>
+
   <!-- ========== 播放页 ========== -->
   <div class="view" id="view-player">
+    <div class="plan-banner" id="planBanner">
+      <span class="plan-banner-sun">☀</span>
+      <div class="plan-banner-text" id="planBannerText"></div>
+      <button class="plan-skip-btn" id="planSkipBtn" onclick="planSkip()">Skip ›</button>
+    </div>
     <div class="player-head">
       <div class="unit-tag" id="unitTag"></div>
       <h1 id="lessonTitle"></h1>
@@ -274,7 +344,7 @@
       <audio class="recording-player" id="recordingPlayer" controls></audio>
     </section>
 
-    <div class="footer-note">Click any sentence to start · Listen, shadow, record, improve</div>
+    <div class="footer-note">Click any sentence or word to start from there · Listen, shadow, record, improve</div>
   </div>
 
 </main>
@@ -291,7 +361,7 @@ var BOOKS = [
 {
   id:"bixiu1", name:"\u5fc5\u4fee\u4e00", en:"Book 1", cover:"../grammar-fill/images/textbook-covers/bixiu-1.jpg", ready:true,
   units:[
-    { name:"Welcome Unit", lessons:["hj","sp"] }
+    { name:"Welcome Unit", lessons:["hj","sp","words"] }
   ]
 },
 { id:"bixiu2", name:"\u5fc5\u4fee\u4e8c", en:"Book 2", cover:"../grammar-fill/images/textbook-covers/bixiu-2.jpg", ready:false },
@@ -381,6 +451,67 @@ var LESSONS = {
     {en:"My dream is to start my own IT company!",zh:"\u6211\u7684\u68a6\u60f3\u662f\u521b\u529e\u4e00\u5bb6\u81ea\u5df1\u7684\u4fe1\u606f\u6280\u672f\u516c\u53f8\uff01"}
   ]}
   ]
+},
+"words":{
+  id:"words",
+  type:"words",
+  unitTag:"Welcome Unit · Vocabulary",
+  title:"Vocabulary",
+  sub:"Welcome Unit · 50 words",
+  tbTitle:"Vocabulary",
+  tbSubtitle:"Welcome Unit",
+  words:[
+{en:"exchange",zh:"n./vt. 交换；交流；兑换"},
+    {en:"lecture",zh:"n./vt. 演讲；讲课"},
+    {en:"registration",zh:"n. 登记；注册；挂号"},
+    {en:"register",zh:"vt.&vi. 登记；注册"},
+    {en:"sex",zh:"n. 性别"},
+    {en:"female",zh:"adj. 女(性)的；雌的 n. 女子"},
+    {en:"male",zh:"adj. 男(性)的；雄的 n. 男子"},
+    {en:"nationality",zh:"n. 国籍；民族"},
+    {en:"nation",zh:"n. 国家；民族；国民"},
+    {en:"designer",zh:"n. 设计者；设计师"},
+    {en:"design",zh:"n./vt. 设计；筹划"},
+    {en:"campus",zh:"n. 校园；校区"},
+    {en:"formal",zh:"adj. 正式的；正规的"},
+    {en:"anxious",zh:"adj. 焦虑的；不安的"},
+    {en:"annoyed",zh:"adj. 恼怒的；生气的"},
+    {en:"annoy",zh:"vt. 使恼怒；打扰"},
+    {en:"frightened",zh:"adj. 受惊的；害怕的"},
+    {en:"senior",zh:"adj. 级别高的 n. 较年长者"},
+    {en:"senior high school",zh:"高中"},
+    {en:"outgoing",zh:"adj. 爱交际的；外向的"},
+    {en:"impression",zh:"n. 印象；感想"},
+    {en:"impress",zh:"vt. 使铭记；留下好印象"},
+    {en:"make an impression",zh:"留下好印象"},
+    {en:"what if",zh:"要是……会怎么样呢"},
+    {en:"guy",zh:"n. 小伙子；家伙"},
+    {en:"concentrate",zh:"vi.&vt. 集中注意力；聚精会神"},
+    {en:"concentrate on",zh:"集中于；专心于"},
+    {en:"experiment",zh:"n. 实验；试验"},
+    {en:"leave ... alone",zh:"不打扰；不惊动"},
+    {en:"awkward",zh:"adj. 令人尴尬的；难对付的"},
+    {en:"junior",zh:"adj. 级别低的 n. 职位较低者"},
+    {en:"junior high school",zh:"初中"},
+    {en:"explore",zh:"vt.&vi. 探索；勘探"},
+    {en:"confident",zh:"adj. 自信的；有把握的"},
+    {en:"confidence",zh:"n. 信心；信任"},
+    {en:"forward",zh:"adv. 向前 adj. 向前的"},
+    {en:"look forward to",zh:"盼望；期待"},
+    {en:"take notes",zh:"记笔记"},
+    {en:"flash",zh:"n. 光；闪光 vi. 闪耀"},
+    {en:"flash card",zh:"教学卡片；识字卡"},
+    {en:"organisation",zh:"n. 组织；团体；机构"},
+    {en:"goal",zh:"n. 目标；球门；进球"},
+    {en:"strategy",zh:"n. 策略；策划"},
+    {en:"partner",zh:"n. 同伴；伙伴"},
+    {en:"improve",zh:"vi.&vt. 改进；改善"},
+    {en:"curious",zh:"adj. 好奇的；求知欲强的"},
+    {en:"company",zh:"n. 公司；陪伴"},
+    {en:"personality",zh:"n. 性格；个性"},
+    {en:"style",zh:"n. 方式；作风"},
+    {en:"revise",zh:"vt. 修改；修订；复习"}
+  ]
 }
 };
 
@@ -427,6 +558,8 @@ function makeSilentWavUrl(durationMs){
   return URL.createObjectURL(new Blob([buffer], {type:'audio/wav'}));
 }
 var audioWarmupUrl = makeSilentWavUrl(AUDIO_WARMUP_MS);
+var plan = { running:false, done:false, bookId:null, queue:[], pos:0, rep:1 };
+var wordPass = 1;
 
 /* ================= 路由 ================= */
 function route(){
@@ -434,6 +567,7 @@ function route(){
   var parts = h.split('/').filter(Boolean);
   if (parts.length === 0) { showShelf(); }
   else if (parts.length === 1) { showToc(parts[0]); }
+  else if (parts[1] === 'plan') { showPlan(parts[0]); }
   else { showPlayer(parts[0], parts[1]); }
 }
 window.addEventListener('hashchange', route);
@@ -473,6 +607,7 @@ function showShelf(){
 /* ================= 目录页 ================= */
 function showToc(bookId){
   if (isReading) stopReading();
+  if (plan.running || plan.done) endPlan();
   var book = BOOKS.find(function(b){ return b.id === bookId && b.ready; });
   if (!book) { go('/'); return; }
   state = { view:"toc", bookId:bookId, lessonId:null };
@@ -480,10 +615,20 @@ function showToc(bookId){
   document.getElementById('tocCoverImg').src = book.cover;
   document.getElementById('tocBookName').textContent = book.name + ' · ' + book.en;
   var total = book.units.reduce(function(n,u){ return n + u.lessons.length; }, 0);
-  document.getElementById('tocBookSub').textContent = book.units.length + ' unit(s) · ' + total + ' lesson(s)';
+  document.getElementById('tocBookSub').textContent = book.units.length + ' unit(s) · ' + total + ' item(s)';
 
   var box = document.getElementById('tocUnits');
   box.innerHTML = '';
+  var planEntry = document.createElement('div');
+  planEntry.className = 'plan-entry';
+  planEntry.innerHTML = '<div class="plan-entry-icon">☀</div>' +
+    '<div class="plan-entry-body">' +
+      '<div class="plan-entry-title">Morning Plan</div>' +
+      '<div class="plan-entry-sub">Pick lessons &amp; repeats — plays itself, hands-free</div>' +
+    '</div>' +
+    '<div class="plan-entry-arrow">›</div>';
+  planEntry.onclick = function(){ go('/' + bookId + '/plan'); };
+  box.appendChild(planEntry);
   book.units.forEach(function(u){
     var ud = document.createElement('div');
     ud.className = 'toc-unit';
@@ -494,16 +639,18 @@ function showToc(bookId){
     u.lessons.forEach(function(lid){
       var L = LESSONS[lid];
       if (!L) return;
-      var count = (L.titleSents ? L.titleSents.length : 0) + L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
+      var isWords = L.type === 'words';
+      var count = isWords ? L.words.length :
+        (L.titleSents ? L.titleSents.length : 0) + L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
       var item = document.createElement('div');
       item.className = 'toc-item';
       var completed = isLessonComplete(lid);
-      item.innerHTML = '<div class="toc-item-icon">' + (completed ? '\u2713' : '\u{1F3A7}') + '</div>' +
+      item.innerHTML = '<div class="toc-item-icon">' + (completed ? '\u2713' : (isWords ? '\u{1F524}' : '\u{1F3A7}')) + '</div>' +
         '<div class="toc-item-body">' +
-          '<div class="toc-item-sec">' + L.tbTitle + '</div>' +
+          '<div class="toc-item-sec">' + (isWords ? 'Vocabulary' : L.tbTitle) + '</div>' +
           '<div class="toc-item-title">' + L.title + '</div>' +
         '</div>' +
-        '<div class="toc-item-meta">' + (completed ? 'Completed \u00b7 ' : '') + count + ' sentences</div>' +
+        '<div class="toc-item-meta">' + (completed ? 'Completed \u00b7 ' : '') + count + (isWords ? ' words' : ' sentences') + '</div>' +
         '<div class="toc-item-arrow">›</div>';
       item.onclick = function(){ go('/' + bookId + '/' + lid); };
       ud.appendChild(item);
@@ -540,6 +687,8 @@ function showPlayer(bookId, lessonId){
 
 function renderLesson(){
   var L = currentLesson();
+  if (L.type === 'words') { renderWords(L); return; }
+  document.getElementById('transBtn').style.display = '';
   document.getElementById('unitTag').textContent = L.unitTag;
   document.getElementById('lessonTitle').textContent = L.title;
   document.getElementById('lessonSub').textContent = L.sub;
@@ -618,8 +767,53 @@ function renderLesson(){
   });
 }
 
+/* ================= 单词页渲染 ================= */
+function renderWords(L){
+  document.getElementById('transBtn').style.display = 'none';
+  document.body.classList.remove('show-trans');
+  document.getElementById('unitTag').textContent = L.unitTag;
+  var h1 = document.getElementById('lessonTitle');
+  h1.textContent = L.title; h1.classList.remove('sent'); h1.onclick = null;
+  document.getElementById('lessonSub').textContent = L.sub;
+  document.getElementById('tbTitle').textContent = L.tbTitle;
+  var h2 = document.getElementById('tbSubtitle');
+  h2.textContent = L.tbSubtitle; h2.classList.remove('sent'); h2.onclick = null;
+
+  allSent = [];
+  var passageEl = document.getElementById('passage');
+  var transEl = document.getElementById('translation');
+  passageEl.innerHTML = '';
+  transEl.innerHTML = '';
+  var grid = document.createElement('div');
+  grid.className = 'word-grid';
+  L.words.forEach(function(wd, i){
+    var enIdx = allSent.length;
+    allSent.push({ en: wd.en, part:'en', w:i });
+    allSent.push({ en: wd.zh, part:'zh', w:i });
+    var card = document.createElement('div');
+    card.className = 'word-card';
+    var en = document.createElement('span');
+    en.className = 'sent w-en';
+    en.dataset.index = enIdx;
+    en.textContent = wd.en;
+    var zh = document.createElement('span');
+    zh.className = 'w-zh';
+    zh.dataset.index = enIdx + 1;
+    zh.textContent = wd.zh;
+    card.appendChild(en); card.appendChild(zh);
+    card.onclick = function(){ onSentenceClick(enIdx); };
+    grid.appendChild(card);
+  });
+  passageEl.appendChild(grid);
+}
+
 /* ================= 音频 ================= */
 function getAudioFile(idx){
+  if (state.lessonId === 'words') {
+    var s = allSent[idx];
+    var folder = s.part === 'zh' ? ('zh_' + gender) : (accent + '_' + gender);
+    return 'audio/wu_words/' + folder + '/word_' + String(s.w).padStart(2,'0') + '.mp3';
+  }
   var tn = currentLesson().titleSents ? currentLesson().titleSents.length : 0;
   var name = idx < tn ? 'title_' + String(idx).padStart(2,'0') : 'sent_' + String(idx - tn).padStart(2,'0');
   return 'audio/' + state.lessonId + '/' + accent + '_' + gender + '/' + name + '.mp3?v=3';
@@ -638,6 +832,13 @@ function setGender(g, btn){
   if (isReading && curIdx >= 0) { audio.pause(); speak(curIdx); }
 }
 
+function statusText(idx){
+  if (state.lessonId === 'words') {
+    var s = allSent[idx];
+    if (s && s.part) return (s.part === 'en' ? 'Word ' : 'Meaning · ') + (s.w + 1) + '/' + allSent.length / 2;
+  }
+  return 'Playing... (' + (idx+1) + '/' + allSent.length + ')';
+}
 function speak(idx, isRetry){
   if (idx >= allSent.length) { finish(); return; }
   var token = ++audioPlayToken;
@@ -646,7 +847,7 @@ function speak(idx, isRetry){
   if (!isRetry) audioRetryCount = 0;
   highlightSent(idx);
   updateProgress();
-  updateStatus('reading', 'Preparing audio... (' + (idx+1) + '/' + allSent.length + ')');
+  updateStatus('reading', 'Loading · ' + statusText(idx));
   audioPhase = 'warmup';
   audio.src = audioWarmupUrl;
   audio.playbackRate = 1;
@@ -661,6 +862,9 @@ function startSentenceAudio(idx, token){
   if (!isReading || token !== audioPlayToken || idx !== curIdx) return;
   clearTimeout(audioReadyTimer);
   audioPhase = 'loading';
+  var s0 = allSent[idx];
+  if (state.lessonId === 'words' && s0 && s0.part === 'en') wordPass = 1;
+  updateStatus('reading', statusText(idx));
   audio.src = getAudioFile(idx);
   audio.playbackRate = speed;
   audio.load();
@@ -674,7 +878,7 @@ function startSentenceAudio(idx, token){
     audioPhase = 'playing';
     audio.currentTime = 0;
     audio.playbackRate = speed;
-    updateStatus('reading', 'Playing... (' + (idx+1) + '/' + allSent.length + ')');
+    updateStatus('reading', statusText(idx));
     audio.play().catch(function(e){ handleAudioFailure(idx, token, e); });
   }
   audio.addEventListener('canplay', begin);
@@ -706,7 +910,30 @@ audio.onended = function(){
   }
   if (audioPhase !== 'playing') return;
   audioPhase = 'echo';
-  var echoTime = calcEcho(allSent[curIdx].en);
+  var s = allSent[curIdx];
+  if (s && s.part) {
+    /* 单词模式：英文连读两遍，无跟读倒计时；释义后词间自然间隔 */
+    if (s.part === 'en') {
+      if (wordPass < 2) {
+        wordPass = 2;
+        updateStatus('reading', 'Word ' + (s.w + 1) + '/' + (allSent.length / 2) + ' · 2nd time');
+        setTimeout(function(){
+          if (!isReading) return;
+          audioPhase = 'playing';
+          audio.currentTime = 0;
+          audio.playbackRate = speed;
+          audio.play().catch(function(){});
+        }, 650);
+        return;
+      }
+      updateStatus('reading', 'Word ' + (s.w + 1) + '/' + (allSent.length / 2) + ' · meaning');
+      setTimeout(function(){ if (isReading) advanceWord(); }, 450);
+    } else {
+      setTimeout(function(){ if (isReading) advanceWord(); }, Math.round(1300 * gapMul));
+    }
+    return;
+  }
+  var echoTime = calcEcho(s.en);
   updateStatus('echoing', 'Echo... (' + Math.ceil(echoTime) + 's)');
   showCountdown(echoTime);
   setTimeout(function(){
@@ -717,9 +944,21 @@ audio.onended = function(){
     speak(curIdx + 1);
   }, echoTime * 1000);
 };
+function advanceWord(){
+  var el = document.querySelector('.sent[data-index="' + curIdx + '"]');
+  if (el) el.classList.remove('active');
+  var zhEl = document.querySelector('.w-zh[data-index="' + curIdx + '"]');
+  if (zhEl) {
+    zhEl.classList.remove('active');
+    var card = zhEl.closest('.word-card');
+    if (card) card.classList.add('read');
+  }
+  speak(curIdx + 1);
+}
 
 /* ================= 控制 ================= */
 function toggleReading(){
+  if (plan.done) { endPlan(); go('/' + plan.bookId + '/plan'); return; }
   if (isReading) {
     stopReading();
     updateStatus('idle', 'Paused');
@@ -745,6 +984,10 @@ function onSentenceClick(idx){
   document.querySelectorAll('.sent').forEach(function(s){
     if (parseInt(s.dataset.index) >= idx) s.classList.remove('read', 'active');
   });
+  document.querySelectorAll('.word-card').forEach(function(card){
+    var zh = card.querySelector('.w-zh');
+    if (zh && parseInt(zh.dataset.index) >= idx) card.classList.remove('read');
+  });
   curIdx = idx - 1;
   if (!isReading) {
     isReading = true;
@@ -753,8 +996,9 @@ function onSentenceClick(idx){
   speak(idx);
 }
 function finish(){
-  isReading = false;
   hideCountdown();
+  if (plan.running) { planNext(); return; }
+  isReading = false;
   updateStatus('idle', 'Complete!');
   document.getElementById('startBtn').textContent = 'Restart';
   saveLessonComplete(true);
@@ -763,6 +1007,8 @@ function finish(){
 }
 function resetMarks(){
   document.querySelectorAll('.sent').forEach(function(s){ s.classList.remove('read', 'active'); });
+  document.querySelectorAll('.word-card').forEach(function(w){ w.classList.remove('read'); });
+  document.querySelectorAll('.w-zh').forEach(function(z){ z.classList.remove('active'); });
 }
 
 /* ================= Shadow 录音与本机进度 ================= */
@@ -893,6 +1139,10 @@ function highlightSent(idx){
     if (parseInt(s.dataset.index) < idx) s.classList.add('read');
     else s.classList.remove('read');
   });
+  document.querySelectorAll('.w-zh').forEach(function(z){
+    z.classList.remove('active');
+    if (parseInt(z.dataset.index) === idx) z.classList.add('active');
+  });
   if (idx >= 0 && idx < allSent.length) {
     var el = document.querySelector('.sent[data-index="' + idx + '"]');
     if (el) { el.classList.add('active'); el.classList.remove('read'); scrollSentToCenter(el); }
@@ -925,6 +1175,186 @@ function showCountdown(sec){
 }
 function hideCountdown(){ document.getElementById('countdown').classList.remove('show'); }
 
+/* ================= 早读计划 ================= */
+function planItems(bookId){
+  var book = BOOKS.find(function(b){ return b.id === bookId; });
+  var items = [];
+  if (!book) return items;
+  book.units.forEach(function(u){
+    u.lessons.forEach(function(lid){
+      var L = LESSONS[lid];
+      if (!L) return;
+      var isWords = L.type === 'words';
+      var count = isWords ? L.words.length :
+        (L.titleSents ? L.titleSents.length : 0) + L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
+      items.push({ id:lid, type:isWords?'words':'lesson', title:L.title, meta:count + (isWords?' words':' sentences'), count:count });
+    });
+  });
+  return items;
+}
+function loadPlanSel(){
+  try { return JSON.parse(localStorage.getItem('morningPlan') || 'null'); } catch(e){ return null; }
+}
+function showPlan(bookId){
+  if (isReading) stopReading();
+  if (plan.running || plan.done) endPlan();
+  var book = BOOKS.find(function(b){ return b.id === bookId && b.ready; });
+  if (!book) { go('/'); return; }
+  state = { view:'plan', bookId:bookId, lessonId:null };
+  setBack('Contents', function(){ go('/' + bookId); });
+  var sel = loadPlanSel() || {};
+  var box = document.getElementById('planList');
+  box.innerHTML = '';
+  planItems(bookId).forEach(function(it){
+    var on = sel[it.id] ? sel[it.id].on : (it.id === 'words' ? true : true);
+    var rep = sel[it.id] ? (sel[it.id].rep || 1) : (it.id === 'words' ? 2 : 1);
+    var div = document.createElement('div');
+    div.className = 'plan-item' + (on ? ' on' : '');
+    div.dataset.id = it.id;
+    div.innerHTML = '<div class="plan-check" role="checkbox"></div>' +
+      '<div class="plan-item-body">' +
+        '<div class="plan-item-title">' + it.title + '</div>' +
+        '<div class="plan-item-meta">' + it.meta + '</div>' +
+      '</div>' +
+      '<div class="plan-reps">' +
+        '<button class="rep-btn" data-d="-1">−</button>' +
+        '<span class="rep-num">' + rep + '×</span>' +
+        '<button class="rep-btn" data-d="1">+</button>' +
+      '</div>';
+    div.querySelector('.plan-check').onclick = function(ev){ ev.stopPropagation(); togglePlanItem(div); };
+    div.querySelector('[data-d="-1"]').onclick = function(ev){ ev.stopPropagation(); changeRep(div, -1); };
+    div.querySelector('[data-d="+1"], [data-d="1"]').onclick = function(ev){ ev.stopPropagation(); changeRep(div, 1); };
+    box.appendChild(div);
+  });
+  updatePlanEst();
+  showView('view-plan');
+}
+function togglePlanItem(div){
+  var on = !div.classList.contains('on');
+  var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
+  div.classList.toggle('on', on);
+  if (on && rep < 1) { div.querySelector('.rep-num').textContent = '1×'; }
+  savePlanSel();
+  updatePlanEst();
+}
+function changeRep(div, d){
+  var num = div.querySelector('.rep-num');
+  var rep = parseInt(num.textContent) || 1;
+  rep = Math.min(5, Math.max(1, rep + d));
+  num.textContent = rep + '×';
+  div.classList.add('on');
+  savePlanSel();
+  updatePlanEst();
+}
+function savePlanSel(){
+  var sel = {};
+  document.querySelectorAll('.plan-item').forEach(function(div){
+    sel[div.dataset.id] = { on: div.classList.contains('on'), rep: parseInt(div.querySelector('.rep-num').textContent) || 1 };
+  });
+  try { localStorage.setItem('morningPlan', JSON.stringify(sel)); } catch(e){}
+}
+function updatePlanEst(){
+  var sec = 0, n = 0;
+  document.querySelectorAll('.plan-item').forEach(function(div){
+    if (!div.classList.contains('on')) return;
+    var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
+    var it = planItems(state.bookId).find(function(x){ return x.id === div.dataset.id; });
+    if (!it) return;
+    sec += (it.type === 'words' ? it.count * 6.5 : it.count * 8.5) * rep;
+    n++;
+  });
+  var est = document.getElementById('planEst');
+  est.innerHTML = n ? '~ <strong>' + Math.max(1, Math.round(sec / 60)) + '</strong> min · ' + n + ' item(s)' : 'Nothing selected yet';
+}
+function startPlan(){
+  var queue = [];
+  document.querySelectorAll('.plan-item').forEach(function(div){
+    if (!div.classList.contains('on')) return;
+    var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
+    queue.push({ id: div.dataset.id, type: div.dataset.id === 'words' ? 'words' : 'lesson', repeats: rep });
+  });
+  if (!queue.length) { alert('Please select at least one item.'); return; }
+  savePlanSel();
+  plan = { running:true, done:false, bookId:state.bookId, queue:queue, pos:0, rep:1 };
+  planLoadCurrent();
+}
+function planLoadCurrent(){
+  var it = plan.queue[plan.pos];
+  var lid = it.id;
+  state = { view:'plan-run', bookId:plan.bookId, lessonId:lid };
+  setBack('Plan', function(){ endPlan(); go('/' + plan.bookId + '/plan'); });
+  curIdx = -1;
+  resetMarks();
+  document.getElementById('startBtn').textContent = 'Stop';
+  document.body.classList.remove('show-trans');
+  document.getElementById('transBtn').textContent = 'Show Translation';
+  renderLesson();
+  updateProgress();
+  var banner = document.getElementById('planBanner');
+  banner.classList.add('show');
+  document.getElementById('planSkipBtn').style.display = '';
+  updatePlanBanner();
+  showView('view-player');
+  isReading = true;
+  updateStatus('reading', 'Playing...');
+  speak(0);
+}
+function updatePlanBanner(){
+  var it = plan.queue[plan.pos];
+  var L = LESSONS[it.id];
+  var name = it.type === 'words' ? 'Vocabulary' : (L ? L.title : it.id);
+  document.getElementById('planBannerText').textContent =
+    'Item ' + (plan.pos + 1) + '/' + plan.queue.length + ' · ' + name + ' · Round ' + plan.rep + '/' + it.repeats;
+}
+function planNext(){
+  var it = plan.queue[plan.pos];
+  if (plan.rep < it.repeats) {
+    plan.rep++;
+    curIdx = -1;
+    resetMarks();
+    updatePlanBanner();
+    speak(0);
+  } else if (plan.pos < plan.queue.length - 1) {
+    plan.pos++;
+    plan.rep = 1;
+    planLoadCurrent();
+  } else {
+    planComplete();
+  }
+}
+function planSkip(){
+  if (!plan.running) return;
+  audio.pause();
+  hideCountdown();
+  if (plan.pos < plan.queue.length - 1) {
+    plan.pos++;
+    plan.rep = 1;
+    planLoadCurrent();
+  } else {
+    planComplete();
+  }
+}
+function planComplete(){
+  plan.running = false;
+  plan.done = true;
+  isReading = false;
+  hideCountdown();
+  highlightSent(-1);
+  document.getElementById('planBannerText').textContent = 'Morning plan complete — well done! ☀';
+  document.getElementById('planSkipBtn').style.display = 'none';
+  updateStatus('idle', 'Morning Reading Complete!');
+  document.getElementById('startBtn').textContent = 'Back to Plan';
+}
+function endPlan(){
+  plan = { running:false, done:false, bookId:null, queue:[], pos:0, rep:1 };
+  isReading = false;
+  audio.pause();
+  hideCountdown();
+  var banner = document.getElementById('planBanner');
+  banner.classList.remove('show');
+  document.getElementById('startBtn').textContent = 'Start Reading';
+}
+
 /* ================= 初始化 ================= */
 route();
 
@@ -932,6 +1362,7 @@ window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.t
 window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
 window.startRecording = startRecording; window.stopRecording = stopRecording; window.toggleLessonComplete = toggleLessonComplete;
+window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep;
 </script>
 </body>
 </html>
