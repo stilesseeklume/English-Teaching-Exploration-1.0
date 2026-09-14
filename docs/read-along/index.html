@@ -141,6 +141,8 @@
   .start-btn:hover{opacity:0.85;}
   .ghost-btn{padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;cursor:pointer;}
   .ghost-btn:hover{background:var(--surface-2);color:var(--text);}
+  .focus-back{border-color:var(--accent);color:var(--accent);font-weight:600;}
+  .focus-back:hover{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);}
 
   .progress-bar{height:3px;background:var(--surface-3);border-radius:999px;overflow:hidden;margin-bottom:12px;}
   .progress-fill{height:100%;background:var(--accent);width:0%;transition:width .4s ease;}
@@ -346,6 +348,7 @@
         <button class="font-btn" onclick="incFont()">+</button>
       </div>
       <button class="start-btn" id="startBtn" onclick="toggleReading()">Start Reading</button>
+      <button class="ghost-btn focus-back" id="focusBtn" onclick="backToFocus()" title="返回全屏（也可按 F 键或点击大字区域）">⛶ Fullscreen</button>
       <button class="ghost-btn" onclick="toggleTrans()" id="transBtn">Show Translation</button>
     </div>
 
@@ -862,7 +865,14 @@ function setGender(g, btn){
 /* ================= 沉浸播放模式 ================= */
 function enterFocus(){ document.body.classList.add('focus-mode'); }
 function exitFocus(){ document.body.classList.remove('focus-mode'); }
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') exitFocus(); });
+function backToFocus(){ if (isReading) enterFocus(); else toggleReading(); }
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') exitFocus();
+  if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (document.body.classList.contains('focus-mode')) exitFocus();
+    else if (isReading) enterFocus();
+  }
+});
 
 /* ================= 舞台大字展示 ================= */
 function escapeHtml(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -990,7 +1000,7 @@ audio.onended = function(){
       }, 400);
     } else {
       updateStatus('reading', 'Word ' + (curIdx + 1) + '/' + allSent.length + ' · done');
-      setTimeout(function(){ if (isReading) advanceWord(); }, Math.round(600 * gapMul));
+      if (isReading) advanceWord();
     }
     return;
   }
@@ -1423,7 +1433,11 @@ window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.t
 window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
 window.startRecording = startRecording; window.stopRecording = stopRecording; window.toggleLessonComplete = toggleLessonComplete;
-window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep; window.exitFocus = exitFocus;
+window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep; window.exitFocus = exitFocus; window.backToFocus = backToFocus;
+var _stageEl = document.getElementById('stage');
+if (_stageEl) _stageEl.addEventListener('click', function(){
+  if (isReading && !document.body.classList.contains('focus-mode')) enterFocus();
+});
 </script>
 </body>
 </html>
