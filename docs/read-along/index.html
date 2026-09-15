@@ -867,11 +867,11 @@ function renderWords(L){
 function getAudioFile(idx){
   if (state.lessonId === 'words') {
     var s = allSent[idx];
-    return 'audio/wu_words/' + accent + '_' + gender + '/word_' + String(s.w).padStart(2,'0') + '.mp3';
+    return 'audio/wu_words/' + accent + '_' + gender + '/word_' + String(s.w).padStart(2,'0') + '.mp3?v=4';
   }
   var tn = currentLesson().titleSents ? currentLesson().titleSents.length : 0;
   var name = idx < tn ? 'title_' + String(idx).padStart(2,'0') : 'sent_' + String(idx - tn).padStart(2,'0');
-  return 'audio/' + state.lessonId + '/' + accent + '_' + gender + '/' + name + '.mp3?v=3';
+  return 'audio/' + state.lessonId + '/' + accent + '_' + gender + '/' + name + '.mp3?v=4';
 }
 
 function setAccent(a, btn){
