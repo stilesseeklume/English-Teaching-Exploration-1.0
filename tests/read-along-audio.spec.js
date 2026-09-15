@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const siteRoot = process.env.SEEKLUME_BASE_URL ? '' : '/docs';
 const shadowUrl = `${siteRoot}/read-along/#/bixiu1/hj`;
 
-test('Shadow Reading warms the Windows audio path before every sentence', async ({ page }) => {
+test('Shadow Reading primes and settles the Windows audio path before every sentence', async ({ page }) => {
   await page.addInitScript(() => {
     window.__audioPlays = [];
     URL.createObjectURL = () => 'blob:echo-reading-warmup';
@@ -27,6 +27,7 @@ test('Shadow Reading warms the Windows audio path before every sentence', async 
   await page.locator('#audioPlayer').evaluate((el) => el.dispatchEvent(new Event('ended')));
   await page.locator('#audioPlayer').evaluate((el) => el.dispatchEvent(new Event('canplay')));
 
+  await expect.poll(() => page.evaluate(() => window.__audioPlays.length)).toBe(2);
   await expect(page.locator('#statusText')).toContainText('Playing');
   const plays = await page.evaluate(() => window.__audioPlays.slice());
   expect(plays).toHaveLength(2);

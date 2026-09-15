@@ -559,20 +559,22 @@ var allSent = [];
 var speed = 1.0, gapMul = 1.5, isReading = false, curIdx = -1;
 var accent = 'uk', gender = 'f';
 var audio = document.getElementById('audioPlayer');
-var audioPhase = 'idle', audioPlayToken = 0, audioReadyTimer = null, audioRetryCount = 0;
-var AUDIO_WARMUP_MS = 700;
+var audioPhase = 'idle', audioPlayToken = 0, audioReadyTimer = null, audioStartTimer = null, audioRetryCount = 0;
+var AUDIO_WARMUP_MS = 1200;
 var AUDIO_READY_TIMEOUT_MS = 2500;
+var AUDIO_OUTPUT_SETTLE_MS = 220;
 var SHADOW_PROGRESS_KEY = 'seeklume-shadow-progress-v1';
 var mediaRecorder = null, recordingStream = null, recordingChunks = [], recordingUrl = '';
+var classroomAudioContext = null, classroomKeepalive = null;
 
 /*
  * Windows classroom PCs often power down the audio endpoint during the echo
- * gap.  If the MP3 starts while the endpoint is waking, its first words are
- * physically lost even though the browser reports normal playback.  A short
- * PCM-silence clip keeps the same <audio> pipeline active before every
- * sentence, so the real speech starts only after the endpoint is ready.
+ * gap. If the MP3 starts while the endpoint is waking, its first words are
+ * physically lost even though the browser reports normal playback. Some
+ * whiteboard amplifiers discard an all-zero PCM stream, so the primer below
+ * has an inaudible non-zero signal and is paired with a Web Audio keepalive.
  */
-function makeSilentWavUrl(durationMs){
+function makeAudioPrimerUrl(durationMs){
   var sampleRate = 8000;
   var sampleCount = Math.ceil(sampleRate * durationMs / 1000);
   var buffer = new ArrayBuffer(44 + sampleCount * 2);
@@ -593,9 +595,32 @@ function makeSilentWavUrl(durationMs){
   view.setUint16(34, 16, true);
   writeText(36, 'data');
   view.setUint32(40, sampleCount * 2, true);
+  // -84 dB alternating signal: inaudible, but not removable as digital silence.
+  for (var i = 0; i < sampleCount; i++) view.setInt16(44 + i * 2, i % 2 ? 2 : -2, true);
   return URL.createObjectURL(new Blob([buffer], {type:'audio/wav'}));
 }
-var audioWarmupUrl = makeSilentWavUrl(AUDIO_WARMUP_MS);
+var audioWarmupUrl = makeAudioPrimerUrl(AUDIO_WARMUP_MS);
+
+function keepClassroomAudioAwake(){
+  var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  try {
+    if (!classroomAudioContext) {
+      classroomAudioContext = new AudioContextClass();
+      classroomKeepalive = classroomAudioContext.createOscillator();
+      var gain = classroomAudioContext.createGain();
+      classroomKeepalive.type = 'sine';
+      classroomKeepalive.frequency.value = 18000;
+      gain.gain.value = 0.00001;
+      classroomKeepalive.connect(gain);
+      gain.connect(classroomAudioContext.destination);
+      classroomKeepalive.start();
+    }
+    if (classroomAudioContext.state === 'suspended') classroomAudioContext.resume();
+  } catch(e) {
+    // The PCM primer still protects older browsers that do not allow Web Audio.
+  }
+}
 var plan = { running:false, done:false, bookId:null, queue:[], pos:0, rep:1 };
 var wordPass = 1;
 
@@ -919,6 +944,7 @@ function speak(idx, isRetry){
   var L0 = currentLesson();
   if (L0 && L0.type === 'words' && !isRetry) wordPass = 1;
   document.body.classList.add('playing');
+  keepClassroomAudioAwake();
   highlightSent(idx);
   updateStage(idx);
   updateProgress();
@@ -943,19 +969,24 @@ function startSentenceAudio(idx, token){
   audio.load();
 
   var started = false;
+  function scheduleBegin(){
+    if (started || !isReading || token !== audioPlayToken || idx !== curIdx) return;
+    clearTimeout(audioStartTimer);
+    audioStartTimer = setTimeout(begin, AUDIO_OUTPUT_SETTLE_MS);
+  }
   function begin(){
     if (started || !isReading || token !== audioPlayToken || idx !== curIdx) return;
     started = true;
     clearTimeout(audioReadyTimer);
-    audio.removeEventListener('canplay', begin);
+    audio.removeEventListener('canplay', scheduleBegin);
     audioPhase = 'playing';
     audio.currentTime = 0;
     audio.playbackRate = speed;
     updateStatus('reading', statusText(idx));
     audio.play().catch(function(e){ handleAudioFailure(idx, token, e); });
   }
-  audio.addEventListener('canplay', begin);
-  audioReadyTimer = setTimeout(begin, AUDIO_READY_TIMEOUT_MS);
+  audio.addEventListener('canplay', scheduleBegin);
+  audioReadyTimer = setTimeout(scheduleBegin, AUDIO_READY_TIMEOUT_MS);
 }
 
 function handleAudioFailure(idx, token, error){
@@ -1046,6 +1077,7 @@ function stopReading(){
   document.body.classList.remove('playing');
   exitFocus();
   clearTimeout(audioReadyTimer);
+  clearTimeout(audioStartTimer);
   audio.pause();
   hideCountdown();
   highlightSent(-1);
