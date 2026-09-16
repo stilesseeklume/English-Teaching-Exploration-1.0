@@ -254,6 +254,41 @@
 
   .footer-note{text-align:center;padding:24px 0 0;font-size:12px;color:var(--text-3);}
   @media(max-width:640px){.textbook{padding:24px 20px;}.controls-bar{flex-direction:column;gap:8px;}.voice-panel{padding:12px 16px;}.stage{min-height:120px;top:56px;padding:18px 14px;}.stage-word{font-size:40px;}.stage-word.long{font-size:32px;}body.focus-mode .stage-word{font-size:clamp(44px,13vw,72px);}body.focus-mode .stage-word.long{font-size:clamp(32px,9vw,52px);}body.focus-mode .stage-cur{font-size:calc(var(--sent-size,38px) * 1.3);}.shelf-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;}.word-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}.plan-footer{flex-direction:column;align-items:stretch;text-align:center;}}
+  /* ===== 跟读页左侧单元目录 ===== */
+  .lessonnav{display:none;position:fixed;left:0;top:48px;bottom:0;width:272px;z-index:90;background:var(--surface);border-right:1px solid var(--border);box-shadow:var(--shadow-lg);flex-direction:column;}
+  body.nav-open .lessonnav{display:flex;}
+  .lessonnav-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .lessonnav-title{font-size:12px;font-weight:700;color:var(--text-2);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .lessonnav-close{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);font:inherit;font-size:12px;cursor:pointer;flex-shrink:0;margin-left:8px;}
+  .lessonnav-close:hover{color:var(--text);border-color:var(--text-3);}
+  .lessonnav-body{overflow-y:auto;flex:1;padding:8px 12px 28px;}
+  .lnav-unit{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:16px 4px 6px;}
+  .lnav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--text-2);font-size:13px;transition:background .15s,color .15s;}
+  .lnav-item:hover{background:var(--surface-3);color:var(--text);}
+  .lnav-item.cur{background:var(--accent-bg);color:var(--accent);font-weight:600;box-shadow:inset 0 0 0 1px var(--accent);}
+  .lnav-ico{width:20px;text-align:center;flex-shrink:0;font-size:13px;}
+  .lnav-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lessonnav-fab{display:flex;align-items:center;gap:6px;position:fixed;left:14px;top:62px;z-index:89;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-lg);}
+  .lessonnav-fab:hover{color:var(--text);border-color:var(--text-3);}
+  body.nav-open .lessonnav-fab{display:none;}
+  body.focus-mode .lessonnav,body.focus-mode .lessonnav-fab{display:none !important;}
+  body.playing .lessonnav,body.playing .lessonnav-fab{display:none !important;}
+  @media(min-width:1100px){body.nav-open main{margin-left:calc(50vw - 254px);}}
+  /* ===== 早读计划：分单元 + 自选顺序 ===== */
+  .plan-unit-title{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.12em;text-transform:uppercase;margin:20px 2px 10px;}
+  .plan-queue{margin-top:26px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .plan-queue-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .plan-queue-title{font-size:13px;font-weight:700;color:var(--text);}
+  .plan-queue-hint{font-size:12px;color:var(--text-3);}
+  .queue-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;background:var(--surface-2);margin-bottom:8px;}
+  .queue-row:last-child{margin-bottom:0;}
+  .queue-num{width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .queue-body{flex:1;min-width:0;}
+  .queue-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .queue-sub{font-size:11px;color:var(--text-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .queue-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:14px;cursor:pointer;flex-shrink:0;}
+  .queue-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+  .queue-btn:disabled{opacity:.35;cursor:default;}
 </style>
 </head>
 <body>
@@ -296,6 +331,13 @@
       <div class="sub">Pick what to read this morning — it plays itself, no clicking needed.</div>
     </div>
     <div id="planList"></div>
+    <div class="plan-queue" id="planQueueWrap" style="display:none">
+      <div class="plan-queue-head">
+        <div class="plan-queue-title">Reading Order</div>
+        <div class="plan-queue-hint">↑ ↓ to reorder — plays from #1 first</div>
+      </div>
+      <div id="planQueue"></div>
+    </div>
     <div class="plan-footer">
       <div class="plan-est" id="planEst">~ <strong>10</strong> min</div>
       <button class="plan-start-btn" onclick="startPlan()">Start Morning Reading</button>
@@ -304,6 +346,8 @@
 
   <!-- ========== 播放页 ========== -->
   <div class="view" id="view-player">
+    <aside class="lessonnav" id="lessonNav" aria-label="Lesson list"></aside>
+    <button class="lessonnav-fab" id="lessonNavFab" onclick="toggleLessonNav()" title="Show lesson list">☰ Lessons</button>
     <div class="plan-banner" id="planBanner">
       <span class="plan-banner-sun">☀</span>
       <div class="plan-banner-text" id="planBannerText"></div>
@@ -1440,6 +1484,7 @@ function showView(id){
 /* ================= 书架页 ================= */
 function showShelf(){
   if (isReading) stopReading();
+  document.body.classList.remove('nav-open');
   state = { view:"shelf", bookId:null, lessonId:null };
   setBack('Home', function(){ location.href = '../index.html'; });
   var grid = document.getElementById('shelfGrid');
@@ -1461,6 +1506,7 @@ function showShelf(){
 function showToc(bookId){
   if (isReading) stopReading();
   if (plan.running || plan.done) endPlan();
+  document.body.classList.remove('nav-open');
   var book = BOOKS.find(function(b){ return b.id === bookId && b.ready; });
   if (!book) { go('/'); return; }
   state = { view:"toc", bookId:bookId, lessonId:null };
@@ -1524,6 +1570,8 @@ function showPlayer(bookId, lessonId){
   var firstOpen = state.lessonId !== lessonId;
   state = { view:"player", bookId:bookId, lessonId:lessonId };
   setBack('Contents', function(){ go('/' + bookId); });
+  buildLessonNav(bookId, lessonId);
+  applyLessonNavState();
   if (firstOpen) {
     clearRecording();
     curIdx = -1;
@@ -2066,6 +2114,103 @@ function showCountdown(sec){
 }
 function hideCountdown(){ document.getElementById('countdown').classList.remove('show'); }
 
+/* ================= 跟读页左侧单元目录 ================= */
+function buildLessonNav(bookId, lessonId){
+  var book = BOOKS.find(function(b){ return b.id === bookId; });
+  var nav = document.getElementById('lessonNav');
+  if (!book || !nav) return;
+  nav.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'lessonnav-head';
+  var ht = document.createElement('div');
+  ht.className = 'lessonnav-title';
+  ht.textContent = book.name + ' · Lessons';
+  var hb = document.createElement('button');
+  hb.className = 'lessonnav-close';
+  hb.textContent = '✕';
+  hb.title = 'Hide list';
+  hb.onclick = function(){ setLessonNav(false); };
+  head.appendChild(ht);
+  head.appendChild(hb);
+  nav.appendChild(head);
+  var body = document.createElement('div');
+  body.className = 'lessonnav-body';
+  book.units.forEach(function(u){
+    var ut = document.createElement('div');
+    ut.className = 'lnav-unit';
+    ut.textContent = u.name;
+    body.appendChild(ut);
+    u.lessons.forEach(function(lid){
+      var L = LESSONS[lid];
+      if (!L) return;
+      var it = document.createElement('div');
+      it.className = 'lnav-item' + (lid === lessonId ? ' cur' : '');
+      var completed = isLessonComplete(lid);
+      it.innerHTML = '<span class="lnav-ico">' + (completed ? '✓' : (L.type === 'words' ? '🔤' : '🎧')) + '</span>' +
+        '<span class="lnav-name">' + escapeHtml(L.title) + '</span>';
+      it.title = L.title;
+      it.onclick = function(){ if (lid !== lessonId) go('/' + bookId + '/' + lid); };
+      body.appendChild(it);
+    });
+  });
+  nav.appendChild(body);
+  var cur = nav.querySelector('.lnav-item.cur');
+  if (cur) body.scrollTop = Math.max(0, cur.offsetTop - 120);
+}
+function setLessonNav(open){
+  document.body.classList.toggle('nav-open', open);
+  try { localStorage.setItem('lessonNav', open ? '1' : '0'); } catch(e){}
+}
+function toggleLessonNav(){
+  setLessonNav(!document.body.classList.contains('nav-open'));
+}
+function applyLessonNavState(){
+  var pref = null;
+  try { pref = localStorage.getItem('lessonNav'); } catch(e){}
+  var open = pref !== null ? pref === '1' : (window.innerWidth >= 1100);
+  document.body.classList.toggle('nav-open', open);
+}
+
+/* ================= 早读计划：播放顺序队列 ================= */
+var planOrder = [];
+function renderPlanQueue(){
+  var wrap = document.getElementById('planQueueWrap');
+  var box = document.getElementById('planQueue');
+  if (!wrap || !box) return;
+  box.innerHTML = '';
+  if (!planOrder.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  var items = planItems(state.bookId);
+  planOrder.forEach(function(id, i){
+    var it = null;
+    for (var k = 0; k < items.length; k++) { if (items[k].id === id) { it = items[k]; break; } }
+    if (!it) return;
+    var div = document.querySelector('.plan-item[data-id="' + id + '"]');
+    var rep = div ? (parseInt(div.querySelector('.rep-num').textContent) || 1) : 1;
+    var row = document.createElement('div');
+    row.className = 'queue-row';
+    row.innerHTML = '<div class="queue-num">' + (i + 1) + '</div>' +
+      '<div class="queue-body">' +
+        '<div class="queue-title">' + escapeHtml(it.title) + '</div>' +
+        '<div class="queue-sub">' + escapeHtml(it.unit || '') + ' · ' + rep + '×</div>' +
+      '</div>' +
+      '<button class="queue-btn" data-mv="-1"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+      '<button class="queue-btn" data-mv="1"' + (i === planOrder.length - 1 ? ' disabled' : '') + '>↓</button>';
+    row.querySelector('[data-mv="-1"]').onclick = function(){ moveQueue(i, -1); };
+    row.querySelector('[data-mv="1"]').onclick = function(){ moveQueue(i, 1); };
+    box.appendChild(row);
+  });
+}
+function moveQueue(i, d){
+  var j = i + d;
+  if (j < 0 || j >= planOrder.length) return;
+  var t = planOrder[i];
+  planOrder[i] = planOrder[j];
+  planOrder[j] = t;
+  savePlanSel();
+  renderPlanQueue();
+}
+
 /* ================= 早读计划 ================= */
 function planItems(bookId){
   var book = BOOKS.find(function(b){ return b.id === bookId; });
@@ -2078,45 +2223,69 @@ function planItems(bookId){
       var isWords = L.type === 'words';
       var count = isWords ? L.words.length :
         (L.titleSents ? L.titleSents.length : 0) + L.blocks.reduce(function(n,b){ return n + b.sentences.length; }, 0);
-      items.push({ id:lid, type:isWords?'words':'lesson', title:L.title, meta:count + (isWords?' words':' sentences'), count:count });
+      items.push({ id:lid, unit:u.name, type:isWords?'words':'lesson', title:L.title, meta:count + (isWords?' words':' sentences'), count:count });
     });
   });
   return items;
 }
 function loadPlanSel(){
-  try { return JSON.parse(localStorage.getItem('morningPlan') || 'null'); } catch(e){ return null; }
+  try { return JSON.parse(localStorage.getItem('morningPlan2') || 'null'); } catch(e){ return null; }
 }
 function showPlan(bookId){
   if (isReading) stopReading();
   if (plan.running || plan.done) endPlan();
+  document.body.classList.remove('nav-open');
   var book = BOOKS.find(function(b){ return b.id === bookId && b.ready; });
   if (!book) { go('/'); return; }
   state = { view:'plan', bookId:bookId, lessonId:null };
   setBack('Contents', function(){ go('/' + bookId); });
-  var sel = loadPlanSel() || {};
+  var saved = loadPlanSel();
+  var items = planItems(bookId);
+  var onMap = {};
+  items.forEach(function(it){
+    var s = (saved && saved.items) ? saved.items[it.id] : null;
+    if (s && s.on) onMap[it.id] = s;
+  });
+  planOrder = [];
+  var orderSrc = (saved && saved.order) ? saved.order : [];
+  orderSrc.forEach(function(id){
+    if (onMap[id]) { planOrder.push(id); delete onMap[id]; }
+  });
+  items.forEach(function(it){ if (onMap[it.id]) planOrder.push(it.id); });
   var box = document.getElementById('planList');
   box.innerHTML = '';
-  planItems(bookId).forEach(function(it){
-    var on = sel[it.id] ? sel[it.id].on : (it.id === 'words' ? true : true);
-    var rep = sel[it.id] ? (sel[it.id].rep || 1) : (it.id === 'words' ? 2 : 1);
-    var div = document.createElement('div');
-    div.className = 'plan-item' + (on ? ' on' : '');
-    div.dataset.id = it.id;
-    div.innerHTML = '<div class="plan-check" role="checkbox"></div>' +
-      '<div class="plan-item-body">' +
-        '<div class="plan-item-title">' + it.title + '</div>' +
-        '<div class="plan-item-meta">' + it.meta + '</div>' +
-      '</div>' +
-      '<div class="plan-reps">' +
-        '<button class="rep-btn" data-d="-1">−</button>' +
-        '<span class="rep-num">' + rep + '×</span>' +
-        '<button class="rep-btn" data-d="1">+</button>' +
-      '</div>';
-    div.querySelector('.plan-check').onclick = function(ev){ ev.stopPropagation(); togglePlanItem(div); };
-    div.querySelector('[data-d="-1"]').onclick = function(ev){ ev.stopPropagation(); changeRep(div, -1); };
-    div.querySelector('[data-d="+1"], [data-d="1"]').onclick = function(ev){ ev.stopPropagation(); changeRep(div, 1); };
-    box.appendChild(div);
+  book.units.forEach(function(u){
+    var ut = document.createElement('div');
+    ut.className = 'plan-unit-title';
+    ut.textContent = u.name;
+    box.appendChild(ut);
+    u.lessons.forEach(function(lid){
+      var it = null;
+      for (var k = 0; k < items.length; k++) { if (items[k].id === lid) { it = items[k]; break; } }
+      if (!it) return;
+      var s = (saved && saved.items && saved.items[lid]) || null;
+      var on = !!(s && s.on);
+      var rep = (s && s.rep) ? s.rep : 1;
+      var div = document.createElement('div');
+      div.className = 'plan-item' + (on ? ' on' : '');
+      div.dataset.id = it.id;
+      div.innerHTML = '<div class="plan-check" role="checkbox"></div>' +
+        '<div class="plan-item-body">' +
+          '<div class="plan-item-title">' + it.title + '</div>' +
+          '<div class="plan-item-meta">' + it.meta + '</div>' +
+        '</div>' +
+        '<div class="plan-reps">' +
+          '<button class="rep-btn" data-d="-1">−</button>' +
+          '<span class="rep-num">' + rep + '×</span>' +
+          '<button class="rep-btn" data-d="1">+</button>' +
+        '</div>';
+      div.querySelector('.plan-check').onclick = function(ev){ ev.stopPropagation(); togglePlanItem(div); };
+      div.querySelector('[data-d="-1"]').onclick = function(ev){ ev.stopPropagation(); changeRep(div, -1); };
+      div.querySelector('[data-d="1"]').onclick = function(ev){ ev.stopPropagation(); changeRep(div, 1); };
+      box.appendChild(div);
+    });
   });
+  renderPlanQueue();
   updatePlanEst();
   showView('view-plan');
 }
@@ -2125,7 +2294,12 @@ function togglePlanItem(div){
   var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
   div.classList.toggle('on', on);
   if (on && rep < 1) { div.querySelector('.rep-num').textContent = '1×'; }
+  var id = div.dataset.id;
+  var k = planOrder.indexOf(id);
+  if (on && k < 0) planOrder.push(id);
+  if (!on && k >= 0) planOrder.splice(k, 1);
   savePlanSel();
+  renderPlanQueue();
   updatePlanEst();
 }
 function changeRep(div, d){
@@ -2134,37 +2308,41 @@ function changeRep(div, d){
   rep = Math.min(5, Math.max(1, rep + d));
   num.textContent = rep + '×';
   div.classList.add('on');
+  var id = div.dataset.id;
+  if (planOrder.indexOf(id) < 0) planOrder.push(id);
   savePlanSel();
+  renderPlanQueue();
   updatePlanEst();
 }
 function savePlanSel(){
-  var sel = {};
+  var sel = { items:{}, order: planOrder.slice() };
   document.querySelectorAll('.plan-item').forEach(function(div){
-    sel[div.dataset.id] = { on: div.classList.contains('on'), rep: parseInt(div.querySelector('.rep-num').textContent) || 1 };
+    sel.items[div.dataset.id] = { on: div.classList.contains('on'), rep: parseInt(div.querySelector('.rep-num').textContent) || 1 };
   });
-  try { localStorage.setItem('morningPlan', JSON.stringify(sel)); } catch(e){}
+  try { localStorage.setItem('morningPlan2', JSON.stringify(sel)); } catch(e){}
 }
 function updatePlanEst(){
-  var sec = 0, n = 0;
-  document.querySelectorAll('.plan-item').forEach(function(div){
-    if (!div.classList.contains('on')) return;
-    var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
-    var it = planItems(state.bookId).find(function(x){ return x.id === div.dataset.id; });
-    if (!it) return;
+  var sec = 0, n = planOrder.length;
+  var items = planItems(state.bookId);
+  planOrder.forEach(function(id){
+    var it = null;
+    for (var k = 0; k < items.length; k++) { if (items[k].id === id) { it = items[k]; break; } }
+    if (!it) { n--; return; }
+    var div = document.querySelector('.plan-item[data-id="' + id + '"]');
+    var rep = div ? (parseInt(div.querySelector('.rep-num').textContent) || 1) : 1;
     sec += (it.type === 'words' ? it.count * 3.5 : it.count * 8.5) * rep;
-    n++;
   });
   var est = document.getElementById('planEst');
   est.innerHTML = n ? '~ <strong>' + Math.max(1, Math.round(sec / 60)) + '</strong> min · ' + n + ' item(s)' : 'Nothing selected yet';
 }
 function startPlan(){
+  if (!planOrder.length) { alert('Please select at least one item.'); return; }
   var queue = [];
-  document.querySelectorAll('.plan-item').forEach(function(div){
-    if (!div.classList.contains('on')) return;
-    var rep = parseInt(div.querySelector('.rep-num').textContent) || 1;
-    queue.push({ id: div.dataset.id, type: div.dataset.id === 'words' ? 'words' : 'lesson', repeats: rep });
+  planOrder.forEach(function(id){
+    var div = document.querySelector('.plan-item[data-id="' + id + '"]');
+    var rep = div ? (parseInt(div.querySelector('.rep-num').textContent) || 1) : 1;
+    queue.push({ id: id, type: (LESSONS[id] && LESSONS[id].type === 'words') ? 'words' : 'lesson', repeats: rep });
   });
-  if (!queue.length) { alert('Please select at least one item.'); return; }
   savePlanSel();
   plan = { running:true, done:false, bookId:state.bookId, queue:queue, pos:0, rep:1 };
   planLoadCurrent();
@@ -2174,6 +2352,8 @@ function planLoadCurrent(){
   var lid = it.id;
   state = { view:'plan-run', bookId:plan.bookId, lessonId:lid };
   setBack('Plan', function(){ endPlan(); go('/' + plan.bookId + '/plan'); });
+  buildLessonNav(plan.bookId, lid);
+  applyLessonNavState();
   curIdx = -1;
   resetMarks();
   document.getElementById('startBtn').textContent = 'Stop';
@@ -2257,7 +2437,7 @@ window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.t
 window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
 window.startRecording = startRecording; window.stopRecording = stopRecording; window.toggleLessonComplete = toggleLessonComplete;
-window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep; window.exitFocus = exitFocus; window.backToFocus = backToFocus;
+window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep; window.exitFocus = exitFocus; window.backToFocus = backToFocus; window.toggleLessonNav = toggleLessonNav;
 var _stageEl = document.getElementById('stage');
 if (_stageEl) _stageEl.addEventListener('click', function(){
   if (isReading && !document.body.classList.contains('focus-mode')) enterFocus();
