@@ -381,12 +381,6 @@
         <button class="pill-btn" data-speed="1.2" onclick="setSpeed(1.2,this)">1.2×</button>
       </div>
       <div class="ctrl-group">
-        <span class="ctrl-label">Gap</span>
-        <button class="pill-btn" data-gap="1.0" onclick="setGap(1.0,this)">Short</button>
-        <button class="pill-btn active" data-gap="1.5" onclick="setGap(1.5,this)">Mid</button>
-        <button class="pill-btn" data-gap="2.0" onclick="setGap(2.0,this)">Long</button>
-      </div>
-      <div class="ctrl-group">
         <span class="ctrl-label">A</span>
         <button class="font-btn" onclick="decFont()">−</button>
         <button class="font-btn" onclick="incFont()">+</button>
@@ -1390,7 +1384,7 @@ var LESSONS = {
 /* ================= 全局状态 ================= */
 var state = { view:"shelf", bookId:null, lessonId:null };
 var allSent = [];
-var speed = 1.0, gapMul = 1.5, isReading = false, curIdx = -1;
+var speed = 1.0, isReading = false, curIdx = -1;
 var accent = 'uk', gender = 'f';
 var audio = document.getElementById('audioPlayer');
 var audioPhase = 'idle', audioPlayToken = 0, audioReadyTimer = null, audioStartTimer = null, audioRetryCount = 0;
@@ -1875,7 +1869,8 @@ audio.onended = function(){
     }
     return;
   }
-  var echoTime = calcEcho(allSent[curIdx].en);
+  var d = audio.duration;
+  var echoTime = (isFinite(d) && d > 0 ? d : 3) + 2; /* 跟读时长 = 本句录音时长 + 2s */
   updateStatus('echoing', 'Echo... (' + Math.ceil(echoTime) + 's)');
   showCountdown(echoTime);
   setTimeout(function(){
@@ -2056,7 +2051,6 @@ function clearRecording(){
 
 /* ================= UI 辅助 ================= */
 function setSpeed(s, b){ speed = s; audio.playbackRate = s; document.querySelectorAll('.pill-btn[data-speed]').forEach(function(x){ x.classList.remove('active'); }); b.classList.add('active'); }
-function setGap(g, b){ gapMul = g; document.querySelectorAll('.pill-btn[data-gap]').forEach(function(x){ x.classList.remove('active'); }); b.classList.add('active'); }
 function toggleTheme(){
   var c = document.documentElement.getAttribute('data-theme');
   var n = c === 'dark' ? '' : 'dark';
@@ -2100,7 +2094,6 @@ function incFont(){ _fontSize = Math.min(36, _fontSize + 1); applyFont(); }
 function decFont(){ _fontSize = Math.max(12, _fontSize - 1); applyFont(); }
 try { var sf = localStorage.getItem('readFont'); if (sf) { _fontSize = parseInt(sf) || 17; applyFont(); } } catch(e){}
 
-function calcEcho(text){ var w = text.split(/\s+/).length; return Math.max(2.5, (w * 0.45 + 1.5) * gapMul); }
 function showCountdown(sec){
   var o = document.getElementById('countdown');
   document.getElementById('countdownNum').textContent = Math.ceil(sec);
@@ -2434,7 +2427,7 @@ function endPlan(){
 route();
 
 window.toggleReading = toggleReading; window.toggleTheme = toggleTheme; window.toggleTrans = toggleTrans;
-window.setSpeed = setSpeed; window.setGap = setGap; window.onSentenceClick = onSentenceClick;
+window.setSpeed = setSpeed; window.onSentenceClick = onSentenceClick;
 window.incFont = incFont; window.decFont = decFont; window.setAccent = setAccent; window.setGender = setGender;
 window.startRecording = startRecording; window.stopRecording = stopRecording; window.toggleLessonComplete = toggleLessonComplete;
 window.startPlan = startPlan; window.planSkip = planSkip; window.togglePlanItem = togglePlanItem; window.changeRep = changeRep; window.exitFocus = exitFocus; window.backToFocus = backToFocus; window.toggleLessonNav = toggleLessonNav;
