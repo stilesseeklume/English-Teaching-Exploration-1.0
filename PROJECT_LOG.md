@@ -635,3 +635,10 @@ d29c166 注册登录改为用户名+密码
 - **移除 Gap 控件**：echo 固定后 Short/Mid/Long 失效，删除控件组及 `setGap`/`calcEcho`/`gapMul` 死代码；速度（0.8×/1.0×/1.2×）不受影响。
 - **单词模式不变**：仍是连读两遍、零间隔衔接（echo 只作用于课文句子）。
 - **验证**：Playwright 实测第一句 1.76s 音频 → echo 4s、第二句 4.67s → 7s（=时长+2s）；read-along 回归仍为 2 个已知历史遗留失败，零新增。
+
+## 2026-09-17 · 单词音标 + 全屏置顶 + Times New Roman
+
+- **单词全加英式音标**：6 个词表共 283 个单词注入 `ipa` 字段（UK 音标，保留重音/弱读音节）。单词卡片显示为「英文 + 音标 + 中文」，全屏舞台单词下也展示大号音标；句子/词组项不配音标。
+- **全屏文字置顶**：focus-mode 下 `.stage-box` 由垂直居中改为顶部对齐（`justify-content:flex-start`），`.stage` 顶部留 7vh 空隙，课堂学生平视即可看到当前词/句。
+- **全站 Times New Roman**：`--font-display` 与 `--font-body` 均改为 `'Times New Roman'` 衬线家族，中文回退宋体。
+- **验证**：Playwright 断言单词卡音标数量/格式、body font-family、focus 置顶 y<120px；read-along 回归零新增失败。
