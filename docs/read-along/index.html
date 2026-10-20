@@ -41,7 +41,7 @@
   [data-theme="dark"] .theme-toggle .icon-sun{display:inline;}
   [data-theme="dark"] .theme-toggle .icon-moon{display:none;}
 
-  main{max-width:780px;margin:0 auto;padding:32px 24px 100px;}
+  main{max-width:780px;margin:0 auto;padding:32px 24px 130px;}
   .view{display:none;animation:viewIn .35s ease;}
   .view.active{display:block;}
   @keyframes viewIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -294,6 +294,7 @@
   .queue-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
   .queue-btn:disabled{opacity:.35;cursor:default;}
 </style>
+<link rel="stylesheet" href="../shared/ui/dock.css">
 </head>
 <body>
 <header>
@@ -440,6 +441,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../shared/cloud.js"></script>
 <script src="../shared/gate.js"></script>
+<script src="../shared/ui/dock.js"></script>
 <script>
 /* ================= 数据：书架 → 课本 → 单元 → 课文 ================= */
 var BOOKS = [
@@ -1490,6 +1492,7 @@ function showShelf(){
   document.body.classList.remove('nav-open');
   state = { view:"shelf", bookId:null, lessonId:null };
   setBack('Home', function(){ location.href = '../index.html'; });
+  _syncDock('shelf');
   var grid = document.getElementById('shelfGrid');
   grid.innerHTML = '';
   BOOKS.forEach(function(b){
@@ -1514,6 +1517,7 @@ function showToc(bookId){
   if (!book) { go('/'); return; }
   state = { view:"toc", bookId:bookId, lessonId:null };
   setBack('Shelf', function(){ go('/'); });
+  _syncDock('shelf');
   document.getElementById('tocCoverImg').src = book.cover;
   document.getElementById('tocBookName').textContent = book.name + ' · ' + book.en;
   var total = book.units.reduce(function(n,u){ return n + u.lessons.length; }, 0);
@@ -1573,6 +1577,7 @@ function showPlayer(bookId, lessonId){
   var firstOpen = state.lessonId !== lessonId;
   state = { view:"player", bookId:bookId, lessonId:lessonId };
   setBack('Contents', function(){ go('/' + bookId); });
+  _syncDock('player');
   buildLessonNav(bookId, lessonId);
   applyLessonNavState();
   if (firstOpen) {
@@ -2242,6 +2247,7 @@ function showPlan(bookId){
   if (!book) { go('/'); return; }
   state = { view:'plan', bookId:bookId, lessonId:null };
   setBack('Contents', function(){ go('/' + bookId); });
+  _syncDock('plan');
   var saved = loadPlanSel();
   var items = planItems(bookId);
   var onMap = {};
@@ -2432,6 +2438,29 @@ function endPlan(){
   banner.classList.remove('show');
   document.getElementById('startBtn').textContent = 'Start Reading';
 }
+
+/* ================= 底部 Dock ================= */
+var _dock = (window.SeeklumeDock && window.SeeklumeDock.mount({
+  back: {
+    label: '返回上一页',
+    onClick: function(){
+      var b = document.getElementById('backLink');
+      if (b && typeof b.onclick === 'function') b.onclick();
+      else location.href = '../index.html';
+    }
+  },
+  home: '../index.html',
+  items: [
+    { key:'shelf',  icon:'📚', label:'书架', onSelect: function(){ go('/'); } },
+    { key:'plan',   icon:'☀',  label:'晨读', onSelect: function(){ if (state.bookId) go('/' + state.bookId + '/plan'); else go('/'); } },
+    { key:'player', icon:'🎧', label:'跟读', onSelect: function(){
+        if (state.bookId && state.lessonId) go('/' + state.bookId + '/' + state.lessonId);
+        else if (state.bookId) go('/' + state.bookId);
+        else go('/');
+      } }
+  ]
+})) || null;
+function _syncDock(key){ if (_dock) _dock.setActive(key); }
 
 /* ================= 初始化 ================= */
 route();

@@ -1,0 +1,127 @@
+/* docs/shared/ui/dock.css
+ *
+ * 全站底部 Dock（独立子页共用）。
+ * 语法/跟读/阅读课等独立页在 <head> 引入本文件即可；
+ * 由 docs/shared/ui/dock.js 负责装配 DOM，本文件只管样式。
+ *
+ * 依赖各页已有的设计令牌：--surface / --surface-3 / --border /
+ * --text / --text-2 / --text-3 / --accent / --accent-bg。
+ * 各页令牌命名一致（见 docs/reading、docs/read-along 的 :root），
+ * 因此同一份样式可同时服务多页。
+ */
+.sk-dock {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 6px 6px 8px;
+  background: var(--surface, #fff);
+  border: 0.5px solid var(--border, #e5e5ea);
+  border-radius: 20px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .10), 0 0 0 1px rgba(0, 0, 0, .04);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+}
+/* 玻璃感：支持 color-mix 的浏览器把底色压成半透明 */
+@supports (background: color-mix(in srgb, #fff 80%, transparent)) {
+  .sk-dock { background: color-mix(in srgb, var(--surface, #fff) 82%, transparent); }
+}
+[data-theme="dark"] .sk-dock {
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+
+.sk-dock-divider {
+  width: 0.5px;
+  background: var(--border, #e5e5ea);
+  margin: 8px 6px 12px;
+  align-self: stretch;
+}
+
+.sk-dock-item {
+  width: 46px;
+  height: 46px;
+  border: 0;
+  padding: 0;
+  border-radius: 13px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  color: var(--text-2, #6e6e73);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  transform-origin: bottom center;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .28s cubic-bezier(.22, .61, .36, 1), background .2s, color .2s;
+}
+.sk-dock-item:hover {
+  transform: scale(1.18);
+  background: var(--surface-3, #f0f0f2);
+  color: var(--text, #1d1d1f);
+}
+/* 相邻元素跟着放大（macOS Dock 手感） */
+.sk-dock-item:hover + .sk-dock-item { transform: scale(1.08); }
+.sk-dock-item:has(+ .sk-dock-item:hover) { transform: scale(1.08); }
+.sk-dock-item:active { transform: scale(.92); }
+
+/* 悬停标签 */
+.sk-dock-item::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3, #aeaeb2);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .18s ease;
+  pointer-events: none;
+  letter-spacing: .2px;
+}
+.sk-dock-item:hover::after { opacity: 1; }
+
+/* 当前激活项 */
+.sk-dock-item.active {
+  color: var(--accent, #0071e3);
+  background: var(--accent-bg, #f0f7ff);
+}
+.sk-dock-item.active::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent, #0071e3);
+}
+
+/* 返回项 */
+.sk-dock-back {
+  color: var(--accent, #0071e3);
+  font-size: 24px;
+  font-weight: 800;
+}
+.sk-dock-back:hover {
+  color: var(--accent, #0071e3);
+  background: var(--accent-bg, #f0f7ff);
+}
+
+/* 跟读全屏跟写模式时隐藏 Dock */
+body.focus-mode .sk-dock { display: none !important; }
+
+@media (max-width: 560px) {
+  .sk-dock { bottom: 10px; padding: 5px 5px 7px; border-radius: 17px; }
+  .sk-dock-item { width: 40px; height: 40px; font-size: 19px; border-radius: 11px; }
+}
