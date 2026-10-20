@@ -10,6 +10,8 @@
 //   switchPage(page)                   切换页面
 //   navigateHome(view)                 切换 home 子视图
 //   setKnowledgeView(view)             切换知识库视图
+//   openTextbookNote(key)              打开课本单元讲解页（首页单元卡片用）
+//   selectKnowledgeCategory(key, false) 选中知识库考点类目（首页教辅语法卡片用）
 //   getCurrentQuestionIndex()          当前题序号（共享访问器，留在 index.html 顶层）
 //   getPracticeContextSnapshot()       读练习上下文快照
 //   getSelectedQuestionSnapshot()      读选中题快照
@@ -53,6 +55,10 @@
         if (btn) btn.click();
       } else if (step.kind === 'set-knowledge-view') {
         _d.setKnowledgeView(step.view);
+      } else if (step.kind === 'open-textbook-note') {
+        if (_d.openTextbookNote) _d.openTextbookNote(step.key);
+      } else if (step.kind === 'select-knowledge-category') {
+        if (_d.selectKnowledgeCategory) _d.selectKnowledgeCategory(step.category, false);
       }
     }
     (plan.immediateSteps || []).forEach(runStep);
@@ -75,10 +81,32 @@
     var dashboardModel = window.GrammarHomeDashboardModel.buildDashboardModel({
       prepCount: prepCount,
       errorCount: errCount,
-      textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units
+      textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units,
+      textbookNotes: window.TEXTBOOK_GRAMMAR_NOTES || {},
+      fineTags: window.GRAMMAR_FINE_TAGS || {}
     });
-    var html = window.GrammarHomeRender.homeDashboardHtml(dashboardModel, { inlineHomeDashboardAction: inlineHomeDashboardAction });
+    var html = window.GrammarHomeRender.homeDashboardHtml(dashboardModel, {
+      inlineHomeDashboardAction: inlineHomeDashboardAction
+    });
     el.innerHTML = html;
+  }
+
+  // 首页第 2 级子视图：整页渲染一册的单元页（点封面进来；不是贴墙展开）。
+  function renderTextbookBookPage(bookKey, deps) {
+    _d = deps || _d;
+    var el = document.getElementById('homeDashboardContent');
+    if (!el) return;
+    var section = window.GrammarHomeDashboardModel.buildTextbookGrammarSectionModel(
+      window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units,
+      window.TEXTBOOK_GRAMMAR_NOTES || {}
+    );
+    var books = section.books || [];
+    var book = null;
+    books.forEach(function(item) { if (item.book === bookKey) book = item; });
+    if (!book) return;
+    el.innerHTML = window.GrammarHomeRender.textbookBookPageHtml(book, book.units, {
+      inlineHomeDashboardAction: inlineHomeDashboardAction
+    });
   }
 
   function getOrderedExams() {
@@ -180,6 +208,7 @@
     inlineHomeDashboardAction: inlineHomeDashboardAction,
     runHomeDashboardAction: runHomeDashboardAction,
     renderHomeDashboard: renderHomeDashboard,
+    renderTextbookBookPage: renderTextbookBookPage,
     getOrderedExams: getOrderedExams,
     renderClassroomSwitcher: renderClassroomSwitcher,
     navigateExam: navigateExam,

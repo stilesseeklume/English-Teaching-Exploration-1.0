@@ -642,3 +642,263 @@ d29c166 注册登录改为用户名+密码
 - **全屏文字置顶**：focus-mode 下 `.stage-box` 由垂直居中改为顶部对齐（`justify-content:flex-start`），`.stage` 顶部留 7vh 空隙，课堂学生平视即可看到当前词/句。
 - **全站 Times New Roman**：`--font-display` 与 `--font-body` 均改为 `'Times New Roman'` 衬线家族，中文回退宋体。
 - **验证**：Playwright 断言单词卡音标数量/格式、body font-family、focus 置顶 y<120px；read-along 回归零新增失败。
+
+## 2026-10-14 · 修复 main 分支基线检查三处历史遗留
+
+按 2026-06-15 日志记录的「门禁存量问题」清单逐一修复，目标 `npm run check` 全绿：
+
+- **模块注册**：`check_grammar_modules.py` 补登记 4 个未注册模块——`dashboard-model.js` 按纯模块契约登记进 EXPECTED_MODULES（12 个导出，零 DOM/storage，`window.GRAMMAR_FINE_TAGS` 读取不违反纯度规则）；`dashboard-render.js`、`dashboard-loop.js`、`error-book-v2.js` 使用 DOM/localStorage，登记进 CONTROLLER_MODULES。登记顺序与 `docs/grammar-fill/index.html` 实际脚本顺序一致。
+- **静态站检查**：删除 `check_static_site.sh` 中对 `docs/shared/error-book.js` 的语法检查——该文件从未入库（错题本 v2 逻辑在 `modules/error-book-v2.js`），属死引用。
+- **landing 冒烟测试**：`tests/smoke.spec.js` 的首页断言从旧版「进入语法填空」按钮更新为学生版首页实际入口「开始 Shadow Reading」+「语法专项练习」，与 2026-09-08 产品转向一致。
+- **验证**：`check_grammar_modules.py`（28 modules）、`check_static_site.sh` 单项通过；landing 冒烟测试单跑通过；完整 `npm run check` 见本次提交后状态。
+
+## 2026-10-14 · 全站登录门禁（gate.js）：功能页强制登录 + 注册审批制
+
+教材资源库/课文内容上线前的版权风控基建（详见 2026-10-14 访问控制方案讨论）：首页保持公开当门厅，所有功能页强制登录；新注册用户需管理员审批。**审批判定依赖的 `handle_new_user()` 回滚 SQL（恢复新用户默认 `approved=false`）需在 Supabase 控制台执行 `supabase/migrations/2026-05-17_open_signup.rollback.sql`，执行前新注册用户默认直接可用。**
+
+- **shared/gate.js（新建）**：全站统一门禁组件。状态机 loading → auth（全屏登录/注册表单，用户名或邮箱均可登录，样式内联注入、CSS 变量 + fallback 兼容三页与深色模式）→ pending（等待审批屏：显示用户名、30 秒轮询审批状态、手动刷新、退出登录）→ open（移除遮罩放行，派发 `seeklume-gate-open` 事件）。审批判定走 RPC `check_approved()`：false → 待审批屏；true / 无记录 / RPC 不可用 → 放行（老用户与异常场景不锁死）。本地模式（未配置 Supabase）自动跳过门禁。页面内退出登录时门禁自动重新落下。
+- **shared/cloud.js**：`init()` 改幂等（gate.js 与题型页都可能调用）；导出补漏 `usernameTaken`（gate.js 注册查重用）。
+- **read-along/index.html**：引入 config.js + supabase-js + cloud.js + gate.js（该页原先完全无认证）。
+- **grammar-fill/index.html**：在既有认证栈（cloud/auth-ui/admin-ui）之后挂 gate.js，可选登录改强制；原有 `?admin` 管理面板入口、viewAs、云同步逻辑不受影响。
+- **index.html（首页）**：登录用户头部新增"审批管理"按钮，仅 `state.isAdmin` 时渲染，直达 `./grammar-fill/?admin`（用户注册审批 / 管理面板继续暂住语法填空页，不搬走）。
+- **测试**：`tests/smoke.spec.js` 桩新增 `check_approved` RPC（默认放行、`__mockApproved` 可模拟待审批）；"auth sign-in/sign-out" 测试改走门禁表单登录流程；两个访客路径测试补登录会话 mock（`mockGateSession`）；新增 3 条门禁专项测试（read-along 游客见登录墙、待审批屏 + 审批通过放行、首页管理员按钮可见性）。`scripts/check_static_site.sh` 纳入 gate.js 存在性 + 语法检查。
+- **验证**：完整 `npm run check` 全绿（41 条冒烟测试 0 failed，个别负载相关 flaky 重试即过）；真实浏览器实测三页：跟读页/语法填空页游客见全屏登录墙（含注册切换）、首页公开无墙。
+
+## 2026-10-19 · 知识库新增「教材进度」视图（高一入口）
+
+起因：知识库现有视图（书本速查/知识地图）都是高三语法填空口径，高一「跟随教材单元进度」没有入口——源库《语法通霸》里有的内容（如"表将来的五种结构"）在站内被按考点重组、拆散在各小节，按教学主题查不到。本次先做低成本方案 A：复用已有教材单位数据，新增视图。
+
+- **教材进度视图**：`app.js` 新增 `renderTextbookMap()`，按 必修一→选必四 分册横条排布单元卡片（单元号 · topic · 中文语法点），点语法点直达对应知识。
+- **落点映射**：`maps_to` → `tags_by_id[id].category`；有书本速查内容的落 `selectKnowledgeCategory`；句子结构类（structure）落知识地图的 `sentence_elements` / `sentence_types` 节点；情态、特殊句式等暂无速查内容的只展示不跳转（半透明 + "暂无速查内容"）。
+- **入口接线**：`index.html` 增 `knowledgeTextbookBtn`；`knowledge-view-model.js` 的 `buildKnowledgeViewChromeModel` 放行 `textbook` 并加按钮；`app.js` / `app-state.js` 的视图白名单加 `textbook`。
+- **不新增模块导出**，沿用 `textbook_units`（7 册 35 单元）现有数据，无新数据文件。
+- **验证**：`check_grammar_modules.py`（28 modules）通过、`node --check` 三个改动文件通过、Playwright smoke 见本次提交后状态。`npm run test:unit` 2 个失败为历史遗留（`test/score-convert.test.js`、`test/hall-seating-manual.test.js` 引用了未入库的 `docs/score-analysis/score-convert.js`、`docs/hall-seating/hall-seating.js`），与本次改动无关。
+- **遗留**：必修一 Welcome/U1（句子结构/短语）与情态、特殊句式目前没有书本速查内容可落，后续按 unit 补「概念讲解层」（方案 B）。
+
+---
+
+## 2026-10-19 · 语法板块改版：从「语法填空」到「课本语法」（分队改，以必修一 U3 纵向切片验证）
+
+起因：教师反馈所引用的教辅内容与人教版课本实际进度并不吻合。核对后确认：`textbook_units` 的 `maps_to` 不仅存在非谓语三类（to-do / doing / done）大面积错绑，还有多处 tag 重复。据此把语法板块的定位从「高三应试口径的语法填空」改为「跟随人教版课本、结合教辅的综合语法学习体系」，采用分层改版（先验证）策略。
+
+### 层 1 · 用户可见命名（已完成）
+
+- `docs/grammar-fill/index.html`：`<title>`、header logo、欢迎文案、模块卡标题/描述由「语法填空 / 语法讲评」改为「课本语法」；tab「📚 教材进度」改为「📚 课本单元」；引入新数据脚本 `textbook_grammar_notes.js`。
+- `docs/index.html`（落地页）、`docs/privacy.html`、`docs/grammar-fill/modules/home-dashboard-model.js` 同步文案。
+- `tests/smoke.spec.js` 对应断言同步更新。
+- 技术路径 `docs/grammar-fill/`（目录 / URL / deploy / 测试 / localStorage key）按计划**不动**（层 3 后置）。
+
+### 数据底座修正：`docs/data/grammar_fine_tags.js`
+
+- `version 0.3.0 → 0.3.1`，`updated_at → 2026-10-19`，source 追加修正说明。
+- 修正 14 处 `maps_to` 错绑/重复：必修二 U1/U4/U5、必修三 U1/U2/U4、选必一 U3/U4、选必二 U2/U5、选必三 U4、选必四 U1/U2/U4。
+- 权威口径来源：人教版 7 册 PDF 文字层逐单元定位语法板块（印刷页 + PDF 页 + 板块任务名）；必修一 U3「反意疑问句」= 印刷 p39 / PDF p47。
+
+### 层 2 · 第一个纵向切片：必修一 U3 讲解层（已完成）
+
+- **新增数据** `docs/data/textbook_grammar_notes.js`：`window.TEXTBOOK_GRAMMAR_NOTES = { '必修一|U3': {...} }`，含课本口径的 概念 / 组成 / 功能 / 回答 / 读法 + 6 条课本原句 + 教辅深化（语法通霸 16.01 五组考点）+ 课本练习参考答案（标注「非官方答案册」）。刻意与高三应试口径的 `KNOWLEDGE_DATA`（书本速查）分离，不污染。
+- **渲染** `app.js`：新增模块级 `_expandedTextbookUnit` + `toggleTextbookNote(key)` + `_textbookNoteHtml(note)`，在 `renderTextbookMap()` 中可**就地展开**（不新增视图、不动视图白名单 / chrome model / back 机制）。单元卡片标签过滤掉与正文重复项（如 U3 的「反意疑问句」）。
+- **样式** `styles.css`：追加 `.tb-note-btn` / `.tb-note-panel` / `.tb-note-head` / `.tb-note-block` / `.tb-note-ex` / `.tb-note-caveat` 等。
+- **测试** `tests/smoke.spec.js`：新增「必修一U3 讲解面板可就地展开，标签不与正文重复」断言。
+
+### 验证
+
+- `python3 scripts/check_grammar_modules.py` → `OK: grammar-fill module contracts valid (28 modules)`
+- `node --check`：`app.js` / `grammar_fine_tags.js` / `textbook_grammar_notes.js` 通过
+- `npm run test:smoke` → **41 passed**（1 条 flaky 为「班级工作台」测试抖动，与本改动无关）
+
+### 遗留 / 下一步
+
+- 层 2 信息架构骨架：tab 精简为「课本单元」（主线）+「考点速查」（应试），待 U3 验证通过后再做。
+- 按 U3 模板铺开其余单元讲解层（Welcome/U1 句子结构、情态、特殊句式等目前仍无讲解数据）。
+
+*此日志随项目推进持续更新。最后更新：2026-10-19*
+
+---
+
+## 2026-10-20 · U3 讲解层改版：就地展开 → 独立讲解页 + 大量课本原书截图
+
+起因：教师本地预览后提出两点。①讲解以「就地展开的下拉面板」呈现很违和，应改为点整张单元卡片进入独立讲解页；②讲解应**大量使用课本原书截图**。截图版权经教师当面确认无问题（仅课堂使用、不对外售卖），据此按「大量截图」执行。
+
+### 移除「就地展开」
+
+- `docs/grammar-fill/app.js`：删除模块级 `_expandedTextbookUnit`、`toggleTextbookNote(key)`、`_textbookNoteHtml(note)`，以及 `renderTextbookMap()` 内的 `.tb-note-btn` / `.tb-note-panel` 渲染与 `bandNote` 拼装。
+- `docs/grammar-fill/styles.css`：删除 `.tb-note-*` 样式段，替换为独立讲解页样式（见下）。
+
+### 新增视图 `textbook-node`（点整卡进入）
+
+- `docs/grammar-fill/modules/app-state.js`：`normalizeKnowledgeView` 白名单加入 `textbook-node`；`getDockBackLabel` 加「返回课本单元」；`getDockBackAction` 加 `{ type: 'knowledge-textbook' }`。
+- `docs/grammar-fill/modules/knowledge-view-model.js`：`buildKnowledgeViewChromeModel` 支持 `textbook-node` —— `routeView` 归一为 `textbook`（保证「课本单元」tab 高亮、侧栏收起），但 `renderAction` 保留 `textbook-node` 以分派到新渲染函数。
+- `docs/grammar-fill/app.js`：把 `setKnowledgeView()` 内的按钮/侧栏/分派逻辑抽成 `_renderKnowledgeRoute(view)`，新增 `openTextbookNote(key)` 与 `renderTextbookNode(key)`；`_renderKnowledgeRoute` 增加 `renderAction === 'textbook-node'` 分支；`handleDockBack()` 增加 `knowledge-textbook` 分支（回到课本单元列表）。
+- 整卡可点：`renderTextbookMap()` 对**有讲解数据**的卡片挂 `tb-card-link` + `onclick` + `role="button" tabindex="0" onkeydown`；卡片内语法点标签加 `event.stopPropagation()` 避免误触；卡片底部加 `.tb-card-cta`（「📖 点卡片 · 看课本讲解 →」）作可见affordance。
+
+### 课本原书截图（6 张局部图）
+
+- 从 `private/教材/人教版·英语必修 第一册.pdf` 以 `pdftoppm -r 150` 裁切，输出到 `docs/assets/textbook/bx1/`：
+  - `u3-tag-appendix-1.png` / `u3-tag-appendix-2.png` —— 课本语法附录 **印刷 p109**「III Tag Questions 附加疑问句」：组成四类对照表 / 回答与读法。
+  - `u3-tag-conversations.png` / `u3-tag-drill.png` / `u3-tag-scene.png` —— 课本正文 **印刷 p40** Discovering Useful Structures 的任务 1 / 2 / 3。
+  - `u3-tag-intonation.png` —— 课本正文 **印刷 p37** Pronunciation 的升调/降调对话。
+- 单张 80–350KB，合计约 960KB；均只裁切语法相关板块，不含整页搬运。
+- `docs/data/textbook_grammar_notes.js`：新增 `shots: [{ src, title, note }]` 字段；同时修正 `source.print` 由 39 → 40（语法板块实际落在印刷 p40，39 为前一页）。
+- `docs/grammar-fill/app.js`：新增 `_textbookShotsHtml(note)`，在讲解页顶部渲染「课本原书 · 原题截图」区（`figure` + `figcaption` + `img[loading=lazy]`）。
+
+### 样式
+
+- `docs/grammar-fill/styles.css`：新增 `.tb-card-link`（hover/focus-visible）、`.tb-card-cta`、`.tb-page` / `.tb-page-head` / `.tb-page-en` / `.tb-page-meta` / `.tb-page-lead`、`.tb-sec` / `.tb-sec-title` / `.tb-sec-hint`、`.tb-shots` / `.tb-shot` / `.tb-shot-cap` / `.tb-shot-img`、`.tb-sub`、`.tb-ex` / `.tb-ex-en` / `.tb-ex-zh`、`.tb-caveat`。
+
+### 测试
+
+- `tests/smoke.spec.js`：原「必修一U3 讲解面板可就地展开」用例改写为「点整卡进入 U3 独立讲解页，含课本原书截图，可返回」——断言 `.tb-page` 可见且含关键文案、`.tb-shot-img` 共 6 张、首图 `src` 指向 `assets/textbook/bx1/u3-tag-appendix-1.png`、`#dockBackBtn` 的 `data-label` 为「返回课本单元」且点击后回到课本单元列表。
+
+### 验证
+
+- `python3 scripts/check_grammar_modules.py` → `OK: grammar-fill module contracts valid (28 modules)`
+- `bash scripts/check_static_site.sh` → `OK: static site release checks passed`
+- `node --check`：`app.js` / `modules/app-state.js` / `modules/knowledge-view-model.js` / `textbook_grammar_notes.js` 通过
+- `npm run test:smoke` → **42 passed**
+
+### 遗留 / 下一步
+
+- 按 U3 模板铺开其余单元讲解层与对应课本截图（Welcome/U1 句子结构、情态、特殊句式等仍无讲解数据）。
+- 层 2 信息架构骨架：tab 精简为「课本单元」（主线）+「考点速查」（应试）。
+- 本轮改动**未提交 / 未推送**，等教师本地验收。
+
+*此日志随项目推进持续更新。最后更新：2026-10-20*
+
+---
+
+## 2026-10-20 · 首页改版（骨架）：语法填空主页 → 语法主阵地
+
+起因：教师预览 `page-home` 后指出「这还是语法填空主导，语法填空要退到其中一个功能，这里是语法主阵地，核心是书本语法以及教辅的语法」。确认三件事：①直接改造现有首页（不新建独立页）；②语法填空只留一个「练习」入口，讲卷工具（精选题库/导入试题/考点画像/导入成绩）收进「教学工具」分组；③本轮**先只改首页骨架、不填内容**。与本仓库既有方向一致（`docs/planning/2026-09-08-...md`：「语法填空保留为专项练习，不再是产品主线」）。
+
+### 首页三段骨架
+
+- `docs/grammar-fill/modules/home-dashboard-model.js`：
+  - `getHeroModel` 去掉「今天讲哪份卷子？」与「导入成绩/考点画像」的主导叙述，改为定位句「课本语法 + 教辅语法」。
+  - 删除 `getCoreActions` / `getToolActions` / `getTextbookGallery` / `getTextbookSectionModel`（旧的封面装饰墙与「教材映射重做中」）。
+  - 新增 `buildTextbookGrammarSectionModel(textbookUnits, noteIndex)`：按 7 册分组、36 单元，逐单元给 `unitLabelText / topicText / grammarText / ready / statusText`，册封面走既有 `COVER_MAP`；新增 `buildGrammarIndexSectionModel(fineTags)`：`GRAMMAR_FINE_TAGS.categories` 13 类 / 57 考点，带《语法通霸》章节来源；新增 `getToolGroups(activity)`：练习（唯一练习入口「语法填空 · 练习」）+ 速查（知识库）+ 教学工具（导入试题 / 我做过的题 / 导入成绩 / 考点画像）。
+  - `buildDashboardModel` 返回结构改为 `hero / textbookSection / indexSection / toolSection`。
+- `docs/grammar-fill/modules/home-render.js`：`homeDashboardHtml` 输出 hero → ①课本语法（每册一条 book band：封面缩略图 + 单元卡片网格，卡片显示单元/话题/语法点 + 「已有讲解｜整理中」）→ ②教辅语法（13 张类目卡）→ ③工具（分组标题 + 按钮）。新增 `sectionHeaderHtml` / `unitCardHtml` / `categoryCardHtml`。
+- `docs/grammar-fill/modules/home-dashboard.js`：`renderHomeDashboard` 传入 `textbookNotes: window.TEXTBOOK_GRAMMAR_NOTES` 与 `fineTags: window.GRAMMAR_FINE_TAGS`；`runHomeDashboardAction` 增加 `open-textbook-note` / `select-knowledge-category` 两个 step。
+
+### 新动作：点卡片进独立页
+
+- 模型新增 action：`open-textbook-unit`（立即 `switch-page knowledge`，延迟 `open-textbook-note`）与 `open-knowledge-category`（立即 `switch-page knowledge` + `set-knowledge-view book`，延迟 `select-knowledge-category`）。
+- 顺序原因：`switchPage('knowledge')` 内部会把视图重置成 `map`，所以必须「先切页、再设视图/选中」。
+- `docs/grammar-fill/app.js`：`homeDashboardDeps()` 补 `openTextbookNote` / `selectKnowledgeCategory`。
+
+### 无讲解单元不再死路
+
+- `app.js`：`openTextbookNote` 去掉「无讲解直接 return」的守卫；新增 `_textbookUnitFor(key)` 与 `_textbookPendingHtml(unit)`；`renderTextbookNode` 在无讲解时渲染占位页（单元语法点 + 考点入口 chips + 回到课本进度）；`renderTextbookMap` 让 36 张卡片**全部可点**（CTA 文案按有无讲解区分）。
+
+### 文案 / 门面
+
+- `docs/grammar-fill/index.html`：dock 第 1 项 `data-label` 由「语法填空主页」改为「语法主页」。
+
+### 测试
+
+- `scripts/check_grammar_modules.py`：`home-dashboard-model` 契约改为 `buildTextbookGrammarSectionModel / buildGrammarIndexSectionModel / getToolGroups`（移除 `getTextbookGallery`）。
+- `tests/smoke.spec.js`：dashboard 模型断言改写为三段结构（36 单元 / 13 类 57 考点 / 工具 3 组，共 6 个工具按钮）、新增两个新 action 的 plan 断言；`home-render pure html output` 用例改为断言三段骨架与 3 个 `DASH:` 动作。
+- `docs/planning/knowledge-taxonomy.md`：补「首页落点：两条轴并列为语法主阵地」一节，把首页三段对齐到既有「教材单元轴 / 语法通霸考点轴」。
+
+### 验证
+
+- `python3 scripts/check_grammar_modules.py` → `OK: grammar-fill module contracts valid (28 modules)`
+- `npx playwright test tests/smoke.spec.js --project=chromium -g "grammar-fill core path renders|home-render pure html output"` → **2 passed**
+- 本地 8787 预览逐项核对 13 项全通过：36 张单元卡 / 13 张类目卡 / 点 U3 进独立讲解页 / 点未整理单元进占位页 / 点类目进「书本速查」并高亮 / 练习入口进套卷网格 / dock 文案已是「语法主页」。
+- 注意：两处 emoji（📖 / 📥）在写入 `home-dashboard-model.js` 时被工具写成替换字符，已按码位修复（现值 U+1F4D6 / U+1F4E5）。
+
+### 遗留 / 下一步
+
+- 本轮只做骨架，未填内容；其余 34 单元的讲解层与课本原书截图待铺开。
+- 待教师验收后再定：教辅类目卡是否改成更聚焦的类目页、课本语法是否加册级 tab。
+- 本轮改动**未提交 / 未推送**，等教师本地验收。
+
+## 2026-10-20 · U3 讲解页重构：课本板块骨架 + 课本↔教辅逐条对照 + 整页/放大双图
+
+起因：教师看独立讲解页后追问「怎么展示更能让学生理解？课本怎么展示，教辅呢，能结合吗」，并指出课本单元列表里「必修一和 U3 卡片分开了，应该是包含关系」。经两轮确认，方案锁定：**以课本板块顺序为骨架**；每个板块开头先给**整页原书图**，板块内部做「**左课本原句 ↔ 右教辅批注**」逐条对照，教辅深化贴在**对应板块之后**，最后放课本练习 + 参考答案；截图粒度 = **整页 + 关键句放大**；使用场景 **投影 + 手机都要**（响应式）。
+
+### 数据层：平铺 → 板块化
+
+- `docs/data/textbook_grammar_notes.js`：U3 由 `blocks / examples / deeper`（平铺）改为 `sections`（6 个板块，按课本顺序标号 ①–⑥）+ `drills`。每板块 = `{ title, shots, book, compare, aid }`：
+  - `shots` 里用 `kind: 'page' | 'zoom'` 区分整页图与关键句放大图。
+  - `compare` 逐条 = `{ en, zh, aid }`（左课本原句 / 右教辅批注）。
+  - `aid` = 教辅深化（语法通霸 16.01 的三组规则贴到 ②组成；I/we think 宾语从句、need/dare/used to 贴到 ⑥）。
+- 截图扩到 **9 张**（`docs/assets/textbook/bx1/`，共约 2.5MB）：新增 3 张整页 `u3-p109-page.png` / `u3-p40-page.png` / `u3-p37-page.png`，加原有 6 张局部图。
+
+### 渲染层重写
+
+- `docs/grammar-fill/app.js`：`renderTextbookNode()` 改为消费 `note.sections` —— 页头（标题 + meta + 一句话定位 + **板块 TOC chips**）→ 引导语 → 逐板块 `.tb-block`（板块标题 → `.tb-shots` → 「课本怎么说」→ 「课本原句 ↔ 教辅批注」→ 教辅深化）→ 练习板块（题图 + 参考答案）。新增 `_tbShotHtml` / `_tbCompareHtml` / `_tbAidHtml` / `_tbSectionHtml`；整页图外层包 `<a target="_blank">`，点开看原图。
+- **踩坑**：页面有全局 `header { display:flex; height:52px; position:sticky }` 顶栏样式，讲解页里用 `<header class="tb-page-head">` 会被当成 flex 顶栏，四个子元素被排成一行。已把 `.tb-page-head` / `.tb-block-head` 全部改成 `<div>`。
+- `docs/grammar-fill/styles.css`：替换旧 `.tb-sec/.tb-ex` 段，新增 `.tb-toc` / `.tb-block` / `.tb-shot-badge` / `.tb-compare-row` / `.tb-aid` 等；`.tb-compare-row` 宽屏 `grid-template-columns: 1fr 1fr`，`@media (max-width:720px)` 塌成上下堆叠。
+- `renderTextbookMap()`：册改成明显的**父容器** —— `.tb-book-band` + 封面缩略图（`TB_BOOK_COVER`）+ 册名 + 「N 个单元 · 点卡片看课本原书讲解与截图」，`必修一 ⊃ U3` 不再看起来像并列。
+
+### 测试
+
+- `tests/smoke.spec.js`：课本语法用例改为按新结构断言 —— 必修一 band 含封面、卡片嵌在 band 内；点卡后 `.tb-block` 7 个（6 板块 + 1 练习）、`.tb-compare-row` 13 条、`.tb-aid` 2 个、`.tb-shot--page` 3 张、`.tb-shot-img` 9 张、首图 = `u3-p109-page.png`、整页图 `target="_blank"`；返回仍回课本单元列表。
+
+### 验证
+
+- `python3 scripts/check_grammar_modules.py` → `OK: grammar-fill module contracts valid (28 modules)`
+- `bash scripts/check_static_site.sh` → `OK: static site release checks passed`
+- `npm run test:smoke` → **42 passed**
+- 本地截图目视核对：1440px 下页头/板块/对照两栏正常，390px 下对照行正确堆叠；必修一 ⊃ U3 包含关系清晰。
+
+### 遗留 / 下一步
+
+- 本轮只做必修一 U3 一个切片；其余 34 单元的 `sections` 与截图待铺开。
+- 本轮改动**未提交 / 未推送**，等教师本地验收。
+
+## 2026-10-20 · 反转「无讲解单元不再死路」：只开放 B1U3，其余标「待开放」
+
+教师反馈「目前课本仅开放 B1U3 的语法，其余的都显示待开放」，撤回上一轮的「36 张卡片全部可点 + 占位页」做法。
+
+- `app.js`：删掉 `_textbookUnitFor` 与 `_textbookPendingHtml`（占位页），`renderTextbookNode` 无讲解时直接回列表；`openTextbookNote` 恢复无讲解守卫。`renderTextbookMap` 改为 —— 有讲解的卡 = `.tb-card-link`（可点，CTA「📖 点卡片 · 看课本讲解 →」）；无讲解的卡 = `.tb-card-locked`（置灰虚线框、不可点、内部语法点标签也不可点），只挂 `.tb-card-locked-badge`「🔒 待开放」。
+- 册标题条文案改为「N 个单元 · 已开放 M 个」；页头说明改为「目前 **必修一 U3** 已开放…其余陆续开放」。
+- `styles.css`：新增 `.knowledge-node-card.tb-card-locked`（`cursor:default` / `opacity:.62` / `border-style:dashed`）与 `.tb-card-locked-badge`。
+- `tests/smoke.spec.js`：新增断言 —— 必修一里 `.tb-card-link` 1 张、其余 `.tb-card-locked` 且含「待开放」；点待开放卡不跳转，仍停在课本单元列表。
+
+## 2026-10-20 · 课本单元入口改成「7 册封面墙」门厅
+
+教师反馈上一版（每册一条 band + 册名条 + 单元卡网格）「有点丑」，经确认选定：**入口形态 = 7 册大封面一面墙（封面当主角、文字很小）**，交互 = **点封面 → 上下展开该册单元 → 点单元 → 跳独立讲解页**（不回到就地展开）。
+
+- `app.js`：`renderTextbookMap()` 重写为「封面墙 + 展开面板」两段式。
+  - 新模块级状态 `_tbOpenBook`（当前展开的册，空串=全收起，默认收起）+ `toggleTextbookBook(book)`（点封面展开/再点收起）。
+  - 抽出 `_tbUnitCardHtml(unit)`（单元卡，含 `.tb-card-link` / `.tb-card-locked` 两态）与 `_tbOpenedCount(units)`。
+  - `.tb-wall` = 7 个 `.tb-cover-card`（大封面 `.tb-cover-img` + 册名 + 「已开放 N 个 / 待开放」）；选中册加 `.is-open` 高亮。下方 `.tb-book-panel` 展开该册单元卡网格。
+- `styles.css`：删掉上一版的 `.tb-book-band`，新增 `.tb-wall-head` / `.tb-wall` / `.tb-cover-card`（hover 上浮 + focus-visible）/ `.tb-cover-img`（`aspect-ratio:3/4`）/ `.tb-cover-name` / `.tb-cover-count` / `.tb-book-panel`；保留 `.tb-book-head` / `.tb-book-cover` 给面板用。
+- `tests/smoke.spec.js`：断言改为 —— 7 张 `.tb-cover-card`、默认无 `.tb-book-panel`；点必修一封面 → 面板展开、1 张可点 + 其余待开放；再点收起；点待开放卡不跳转；从讲解页返回仍是 7 张封面墙。
+
+验证：`npm run test:smoke` **42 passed**、`check_grammar_modules` 28 modules OK、`check_static_site` OK。1440px 下 7 封面一排、390px 下 2×N 折行，均正常。
+
+## 2026-10-20 · 课本这条线整体归首页，知识库不再管课本
+
+教师发现「课本语法」在首页与知识库各有一份渲染，重复了；经确认选择「整体归首页」。
+
+**首页（`docs/grammar-fill/`）**
+- `modules/home-render.js`：textbook 段从「每册一条 band + 单元卡网格」改成 **7 册封面墙** `.tb-wall`（7 个 `.tb-cover-card`：大封面 + 册名小字 + 「已开放 N 个 / 待开放」），默认全收起；点封面在该册加 `.is-open` 并在墙下渲染 `.tb-book-panel`（小封面 + 册名 + `metaText` + 单元卡网格）。`unitCardHtml` 拆成两态：可点单元走原 `inlineHomeDashboardAction`；不可点单元渲染成 `<div>` + 「🔒 待开放」。
+- `modules/home-dashboard.js`：新增模块级 `_homeOpenBook` + 全局 `toggleHomeTextbookBook(book)`（点封面展开/再点收起，同时只展开一册）；`renderHomeDashboard` 在 `_homeNoteKey` 有值时改渲染讲解页。
+- `modules/home-dashboard-model.js`：`open-textbook-unit` 的执行计划去掉「先切知识库页」，改为直接 `open-textbook-note`；`buildTextbookGrammarSectionModel` 的说明文案改为「点封面展开这册的单元，点单元进讲解页……目前只有必修一 U3 开放，其余标「待开放」」。
+- `app.js`：讲解页宿主从知识库 `#knowledgeContent` 搬到首页 `#homeDashboardContent`；`openTextbookNote(key)` 挂 `_homeNoteKey` → 切首页 → 渲染；`switchPage('home')` 重置回 dashboard（避免从讲解页点 dock 🏠 又看到讲解页）。
+
+**知识库（减法）**
+- 去掉「课本单元」tab（`index.html` 的 `#knowledgeTextbookBtn` + `knowledge-view-model.js` 的按钮项）、`textbook`/`textbook-node` 视图路由与 `renderTextbookMap` 及配套（`_tbUnitCardHtml`/`_tbOpenedCount`/`_tbOpenBook`/`toggleTextbookBook`/`TB_BOOK_COVER`/`TEXTBOOK_BOOK_ORDER`/`_textbookUnitTargets`）。
+- `app-state.js`：`normalizeKnowledgeView` 去掉两个课本视图，`normalizeHomeView` 接受 `'textbook-note'`；dock 返回标签改为「返回课本墙」（删掉原 `currentKnowledgeView === 'textbook-node'` 的「返回课本单元」/`{type:'knowledge-textbook'}` 与 `handleDockBack` 对应分支）。
+- 知识库现在只剩：书本速查 / 知识地图 / 图谱 / 文字。
+
+**验证**：`npm run test:smoke` **42 passed**、`check_grammar_modules` 28 modules OK、`check_static_site` OK。Playwright 端到端实测：首页 7 封面默认收起 → 点必修一展开 1 面板（1 可点 + 5 待开放）→ 点 U3 讲解页渲染在 `#homeDashboardContent`（知识库容器内 0）→ dock 返回标签「返回课本墙」→ 回到封面墙；从讲解页点 dock 🏠 不留讲解页；知识库 tab 栏已无「课本单元」。本轮仍未提交 / 未推送。
+
+## 2026-10-20 · 封面墙交互定为「三级跳页」（否决 inline 展开）
+
+教师试用后否决上一版的「点封面 → 墙下展开面板」（原话：「必修一点不进去」「我希望是点进去跳转而不是下面出现」）。改为整页跳转，三级都无 inline 展开：
+
+- **第 1 级 封面墙**：7 张封面，无展开。点封面 → `openHomeTextbookBook(book)`（`app.js`，全局），设 `_homeBookKey`。
+- **第 2 级 册单元页**：`modules/home-render.js` 新增导出 `textbookBookPageHtml(book, units, deps)`（整页：面包屑「← 📚 课本语法 · 人教版 / 必修一」+ 封面缩略图 + 册名 + `metaText` + 单元卡网格），由 `modules/home-dashboard.js` 的 `renderTextbookBookPage(bookKey, deps)` 调度。
+- **第 3 级 单元讲解页**：沿用 `openTextbookNote(key)` → `renderTextbookNode()`，渲染进 `#homeDashboardContent`；`openTextbookNote` 保留 `_homeBookKey`，所以返回能落回第 2 级。
+- **视图状态**：`app-state.js` 的 `currentHomeView` 现有 `'cards' | 'textbook-book' | 'textbook-note'` 三态；`renderHomeDashboard()` 按 `_homeNoteKey` → `_homeBookKey` → dashboard 三级分派；`switchPage('home')` 离开子视图时清两个 key，保证点 dock 🏠 一定回封面墙。
+- **dock 返回**：讲解页 → 「返回课本单元」（`{type:'home-textbook-book'}`）；册单元页 → 「返回课本墙」（`{type:'home-view', view:'cards'}`）。
+- **删除**：`_homeOpenBook` / `toggleHomeTextbookBook` / `.tb-book-panel` / `.is-open` 全部清掉（不留兜底）。`styles.css` 新增 `.tb-book-page` / `.tb-book-crumb`。`check_grammar_modules.py` 补 `textbookBookPageHtml` 导出登记。
+
+**验证**：Playwright 端到端实测三级链路 —— 墙(7 封面/0 面板) → 点必修一(墙消失，整页 6 单元卡：1 可点 + 5 待开放，返回「返回课本墙」) → 点 U3(讲解页 1，返回「返回课本单元」) → 返回一次回册单元页 → 返回两次回封面墙 → dock 🏠 回封面墙。`npm run test:smoke` **42 passed**（并行跑时 `formatCountBadge` / 决策地图两条曾超时，单跑 1.6–4.1s 全绿，属 flaky）。`check_grammar_modules` 28 modules OK、`check_static_site` OK。未提交 / 未推送。
+
+*此日志随项目推进持续更新。最后更新：2026-10-20*

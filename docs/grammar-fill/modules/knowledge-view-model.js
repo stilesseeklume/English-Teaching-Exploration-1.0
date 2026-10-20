@@ -929,6 +929,7 @@
   function buildKnowledgeViewChromeModel(view, options) {
     options = options || {};
     var routeView = view;
+    var renderAction = view;
     if (routeView === 'map-node') routeView = 'map';
     if (routeView === 'system-node') routeView = 'system';
     if (
@@ -939,6 +940,7 @@
     ) {
       routeView = 'book';
     }
+    renderAction = routeView;
     var buttons = [
       { view: 'map', elementId: 'knowledgeMapBtn' },
       { view: 'book', elementId: 'knowledgeBookBtn' },
@@ -956,7 +958,7 @@
       routeView: routeView,
       buttons: buttons,
       sidebarVisible: routeView === 'book',
-      renderAction: routeView,
+      renderAction: renderAction,
       bookKey: options.currentKey || fallbackKey,
       isPattern: !!options.currentIsPattern
     };

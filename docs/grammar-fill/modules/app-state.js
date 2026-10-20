@@ -431,7 +431,7 @@
   }
 
   function normalizeHomeView(view) {
-    if (view === 'exams' || view === 'categories') return view;
+    if (view === 'exams' || view === 'categories' || view === 'textbook-note' || view === 'textbook-book') return view;
     return 'cards';
   }
 
@@ -591,6 +591,8 @@
   function getDockBackLabel(values) {
     values = values || {};
     if (values.drawerReturnTo) return values.drawerReturnTo.label || '返回上一步';
+    if (values.activePage === 'home' && values.currentHomeView === 'textbook-note') return '返回课本单元';
+    if (values.activePage === 'home' && values.currentHomeView === 'textbook-book') return '返回课本墙';
     if (values.activePage === 'home' && values.currentHomeView !== 'cards') return '返回主页';
     if (values.activePage === 'practice') return getPreviousViewLabel(values.previousView);
     if (values.activePage === 'knowledge' && values.currentKnowledgeView === 'map-node') return '返回知识地图';
@@ -601,6 +603,9 @@
   function getDockBackAction(values) {
     values = values || {};
     if (values.drawerReturnTo) return { type: 'drawer-return' };
+    if (values.activePage === 'home' && values.currentHomeView === 'textbook-note') {
+      return { type: 'home-textbook-book' };
+    }
     if (values.activePage === 'home' && normalizeHomeView(values.currentHomeView) !== 'cards') {
       return { type: 'home-view', view: 'cards' };
     }

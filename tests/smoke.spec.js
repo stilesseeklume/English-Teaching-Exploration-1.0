@@ -123,6 +123,14 @@ const SUPABASE_STUB = `
           rpc: function(name, args){
             if (name === 'username_taken') return ok(false);
             if (name === 'get_email_by_username') return ok((args && args.uname ? args.uname : 'login-teacher') + '@example.com');
+            if (name === 'check_approved') {
+              // 登录门禁审批状态：默认放行，测试可用 __mockApproved 模拟待审批
+              // （不走 ok()：ok 的 data||null 会把 false 吞成 null）
+              return Promise.resolve({
+                data: window.__mockApproved === undefined ? true : !!window.__mockApproved,
+                error: null
+              });
+            }
             if (name === 'admin_list_users') {
               return window.__mockIsAdmin
                 ? ok(window.__mockAdminUsers || [])
@@ -225,13 +233,26 @@ async function fillAuthCredentials(page, email, password) {
   await expect(page.locator('#authPassword')).toHaveValue(password);
 }
 
+// 仅注入已登录会话（不带数据行）：功能页已上登录门禁，
+// 原访客路径的测试需先过门禁再操作页面
+async function mockGateSession(page) {
+  await page.addInitScript(() => {
+    window.__mockSupabaseUser = {
+      id: 'smoke-gate-user',
+      email: 'smoke.gate@example.com',
+      user_metadata: { username: 'gate-user' }
+    };
+  });
+}
+
 test('landing and privacy pages load', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
 
   await page.goto('/docs/');
   await expect(page).toHaveTitle(/Seeklume/);
   await expect(page.getByText('Seeklume', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /进入语法填空/ }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /开始 Shadow Reading/ }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /课本语法/ }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: /隐私说明/ })).toBeVisible();
 
   await page.goto('/docs/privacy.html');
@@ -244,11 +265,12 @@ test('landing and privacy pages load', async ({ page }) => {
 
 test('grammar-fill core path renders and opens teaching stage', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
+  await mockGateSession(page);
 
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
   await expect(page.locator('#page-home')).toHaveClass(/active/);
-  await expect(page.locator('#homeDashboardContent')).toContainText(/语法填空/);
+  await expect(page.locator('#homeDashboardContent')).toContainText(/课本语法/);
   await expect(await page.evaluate(() => {
     window.toggleCompact();
     return document.body.classList.contains('compact')
@@ -1362,13 +1384,17 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       prepCount: 0,
       errorCount: 0,
       hour: 9,
-      textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units
+      textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units,
+      textbookNotes: window.TEXTBOOK_GRAMMAR_NOTES || {},
+      fineTags: window.GRAMMAR_FINE_TAGS || {}
     });
     var activeDashboard = homeModel && homeModel.buildDashboardModel({
       prepCount: 2,
       errorCount: 3,
       hour: 19,
-      textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units
+      textbookUnits: window.GRAMMAR_FINE_TAGS && window.GRAMMAR_FINE_TAGS.textbook_units,
+      textbookNotes: window.TEXTBOOK_GRAMMAR_NOTES || {},
+      fineTags: window.GRAMMAR_FINE_TAGS || {}
     });
     var modulesGreetingLate = homeModel && homeModel.getModulesGreeting(23);
     var modulesGreetingWithName = homeModel && homeModel.buildModulesGreetingText('Smoke Teacher', 10);
@@ -1390,6 +1416,14 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var unknownActionPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
       type: 'unknown',
       value: 'x'
+    });
+    var textbookUnitPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
+      type: 'open-textbook-unit',
+      value: '必修一|U3'
+    });
+    var knowledgeCategoryPlan = homeModel && homeModel.buildDashboardActionExecutionPlan({
+      type: 'open-knowledge-category',
+      value: 'predicate'
     });
     var categoryStatsModel = knowledgeModel && knowledgeModel.buildCategoryStatsModel(
       { mode: 'exam' },
@@ -2271,30 +2305,42 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && contextSidebarModel && contextSidebarModel.kind === 'exam-groups'
       && newUserDashboard && newUserDashboard.activity.isNewUser === true
       && newUserDashboard.activity.greeting === '早上好'
-      && newUserDashboard.hero && newUserDashboard.hero.titleText.indexOf('语法填空讲评工作台') !== -1
-      && newUserDashboard.coreActions.length === 2
-      && newUserDashboard.coreActions[0].action && newUserDashboard.coreActions[0].action.type === 'switch-page' && newUserDashboard.coreActions[0].action.value === 'error-import'
-      && newUserDashboard.coreActions[1].action && newUserDashboard.coreActions[1].action.type === 'switch-page' && newUserDashboard.coreActions[1].action.value === 'error-profile'
-      && newUserDashboard.toolActions[0].action && newUserDashboard.toolActions[0].action.type === 'navigate-home' && newUserDashboard.toolActions[0].action.value === 'exams'
-      && newUserDashboard.toolActions[1].action && newUserDashboard.toolActions[1].action.type === 'upload-word' && newUserDashboard.toolActions[1].label === '导入试题'
-      && newUserDashboard.toolActions[newUserDashboard.toolActions.length - 1].action.value === 'points-training' && newUserDashboard.toolActions[newUserDashboard.toolActions.length - 1].label === '去练'
-      && newUserDashboard.coreActions[0].chrome && newUserDashboard.coreActions[0].chrome.style.indexOf('box-shadow') === -1
-      && newUserDashboard.coreActions[0].subtitleStyle.indexOf('opacity') === -1
-      && newUserDashboard.books && newUserDashboard.books.length === 7
-      && newUserDashboard.books[0].cover.indexOf('bixiu-1.jpg') !== -1
-      && !newUserDashboard.books[0].action
-      && newUserDashboard.textbookSection && newUserDashboard.textbookSection.titleText === '📚 教材覆盖范围'
-      && newUserDashboard.textbookSection.statusText === '教材映射重做中'
+      && newUserDashboard.hero && newUserDashboard.hero.titleText === '课本语法 + 教辅语法'
+      && newUserDashboard.textbookSection && newUserDashboard.textbookSection.titleText === '📚 课本语法 · 人教版'
+      && newUserDashboard.textbookSection.statusText === '36 单元 · 1 已有讲解'
+      && newUserDashboard.textbookSection.books.length === 7
+      && newUserDashboard.textbookSection.books[0].labelText === '必修一'
+      && newUserDashboard.textbookSection.books[0].cover.indexOf('bixiu-1.jpg') !== -1
+      && newUserDashboard.textbookSection.books[0].units.length === 6
+      && newUserDashboard.textbookSection.books[0].units[0].ready === false
+      && newUserDashboard.textbookSection.books[0].units[3].key === '必修一|U3'
+      && newUserDashboard.textbookSection.books[0].units[3].ready === true
+      && newUserDashboard.textbookSection.books[0].units[3].action.type === 'open-textbook-unit'
+      && newUserDashboard.textbookSection.books[0].units[3].action.value === '必修一|U3'
+      && newUserDashboard.indexSection && newUserDashboard.indexSection.categories.length === 13
+      && newUserDashboard.indexSection.statusText === '13 类 · 57 考点'
+      && newUserDashboard.indexSection.categories[0].labelText === '谓语动词'
+      && newUserDashboard.indexSection.categories[0].action.type === 'open-knowledge-category'
+      && newUserDashboard.toolSection && newUserDashboard.toolSection.groups.length === 3
+      && newUserDashboard.toolSection.groups[0].titleText === '练习' && newUserDashboard.toolSection.groups[0].items.length === 1
+      && newUserDashboard.toolSection.groups[0].items[0].action.type === 'navigate-home' && newUserDashboard.toolSection.groups[0].items[0].action.value === 'exams'
+      && newUserDashboard.toolSection.groups[1].titleText === '速查' && newUserDashboard.toolSection.groups[1].items[0].action.value === 'knowledge'
+      && newUserDashboard.toolSection.groups[2].titleText === '教学工具' && newUserDashboard.toolSection.groups[2].items.length === 4
+      && newUserDashboard.toolSection.groups[2].items[0].action.type === 'upload-word' && newUserDashboard.toolSection.groups[2].items[0].label === '导入试题'
+      && newUserDashboard.toolSection.groups[2].items[2].action.value === 'error-import'
+      && newUserDashboard.toolSection.groups[2].items[3].action.value === 'error-profile'
+      && newUserDashboard.toolSection.groups[0].items[0].chrome && newUserDashboard.toolSection.groups[0].items[0].chrome.style.indexOf('box-shadow') === -1
+      && newUserDashboard.toolSection.groups[0].items[0].subtitleStyle.indexOf('opacity') === -1
       && activeDashboard && activeDashboard.activity.isNewUser === false
       && activeDashboard.activity.greeting === '晚上好'
       && activeDashboard.activity.statusText === '2 套题 · 3 道错题'
       && modulesGreetingLate === '今天也辛苦了'
       && modulesGreetingWithName === '上午好，Smoke Teacher'
       && modulesGreetingNoName === '下午好'
-      && activeDashboard.coreActions && activeDashboard.coreActions.length === 2 && activeDashboard.toolActions.length === 5
+      && activeDashboard.toolSection.groups.length === 3
       && activeDashboard.hero.bodyParts.some(function(part) { return part.strong && part.text === '2 套题 · 3 道错题'; })
-      && activeDashboard.toolActions[2].subtitleText === '2 套已入库'
-      && !activeDashboard.toolActions.some(function(t){ return t.action && t.action.value === 'error-book'; })
+      && activeDashboard.toolSection.groups[2].items[1].subtitleText === '2 套已入库'
+      && !activeDashboard.toolSection.groups.some(function(g){ return (g.items || []).some(function(t){ return t.action && t.action.value === 'points-training'; }); })
       && homeSummary && homeSummary.bankStatText.indexOf('2 套卷 · 20 题') !== -1
       && homeSummary.errorCountText === '3 道错题'
       && homeSummary.prepCountText === '4 份资料'
@@ -2305,6 +2351,11 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && switchActionPlan.delayedSteps.length === 0
       && unknownActionPlan && unknownActionPlan.immediateSteps.length === 0
       && unknownActionPlan.delayedSteps.length === 0
+      && textbookUnitPlan && textbookUnitPlan.immediateSteps[0].kind === 'open-textbook-note' && textbookUnitPlan.immediateSteps[0].key === '必修一|U3'
+      && textbookUnitPlan.immediateSteps[0].delayMs === 0 && textbookUnitPlan.delayedSteps.length === 0
+      && knowledgeCategoryPlan && knowledgeCategoryPlan.immediateSteps[0].page === 'knowledge'
+      && knowledgeCategoryPlan.immediateSteps[1].kind === 'set-knowledge-view' && knowledgeCategoryPlan.immediateSteps[1].view === 'book'
+      && knowledgeCategoryPlan.delayedSteps[0].kind === 'select-knowledge-category' && knowledgeCategoryPlan.delayedSteps[0].category === 'predicate'
       && categoryStatsModel && categoryStatsModel.items && categoryStatsModel.items.length
       && categoryStatsModel.label === '考点分布'
       && categoryStatsModel.items[0].text.indexOf('×') !== -1
@@ -3062,6 +3113,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
 
 test('考点训练页：dock 入口 + 图(决策地图)/文字(考点视图)双视图渲染', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
+  await mockGateSession(page);
 
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
@@ -3257,12 +3309,14 @@ test('auth sign-in and sign-out update protected access', async ({ page }) => {
   await page.goto('/docs/grammar-fill/');
   await expect(page.locator('html')).toHaveClass(/ready/);
 
-  await page.locator('[data-dock-key="lesson-prep"]').click();
-  await expect(page.locator('#authModal')).toBeVisible();
-  await fillAuthCredentials(page, 'login.teacher@example.com', 'correct-password');
-  await page.locator('#authPrimaryBtn').click();
+  // 门禁：访客先看到全屏登录墙，通过门禁表单登录（用户名或邮箱均可）
+  await expect(page.locator('#seeklume-gate')).toBeVisible();
+  await expect(page.locator('#gateLogin')).toBeVisible();
+  await page.locator('#gateLogin').fill('login.teacher@example.com');
+  await page.locator('#gatePassword').fill('correct-password');
+  await page.locator('#gateSubmit').click();
 
-  await expect(page.locator('#authModal')).not.toBeVisible();
+  await expect(page.locator('#seeklume-gate')).toHaveCount(0);
   await expect(page.locator('#userPill')).toContainText('login-teacher');
 
   await page.locator('[data-dock-key="lesson-prep"]').click();
@@ -3737,9 +3791,25 @@ test('home-render pure html output', async ({ page }) => {
     if (!R) return { missing: true };
     const dash = R.homeDashboardHtml(
       { hero: { kickerText: 'K', titleText: 'T', bodyParts: [{ text: '正文', strong: true }] },
-        coreActions: [{ action: { type: 'switch-page', value: 'home' }, icon: '📘', label: '按钮', subtitleText: '副', chrome: { style: '', mouseover: '', mouseout: '' } }],
-        textbookSection: { visible: true, titleText: '教材', statusText: '映射中', actionLabel: '更多', action: {} },
-        books: [{ action: {}, cover: 'x.png', labelText: '必修一', animationDelayMs: 0 }] },
+        textbookSection: { visible: true, titleText: '📚 课本语法', statusText: '36 单元 · 1 已有讲解',
+          books: [{ book: '必修一', labelText: '必修一', cover: 'x.png', metaText: '2 单元 · 1 单元有讲解',
+            units: [
+              { key: '必修一|U3', unitLabelText: 'U3', topicText: 'Sports and Fitness', grammarText: '反意疑问句', ready: true, statusText: '📖 已有讲解', action: { type: 'open-textbook-unit', value: '必修一|U3' } },
+              { key: '必修一|U4', unitLabelText: 'U4', topicText: 'Natural Disasters', grammarText: '定语从句', ready: false, statusText: '整理中', action: { type: 'open-textbook-unit', value: '必修一|U4' } }
+            ] }] },
+        indexSection: { visible: true, titleText: '📖 教辅语法', statusText: '1 类 · 3 考点',
+          categories: [{ key: 'predicate', labelText: '谓语动词', sourceText: '语法通霸 11', countText: '3 考点', action: { type: 'open-knowledge-category', value: 'predicate' } }] },
+        toolSection: { visible: true, titleText: '🧰 工具', groups: [
+          { key: 'drill', titleText: '练习', items: [{ action: { type: 'navigate-home', value: 'exams' }, icon: '✏️', label: '语法填空', subtitleText: '副', chrome: { style: '', mouseover: '', mouseout: '' } }] }
+        ] } },
+      { inlineHomeDashboardAction: function(a) { return 'DASH:' + (a && a.type || ''); } }
+    );
+    const bookPage = R.textbookBookPageHtml(
+      { book: '必修一', labelText: '必修一', cover: 'x.png', metaText: '2 单元 · 1 单元有讲解' },
+      [
+        { key: '必修一|U3', unitLabelText: 'U3', topicText: 'Sports and Fitness', grammarText: '反意疑问句', ready: true, statusText: '📖 已有讲解', action: { type: 'open-textbook-unit', value: '必修一|U3' } },
+        { key: '必修一|U4', unitLabelText: 'U4', topicText: 'Natural Disasters', grammarText: '定语从句', ready: false, statusText: '整理中', action: { type: 'open-textbook-unit', value: '必修一|U4' } }
+      ],
       { inlineHomeDashboardAction: function(a) { return 'DASH:' + (a && a.type || ''); } }
     );
     const grid = R.examGridHtml(
@@ -3752,15 +3822,34 @@ test('home-render pure html output', async ({ page }) => {
     );
     return {
       missing: false,
-      dashHasHero: dash.includes('正文') && dash.includes('按钮') && dash.includes('DASH:switch-page'),
-      dashHasBooks: dash.includes('x.png') && dash.includes('映射中') && !dash.includes('必修一') && !dash.includes('更多') && (dash.match(/DASH:/g) || []).length === 1,
+      dashHasHero: dash.includes('正文') && dash.includes('K') && dash.includes('T'),
+      dashHasTextbook: dash.includes('必修一') && dash.includes('x.png')
+        && dash.includes('tb-cover-card')
+        && dash.includes("openHomeTextbookBook('必修一')")
+        && !dash.includes('tb-book-panel') && !dash.includes('toggleHomeTextbookBook'),
+      bookPageHasUnits: bookPage.includes('tb-book-page') && bookPage.includes('必修一')
+        && bookPage.includes('2 单元 · 1 单元有讲解')
+        && bookPage.includes('反意疑问句') && bookPage.includes('DASH:open-textbook-unit')
+        && bookPage.includes('📖 点卡片 · 看课本讲解 →') && bookPage.includes('🔒 待开放') && bookPage.includes('定语从句'),
+      dashHasIndex: dash.includes('谓语动词') && dash.includes('3 考点') && dash.includes('语法通霸 11')
+        && dash.includes('DASH:open-knowledge-category'),
+      dashHasTools: dash.includes('🧰 工具') && dash.includes('练习') && dash.includes('语法填空') && dash.includes('DASH:navigate-home'),
+      // 封面墙已无单元卡：教辅类目卡 + 工具按钮 = 2
+      dashActionCount: (dash.match(/DASH:/g) || []).length === 2,
+      // 册单元页：可点单元卡（onclick + onkeydown 各一次）= 2
+      bookPageActionCount: (bookPage.match(/DASH:/g) || []).length === 2,
       examGridHasCard: grid.includes('category-section') && grid.includes('grid-11') && grid.includes('startByExam:2024A'),
       catsHasCard: cats.includes('category-section') && cats.includes('count-predicate') && cats.includes('startByCategory:predicate')
     };
   });
   expect(out.missing).toBe(false);
   expect(out.dashHasHero).toBe(true);
-  expect(out.dashHasBooks).toBe(true);
+  expect(out.dashHasTextbook).toBe(true);
+  expect(out.bookPageHasUnits).toBe(true);
+  expect(out.dashHasIndex).toBe(true);
+  expect(out.dashHasTools).toBe(true);
+  expect(out.dashActionCount).toBe(true);
+  expect(out.bookPageActionCount).toBe(true);
   expect(out.examGridHasCard).toBe(true);
   expect(out.catsHasCard).toBe(true);
 });
@@ -3917,6 +4006,85 @@ test('fine-tags 体系重订：冠词a/an/零、代词6类、删adj-vs-adv、att
       && has('attrib-only-that')) ? 'ok'
       : 'bad:' + JSON.stringify(Object.keys(t).filter(function(k){return k.indexOf('art-')===0||k.indexOf('pron-')===0;}));
   })).toBe('ok');
+});
+
+test('课本语法：点封面整页进册单元页 → 点 U3 进讲解页 → 返回课本单元 → 返回课本墙', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockGateSession(page);
+
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('html')).toHaveClass(/ready/);
+  await expect(page.locator('#page-home')).toHaveClass(/active/);
+
+  // 第 1 级：首页容器里的 7 册封面墙，墙下没有 inline 展开面板
+  await expect(page.locator('.tb-cover-card')).toHaveCount(7);
+  await expect(page.locator('.tb-book-panel')).toHaveCount(0);
+  const bx1Cover = page.locator('.tb-cover-card', { hasText: '必修一' });
+  await expect(bx1Cover).toContainText('已开放 1 个');
+
+  // 点封面 → 整页跳到必修一的册单元页（第 2 级），不是墙下方展开
+  await bx1Cover.click();
+  await expect(page.locator('#page-home')).toHaveClass(/active/);
+  const bookPage = page.locator('#homeDashboardContent .tb-book-page');
+  await expect(bookPage).toBeVisible();
+  await expect(bookPage).toContainText('必修一');
+  await expect(bookPage).toContainText('6 单元 · 1 单元有讲解');
+  await expect(page.locator('.tb-book-panel')).toHaveCount(0);
+  await expect(page.locator('.tb-cover-card')).toHaveCount(0);
+  // 单元卡：只有 U3 开放 → 1 张可点 + 5 张待开放
+  await expect(bookPage.locator('.knowledge-node-card.tb-card-link')).toHaveCount(1);
+  const lockedCards = bookPage.locator('.knowledge-node-card.tb-card-locked');
+  await expect(lockedCards).toHaveCount(5);
+  await expect(lockedCards.first()).toContainText('待开放');
+  // 点待开放的卡没反应，仍停在册单元页
+  await lockedCards.first().click();
+  await expect(bookPage).toBeVisible();
+  await expect(page.locator('.tb-page')).toHaveCount(0);
+
+  // 点 U3 可点卡 → 讲解页（第 3 级）
+  const card = bookPage.locator('.knowledge-node-card', { hasText: 'Sports and Fitness' });
+  await expect(card).toBeVisible();
+  await expect(card.locator('.tb-card-cta')).toHaveCount(1);
+  await card.click();
+  await expect(page.locator('#page-home')).toHaveClass(/active/);
+  const notePage = page.locator('#homeDashboardContent .tb-page');
+  await expect(notePage).toBeVisible();
+  await expect(notePage).toContainText('反意疑问句');
+  // 6 个课本板块 + 1 个练习板块
+  await expect(notePage.locator('.tb-block')).toHaveCount(7);
+  await expect(notePage.locator('.tb-block-title').first()).toContainText('概念');
+  await expect(notePage).toContainText('前肯后否');
+  await expect(notePage).toContainText('课本原句 ↔ 教辅批注');
+  await expect(notePage).toContainText('教辅深化 · 语法通霸');
+  // 逐条对照行：6 个板块共 13 条
+  await expect(notePage.locator('.tb-compare-row')).toHaveCount(13);
+  // 教辅深化贴在板块后：②组成 + ⑥课本没讲、考试会考
+  await expect(notePage.locator('.tb-aid')).toHaveCount(2);
+  // 课本原书截图：3 张整页（p109 / p40 / p37）+ 板块里 5 张放大 + 练习 1 张 = 9
+  await expect(notePage.locator('.tb-shot--page')).toHaveCount(3);
+  await expect(notePage.locator('.tb-shot-img')).toHaveCount(9);
+  await expect(notePage.locator('.tb-shot-img').first())
+    .toHaveAttribute('src', /assets\/textbook\/bx1\/u3-p109-page\.png/);
+  // 点开整页图可看原图
+  await expect(notePage.locator('.tb-shot--page .tb-shot-link').first())
+    .toHaveAttribute('target', '_blank');
+
+  // 返回按钮（第 3 级 → 第 2 级）：讲解页 → 册单元页
+  await expect(page.locator('#dockBackBtn')).toHaveAttribute('data-label', '返回课本单元');
+  await page.locator('#dockBackBtn').click();
+  await expect(page.locator('#page-home')).toHaveClass(/active/);
+  await expect(page.locator('#homeDashboardContent .tb-book-page')).toBeVisible();
+  await expect(page.locator('#homeDashboardContent .tb-book-page')).toContainText('必修一');
+  await expect(page.locator('.tb-page')).toHaveCount(0);
+
+  // 返回按钮（第 2 级 → 第 1 级）：册单元页 → 封面墙
+  await expect(page.locator('#dockBackBtn')).toHaveAttribute('data-label', '返回课本墙');
+  await page.locator('#dockBackBtn').click();
+  await expect(page.locator('#page-home')).toHaveClass(/active/);
+  await expect(page.locator('.tb-cover-card')).toHaveCount(7);
+  await expect(page.locator('#homeDashboardContent .tb-book-page')).toHaveCount(0);
+
+  expect(errors).toEqual([]);
 });
 
 test('countByPoint 按 tag+keys 精数，不同 key 计数互不相同', async ({ page }) => {
@@ -4383,5 +4551,70 @@ test('班级工作台：纯名单班人数在考点/学生两视角一致（修 
   // 切学生视角：同一 chip 人数仍 3，两视角口径一致
   await page.locator('.wb-tab[data-tab="students"]').click();
   await expect(page.locator('.ep-class-chip[data-id="cDemo"]')).toContainText('3');
+  expect(errors).toEqual([]);
+});
+
+// ============== 全站登录门禁（gate.js）==============
+test('gate: read-along 游客看到全屏登录墙', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+
+  await page.goto('/docs/read-along/');
+  await expect(page.locator('#seeklume-gate')).toBeVisible();
+  await expect(page.locator('#gateTitle')).toHaveText('欢迎回来');
+  await expect(page.locator('#gateLogin')).toBeVisible();
+  // 门禁表单可在登录/注册之间切换
+  await page.locator('#gateSwitchLink').click();
+  await expect(page.locator('#gateTitle')).toHaveText('创建账号');
+  await expect(page.locator('#gateUsername')).toBeVisible();
+  await expect(page.locator('#gateEmail')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
+test('gate: 待审批用户停在等待审批屏，审批通过后放行', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+  await mockGateSession(page);
+  await page.addInitScript(() => { window.__mockApproved = false; });
+
+  await page.goto('/docs/grammar-fill/');
+  await expect(page.locator('#seeklume-gate')).toBeVisible();
+  await expect(page.locator('#seeklume-gate')).toHaveAttribute('data-view', 'pending');
+  await expect(page.locator('#gatePendingName')).toHaveText('gate-user');
+  await expect(page.locator('#gateRefreshBtn')).toBeVisible();
+
+  // 管理员审批通过（RPC 转为 true）→ 点刷新 → 门禁放行
+  await page.evaluate(() => { window.__mockApproved = true; });
+  await page.locator('#gateRefreshBtn').click();
+  await expect(page.locator('#seeklume-gate')).toHaveCount(0);
+  await expect(page.locator('#page-home')).toHaveClass(/active/);
+
+  expect(errors).toEqual([]);
+});
+
+test('gate: 首页管理员可见审批直达按钮，普通用户不可见', async ({ page }) => {
+  const errors = collectFatalBrowserErrors(page);
+
+  // 普通登录用户：无审批按钮
+  await mockGateSession(page);
+  await page.goto('/docs/');
+  await expect(page.locator('#headerRight')).toContainText('gate-user');
+  await expect(page.locator('#headerRight')).not.toContainText('审批管理');
+
+  // 管理员：出现审批直达按钮，指向语法填空 ?admin 面板
+  // （page.route 是页面级拦截，新页面需重新安装桩）
+  const adminPage = await page.context().newPage();
+  await installBrowserStubs(adminPage);
+  await adminPage.addInitScript(() => {
+    window.__mockSupabaseUser = {
+      id: 'admin-user',
+      email: 'admin@example.com',
+      user_metadata: { username: 'admin-teacher' }
+    };
+    window.__mockIsAdmin = true;
+  });
+  await adminPage.goto('/docs/');
+  await expect(adminPage.locator('#headerRight')).toContainText('审批管理');
+  await adminPage.close();
+
   expect(errors).toEqual([]);
 });

@@ -104,6 +104,29 @@
         ]
       };
     }
+    if (action.type === 'open-textbook-unit') {
+      // 课本线整体归首页：直接在当前页渲染讲解页（openTextbookNote 自己负责切到首页）。
+      return {
+        action: action,
+        immediateSteps: [
+          { kind: 'open-textbook-note', key: action.value, delayMs: 0 }
+        ],
+        delayedSteps: []
+      };
+    }
+    if (action.type === 'open-knowledge-category') {
+      // 先切到「书本速查」让侧栏可见，再选中目标类目。
+      return {
+        action: action,
+        immediateSteps: [
+          { kind: 'switch-page', page: 'knowledge' },
+          { kind: 'set-knowledge-view', view: 'book' }
+        ],
+        delayedSteps: [
+          { kind: 'select-knowledge-category', category: action.value, delayMs: 0 }
+        ]
+      };
+    }
     if (action.type === 'switch-page') {
       return {
         action: action,
@@ -129,71 +152,77 @@
     };
   }
 
+  // 首页 = 语法主阵地：hero 讲定位，下面三段是 ①课本语法 ②教辅语法 ③工具。
   function getHeroModel(activity) {
     activity = activity || getUserActivityState({});
-    if (activity.isNewUser) {
-      return {
-        kickerText: '👋 欢迎来到 Seeklume',
-        titleText: '高中英语 · 语法填空讲评工作台',
-        bodyParts: [
-          { text: '从精选真题 / 模拟直接开讲，或上传你自己的卷子。讲完第一张，系统就开始替你攒考点、攒错题，下次讲新卷自动联动。' }
-        ]
-      };
-    }
+    var identity = {
+      kickerText: '👋 欢迎来到 Seeklume',
+      titleText: '课本语法 + 教辅语法',
+      bodyParts: [
+        { text: '这里是语法主阵地：' },
+        { text: '课本语法', strong: true },
+        { text: ' 按人教版单元同步讲，' },
+        { text: '教辅语法', strong: true },
+        { text: ' 按《语法通霸》考点速查。语法填空只保留为一项练习工具，收在下面的工具区。' }
+      ]
+    };
+    if (activity.isNewUser) return identity;
     return {
       kickerText: '👋 ' + activity.greeting,
-      titleText: '今天讲哪份卷子？',
-      bodyParts: [
-        { text: '你已攒下 ' },
-        { text: activity.statusText, strong: true },
-        { text: '。下次讲评，同考点的老题和错题会自动帮你拎出来联动。' }
-      ]
+      titleText: identity.titleText,
+      bodyParts: [{ text: '你已攒下 ' }, { text: activity.statusText, strong: true }, { text: '。' }]
+        .concat(identity.bodyParts)
     };
   }
 
-  function getCoreActions(activity) {
+  // 工具区：语法填空练习（唯一练习入口）+ 速查 + 教学工具。
+  function getToolGroups(activity) {
     activity = activity || getUserActivityState({});
     return [
       {
-        key: 'error-import', icon: '📥', label: '导入成绩',
-        subtitleText: '传网阅成绩 → 算考点画像', tone: 'accent', count: null,
-        action: buildAction('switch-page', 'error-import')
+        key: 'drill', titleText: '练习',
+        items: [
+          {
+            key: 'grammar-fill', icon: '✏️', label: '语法填空 · 练习',
+            subtitleText: '真题 + 模拟 · 直接开做', tone: 'accent', count: null,
+            action: buildAction('navigate-home', 'exams')
+          }
+        ]
       },
       {
-        key: 'error-profile', icon: '📊', label: '考点画像',
-        subtitleText: '历次卷子 · 班级考点画像', tone: 'accent', count: null,
-        action: buildAction('switch-page', 'error-profile')
-      }
-    ];
-  }
-
-  function getToolActions(activity) {
-    activity = activity || getUserActivityState({});
-    return [
-      {
-        key: 'pick-bank', icon: '📚', label: '精选题库',
-        subtitleText: '真题 + 模拟 · 直接开讲', tone: 'accent', count: null,
-        action: buildAction('navigate-home', 'exams')
+        key: 'reference', titleText: '速查',
+        items: [
+          {
+            key: 'knowledge', icon: '📖', label: '知识库',
+            subtitleText: '全部考点 · 全量速查', tone: 'purple', count: null,
+            action: buildAction('switch-page', 'knowledge')
+          }
+        ]
       },
       {
-        key: 'upload-word', icon: '📤', label: '导入试题',
-        subtitleText: 'Word → AI 解析入库', tone: 'accent', count: null,
-        action: buildAction('upload-word', 'lesson-prep')
-      },
-      {
-        key: 'my-papers', icon: '📁', label: '我做过的题',
-        subtitleText: activity.prepCount + ' 套已入库', tone: 'accent', count: activity.prepCount,
-        action: buildAction('switch-page', 'lesson-prep')
-      },
-      {
-        key: 'knowledge', icon: '📖', label: '知识库',
-        subtitleText: '教材 · 按考点分类', tone: 'purple', count: null,
-        action: buildAction('switch-page', 'knowledge')
-      },
-      {
-        key: 'points-training', icon: '🎯', label: '去练',
-        subtitleText: '挑弱考点集中练', tone: 'accent', count: null,
-        action: buildAction('switch-page', 'points-training')
+        key: 'teaching', titleText: '教学工具',
+        items: [
+          {
+            key: 'upload-word', icon: '📤', label: '导入试题',
+            subtitleText: 'Word → AI 解析入库', tone: 'accent', count: null,
+            action: buildAction('upload-word', 'lesson-prep')
+          },
+          {
+            key: 'my-papers', icon: '📁', label: '我做过的题',
+            subtitleText: activity.prepCount + ' 套已入库', tone: 'accent', count: activity.prepCount,
+            action: buildAction('switch-page', 'lesson-prep')
+          },
+          {
+            key: 'error-import', icon: '📥', label: '导入成绩',
+            subtitleText: '传网阅成绩 → 算考点画像', tone: 'accent', count: null,
+            action: buildAction('switch-page', 'error-import')
+          },
+          {
+            key: 'error-profile', icon: '📊', label: '考点画像',
+            subtitleText: '历次卷子 · 班级考点画像', tone: 'accent', count: null,
+            action: buildAction('switch-page', 'error-profile')
+          }
+        ]
       }
     ];
   }
@@ -229,39 +258,107 @@
     });
   }
 
-  function getTextbookGallery(textbookUnits) {
-    if (!Array.isArray(textbookUnits) || !textbookUnits.length) return [];
-    return BOOK_ORDER.map(function(book, idx) {
-      return {
-        book: book,
-        cover: COVER_MAP[book],
-        labelText: book,
-        animationDelayMs: idx * 40
-      };
-    });
+  // ─── 段落 ①：课本语法（人教版 7 册单元网格）───
+  function textbookUnitKey(book, unit) {
+    return String(book || '') + '|' + String(unit || '');
   }
 
-  function getTextbookSectionModel(books) {
-    books = Array.isArray(books) ? books : [];
+  function buildTextbookUnitModel(unit, noteIndex) {
+    unit = unit || {};
+    var key = textbookUnitKey(unit.book, unit.unit);
     return {
-      visible: books.length > 0,
-      titleText: '📚 教材覆盖范围',
-      statusText: '教材映射重做中',
-      descriptionText: '当前仅作封面展示，教材单元映射暂不开放。'
+      key: key,
+      unitLabelText: unit.unit || '',
+      topicText: unit.topic || '',
+      grammarText: unit.grammar_zh || unit.grammar_en || '',
+      ready: !!noteIndex[key],
+      statusText: noteIndex[key] ? '📖 已有讲解' : '整理中',
+      action: buildAction('open-textbook-unit', key)
+    };
+  }
+
+  function buildTextbookGrammarSectionModel(textbookUnits, noteIndex) {
+    var units = Array.isArray(textbookUnits) ? textbookUnits : [];
+    noteIndex = noteIndex || {};
+    var byBook = {};
+    units.forEach(function(unit) {
+      var book = (unit && unit.book) || '其他';
+      (byBook[book] = byBook[book] || []).push(unit);
+    });
+    var books = BOOK_ORDER.filter(function(book) { return byBook[book] && byBook[book].length; });
+    Object.keys(byBook).forEach(function(book) {
+      if (books.indexOf(book) === -1) books.push(book);
+    });
+    var readyTotal = 0;
+    var bookModels = books.map(function(book) {
+      var unitModels = byBook[book].map(function(unit) {
+        return buildTextbookUnitModel(unit, noteIndex);
+      });
+      var readyCount = unitModels.filter(function(item) { return item.ready; }).length;
+      readyTotal += readyCount;
+      return {
+        book: book,
+        labelText: book,
+        cover: COVER_MAP[book] || '',
+        metaText: unitModels.length + ' 单元 · ' + readyCount + ' 单元有讲解',
+        units: unitModels
+      };
+    });
+    return {
+      visible: bookModels.length > 0,
+      titleText: '📚 课本语法 · 人教版',
+      statusText: units.length + ' 单元 · ' + readyTotal + ' 已有讲解',
+      descriptionText: '按 7 册同步校内进度：点封面进这册的单元页，点单元进讲解页（课本原书截图 + 教辅深化）。目前只有必修一 U3 开放，其余标「待开放」。',
+      books: bookModels
+    };
+  }
+
+  // ─── 段落 ②：教辅语法（《语法通霸》13 类考点索引）───
+  function buildGrammarIndexSectionModel(fineTags) {
+    fineTags = fineTags || {};
+    var categories = fineTags.categories || {};
+    var tagsByCategory = fineTags.tags_by_category || {};
+    var tagTotal = 0;
+    var items = Object.keys(categories).map(function(key) {
+      var category = categories[key] || {};
+      var count = (tagsByCategory[key] || []).length;
+      tagTotal += count;
+      return {
+        key: key,
+        labelText: category.name || key,
+        sourceText: category.source || '',
+        countText: count + ' 考点',
+        action: buildAction('open-knowledge-category', key)
+      };
+    });
+    return {
+      visible: items.length > 0,
+      titleText: '📖 教辅语法 · 《语法通霸》',
+      statusText: items.length + ' 类 · ' + tagTotal + ' 考点',
+      descriptionText: '按《语法通霸》章节分类的应试口径：点类目看该类的考点、陷阱与例句题库。',
+      categories: items
     };
   }
 
   function buildDashboardModel(values) {
     values = values || {};
     var activity = getUserActivityState(values);
-    var books = getTextbookGallery(values.textbookUnits);
     return {
       activity: activity,
       hero: getHeroModel(activity),
-      books: books,
-      textbookSection: getTextbookSectionModel(books),
-      coreActions: getCoreActions(activity).map(buildDashboardActionButtonModel),
-      toolActions: getToolActions(activity).map(buildDashboardActionButtonModel)
+      textbookSection: buildTextbookGrammarSectionModel(values.textbookUnits, values.textbookNotes),
+      indexSection: buildGrammarIndexSectionModel(values.fineTags),
+      toolSection: {
+        visible: true,
+        titleText: '🧰 工具',
+        groups: getToolGroups(activity).map(function(group) {
+          return {
+            key: group.key,
+            titleText: group.titleText,
+            items: group.items.map(buildDashboardActionButtonModel)
+          };
+        })
+      }
     };
   }
 
@@ -277,7 +374,9 @@
     buildDashboardActionExecutionPlan: buildDashboardActionExecutionPlan,
     getActionButtonChrome: getActionButtonChrome,
     buildDashboardActionButtonModel: buildDashboardActionButtonModel,
-    getTextbookGallery: getTextbookGallery,
+    buildTextbookGrammarSectionModel: buildTextbookGrammarSectionModel,
+    buildGrammarIndexSectionModel: buildGrammarIndexSectionModel,
+    getToolGroups: getToolGroups,
     buildDashboardModel: buildDashboardModel
   };
 })();

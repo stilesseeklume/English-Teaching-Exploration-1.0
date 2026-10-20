@@ -28,6 +28,7 @@
   window._sb = sb;
   var listeners = [];
   var state = { user: null, isAdmin: false, viewingUserId: null, viewingEmail: null };
+  var _initStarted = false;
 
   function notify() { listeners.forEach(function(cb){ try { cb(state); } catch(e){} }); }
 
@@ -40,7 +41,8 @@
   }
 
   async function init() {
-    if (!sb) return;
+    if (!sb || _initStarted) return; // 幂等：gate.js / 题型页都可能调用 init
+    _initStarted = true;
     var s = await sb.auth.getSession();
     state.user = s.data && s.data.session ? s.data.session.user : null;
     await detectAdmin();
@@ -342,6 +344,7 @@
     submitFeedback: submitFeedback, recordEvent: recordEvent,
     listFeedbackReports: listFeedbackReports, updateFeedbackStatus: updateFeedbackStatus,
     listUsers: listUsers, approveUser: approveUser, rejectUser: rejectUser,
-    viewAs: viewAs, clearViewAs: clearViewAs
+    viewAs: viewAs, clearViewAs: clearViewAs,
+    usernameTaken: usernameTaken
   };
 })();

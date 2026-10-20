@@ -224,7 +224,9 @@ EXPECTED_MODULES = [
             "buildDashboardActionExecutionPlan",
             "getActionButtonChrome",
             "buildDashboardActionButtonModel",
-            "getTextbookGallery",
+            "buildTextbookGrammarSectionModel",
+            "buildGrammarIndexSectionModel",
+            "getToolGroups",
             "buildDashboardModel",
         ],
     },
@@ -635,6 +637,7 @@ EXPECTED_MODULES = [
         "namespace": "GrammarHomeRender",
         "exports": [
             "homeDashboardHtml",
+            "textbookBookPageHtml",
             "examGridHtml",
             "homeCategoriesHtml",
         ],
@@ -697,6 +700,24 @@ EXPECTED_MODULES = [
             "buildClassList",
         ],
     },
+    {
+        "path": "dashboard-model.js",
+        "namespace": "GrammarDashboard",
+        "exports": [
+            "BOARD_CATS",
+            "boardCatOf",
+            "examScore",
+            "classExamMean",
+            "heatmap",
+            "catLevel",
+            "catTrend",
+            "catState",
+            "growthMatrix",
+            "prescription",
+            "errorBookClass",
+            "errorBookStudent",
+        ],
+    },
 ]
 
 FORBIDDEN_IN_PURE_MODULES = [
@@ -721,6 +742,9 @@ CONTROLLER_MODULES = [
     "home-dashboard.js",
     "lesson-prep-controller.js",
     "error-profile-controller.js",
+    "dashboard-render.js",
+    "dashboard-loop.js",
+    "error-book-v2.js",
     "cloud-sync.js",
 ]
 

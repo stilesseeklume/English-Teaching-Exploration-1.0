@@ -190,6 +190,8 @@ let previousView = null;
 var _activePage = 'home';
 var _activeDock = 'home';
 var _currentHomeView = 'cards';
+var _homeNoteKey = '';   // 首页内正在展示的课本单元讲解 key；空串 = 无
+var _homeBookKey = '';   // 首页「册单元页」正在展示的册 key；空串 = 无（第 2 级）
 // _loggingOut 已随 modules/cloud-sync.js 内部化（云登录退出态由 setCloudLoggingOutState 维护）
 var currentKnowledgeView = 'map';
 var currentKnowledgeKey = '';
@@ -469,7 +471,7 @@ function getPracticeContextSnapshot() {
 
 function buildHomeViewState(view) {
   if (window.GrammarAppState) return window.GrammarAppState.buildHomeViewState(view);
-  var currentHomeView = (view === 'exams' || view === 'categories') ? view : 'cards';
+  var currentHomeView = (view === 'exams' || view === 'categories' || view === 'textbook-note' || view === 'textbook-book') ? view : 'cards';
   return {
     currentHomeView: currentHomeView,
     dockKey: currentHomeView === 'exams' ? 'exams' : currentHomeView === 'categories' ? 'categories' : 'home'
@@ -1308,6 +1310,8 @@ function homeDashboardDeps() {
     switchPage: switchPage,
     navigateHome: navigateHome,
     setKnowledgeView: setKnowledgeView,
+    openTextbookNote: openTextbookNote,
+    selectKnowledgeCategory: selectKnowledgeCategory,
     getCurrentQuestionIndex: getCurrentQuestionIndex,
     getPracticeContextSnapshot: getPracticeContextSnapshot,
     getSelectedQuestionSnapshot: getSelectedQuestionSnapshot,
@@ -1324,7 +1328,15 @@ function homeDashboardDeps() {
   };
 }
 function runHomeDashboardAction(type, value){ return window.GrammarHomeDashboard.runHomeDashboardAction(type, value, homeDashboardDeps()); }
-function renderHomeDashboard(){ return window.GrammarHomeDashboard.renderHomeDashboard(homeDashboardDeps()); }
+function renderHomeDashboard(){
+  // 首页三级子视图：讲解页 > 册单元页 > 封面墙 dashboard。
+  if (_homeNoteKey) return renderTextbookNode(_homeNoteKey);
+  var homeView = getPageNavigationSnapshot().currentHomeView;
+  if (_homeBookKey && homeView === 'textbook-book') {
+    return window.GrammarHomeDashboard.renderTextbookBookPage(_homeBookKey, homeDashboardDeps());
+  }
+  return window.GrammarHomeDashboard.renderHomeDashboard(homeDashboardDeps());
+}
 function renderClassroomSwitcher(){ return window.GrammarHomeDashboard.renderClassroomSwitcher(homeDashboardDeps()); }
 function navigateExam(delta){ return window.GrammarHomeDashboard.navigateExam(delta, homeDashboardDeps()); }
 function jumpToExamFromSwitcher(examId){ return window.GrammarHomeDashboard.jumpToExamFromSwitcher(examId, homeDashboardDeps()); }
@@ -1476,6 +1488,14 @@ function handleDockBack() {
   }
   if (action.type === 'home-view') {
     navigateHome(action.view || 'cards');
+    return;
+  }
+  if (action.type === 'home-textbook-book') {
+    // 从讲解页返回册单元页：清讲解 key，保留 _homeBookKey。
+    _homeNoteKey = '';
+    applyHomeViewState({ currentHomeView: 'textbook-book' });
+    renderHomeDashboard();
+    updateDockBackButton();
     return;
   }
   if (action.type === 'previous-view') {
@@ -1630,6 +1650,17 @@ function navigateHome(view) {
   }
   var homeState = applyHomeViewState(buildHomeViewState(view));
   view = homeState.currentHomeView;
+  // 离开首页子视图（切回 cards/exams/categories）时，清掉宿主 key 并恢复封面墙 dashboard。
+  var homeKeysChanged = false;
+  if (view !== 'textbook-note' && _homeNoteKey) {
+    _homeNoteKey = '';
+    homeKeysChanged = true;
+  }
+  if (view !== 'textbook-book' && _homeBookKey) {
+    _homeBookKey = '';
+    homeKeysChanged = true;
+  }
+  if (homeKeysChanged) renderHomeDashboard();
   document.getElementById('homeCards').style.display = view === 'cards' ? '' : 'none';
   document.getElementById('homeExams').classList.toggle('active', view === 'exams');
   // 同步 dock 圆点：cards→home / exams→exams
@@ -3295,7 +3326,12 @@ function setKnowledgeView(view) {
     currentKnowledgeView: view,
     currentKnowledgeNodeId: ''
   });
-  view = knowledgeState.currentKnowledgeView;
+  _renderKnowledgeRoute(knowledgeState.currentKnowledgeView);
+}
+
+// 知识页路由：按 chrome 模型切按钮 / 侧栏，再分派到具体渲染函数。
+function _renderKnowledgeRoute(view) {
+  var knowledgeState = getKnowledgeViewSnapshot();
   var chromeModel = window.GrammarKnowledgeViewModel.buildKnowledgeViewChromeModel(view, {
     currentKey: knowledgeState.currentKnowledgeKey,
     currentIsPattern: knowledgeState.currentIsPattern,
@@ -4376,6 +4412,154 @@ function renderKnowledgeMap() {
   updateDockBackButton();
 }
 
+// ─── 课本语法 · 单元讲解（高一教材口径，数据在 docs/data/textbook_grammar_notes.js）──
+// 点首页封面墙里的整张单元卡片 → 直接在首页容器内渲染讲解页，页内配课本原书局部截图。
+function _textbookNoteFor(key) {
+  return ((window.TEXTBOOK_GRAMMAR_NOTES || {})[key]) || null;
+}
+
+function openTextbookNote(key) {
+  if (!_textbookNoteFor(key)) return;
+  var bookKey = _homeBookKey;   // 记住来源册：返回时能回到册单元页
+  switchPage('home');   // activePage → home，并把首页视图重置回 dashboard（会清 _homeNoteKey / _homeBookKey）
+  _homeBookKey = bookKey;
+  _homeNoteKey = key;
+  applyHomeViewState({ currentHomeView: 'textbook-note' });
+  renderTextbookNode(key);
+  updateDockBackButton();
+}
+
+// 第 1 级入口：点封面墙里某册封面 → 整页跳到该册的单元页（第 2 级），不是贴墙展开。
+function openHomeTextbookBook(book) {
+  if (!book) return;
+  if (!document.getElementById('page-home').classList.contains('active')) {
+    switchPage('home');
+  }
+  _homeNoteKey = '';
+  _homeBookKey = book;
+  applyHomeViewState({ currentHomeView: 'textbook-book' });
+  renderHomeDashboard();
+  updateDockBackButton();
+}
+
+// 单张原书图：整页图铺满宽度、点开看原图；放大图保持常规宽度。
+function _tbShotHtml(s, note) {
+  var isPage = (s.kind === 'page');
+  var h = '<figure class="tb-shot' + (isPage ? ' tb-shot--page' : '') + '">';
+  h += '<figcaption class="tb-shot-cap">';
+  h += '<span class="tb-shot-badge">' + (isPage ? '课本整页' : '关键处放大') + (s.print ? ' · p' + s.print : '') + '</span>';
+  h += '<span class="tb-shot-title">' + escapeHtml(s.title || '') + '</span>';
+  if (s.note) h += '<span class="tb-shot-note">' + escapeHtml(s.note) + '</span>';
+  h += '</figcaption>';
+  h += '<a class="tb-shot-link" href="' + escapeHtml(s.src || '') + '" target="_blank" rel="noopener" title="点开看原图">';
+  h += '<img class="tb-shot-img" loading="lazy" src="' + escapeHtml(s.src || '') + '" alt="'
+     + escapeHtml(s.title || note.grammar_zh || '课本原题截图') + '"></a>';
+  h += '</figure>';
+  return h;
+}
+
+// 逐条对照：左=课本原句，右=教辅批注。宽屏左右两栏，窄屏自动堆叠。
+function _tbCompareHtml(compare) {
+  if (!compare || !compare.length) return '';
+  var h = '<div class="tb-compare">';
+  compare.forEach(function(row) {
+    h += '<div class="tb-compare-row">';
+    h += '<div class="tb-compare-book"><span class="tb-compare-tag">课本</span>';
+    h += '<div class="tb-compare-en">' + escapeHtml(row.en || '') + '</div>';
+    if (row.zh) h += '<div class="tb-compare-zh">' + escapeHtml(row.zh) + '</div>';
+    h += '</div>';
+    h += '<div class="tb-compare-aid"><span class="tb-compare-tag tb-compare-tag--aid">教辅</span>'
+       + '<div class="tb-compare-aid-text">' + escapeHtml(row.aid || '') + '</div></div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function _tbAidHtml(aid) {
+  if (!aid || !(aid.items || []).length) return '';
+  var h = '<div class="tb-aid"><h4 class="tb-aid-title">' + escapeHtml(aid.title || '教辅深化') + '</h4>';
+  aid.items.forEach(function(it) {
+    h += '<div class="tb-aid-item"><h5>' + escapeHtml(it.title || '') + '</h5><ul>';
+    (it.points || []).forEach(function(p) { h += '<li>' + escapeHtml(p) + '</li>'; });
+    h += '</ul></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+// 一个板块卡：板块标题 → 原书图 → 课本怎么说 → 课本↔教辅对照 → 教辅深化
+function _tbSectionHtml(sec, note, idx) {
+  var h = '<section class="tb-block" id="tb-block-' + (idx + 1) + '">';
+  // 注意：页面全局 header 是 flex 顶栏，这里必须用 div
+  h += '<div class="tb-block-head"><h3 class="tb-block-title">' + escapeHtml(sec.title || ('板块 ' + (idx + 1))) + '</h3></div>';
+  if ((sec.shots || []).length) {
+    h += '<div class="tb-shots">';
+    sec.shots.forEach(function(s) { h += _tbShotHtml(s, note); });
+    h += '</div>';
+  }
+  if ((sec.book || []).length) {
+    h += '<div class="tb-book"><h4 class="tb-sub-title">课本怎么说</h4><ul>';
+    sec.book.forEach(function(l) { h += '<li>' + escapeHtml(l) + '</li>'; });
+    h += '</ul></div>';
+  }
+  if ((sec.compare || []).length) {
+    h += '<h4 class="tb-sub-title">课本原句 ↔ 教辅批注</h4>';
+    h += _tbCompareHtml(sec.compare);
+  }
+  h += _tbAidHtml(sec.aid);
+  h += '</section>';
+  return h;
+}
+
+function renderTextbookNode(key) {
+  var content = document.getElementById('homeDashboardContent');
+  var note = _textbookNoteFor(key);
+  if (!note || !content) return;
+
+  var meta = note.book + ' ' + note.unit + (note.topic ? ' · ' + note.topic : '');
+  if (note.source) meta += ' ｜ 课本 p' + note.source.print + (note.source.task ? ' · ' + note.source.task : '');
+
+  var sections = note.sections || [];
+  var h = '<article class="tb-page">';
+  h += '<div class="tb-page-head">';
+  h += '<h2>' + escapeHtml(note.grammar_zh || '')
+     + (note.grammar_en ? ' <span class="tb-page-en">' + escapeHtml(note.grammar_en) + '</span>' : '') + '</h2>';
+  h += '<p class="tb-page-meta">' + escapeHtml(meta) + '</p>';
+  if (note.lead) h += '<p class="tb-page-lead">' + escapeHtml(note.lead) + '</p>';
+  if (sections.length) {
+    h += '<nav class="tb-toc">';
+    sections.forEach(function(sec, i) {
+      var label = String(sec.title || ('板块 ' + (i + 1))).replace(/^[①②③④⑤⑥⑦⑧⑨\s·]+/, '');
+      h += '<a class="tb-toc-chip" href="#tb-block-' + (i + 1) + '">' + escapeHtml(label) + '</a>';
+    });
+    h += '</nav>';
+  }
+  h += '</div>';
+
+  h += '<p class="tb-guide">每个板块先给课本原书图，再做「左课本原句 ↔ 右教辅批注」的逐条对照 —— 先看课本怎么说，再看教辅补什么。</p>';
+
+  sections.forEach(function(sec, i) { h += _tbSectionHtml(sec, note, i); });
+
+  if (note.drills) {
+    h += '<section class="tb-block tb-block--drill"><div class="tb-block-head"><h3 class="tb-block-title">'
+       + escapeHtml(note.drills.title || '课本练习') + '</h3></div>';
+    if (note.drills.caveat) h += '<p class="tb-caveat">' + escapeHtml(note.drills.caveat) + '</p>';
+    if ((note.drills.shots || []).length) {
+      h += '<div class="tb-shots">';
+      note.drills.shots.forEach(function(s) { h += _tbShotHtml(s, note); });
+      h += '</div>';
+    }
+    h += '<div class="tb-answers"><h4 class="tb-sub-title">参考答案</h4><ul>';
+    (note.drills.lines || []).forEach(function(l) { h += '<li>' + escapeHtml(l) + '</li>'; });
+    h += '</ul></div></section>';
+  }
+
+  h += '</article>';
+  content.innerHTML = h;
+  updateDockBackButton();
+}
+
 function showKnowledgeNode(nodeId) {
   applyKnowledgeViewState({
     currentKnowledgeView: 'map-node',
@@ -4498,6 +4682,7 @@ Object.assign(window, {
   navigateBlank: navigateBlank,
   navigateExam: navigateExam,
   navigateHome: navigateHome,
+  openHomeTextbookBook: openHomeTextbookBook,
   setPointsTrainingView: setPointsTrainingView,
   navigateToKnowledge: navigateToKnowledge,
   openAuthModal: openAuthModal,

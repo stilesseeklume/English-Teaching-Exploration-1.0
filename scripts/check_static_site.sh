@@ -11,6 +11,7 @@ required=(
   "$ROOT/docs/CNAME"
   "$ROOT/docs/data/grammar_bank.js"
   "$ROOT/docs/shared/cloud.js"
+  "$ROOT/docs/shared/gate.js"
   "$ROOT/docs/shared/auth-ui.js"
   "$ROOT/docs/shared/word-import.js"
   "$ROOT/docs/shared/observability.js"
@@ -48,10 +49,10 @@ fi
 
 if command -v node >/dev/null 2>&1; then
   node --check "$ROOT/docs/shared/cloud.js"
+  node --check "$ROOT/docs/shared/gate.js"
   node --check "$ROOT/docs/shared/auth-ui.js"
   node --check "$ROOT/docs/shared/word-import.js"
   node --check "$ROOT/docs/shared/admin-ui.js"
-  node --check "$ROOT/docs/shared/error-book.js"
   node --check "$ROOT/docs/shared/lesson-prep.js"
   node --check "$ROOT/docs/shared/observability.js"
   node --check "$ROOT/docs/grammar-fill/modules/passage-utils.js"

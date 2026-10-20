@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="app-version" content="grammar-fill-20260518-import-v2">
-<title>Seeklume · 语法讲评</title>
+<title>Seeklume · 课本语法</title>
 <script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <link rel="stylesheet" href="./styles.css">
 <script src="../data/grammar_bank.js"></script>
@@ -12,6 +12,7 @@
 <script src="../data/grammar_knowledge.js"></script>
 <script src="../data/grammar_knowledge_traps.js"></script>
 <script src="../data/grammar_fine_tags.js"></script>
+<script src="../data/textbook_grammar_notes.js"></script>
 <script src="../data/decision_map.js"></script>
 
 <!-- ============== Supabase 云同步 · 配置 + 客户端 ============== -->
@@ -53,7 +54,7 @@
 
 <div class="app-container">
   <header>
-    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;" title="点击返回 Seeklume 主站（公共落地页）">Seeklume · 语法讲评</div>
+    <div class="logo" onclick="logoClick()" style="cursor:pointer;user-select:none;" title="点击返回 Seeklume 主站（公共落地页）">Seeklume · 课本语法</div>
     <div style="display:flex;align-items:center;gap:16px;">
       <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
         <span class="icon-sun">&#9788;</span>
@@ -172,14 +173,14 @@
       <div class="modules-hero">
         <div class="greeting" id="modulesGreeting">欢迎回来</div>
         <h1>选一个模块开始</h1>
-        <p>第一个版本只把<b style="color:var(--text);">语法填空</b>做出来了，其它题型还在做，敬请期待。</p>
+        <p>第一个做出来的是<b style="color:var(--text);">课本语法</b>——跟着人教版课本单元学语法，其它模块还在做，敬请期待。</p>
       </div>
       <div class="modules-grid">
         <div class="module-card available" onclick="enterModule('grammar')">
           <span class="module-card-badge live">已上线</span>
           <div class="module-card-icon">📝</div>
-          <div class="module-card-title">语法填空</div>
-          <div class="module-card-desc">20 套真题 + 按考点训练 + 同类判断迁移 + 错题本与备课资料</div>
+          <div class="module-card-title">课本语法</div>
+          <div class="module-card-desc">跟人教版课本单元学语法 + 教辅深化 + 按考点训练 + 错题本与备课资料</div>
           <div class="module-card-meta">v1.0 · 已可用</div>
         </div>
         <div class="module-card coming">
@@ -302,7 +303,7 @@
     </div>
 
     <div class="page" id="page-knowledge">
-      <!-- 视图切换 tab bar：教材视图作为默认首页（最美观、最直观） -->
+      <!-- 视图切换 tab bar：书本速查（高三应试口径）/ 知识地图（课本线已归首页） -->
       <div class="knowledge-view-tabbar" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;position:sticky;top:0;background:var(--bg);z-index:10;">
         <button class="knowledge-view-btn active" id="knowledgeBookBtn" onclick="setKnowledgeView('book')">📖 书本速查</button>
         <button class="knowledge-view-btn" id="knowledgeMapBtn" onclick="setKnowledgeView('map')">🗺 知识地图</button>
@@ -397,6 +398,7 @@
 <script src="../shared/lesson-prep.js"></script>
 <script src="../shared/auth-ui.js"></script><script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
 <script src="../shared/admin-ui.js"></script>
+<script src="../shared/gate.js"></script>
 <script src="../shared/observability.js"></script>
 <script src="./modules/passage-utils.js"></script>
 <script src="./modules/category-rules.js"></script>
@@ -446,7 +448,7 @@
     ↩
   </div>
   <div class="dock-divider dock-back-divider" id="dockBackDivider"></div>
-  <div class="dock-item" data-label="语法填空主页" data-dock-key="home" onclick="switchPage('home')">
+  <div class="dock-item" data-label="语法主页" data-dock-key="home" onclick="switchPage('home')">
     🏠
     <div class="dock-dot"></div>
   </div>

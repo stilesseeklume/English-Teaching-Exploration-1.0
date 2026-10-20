@@ -897,7 +897,7 @@
             <p class="hero-sub"><span class="guest-only">用真实的英语内容练听力、阅读与表达</span><span class="auth-only">先听懂，再跟读，一点点让英语成为自己的声音。</span></p>
             <div class="hero-actions">
               <button class="liquid-glass" onclick="location.href='./read-along/'">开始 Shadow Reading <span style="font-size:18px;line-height:1;">→</span></button>
-              <button class="liquid-glass secondary" onclick="location.href='./grammar-fill/'">语法专项练习</button>
+              <button class="liquid-glass secondary" onclick="location.href='./grammar-fill/'">课本语法</button>
             </div>
           </div>
           <!-- Panel 1: 模块列表 -->
@@ -909,8 +909,8 @@
                 <span class="entry-title">Shadow Reading</span>
               </a>
               <a class="project-entry-glass" href="./grammar-fill/" style="min-width:280px;">
-                <span class="entry-subtitle">Focused Practice</span>
-                <span class="entry-title">语法专项练习</span>
+                <span class="entry-subtitle">Unit by Unit</span>
+                <span class="entry-title">课本语法</span>
               </a>
             </div>
           </div>
@@ -1025,15 +1025,20 @@
     if (state.user) {
       var nm = displayName();
       var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
+      // 仅管理员可见：直达语法填空页的用户审批面板（?admin 入口）
+      var adminBtn = state.isAdmin
+        ? '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/?admin\'" title="用户注册审批 / 管理面板">审批管理</button>'
+        : '';
       el.innerHTML =
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
+        adminBtn +
         '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">Shadow Reading</button>' +
-        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">语法练习</button>' +
+        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">课本语法</button>' +
         '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
     } else {
       el.innerHTML = '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录 / 注册</button>' +
         '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">开始学习</button>' +
-        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">语法练习</button>';
+        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">课本语法</button>';
     }
   }
 
