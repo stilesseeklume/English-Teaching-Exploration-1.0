@@ -4064,7 +4064,7 @@ test('课本语法：点封面整页进册单元页 → 点 U3 进讲解页 → 
   await expect(notePage.locator('.tb-shot--page')).toHaveCount(3);
   await expect(notePage.locator('.tb-shot-img')).toHaveCount(9);
   await expect(notePage.locator('.tb-shot-img').first())
-    .toHaveAttribute('src', /assets\/textbook\/bx1\/u3-p109-page\.png/);
+    .toHaveAttribute('src', /assets\/textbook\/bx1\/u3-p109-page\.webp/);
   // 点开整页图可看原图
   await expect(notePage.locator('.tb-shot--page .tb-shot-link').first())
     .toHaveAttribute('target', '_blank');

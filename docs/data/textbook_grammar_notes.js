@@ -35,7 +35,7 @@
           title: '① 概念 · 它到底在干嘛',
           shots: [
             {
-              src: '../assets/textbook/bx1/u3-p109-page.png',
+              src: '../assets/textbook/bx1/u3-p109-page.webp',
               kind: 'page',
               print: 109,
               title: '课本语法附录 p109（整页）',
@@ -59,7 +59,7 @@
           title: '② 组成 · 前肯后否，前否后肯',
           shots: [
             {
-              src: '../assets/textbook/bx1/u3-tag-appendix-1.png',
+              src: '../assets/textbook/bx1/u3-tag-appendix-1.webp',
               kind: 'zoom',
               print: 109,
               title: '关键处放大 · 附录「附加疑问句的组成」表',
@@ -136,21 +136,21 @@
           title: '③ 功能 · 为什么要说这句',
           shots: [
             {
-              src: '../assets/textbook/bx1/u3-p40-page.png',
+              src: '../assets/textbook/bx1/u3-p40-page.webp',
               kind: 'page',
               print: 40,
               title: '课本正文 p40（整页）',
               note: '「Discovering Useful Structures」整页：任务 1 的对话、任务 2 的补全练习、任务 3 的情境任务。'
             },
             {
-              src: '../assets/textbook/bx1/u3-tag-conversations.png',
+              src: '../assets/textbook/bx1/u3-tag-conversations.webp',
               kind: 'zoom',
               print: 40,
               title: '关键处放大 · 任务 1 的三组小对话',
               note: '课本原题：先让学生圈出每句末尾的附加疑问部分，再讨论它们各自的功能。'
             },
             {
-              src: '../assets/textbook/bx1/u3-tag-scene.png',
+              src: '../assets/textbook/bx1/u3-tag-scene.webp',
               kind: 'zoom',
               print: 40,
               title: '关键处放大 · 任务 3 情境图与示范',
@@ -186,7 +186,7 @@
           title: '④ 回答 · 本节最大的坑',
           shots: [
             {
-              src: '../assets/textbook/bx1/u3-tag-appendix-2.png',
+              src: '../assets/textbook/bx1/u3-tag-appendix-2.webp',
               kind: 'zoom',
               print: 109,
               title: '关键处放大 · 附录「回答」与「读法」',
@@ -221,14 +221,14 @@
           title: '⑤ 读法 · 升调还是降调',
           shots: [
             {
-              src: '../assets/textbook/bx1/u3-p37-page.png',
+              src: '../assets/textbook/bx1/u3-p37-page.webp',
               kind: 'page',
               print: 37,
               title: '课本正文 p37（整页）',
               note: '这一页下半部分是 Pronunciation 板块：专门练附加疑问句的升调与降调。'
             },
             {
-              src: '../assets/textbook/bx1/u3-tag-intonation.png',
+              src: '../assets/textbook/bx1/u3-tag-intonation.webp',
               kind: 'zoom',
               print: 37,
               title: '关键处放大 · Pronunciation 语调对话',
@@ -293,7 +293,7 @@
         caveat: '答案为按课本语境推得的参考答案，非官方答案册。',
         shots: [
           {
-            src: '../assets/textbook/bx1/u3-tag-drill.png',
+            src: '../assets/textbook/bx1/u3-tag-drill.webp',
             kind: 'zoom',
             print: 40,
             title: '课本 p40 · 任务 2 补全对话',
