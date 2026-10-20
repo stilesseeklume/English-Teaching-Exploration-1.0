@@ -914,4 +914,21 @@ d29c166 注册登录改为用户名+密码
 
 落地与验证：该迁移已通过 Supabase 控制台 SQL Editor 执行完毕；只读诊断确认库里 `handle_new_user()` 函数体为 `approved = false`、触发器 `on_auth_user_created` 在线，且测试号 `test1020@seeklume.work` 注册后确实写入 `approved = false`。前端实测：该未审批账号访问 `https://seeklume.work/grammar-fill/` 被拦在「等待管理员审批」屏（功能控件不可交互），审批闸门恢复生效；同账号在首页（公开门厅）可正常浏览，符合设计。`check_supabase_migrations.py` / `check_static_site.sh` 均通过。
 
+
+## 2026-10-20 · 封堵「删号后对方仍能继续用站」
+
+教师实测：在管理员面板删掉某个账号后，该账号从列表消失，但对方仍能继续打开功能页使用本站。
+
+逐层排查（线上只读查询，逐一排除）：`admin_reject_user` 函数体确为 `delete from auth.users where id = target_user;`、owner=`postgres` 且对 `auth.users` 有 DELETE 权限、引用 `auth.users` 的 15 条外键中 14 条 `ON DELETE CASCADE`、`auth.sessions` / `auth.refresh_tokens` 的孤儿行均为 **0** —— 也就是说删号本身、权限、外键、会话回收都没问题。
+
+根因在 `check_approved()`：它把「查不到 profiles 记录」当作「审批系统上线前、没有档案的老用户」直接 `return true`，而删号走 `delete from auth.users` 时 profiles 行会被级联删掉 —— 于是「被删号」与「老用户」在函数里同形，被一并放行；对方浏览器里尚未过期的 access token 仍能通过 RLS，门禁又不断放行，表现为「账号消失了但人还在站内」。此即 2026-10-14 门禁方案中标记过的「无记录一律放行」风险点。
+
+修法：
+- 新增 `supabase/migrations/2026-10-20_lock_out_deleted_users.sql`（+ 同名 `.rollback.sql`）：`check_approved()` 改为 fail-closed（查不到档案 → `false`）；并加一步兜底 —— 把「有 `auth.users` 但没有 `profiles` 行」的存量账号补成 `approved = true`，避免改成 fail-closed 后误伤真正的老用户（线上实跑该步影响 0 行，属空操作）；
+- `supabase/setup.sql` 同步为 fail-closed，新装环境不再带着这个缺口。
+
+落地与验证：已通过 Supabase 控制台 SQL Editor 执行完毕，验证语句返回 `users_without_profile = 0`；随后只读复查确认线上 `check_approved()` 函数体已是 fail-closed 版本。
+
+遗留说明：被删号者若正处于已登录状态，其 access token 在过期前（Supabase 默认 1 小时）仍能通过 RLS 读写自己名下的数据，但**任何一次页面加载都会落到「等待审批」屏，功能页不再可用**；想进一步压缩这个窗口，可在 Supabase 控制台把 JWT 有效期调短。
+
 *此日志随项目推进持续更新。最后更新：2026-10-20*

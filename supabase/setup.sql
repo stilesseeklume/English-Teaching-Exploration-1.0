@@ -189,7 +189,9 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- 前端查自己的审批状态（没有记录 = 老用户，默认放行）
+-- 前端查自己的审批状态（查不到记录 = 档案已被删 → 拒绝）
+-- 见 2026-10-20_lock_out_deleted_users.sql：删号会级联删掉 profiles 行，
+-- 若对「无记录」放行，等于删号后对方仍能继续用站。
 create or replace function public.check_approved()
 returns boolean
 language plpgsql
@@ -202,8 +204,8 @@ begin
   select p.approved into result
   from public.profiles p
   where p.user_id = auth.uid();
-  -- 无记录 = 审批系统上线前的老用户，放行
-  if not found then return true; end if;
+  -- 查不到档案 = 档案已被删除（账号被管理员删掉）→ 一律拒绝
+  if not found then return false; end if;
   return result;
 end;
 $$;
