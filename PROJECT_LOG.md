@@ -901,4 +901,17 @@ d29c166 注册登录改为用户名+密码
 
 **验证**：Playwright 端到端实测三级链路 —— 墙(7 封面/0 面板) → 点必修一(墙消失，整页 6 单元卡：1 可点 + 5 待开放，返回「返回课本墙」) → 点 U3(讲解页 1，返回「返回课本单元」) → 返回一次回册单元页 → 返回两次回封面墙 → dock 🏠 回封面墙。`npm run test:smoke` **42 passed**（并行跑时 `formatCountBadge` / 决策地图两条曾超时，单跑 1.6–4.1s 全绿，属 flaky）。`check_grammar_modules` 28 modules OK、`check_static_site` OK。未提交 / 未推送。
 
+
+## 2026-10-20 · 恢复注册审批闸门（新账号需管理员审批）
+
+教师实测：新注册账号不经审批即可使用。定位到 `supabase/setup.sql` 的 `handle_new_user()` 里写死 `approved = true`（源自 `2026-05-17_open_signup.sql`「开放注册」），于是 `check_approved()` 对该用户返回 true，门禁的「等待审批」屏被架空。前端侧本身没问题（`docs/shared/gate.js` 状态机、`docs/shared/admin-ui.js` 待审批的 ✓通过 / ✕拒绝 都在）。
+
+修法（只改数据层默认值，不动存量行）：
+- 新增 `supabase/migrations/2026-10-20_restore_signup_approval.sql`（+ 同名 `.rollback.sql`）：`handle_new_user()` 恢复 `approved = false`；
+- `supabase/setup.sql` 同步改成 `false`，新装环境不再重新开放注册。
+
+存量账号不受影响：`check_approved()` 对「无 profiles 记录」返回 true，而 5 月那次迁移已把存量置为 true；如需把除管理员外的存量账号也退回待审批，在 SQL Editor 另跑一条 `update public.profiles set approved = false where ...`（本轮未执行）。
+
+落地与验证：该迁移已通过 Supabase 控制台 SQL Editor 执行完毕；只读诊断确认库里 `handle_new_user()` 函数体为 `approved = false`、触发器 `on_auth_user_created` 在线，且测试号 `test1020@seeklume.work` 注册后确实写入 `approved = false`。前端实测：该未审批账号访问 `https://seeklume.work/grammar-fill/` 被拦在「等待管理员审批」屏（功能控件不可交互），审批闸门恢复生效；同账号在首页（公开门厅）可正常浏览，符合设计。`check_supabase_migrations.py` / `check_static_site.sh` 均通过。
+
 *此日志随项目推进持续更新。最后更新：2026-10-20*

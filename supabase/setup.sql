@@ -155,7 +155,7 @@ drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles
   for select using (auth.uid() = user_id or public.is_admin());
 
--- 新用户注册时自动创建 profile（2026-05-17 起：所有用户默认 approved=true，开放注册）
+-- 新用户注册时自动创建 profile（2026-10-20 起：默认 approved=false，注册后需管理员审批）
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -177,9 +177,9 @@ begin
     suffix := suffix + 1;
     uname := base || suffix::text;
   end loop;
-  -- 注册即可用，不再走审批流程
+  -- 注册后先进「待审批」，管理员通过后才能使用（见 2026-10-20_restore_signup_approval.sql）
   insert into public.profiles (user_id, username, approved)
-  values (new.id, uname, true);
+  values (new.id, uname, false);
   return new;
 end;
 $$;
