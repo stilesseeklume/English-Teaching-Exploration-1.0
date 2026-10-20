@@ -74,7 +74,7 @@
             { q: 'From the key words, what can we predict about the main body?', a: '正文应该说清楚两件事：他们凭什么算 masters，又立了什么榜样。' }
           ],
           // hot = 该段在「整页原书图」上的点击热区（相对整页的 0~1 比例坐标）
-          hot: { x: 0.024, y: 0.165, w: 0.496, h: 0.140 },
+          hot: { x: 0.083, y: 0.172, w: 0.562, h: 0.046 },
           gist: '面向读者征集「体育界的传奇人物」，并说明入选标准：既要在自己的项目里出类拔萃，也要为他人树立榜样。',
           paras: [
             'Help us choose some "Living Legends of Sports". They must be athletes who are masters in their sports and also set good examples for others. Here are our first two choices.'
@@ -171,7 +171,7 @@
             { q: 'What is the function of using the three "As..." phrases at the beginning?', a: '排比一下把她的「全面伟大」立起来，先声夺人。' },
             { q: 'How is the example clearly presented?', a: '走 introduction — development — conclusion：her determination was tested → 队伍瓦解／队长离队／她没气馁 → world champions, Olympic gold。' }
           ],
-          hot: { x: 0.044, y: 0.544, w: 0.439, h: 0.393 },
+          hot: { x: 0.083, y: 0.558, w: 0.403, h: 0.352 },
           gist: '用「运动员、教练、个人」三个身份概括郎平的贡献，再用 2015 年世界杯「主力受伤、队长离队」的逆境，说明她没有气馁，最终带队夺冠。',
           paras: [
             "As a player, Lang Ping brought honour and glory to her country. As a coach, she led the China women's volleyball team to medals at world championships and the Olympics. As a person, Lang Ping is loved by fans at home and abroad. When the Chinese team was preparing for the 2015 World Cup, her determination was tested. The team that Lang Ping had built was falling apart. One of the best players had been injured, and the team captain had to leave because of heart problems. Losing two important players was a big challenge, but Lang Ping did not lose heart. She had faced difficulties before, and she knew that her young players could win if they worked together as a team. Two weeks later, they were world champions! Then in 2016, Lang Ping led her volleyball team to Olympic gold in Brazil."
@@ -292,7 +292,7 @@
             { q: 'What are the key words about his career life?', a: 'skills 与 strength。技巧看 time seemed to stand still / "Air Jordan" / graceful moves and jumps；精神看 learning from his failures / never give up 和那句名言。' },
             { q: 'How does the writer convey his message?', a: '三招：比喻（time seemed to stand still）、直接引用名言、用一个具体事例说明他如何 share his success with others。' }
           ],
-          hot: { x: 0.480, y: 0.540, w: 0.482, h: 0.343 },
+          hot: { x: 0.493, y: 0.558, w: 0.452, h: 0.288 },
           gist: '先写乔丹「飞人」般的球技，再强调真正让他与众不同的是「精神力量」——他的成功秘诀是从失败中学习；最后落到他创办俱乐部、回馈青少年。',
           paras: [
             "When Michael Jordan's feet left the ground, time seemed to stand still. The player who became known as \"Air Jordan\" changed basketball with his graceful moves and jumps. Jordan's skills were impressive, but the mental strength that he showed made him unique. In the final seconds of a game, Jordan always seemed to find a way to win. Jordan says that the secret to his success is learning from his failures. \"I can accept failure; everyone fails at something. But I can't accept not trying.\" Losing games taught him to practise harder and never give up. In life, Jordan has learnt to share his success with others. The Boys and Girls Club which he started in Chicago has been helping young people since 1996."
@@ -399,7 +399,7 @@
           inquiry: [
             { q: 'What can this additional information tell us?', a: '这条投稿邮箱帮我们锁定体裁——这是一篇典型的杂志文章。' }
           ],
-          hot: { x: 0.483, y: 0.895, w: 0.419, h: 0.045 },
+          hot: { x: 0.493, y: 0.838, w: 0.42, h: 0.038 },
           gist: '收束全文，请读者把自己心中的「体育传奇人物」投稿到指定邮箱，呼应开篇的征集。',
           paras: [
             'Send your suggestions for "Living Legends of Sports" to LLS@sports.net.'
