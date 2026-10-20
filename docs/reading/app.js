@@ -167,16 +167,18 @@
   // ===== 原文（可交互原书图）=====
   function panelArticle(n) {
     var pageImg = '../assets/textbook/bx1/u3-rt-p38-page.webp';
+    // 图上只留编号（①②③④），段落名一律走右侧列表——图上永不叠字。
+    var MARKS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
     var hots = n.sections.map(function (s, i) {
       var h = s.hot || { x: 0, y: 0, w: 0, h: 0 };
-      return '<button class="rc-hot" data-sec="' + i + '" style="left:' + (h.x * 100) + '%;top:' +
+      return '<button class="rc-hot" data-sec="' + i + '" title="' + esc(s.label) + '" style="left:' + (h.x * 100) + '%;top:' +
         (h.y * 100) + '%;width:' + (h.w * 100) + '%;height:' + (h.h * 100) + '%">' +
-        '<span class="rc-hot-tag">' + esc(s.label) + '</span></button>';
+        '<span class="rc-hot-no">' + (MARKS[i] || (i + 1)) + '</span></button>';
     }).join('');
 
     var list = n.sections.map(function (s, i) {
       return '<button class="rc-sec-btn" data-sec="' + i + '">' +
-        '<span class="rc-sec-no">' + (i + 1) + '</span>' +
+        '<span class="rc-sec-no">' + (MARKS[i] || (i + 1)) + '</span>' +
         '<span class="rc-sec-txt"><span class="rc-sec-name">' + esc(s.label) + '</span>' +
         '<span class="rc-sec-role">' + esc(s.role) + '</span></span>' +
         '</button>';

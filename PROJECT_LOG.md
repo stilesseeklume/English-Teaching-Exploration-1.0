@@ -1061,4 +1061,39 @@ Playwright 本地实测 12 项全过：第 2 格标签为「理解」、21 个�
 
 - 首页封面墙 7 张 `grammar-fill/images/textbook-covers/*.jpg` 合计约 **6.3 MB**（单张 665~1210 KB），比这批截图还大，首屏同样会卡；建议下一轮一并转 WebP。
 
+## 2026-10-20 · 阅读课改为「上课模式」：一屏把这篇上完 + 词根词缀讲解 + 离线副本
+
+教师诉求：明天上课只投阅读课这一页，靠页内交互把 Reading and Thinking 上完；讲解每个段落时要是**精读**（结构 + 知识点 + 复述一并带走）；**词根、词缀必须有讲解**。
+
+### 产出
+
+- **`docs/reading/lesson.js`（新建，讲台逻辑）**：上课模式为 `position:fixed` 全屏覆盖层，`html.ls-on` 时隐藏 header / main / Dock，一屏一幕、`overflow:hidden`、关闭动画（页面静止，方便希沃白板批注）。21 步线性步进：开场 → 读前 3 问 → 认门（体裁五部件）→ 四段 × 四层 → 拼回去 → 作业。键盘 `← / → / 空格 / Enter / PageUp / PageDown` 步进、`1-9` 跳段、`Esc` 退出。`window.ReadingLesson.state` 暴露给测试。
+- **逐段四层折叠**：固定顺序 **问（Ask）→ 构（Shape）→ 词（Words）→ 说（Say）**；已掀开的可回看，未到的是半透明 `locked`。
+- **主视觉常驻**：左侧原书整页图按 1241/1754 比例 `fitFigure()` 定位，用 `translate + scale` 聚焦本段热区；进入段落后只在四层之间切换、不重算 transform，故白板上写的批注不会错位；另给「看整页 / 聚焦本段」手动切换。
+- **词卡三拍（含词根词缀）**：猜（挖空课文原句）→ 翻（词条 + 词根 + 构词 + 词族 + 词块 + 注意 + 造句）→ 用。翻转用纯 CSS `flip` 类，非 3D。U3 共 **23 张词卡**（Intro 5 / Lang Ping 8 / Michael Jordan 8 + 单元增量词 2），分 `core` 与 `simple` 两档，`core` 卡带完整词根拆解（如 `termin-` 界限 → determine → determination）与来源角标（课本 p114 等）。
+- **词缀总表**：11 条（`-ure / -ation / -ment / -y / -ed / -ful / -less / -able / -ship / -th / -ing`），每条含含义、例词、更多例词，收在「拼回去」幕作为词根词缀讲解的落点。
+- **数据层 `docs/data/textbook_reading_notes.js`（扩充）**：新增 `genreParts`（标题/导语/主体/结尾/落款五部件）、每段 `translation` 中文译文、每段 `words` 词卡、`unitWords`、`affixTable`、`homework`（3 条人人做 + 3 个上位任务 + 四步写作支架）。
+- **热区压字修复 `docs/reading/app.js`**：图上不再贴段落文字，只贴 ①②③④ 圆形编号（`translate(-50%,-50%)` 贴左上角外侧），段落名一律移到右侧列表 —— 图上**永不叠字**。
+- **`scripts/build_reading_offline.mjs`（新建）**：把 CSS / JS / 图片（base64）全部内联成单个 HTML，产物 `private/课堂副本/阅读课-必修一-U3-RT.html`（`private/` 已 gitignore）。双击即开，不联网、不登录、不依赖 CDN。
+
+### 关键决策
+
+- **讲课与学生自学分离**：装饰墙保留为门厅（自学入口），讲台另起一份「上课模式」deck，互不干扰 —— 避免把同一副骨架摆两遍（教师长期偏好：一屏一主视觉、减法优先）。
+- **词卡只精讲 `core`**：`simple` 卡只给释义与例句，不铺词根，控制一屏信息量；词根词缀的完整体系收在「词缀总表」一次性讲清，而非每张卡都塞。
+- **主图不动、批注不错位**：transform 只在进入段落时算一次；这是为希沃白板批注专门做的取舍。
+
+### 验证
+
+- Playwright 逐幕截图核验：开场（整页原书）、读前 3 问、认门五部件、四段四层（含词卡翻面）、拼回去（整篇导图 / 全篇笔记 / 词卡网格 / 词缀总表）、作业三栏，视觉均正常。
+- 一屏不滚动硬约束：逐步测量 `.ls-stage` 的 `scrollHeight - clientHeight` 与 `.ls-layer.open .ls-layer-body` 同名差值，**21 步全部为 0**。
+- `bash scripts/check_all.sh` → `42 passed`、`OK: all engineering checks passed`。
+- 离线副本断网验证：拦截所有非 `file://` 请求后打开，门禁未锁页、`steps=21`、主图 `imgIsDataUri=true`、**console 零报错**（本轮补内联 `dock.css` 与去掉 Google Fonts `@import` 后，此前两条 `ERR_FILE_NOT_FOUND` / `ERR_FAILED` 已消除）。
+- 未提交 / 未推送。
+
+### 待办
+
+- 其余 34 个单元的讲解内容填充（本轮只做必修一 U3，教师明确「先从这个单元入手，以后再慢慢去调」）。
+- 教材单元数量变多后是否需要册级 tab；练习套卷页是否补返回按钮。
+- 课堂实测后的字号 / 节奏微调（教师已确认「后面我们再看」）。
+
 *此日志随项目推进持续更新。最后更新：2026-10-20*
