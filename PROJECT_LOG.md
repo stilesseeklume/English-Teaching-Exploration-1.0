@@ -929,7 +929,7 @@ d29c166 注册登录改为用户名+密码
 
 落地与验证：已通过 Supabase 控制台 SQL Editor 执行完毕，验证语句返回 `users_without_profile = 0`；随后只读复查确认线上 `check_approved()` 函数体已是 fail-closed 版本。
 
-遗留说明：被删号者若正处于已登录状态，其 access token 在过期前（Supabase 默认 1 小时）仍能通过 RLS 读写自己名下的数据，但**任何一次页面加载都会落到「等待审批」屏，功能页不再可用**；想进一步压缩这个窗口，可在 Supabase 控制台把 JWT 有效期调短。
+遗留说明：被删号者若正处于已登录状态，其 access token 在过期前（Supabase 默认 1 小时）仍能通过 RLS 读写自己名下的数据，但**任何一次页面加载都会落到「等待审批」屏，功能页不再可用**；该窗口已进一步压缩：Supabase 控制台 Authentication → Sessions 的 Access token expiry 已从默认 3600 秒调成 900 秒（15 分钟），实测新签发 JWT 的 `exp - iat = 900`。
 
 
 端到端复现（API 层，用真实 JWT 直接打门禁所调用的那个 RPC）：造一个临时账号 → 未审批时 `check_approved()` 返回 `false`（拦）；临时置为已通过后返回 `true`（放行）；随后删掉该账号（等价于面板「删除用户」，走 `delete from auth.users`），**同一个仍在有效期内的 JWT 再问一次，返回 `false`** —— 修复前会放行、修复后被拦，正是教师反馈的那个现象。另测重新登录：`Invalid login credentials`。临时账号已删净（残留 0），未留下垃圾数据。
