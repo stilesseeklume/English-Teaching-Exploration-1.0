@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeklume · Reading Class 阅读课</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;600&display=swap');
+
+  :root {
+    --bg:#f5f5f7; --surface:#ffffff; --surface-2:#fafafa; --surface-3:#f0f0f2;
+    --border:#e5e5ea; --text:#1d1d1f; --text-2:#6e6e73; --text-3:#aeaeb2;
+    --accent:#0071e3; --accent-bg:#f0f7ff; --purple:#af52de; --purple-bg:#f6edfb;
+    --green:#34c759; --green-bg:#e8f8ed; --coral:#ff6b5e; --coral-bg:#fff0ee;
+    --radius:12px;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
+    --shadow-lg:0 8px 26px rgba(0,0,0,.10),0 0 0 1px rgba(0,0,0,.04);
+    --font-display:'Instrument Serif','Times New Roman',Georgia,serif;
+    --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg:#1c1c1e; --surface:#2c2c2e; --surface-2:#3a3a3c; --surface-3:#48484a;
+    --border:#38383a; --text:#f5f5f7; --text-2:#98989d; --text-3:#636366;
+    --accent:#409cff; --accent-bg:rgba(64,156,255,.15); --purple:#c07af0; --purple-bg:rgba(192,122,240,.15);
+    --green:#30d158; --green-bg:rgba(48,209,88,.15); --coral:#ff8a80; --coral-bg:rgba(255,138,128,.15);
+    --shadow:0 1px 3px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.06);
+    --shadow-lg:0 8px 26px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;font-family:var(--font-body);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;}
+
+  header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .back-link{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--accent);font-size:14px;font-weight:500;}
+  .back-link:hover{opacity:.7;}
+  .logo-text{font-family:var(--font-display);font-size:19px;letter-spacing:.02em;}
+  .theme-toggle{background:var(--surface-2);border:1px solid var(--border);cursor:pointer;font-size:14px;padding:4px 10px;border-radius:6px;color:var(--text-2);}
+  .theme-toggle:hover{background:var(--surface-3);}
+  .theme-toggle .icon-sun{display:none;}
+  [data-theme="dark"] .theme-toggle .icon-sun{display:inline;}
+  [data-theme="dark"] .theme-toggle .icon-moon{display:none;}
+
+  main{max-width:1000px;margin:0 auto;padding:30px 24px 120px;}
+
+  /* ===== Hero ===== */
+  .rc-hero{text-align:center;margin-bottom:26px;}
+  .rc-hero-tag{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;}
+  .rc-hero-title{font-family:var(--font-display);font-size:44px;font-weight:400;margin:0 0 6px;line-height:1.1;}
+  .rc-hero-sub{font-size:13px;color:var(--text-3);}
+
+  /* ===== 装饰墙 ===== */
+  .rc-wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:16px;}
+  .rc-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+    padding:18px;border-radius:16px;border:1px solid var(--border);background:var(--surface);
+    cursor:pointer;text-align:left;font:inherit;transition:transform .2s,box-shadow .2s,border-color .2s;box-shadow:var(--shadow);}
+  .rc-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+  .rc-tile.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow-lg);}
+  .rc-tile-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:2px;}
+  .rc-tile-label{font-size:16px;font-weight:700;}
+  .rc-tile-sub{font-size:12px;color:var(--text-3);line-height:1.4;}
+  .rc-tile-arrow{position:absolute;right:16px;top:20px;color:var(--text-3);font-size:15px;transition:transform .2s;}
+  .rc-tile.active .rc-tile-arrow{transform:rotate(90deg);color:var(--accent);}
+  .tone-ink  .rc-tile-ico{background:var(--surface-3);}
+  .tone-blue .rc-tile-ico{background:var(--accent-bg);color:var(--accent);}
+  .tone-coral .rc-tile-ico{background:var(--coral-bg);}
+  .tone-purple .rc-tile-ico{background:var(--purple-bg);}
+  .tone-green .rc-tile-ico{background:var(--green-bg);}
+
+  /* ===== 面板 ===== */
+  .rc-panels{margin-top:22px;}
+  .rc-hint,.rc-empty{padding:22px;border:1px dashed var(--border);border-radius:16px;color:var(--text-3);font-size:13px;text-align:center;background:var(--surface-2);}
+  .rc-panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);animation:panelIn .32s cubic-bezier(.16,1,.3,1);}
+  @keyframes panelIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  .rc-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .rc-panel-head h2{font-family:var(--font-display);font-size:26px;font-weight:400;margin:0;}
+  .rc-kicker{font-size:11px;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;}
+  .rc-h3{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin:22px 0 10px;}
+  .rc-lead{font-size:14px;color:var(--text-2);line-height:1.7;margin:0 0 16px;}
+  .rc-note{font-size:12px;color:var(--text-3);line-height:1.6;margin:14px 0 0;}
+
+  /* 理解面板 · 问题链 */
+  .rc-idea-top{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+  .rc-meta-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);margin-bottom:12px;}
+  .rc-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--surface-3);color:var(--text-2);}
+  .rc-h3-no{width:24px;height:24px;border-radius:8px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .rc-h3-role{font-size:12px;font-weight:400;color:var(--text-3);}
+  .rc-q-list{display:flex;flex-direction:column;gap:8px;}
+  .rc-q{border:1px solid var(--border);border-radius:11px;background:var(--surface);overflow:hidden;}
+  .rc-q summary{list-style:none;cursor:pointer;position:relative;padding:11px 34px 11px 14px;font-size:13.5px;font-weight:600;line-height:1.5;}
+  .rc-q summary::-webkit-details-marker{display:none;}
+  .rc-q summary::after{content:'+';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:400;color:var(--text-3);}
+  .rc-q[open] summary::after{content:'−';}
+  .rc-q summary:hover{background:var(--surface-2);}
+  .rc-q[open] summary{color:var(--accent);}
+  .rc-q p{margin:0;padding:0 14px 13px;font-size:13px;color:var(--text-2);line-height:1.7;}
+  .rc-q-main{margin-top:20px;border-style:dashed;}
+
+  /* 原文面板 · 可交互原书图 */
+  .rc-reader{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:22px;}
+  .rc-viewer{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface-3);aspect-ratio:1241 / 1754;cursor:grab;}
+  .rc-viewer.grabbing{cursor:grabbing;}
+  .rc-viewer-stage{position:absolute;inset:0;transform-origin:0 0;will-change:transform;}
+  .rc-page-img{display:block;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;}
+  .rc-hot{position:absolute;border:2px solid transparent;background:rgba(0,122,255,.10);border-radius:8px;cursor:pointer;padding:0;font:inherit;transition:background .2s,border-color .2s;}
+  .rc-hot:hover{background:rgba(0,122,255,.22);border-color:rgba(0,122,255,.6);}
+  .rc-hot.active{background:rgba(0,122,255,.26);border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,122,255,.22);}
+  .rc-hot-tag{position:absolute;left:4px;top:4px;font-size:10px;font-weight:700;color:#fff;background:var(--accent);padding:1px 6px;border-radius:5px;opacity:0;transition:opacity .2s;white-space:nowrap;}
+  .rc-hot:hover .rc-hot-tag,.rc-hot.active .rc-hot-tag{opacity:1;}
+  .rc-viewer-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:3;}
+  .rc-viewer-tools button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);cursor:pointer;font-size:15px;line-height:1;box-shadow:var(--shadow);}
+  .rc-viewer-tools button:hover{background:var(--surface-3);}
+  .rc-reader-side{display:flex;flex-direction:column;gap:14px;min-width:0;}
+  .rc-sec-list{display:flex;flex-direction:column;gap:8px;}
+  .rc-sec-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font:inherit;text-align:left;transition:all .2s;}
+  .rc-sec-btn:hover{border-color:var(--accent);}
+  .rc-sec-btn.active{border-color:var(--accent);background:var(--accent-bg);}
+  .rc-sec-no{width:22px;height:22px;border-radius:7px;background:var(--surface-3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--text-2);flex-shrink:0;}
+  .rc-sec-btn.active .rc-sec-no{background:var(--accent);color:#fff;}
+  .rc-sec-txt{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .rc-sec-name{font-size:13.5px;font-weight:700;}
+  .rc-sec-role{font-size:11px;color:var(--text-3);}
+  .rc-sec-detail{border-top:1px solid var(--border);padding-top:14px;}
+  .rc-detail-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .rc-detail-no{width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .rc-detail-name{font-size:15px;font-weight:700;}
+  .rc-detail-role{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:8px;}
+  .rc-detail-para{font-size:12.5px;line-height:1.65;color:var(--text-2);font-family:Georgia,'Times New Roman',serif;margin:0 0 12px;}
+  .rc-detail-shot{margin:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2);}
+  .rc-detail-shot img{width:100%;display:block;}
+  .rc-detail-shot figcaption{font-size:10.5px;color:var(--text-3);padding:6px 10px;border-top:1px solid var(--border);}
+
+  /* 结构面板：骨架导航 + 导图 / 笔记两种摆法 */
+  .rc-spine{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px;}
+  .rc-spine-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+  .rc-spine-chip:hover{border-color:var(--accent);}
+  .rc-spine-chip.active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);}
+  .rc-spine-no{width:18px;height:18px;border-radius:6px;background:var(--surface-3);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--text-2);}
+  .rc-spine-chip.active .rc-spine-no{background:var(--accent);color:#fff;}
+
+  .rc-view-switch{display:inline-flex;gap:2px;padding:3px;margin-bottom:14px;border-radius:10px;background:var(--surface-3);}
+  .rc-view-switch button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--text-2);padding:6px 18px;border-radius:8px;cursor:pointer;transition:all .2s;}
+  .rc-view-switch button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+
+  .rc-struct-head{display:flex;align-items:center;gap:9px;padding-bottom:12px;margin-bottom:10px;border-bottom:1px solid var(--border);}
+  .rc-struct-no{width:22px;height:22px;border-radius:7px;background:var(--surface-3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--text-2);flex-shrink:0;}
+  .rc-struct-name{font-size:15px;font-weight:700;}
+  .rc-struct-role{font-size:12px;color:var(--text-3);}
+  .rc-struct-view{margin-left:auto;font-size:11px;color:var(--text-3);letter-spacing:.06em;}
+  .rc-map{padding:4px 8px;}
+
+  .rc-notes{display:flex;flex-direction:column;gap:20px;}
+  .rc-notes-sec-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+  .rc-notes-no{width:20px;height:20px;border-radius:6px;background:var(--surface-3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--text-2);flex-shrink:0;}
+  .rc-notes-name{font-size:13.5px;font-weight:700;}
+  .rc-notes-role{font-size:11px;color:var(--text-3);}
+  .rc-note-line{display:flex;align-items:baseline;gap:10px;padding:7px 4px;border-bottom:1px solid var(--border);}
+  .rc-note-line:last-child{border-bottom:0;}
+  .rc-note-line.lv1{padding-left:30px;}
+  .rc-note-tree{flex:0 0 16px;font-size:13px;color:var(--text-3);}
+  .rc-note-txt{flex:1 1 auto;min-width:0;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13px;font-weight:600;color:var(--text);}
+  .rc-note-gloss{flex:0 1 40%;font-size:12px;color:var(--text-3);text-align:right;}
+
+  /* 背诵面板 */
+  .rc-quote-list{display:grid;gap:12px;}
+  .rc-quote{margin:0;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 12px 12px 0;padding:14px 18px;}
+  .rc-quote-en{font-family:var(--font-display);font-size:17px;margin:0 0 6px;line-height:1.5;}
+  .rc-quote-zh{font-size:13px;color:var(--text-3);margin:0;}
+  .rc-phrase-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+  .rc-phrase{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);}
+  .rc-phrase-en{font-weight:600;font-size:14px;color:var(--accent);}
+  .rc-phrase-zh{font-size:12px;color:var(--text-3);}
+  .rc-hintline{margin:20px 0 16px;padding:12px 16px;border-radius:12px;background:var(--green-bg);color:var(--text-2);font-size:13px;line-height:1.6;}
+
+  @media (max-width:720px){
+    .rc-reader{grid-template-columns:1fr;}
+    .rc-hero-title{font-size:34px;}
+    main{padding:22px 16px 120px;}
+  }
+</style>
+<link rel="stylesheet" href="../shared/ui/dock.css">
+</head>
+<body>
+<header>
+  <a class="back-link" href="../index.html"><span>←</span><span>首页</span></a>
+  <div class="logo-text">Seeklume · Reading</div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色">
+    <span class="icon-moon">🌙</span><span class="icon-sun">☀️</span>
+  </button>
+</header>
+
+<main>
+  <section class="rc-hero" id="rcArticleMeta"></section>
+  <div class="rc-wall" id="rcWall"></div>
+  <div class="rc-panels" id="rcPanels"></div>
+</main>
+
+<!-- 全站登录门禁（功能页强制登录） -->
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../shared/cloud.js"></script>
+<script src="../shared/gate.js"></script>
+<script src="../shared/ui/dock.js"></script>
+
+<!-- 阅读课数据与渲染 -->
+<script src="../data/textbook_reading_notes.js"></script>
+<script src="./mindmap.js"></script>
+<script src="./app.js"></script>
+
+<script>
+function toggleTheme(){
+  var c = document.documentElement.getAttribute('data-theme');
+  var n = c === 'dark' ? '' : 'dark';
+  document.documentElement.setAttribute('data-theme', n);
+  try { localStorage.setItem('theme', n === 'dark' ? 'dark' : 'light'); } catch(e){}
+  window.dispatchEvent(new Event('rc-theme-change'));
+}
+try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
+</script>
+</body>
+</html>
