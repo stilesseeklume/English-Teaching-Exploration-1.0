@@ -18,93 +18,89 @@
   }
   header{
     display:flex; align-items:center; justify-content:space-between;
-    padding:18px 28px; font-size:13.5px; color:var(--muted);
+    padding:18px 30px; font-size:13.5px; color:var(--muted);
   }
   .back{color:var(--ink-2); text-decoration:none; display:flex; align-items:center; gap:7px;}
   .back:hover{color:var(--accent);}
   .brand{font-family:var(--font-display); font-size:15px; letter-spacing:.04em; color:var(--ink-2);}
-  main{max-width:900px; margin:0 auto; padding:34px 28px 90px;}
+  main{max-width:1180px; margin:0 auto; padding:30px 30px 90px;}
   .kicker{font-size:11.5px; letter-spacing:.16em; color:var(--accent); text-transform:uppercase;}
   h1{
     font-family:var(--font-display); font-weight:400; font-size:46px;
     letter-spacing:-.01em; margin:10px 0 8px;
   }
-  .sub{font-size:15px; line-height:1.8; color:var(--muted); margin:0;}
-  .crumb{display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+  .sub{font-size:15px; line-height:1.8; color:var(--muted); margin:0; max-width:640px;}
+  .crumb{display:flex; align-items:center; gap:12px; margin-bottom:14px; font-size:13px; color:var(--muted);}
   .crumb button{
-    font:inherit; font-size:13.5px; color:var(--ink-2); background:none;
+    font:inherit; font-size:13px; color:var(--ink-2); background:none;
     border:0; padding:0; cursor:pointer;
   }
   .crumb button:hover{color:var(--accent);}
   .crumb i{font-style:normal; color:var(--rule);}
 
-  /* ── 第一级：书 ── */
-  .books{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:22px; margin-top:34px;}
-  .book{
-    position:relative; display:flex; flex-direction:column; justify-content:space-between;
-    min-height:266px; padding:24px 22px 20px; text-align:left; font:inherit;
-    background:var(--paper); color:var(--ink); border:1px solid var(--rule);
-    border-radius:3px 10px 10px 3px; cursor:pointer;
-    box-shadow:2px 6px 18px rgba(43,42,38,.10);
-    transition:transform .22s, box-shadow .22s;
+  /* ── 第一级：封面墙 ── */
+  .wall{display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:16px; margin-top:36px;}
+  .cover{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding:12px 10px 11px; font:inherit; text-align:center;
+    background:var(--paper); border:1px solid var(--rule); border-radius:14px;
+    cursor:pointer; transition:transform .18s, box-shadow .18s, border-color .18s;
   }
-  .book::before{
-    content:''; position:absolute; left:0; top:0; bottom:0; width:12px;
-    border-radius:3px 0 0 3px;
-    background:linear-gradient(90deg,rgba(43,42,38,.10),rgba(43,42,38,.02));
+  .cover:hover{transform:translateY(-4px); border-color:var(--accent); box-shadow:0 12px 28px rgba(43,42,38,.16);}
+  .cover:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .cover-img{
+    width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:8px;
+    box-shadow:0 5px 14px rgba(43,42,38,.20);
   }
-  .book:hover{transform:translateY(-4px); box-shadow:4px 12px 28px rgba(43,42,38,.16);}
-  .book-kicker{display:block; font-size:11px; letter-spacing:.14em; color:var(--muted);}
-  .book-name{display:block; font-family:var(--font-display); font-size:30px; line-height:1.1; margin:10px 0 6px;}
-  .book-level{display:block; font-size:13px; color:var(--ink-2); letter-spacing:.08em;}
-  .book-foot{
-    display:block; margin-top:26px; padding-top:12px; border-top:1px solid var(--rule);
-    font-size:11.5px; letter-spacing:.1em; color:var(--muted);
-  }
-  .book.locked{opacity:.5; cursor:default; box-shadow:none; filter:grayscale(1);}
-  .book.locked:hover{transform:none; box-shadow:none;}
-  .tag{
-    position:absolute; right:14px; top:14px; font-size:11px; letter-spacing:.06em;
-    color:var(--muted); border:1px solid var(--rule); border-radius:999px; padding:2px 8px;
-  }
+  .cover-name{font-size:13px; font-weight:600; color:var(--ink); line-height:1.3;}
+  .cover-meta{font-size:11px; color:var(--muted);}
+  .cover.locked{cursor:default;}
+  .cover.locked .cover-img{filter:grayscale(.25) brightness(.96);}
+  .cover.locked:hover{transform:none; box-shadow:none; border-color:var(--rule);}
+  .cover.locked .cover-meta{color:#a9a395;}
+  .foot{margin-top:44px; font-size:12px; color:var(--muted); letter-spacing:.04em;}
 
   /* ── 第二级：单元 ── */
-  .units{display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:16px; margin-top:30px;}
+  .bookhead{
+    display:flex; align-items:center; gap:22px; margin-top:6px; padding-bottom:18px;
+    border-bottom:1px solid var(--rule);
+  }
+  .bookhead img{width:84px; height:112px; object-fit:cover; border-radius:6px; box-shadow:0 6px 18px rgba(43,42,38,.18); flex:none;}
+  .bookhead h1{font-size:34px; margin:0 0 6px;}
+  .bookhead p{margin:0; font-size:13px; color:var(--muted);}
+  .units{display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; margin-top:26px;}
   .unit{
-    display:flex; align-items:flex-start; gap:16px; text-align:left; font:inherit;
-    padding:20px 20px 18px; background:var(--paper); border:1px solid var(--rule);
-    border-radius:12px; cursor:pointer;
-    box-shadow:0 2px 10px rgba(43,42,38,.07);
-    transition:transform .2s, border-color .2s, box-shadow .2s;
+    display:flex; align-items:stretch; gap:18px; text-align:left; font:inherit; padding:18px 20px;
+    background:var(--paper); border:1px solid var(--rule); border-radius:14px;
+    cursor:pointer; transition:transform .2s, border-color .2s, box-shadow .2s;
   }
-  .unit.open:hover{transform:translateY(-3px); border-color:var(--accent); box-shadow:0 8px 22px rgba(43,42,38,.14);}
+  .unit.open:hover{transform:translateY(-3px); border-color:var(--accent); box-shadow:0 10px 26px rgba(43,42,38,.15);}
+  .unit:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
   .unit-no{
-    font-family:var(--font-display); font-size:21px; color:var(--accent); line-height:1.1;
-    min-width:42px;
+    font-family:var(--font-display); font-size:22px; color:var(--accent);
+    min-width:34px; line-height:1.15; padding-top:2px;
   }
-  .unit-body{flex:1; min-width:0;}
-  .unit-title{display:block; font-size:17px; font-weight:600; line-height:1.35; margin:0 0 4px;}
-  .unit-cn{display:block; font-size:13.5px; color:var(--ink-2); line-height:1.5;}
-  .unit-rt{display:block; margin-top:8px; font-size:13px; color:var(--muted); line-height:1.5;}
+  .unit-body{flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center;}
+  .unit-title{font-size:17.5px; font-weight:600; line-height:1.35; margin:0 0 4px;}
+  .unit-cn{font-size:13.5px; color:var(--ink-2); line-height:1.5;}
+  .unit-rt{margin-top:9px; font-size:13px; color:var(--muted); line-height:1.5;}
   .unit-rt b{color:var(--ink-2); font-weight:600;}
-  .unit-go{
-    align-self:center; font-size:12.5px; color:var(--accent); white-space:nowrap;
+  .unit-go{margin-top:12px; font-size:12.5px; color:var(--accent);}
+  .unit-prev{
+    width:64px; height:90px; object-fit:cover; object-position:top;
+    border-radius:3px; border:1px solid var(--rule); flex:none; align-self:center;
+    box-shadow:1px 3px 10px rgba(43,42,38,.14);
   }
-  .unit.locked{opacity:.5; cursor:default; background:transparent; box-shadow:none;}
+  .unit.locked{opacity:.55; cursor:default; background:transparent; box-shadow:none;}
   .unit.locked .unit-no{color:var(--muted);}
   .unit.locked .unit-go{color:var(--muted);}
-  .foot{margin-top:50px; font-size:12px; color:var(--muted); letter-spacing:.04em;}
-  @media (max-width:640px){
+  @media (max-width:760px){
     header{padding:14px 18px;}
-    main{padding:20px 18px 70px;}
+    main{padding:18px 18px 70px;}
     h1{font-size:34px;}
-    .books{grid-template-columns:1fr 1fr; gap:14px;}
-    .book{min-height:220px; padding:18px 16px 16px;}
-    .book-name{font-size:24px;}
+    .wall{grid-template-columns:repeat(auto-fit,minmax(106px,1fr)); gap:12px; margin-top:26px;}
     .units{grid-template-columns:1fr;}
-  }
-  @media (max-width:420px){
-    .books{grid-template-columns:1fr;}
+    .bookhead h1{font-size:26px;}
   }
 </style>
 </head>
@@ -124,20 +120,27 @@
 (function () {
   'use strict';
 
+  var COVER = '../grammar-fill/images/textbook-covers/';
+  var PAGE = '../assets/textbook/bx1/';
+
   var BOOKS = [
     {
-      key: 'bx1', name: '必修一', en: 'Book 1', open: true,
+      key: 'bx1', name: '必修一', cover: COVER + 'bixiu-1.jpg', open: true,
       units: [
         { no: 'WU', title: 'Welcome Unit', cn: '预备单元', rt: '', open: false },
         { no: '01', title: 'Teenage Life', cn: '青少年生活', rt: '', open: false },
         { no: '02', title: 'Travelling Around', cn: '环游世界', rt: '', open: false },
-        { no: '03', title: 'Sports and Fitness', cn: '运动与健康', rt: 'Living Legends', open: true },
+        { no: '03', title: 'Sports and Fitness', cn: '运动与健康', rt: 'Living Legends', open: true, prev: PAGE + 'u3-rt-p38-page.webp' },
         { no: '04', title: 'Natural Disasters', cn: '自然灾害', rt: '', open: false },
         { no: '05', title: 'Languages Around the World', cn: '世界语言', rt: '', open: false }
       ]
     },
-    { key: 'bx2', name: '必修二', en: 'Book 2', open: false },
-    { key: 'bx3', name: '必修三', en: 'Book 3', open: false }
+    { key: 'bx2', name: '必修二', cover: COVER + 'bixiu-2.jpg', open: false },
+    { key: 'bx3', name: '必修三', cover: COVER + 'bixiu-3.jpg', open: false },
+    { key: 'xb1', name: '选必一', cover: COVER + 'xuanbi-1.jpg', open: false },
+    { key: 'xb2', name: '选必二', cover: COVER + 'xuanbi-2.jpg', open: false },
+    { key: 'xb3', name: '选必三', cover: COVER + 'xuanbi-3.jpg', open: false },
+    { key: 'xb4', name: '选必四', cover: COVER + 'xuanbi-4.jpg', open: false }
   ];
 
   var app = document.getElementById('app');
@@ -149,40 +152,39 @@
 
   function currentBook() {
     var k = (location.hash || '').replace(/^#/, '');
-    for (var i = 0; i < BOOKS.length; i++) if (BOOKS[i].key === k) return BOOKS[i];
+    for (var i = 0; i < BOOKS.length; i++) if (BOOKS[i].key === k && BOOKS[i].open) return BOOKS[i];
     return null;
   }
 
   function renderShelf() {
     app.innerHTML =
       '<div class="kicker">Reading · 阅读课</div>' +
-      '<h1>先选一册</h1>' +
-      '<p class="sub">点开一册，再选一个单元；单元点开就是读书模式——原文在左，讲解在页边。</p>' +
-      '<div class="books">' + BOOKS.map(function (b) {
-        return '<button type="button" class="book' + (b.open ? '' : ' locked') + '" data-book="' + b.key + '"' +
+      '<h1>选一册，选一个单元</h1>' +
+      '<p class="sub">封面就是门厅。点开必修一，再点 Unit 3，直接进读书模式——原文在左，讲解在页边。</p>' +
+      '<div class="wall">' + BOOKS.map(function (b) {
+        var opened = b.open && b.units ? b.units.filter(function (u) { return u.open; }).length : 0;
+        return '<button type="button" class="cover' + (b.open ? '' : ' locked') + '" data-book="' + b.key + '"' +
           (b.open ? '' : ' aria-disabled="true"') + '>' +
-          '<span class="book-kicker">人教 · 高中英语</span>' +
-          (b.open ? '' : '<span class="tag">待开放</span>') +
-          '<span><span class="book-name">英语</span><span class="book-level">' + esc(b.name) + '</span></span>' +
-          '<span class="book-foot">Seeklume · ' + esc(b.en) + '</span>' +
-          '</button>';
+          '<img class="cover-img" loading="lazy" src="' + b.cover + '" alt="人教版高中英语' + esc(b.name) + '封面">' +
+          '<span class="cover-name">' + esc(b.name) + '</span>' +
+          '<span class="cover-meta">' + (opened ? '已开放 ' + opened + ' 个单元' : '待开放') + '</span>' +
+        '</button>';
       }).join('') + '</div>' +
-      '<p class="foot">其余册次正在排，先把必修一上完。</p>';
+      '<p class="foot">先把必修一上完，其余册次按同样的讲义顺序排。</p>';
 
-    app.querySelectorAll('.book').forEach(function (el) {
+    app.querySelectorAll('.cover').forEach(function (el) {
       if (el.classList.contains('locked')) return;
-      el.addEventListener('click', function () {
-        location.hash = el.getAttribute('data-book');
-      });
+      el.addEventListener('click', function () { location.hash = el.getAttribute('data-book'); });
     });
   }
 
   function renderUnits(b) {
     app.innerHTML =
       '<div class="crumb"><button type="button" id="backShelf">← 全部册次</button><i>/</i><span>' + esc(b.name) + '</span></div>' +
-      '<div class="kicker">' + esc(b.name) + ' · Reading</div>' +
-      '<h1>选一个单元</h1>' +
-      '<p class="sub">每一个单元对应课本里的 Reading and Thinking；点开直接进读书模式。</p>' +
+      '<div class="bookhead">' +
+        '<img src="' + b.cover + '" alt="人教版高中英语' + esc(b.name) + '封面">' +
+        '<div><h1>' + esc(b.name) + '</h1><p>Reading and Thinking · 已开放 1 个单元</p></div>' +
+      '</div>' +
       '<div class="units">' + b.units.map(function (u, i) {
         return '<button type="button" class="unit' + (u.open ? ' open' : ' locked') + '" data-unit="' + i + '"' +
           (u.open ? '' : ' aria-disabled="true"') + '>' +
@@ -191,15 +193,14 @@
             '<span class="unit-title">' + esc(u.title) + '</span>' +
             '<span class="unit-cn">' + esc(u.cn) + '</span>' +
             (u.rt ? '<span class="unit-rt">课文 <b>' + esc(u.rt) + '</b></span>' : '') +
+            '<span class="unit-go">' + (u.open ? '进入读书模式 →' : '待开放') + '</span>' +
           '</span>' +
-          '<span class="unit-go">' + (u.open ? '进入 →' : '待开放') + '</span>' +
+          (u.prev ? '<img class="unit-prev" loading="lazy" src="' + u.prev + '" alt="课本第 38 页">' : '') +
         '</button>';
       }).join('') + '</div>' +
       '<p class="foot">未标注可进入的单元，是把同样的讲义做完再放开。</p>';
 
-    document.getElementById('backShelf').addEventListener('click', function () {
-      location.hash = '';
-    });
+    document.getElementById('backShelf').addEventListener('click', function () { location.hash = ''; });
 
     app.querySelectorAll('.unit').forEach(function (el) {
       if (el.classList.contains('locked')) return;
