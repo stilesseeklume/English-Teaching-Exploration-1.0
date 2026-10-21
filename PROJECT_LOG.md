@@ -1823,4 +1823,32 @@ Dock 原来是半透明毛玻璃（surface 82% + `backdrop-filter`）。点「�
 
 ---
 
+## 2026-10-21 · 管理后台独立成页，补全邮箱与账号操作
+
+### 原因
+
+- 老师找不到学生邮箱：旧管理列表只渲染用户名，`admin_list_users` 明明返回了 email 却没有展示。
+- 管理界面寄居在语法填空页的 `?admin` 参数入口，属于题型页附带功能，位置不合理，功能也不完整。
+
+### 改法
+
+- 新增独立管理后台 `docs/admin/`（`index.html` / `admin.css` / `admin.js`），首页管理员按钮改指 `./admin/`。
+- 用户列表直接展示完整邮箱，支持一键复制；新增用户名/邮箱搜索、全部/待审批/已通过筛选、四项概览数字。
+- 新增「发送重置密码邮件」：`cloud.js` 增加 `sendPasswordReset()`，管理员可直接给学生邮箱发 Supabase 重置链接。
+- 「查看数据」改为 sessionStorage 一次性交接：后台跳转 `grammar-fill/?viewAs=1`，语法页读取后清除并进入只读备课视图；「退出查看」返回管理后台。
+- 删除语法填空页的旧管理员页（`page-admin`）与 `shared/admin-ui.js`，同步清理 `app-state.js` 的 admin 页面分支、`app.js` 的 `render-admin` 钩子与 `?admin` 自动跳转。
+- 反馈问题池迁入新后台，保留状态推进与关闭操作。
+
+### 验证
+
+- `node --check` 覆盖 `cloud.js`、`admin.js`、`gate.js`；`check_static_site.sh` 增加新页面文件必检。
+- Playwright 管理测试改为访问 `/docs/admin/`，断言邮箱可见、重置密码邮件、反馈状态推进、查看他人数据只读与退出返回。
+- `npm run check` 通过。
+
+### 状态
+
+- 本地已改，未提交。
+
+---
+
 *此日志随项目推进持续更新。最后更新：2026-10-21*

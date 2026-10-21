@@ -372,15 +372,7 @@
       <div class="drop-overlay-inner">📄⬇<div class="drop-overlay-text">松开上传<span id="dropOverlayTarget"></span></div></div>
     </div>
 
-    <!-- ============== 管理员页（仅管理员可见） ============== -->
-    <div class="page" id="page-admin">
-      <h1 class="page-title">👥 管理员视图</h1>
-      <p class="page-desc"><span id="adminStat">加载中…</span> 点击某个用户可以查看 ta 的错题本和备课资料（只读）。</p>
-      <div id="adminUserList"></div>
-      <h2 class="page-title" style="font-size:20px;margin-top:28px;">反馈问题池</h2>
-      <p class="page-desc"><span id="adminFeedbackStat">加载中…</span> 按严重程度和状态处理真实反馈。</p>
-      <div id="adminFeedbackList"></div>
-    </div>
+    <!-- 管理员后台已独立为 /admin/ 页面，本页只保留「查看他人数据」的顶部提示条 -->
 
     <!-- 全局侧边栏（固定定位，多页面共用） -->
     <div class="sidebar-edge-trigger"></div>
@@ -397,7 +389,6 @@
 <script src="../shared/utils.js"></script>
 <script src="../shared/lesson-prep.js"></script>
 <script src="../shared/auth-ui.js"></script><script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
-<script src="../shared/admin-ui.js"></script>
 <script src="../shared/gate.js"></script>
 <script src="../shared/observability.js"></script>
 <script src="./modules/passage-utils.js"></script>

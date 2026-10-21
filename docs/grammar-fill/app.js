@@ -1235,7 +1235,7 @@ function init() {
 // 该模块加载时即对 window.savePrepPassages 打猴补丁（写本地后异步推云），
 // 故装配清单中必须排在 shared/lesson-prep.js、shared/cloud.js 之后。
 // 跨模块共享：auth-ui.js 的 doLogout 调用 window.clearCloudLifecycleState() /
-// window.setCloudLoggingOutState()；admin-ui.js / cloud.onChange 调用
+// window.setCloudLoggingOutState()；cloud.onChange 调用
 // window.onCloudStateChange()；word-import.js 调用 window.uploadLocalToCloud()。
 // 顶层状态变量（_lastCloudUser/_migrationPromptShown/_adminParamChecked/_loggingOut/
 // _syncOkTimer/_syncInflight/_syncQueueFallbacks/_origSaveError/_origSavePrep）已
@@ -1270,15 +1270,15 @@ function syncErrorBookToCloud() { return window.GrammarCloudSync.syncErrorBookTo
 function syncPrepToCloud() { return window.GrammarCloudSync.syncPrepToCloud(); }
 
 // 外部模块以 window.* 调用的入口，显式挂到 window（薄壳本身是函数声明，已是全局，
-// 这里保险地确保 window.X 指向薄壳，方便 auth-ui/admin-ui/word-import 调用）。
+// 这里保险地确保 window.X 指向薄壳，方便 auth-ui/word-import 调用）。
 window.getCloudLifecycleSnapshot = getCloudLifecycleSnapshot;
 window.setCloudLoggingOutState = setCloudLoggingOutState;
 window.clearCloudLifecycleState = clearCloudLifecycleState;
 window.onCloudStateChange = onCloudStateChange;
 window.uploadLocalToCloud = uploadLocalToCloud;
 
-// ========== 管理员页 ==========
-// 管理员页面（用户列表 / 审批 / 删除 / 改名审批 / 查看别人数据）已抽到 shared/admin-ui.js
+// ========== 管理员 ==========
+// 管理后台已独立为 /admin/ 页面；本页只保留「以管理员身份查看他人数据」的只读入口。
 
 function renderBankStat() {
   const el = document.getElementById('bankStat');
@@ -1523,7 +1523,7 @@ function switchPage(page) {
       })
     : {
         page: page || 'home',
-        shouldRequireAuth: page === 'lesson-prep' || page === 'admin',
+        shouldRequireAuth: page === 'lesson-prep',
         shouldCloseTeaching: !!sessionState.teachingSession && !retentionState.keepTeachingOnPageSwitch,
         pageState: buildActivePageState(page),
         shellState: {
@@ -1569,7 +1569,6 @@ function switchPage(page) {
 
   if (renderPlan.renderAction === 'navigate-home-cards') navigateHome(renderPlan.homeView || 'cards');
   if (renderPlan.renderAction === 'render-lesson-prep') renderPrepList();
-  if (renderPlan.renderAction === 'render-admin') renderAdminPage();
   if (renderPlan.renderAction === 'render-points-training') renderPointsTrainingPage();
   if (page === 'error-import') renderErrorImportPage();
   if (page === 'student-timeline') renderWorkbenchPage();   // 班级工作台（考点视角 + 学生视角）
@@ -4658,9 +4657,14 @@ function selectKnowledgeCategory(key, isPattern, targetSection) {
 }
 // escapeHtml 已抽到 shared/utils.js
 
+// 管理员从独立后台跳转查看他人数据后，退出查看并回到管理后台。
+function exitViewAs() {
+  if (window.cloud && window.cloud.clearViewAs) window.cloud.clearViewAs();
+  location.href = '../admin/';
+}
+
 Object.assign(window, {
   adjustFont: adjustFont,
-  adminViewUser: adminViewUser,
   authBackToSignin: authBackToSignin,
   batchImportPrepJson: batchImportPrepJson,
   cancelAiParse: cancelAiParse,

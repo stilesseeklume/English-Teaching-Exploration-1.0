@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeklume · 管理后台</title>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">Seeklume</span>
+    <span class="brand-sub">管理后台</span>
+  </div>
+  <div class="top-actions">
+    <button class="btn ghost" id="themeBtn" type="button">切换主题</button>
+    <a class="btn ghost" href="../index.html">返回首页</a>
+    <button class="btn ghost" id="logoutBtn" type="button">退出登录</button>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section id="verifyPanel" class="verify">
+    <p>正在验证管理员权限…</p>
+  </section>
+
+  <section id="denyPanel" class="deny" hidden>
+    <h1>此页面仅管理员可见</h1>
+    <p>当前账号没有管理权限。如果你认为这是误判，请确认登录的是管理员账号。</p>
+    <a class="btn primary" href="../index.html">返回首页</a>
+  </section>
+
+  <div id="consolePanel" hidden>
+
+    <section class="intro">
+      <h1>账号与班级管理</h1>
+      <p>审批新同学、查找邮箱、处理改名申请与用户反馈。所有操作都会实时写回云端。</p>
+    </section>
+
+    <section class="stats" id="stats">
+      <div class="stat">
+        <span class="stat-label">全部用户</span>
+        <span class="stat-value" id="statTotal">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">待审批</span>
+        <span class="stat-value warn" id="statPending">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">已通过</span>
+        <span class="stat-value ok" id="statApproved">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">近 7 天登录</span>
+        <span class="stat-value" id="statActive">0</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="search-wrap">
+          <input id="searchInput" type="search" placeholder="搜索用户名或邮箱" autocomplete="off">
+        </div>
+        <div class="segmented" id="filterBar">
+          <button type="button" class="seg active" data-filter="all">全部</button>
+          <button type="button" class="seg" data-filter="pending">待审批</button>
+          <button type="button" class="seg" data-filter="approved">已通过</button>
+        </div>
+        <button class="btn ghost" id="refreshBtn" type="button">刷新</button>
+      </div>
+      <p class="panel-hint" id="userHint">正在加载…</p>
+      <div id="userList" class="user-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">用户反馈</h2>
+      </div>
+      <p class="panel-hint" id="feedbackHint">正在加载…</p>
+      <div id="feedbackList" class="feedback-list"></div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<script src="../shared/cloud.js"></script>
+<script src="../shared/gate.js"></script>
+<script src="./admin.js"></script>
+</body>
+</html>

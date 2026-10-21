@@ -13,7 +13,7 @@
 // 审批判断：调用 Supabase RPC check_approved()（supabase/setup.sql 已定义）：
 //   - 返回 false → 待审批屏
 //   - 返回 true / 无记录 / RPC 不可用 → 放行（老用户与异常场景不锁死）
-//   管理员审批入口：语法填空页 ?admin 面板（shared/admin-ui.js）。
+//   管理员审批入口：独立管理后台 /admin/（docs/admin/）。
 //
 // 依赖（必须先加载，均为同步 <script>）：
 //   - https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2

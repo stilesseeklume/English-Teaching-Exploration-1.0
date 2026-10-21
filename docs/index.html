@@ -1034,9 +1034,9 @@
     if (state.user) {
       var nm = displayName();
       var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
-      // 仅管理员可见：直达语法填空页的用户审批面板（?admin 入口）
+      // 仅管理员可见：独立管理后台
       var adminBtn = state.isAdmin
-        ? '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/?admin\'" title="用户注册审批 / 管理面板">审批管理</button>'
+        ? '<button class="header-btn ghost" onclick="location.href=\'./admin/\'" title="用户审批 / 邮箱查找 / 账号管理">管理后台</button>'
         : '';
       el.innerHTML =
         '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +

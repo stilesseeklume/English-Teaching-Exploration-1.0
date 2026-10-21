@@ -92,6 +92,12 @@
     var r = await sb.auth.updateUser({ password: newPassword });
     if (r.error) throw r.error;
   }
+  async function sendPasswordReset(email) {
+    if (!sb) throw new Error('未配置 Supabase');
+    if (!email) throw new Error('缺少邮箱地址');
+    var r = await sb.auth.resetPasswordForEmail(email);
+    if (r.error) throw r.error;
+  }
   async function requestUsernameChange(newUsername) {
     if (!sb) throw new Error('未配置 Supabase');
     var r = await sb.rpc('request_username_change', { new_username: newUsername });
@@ -335,7 +341,8 @@
     onChange: function(cb){ listeners.push(cb); cb(state); },
     init: init,
     signUp: signUp, signIn: signIn, signOut: signOut,
-    changePassword: changePassword, requestUsernameChange: requestUsernameChange,
+    changePassword: changePassword, sendPasswordReset: sendPasswordReset,
+    requestUsernameChange: requestUsernameChange,
     approveUsernameChange: approveUsernameChange, rejectUsernameChange: rejectUsernameChange,
     pullLessonPrep: pullLessonPrep, upsertPrepItem: upsertPrepItem, deletePrepItem: deletePrepItem,
     clearLearningData: clearLearningData,

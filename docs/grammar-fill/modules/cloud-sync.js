@@ -1,7 +1,7 @@
 // grammar-fill/modules/cloud-sync.js
 //
 // 职责：云同步 UI + 数据层。管理云端登录生命周期状态（首次到达本用户、迁移提示、
-//       管理员 ?admin 入口）、拉取/上传备课资料、同步状态指示条、
+//       管理员「查看他人数据」交接）、拉取/上传备课资料、同步状态指示条、
 //       带引用计数与重入队列的全量同步（备课资料）。
 //       并在模块加载时对 window.savePrepPassages 打猴补丁，
 //       使得每次本地保存后异步把全量推到云端。
@@ -131,24 +131,22 @@
         })();
     applyCloudLifecycleState(arrivalState);
 
-    // 2. 已登录：第一次到达本用户的状态
-    if (arrivalState.firstAuthForThisUser && !state.viewingUserId) {
-      // URL ?admin 参数：管理员直接从首页进入管理后台
-      var adminEntryState = window.GrammarAppState
-        ? window.GrammarAppState.buildCloudAdminEntryState({
-            firstAuthForThisUser: arrivalState.firstAuthForThisUser,
-            viewingUserId: state.viewingUserId,
-            cloudAdminParamChecked: getCloudLifecycleSnapshot().cloudAdminParamChecked,
-            isAdmin: state.isAdmin,
-            hasAdminParam: /[?&]admin/.test(location.search)
-          })
-        : {
-            cloudAdminParamChecked: true,
-            shouldOpenAdmin: !getCloudLifecycleSnapshot().cloudAdminParamChecked && state.isAdmin && /[?&]admin/.test(location.search)
-          };
-      applyCloudLifecycleState(adminEntryState);
-      if (adminEntryState.shouldOpenAdmin) {
-        _d.switchPage('admin');
+    // 2. 已登录：首次到达本用户
+    // 独立管理后台的「查看数据」通过 sessionStorage 一次性交接查看目标，
+    // 读取后立即清除，避免刷新页面仍停留在他人数据视图。
+    if (!state.viewingUserId) {
+      var viewAsRaw = null;
+      try { viewAsRaw = sessionStorage.getItem('seeklume_view_as'); } catch(e) {}
+      if (viewAsRaw) {
+        try {
+          sessionStorage.removeItem('seeklume_view_as');
+          var viewAsTarget = JSON.parse(viewAsRaw);
+          if (viewAsTarget && viewAsTarget.id) {
+            window.cloud.viewAs(viewAsTarget.id, viewAsTarget.label || '');
+            _d.switchPage('lesson-prep'); // 直接进入备课资料只读视图
+            return; // viewAs 会触发新一轮 onCloudStateChange 并拉取数据
+          }
+        } catch(e) {}
       }
     }
 

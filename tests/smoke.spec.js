@@ -113,6 +113,11 @@ const SUPABASE_STUB = `
               return ok({ user: user, session: { user: user } });
             },
             updateUser: function(){ return ok(null); },
+            resetPasswordForEmail: function(email){
+              window.__passwordResets = window.__passwordResets || [];
+              window.__passwordResets.push(email);
+              return ok(null);
+            },
             signOut: function(){
               window.__mockSupabaseUser = null;
               setTimeout(function(){ notifyAuth('SIGNED_OUT', null); }, 0);
@@ -445,7 +450,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var normalizedPageKey = stateModel && stateModel.normalizePageKey('bad-page');
     var protectedPageState = stateModel && stateModel.isProtectedPage('lesson-prep');
     var publicPageAuthGuard = stateModel && stateModel.buildPageAuthGuard('knowledge', false);
-    var protectedPageAuthGuard = stateModel && stateModel.buildPageAuthGuard('admin', false);
+    var protectedPageAuthGuard = stateModel && stateModel.buildPageAuthGuard('student-timeline', false);
     var authenticatedPageAuthGuard = stateModel && stateModel.buildPageAuthGuard('error-book', true);
     var welcomeShellState = stateModel && stateModel.buildPageShellState('welcome');
     var modulesShellState = stateModel && stateModel.buildPageShellState('modules');
@@ -457,7 +462,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
     var ptPage = asPT.buildActivePageState('points-training');
     var categoryDockState = stateModel && stateModel.buildDockActivationState('categories');
     var homeRenderPlan = stateModel && stateModel.buildPageRenderPlan('home');
-    var adminRenderPlan = stateModel && stateModel.buildPageRenderPlan('admin');
+    var lessonPrepRenderPlan = stateModel && stateModel.buildPageRenderPlan('lesson-prep');
     var knowledgeRenderPlan = stateModel && stateModel.buildPageRenderPlan('knowledge');
     var blockedPageSwitchPlan = stateModel && stateModel.buildPageSwitchPlan('lesson-prep', {
       isAuthenticated: false,
@@ -1945,7 +1950,7 @@ test('grammar-fill core path renders and opens teaching stage', async ({ page })
       && ptPage.activePage === 'points-training' && ptPage.activeDock === 'points-training'
       && categoryDockState && categoryDockState.activeDock === 'categories'
       && homeRenderPlan && homeRenderPlan.renderAction === 'navigate-home-cards' && homeRenderPlan.homeView === 'cards'
-      && adminRenderPlan && adminRenderPlan.renderAction === 'render-admin'
+      && lessonPrepRenderPlan && lessonPrepRenderPlan.renderAction === 'render-lesson-prep'
       && knowledgeRenderPlan && knowledgeRenderPlan.renderAction === '' && knowledgeRenderPlan.trackModule === true
       && blockedPageSwitchPlan && blockedPageSwitchPlan.page === 'lesson-prep' && blockedPageSwitchPlan.shouldRequireAuth === true
       && blockedPageSwitchPlan.shouldCloseTeaching === true && blockedPageSwitchPlan.canEnter === false
@@ -3323,11 +3328,6 @@ test('auth sign-in and sign-out update protected access', async ({ page }) => {
   await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
   await expect(page.locator('#prepStat')).toContainText('共 0 份');
 
-  await page.evaluate(() => window.switchPage('admin'));
-  await expect(page.locator('#page-admin')).toHaveClass(/active/);
-  await expect(page.locator('#adminUserList')).toContainText('需要管理员权限');
-  await expect(page.locator('#adminUserList')).not.toContainText('@example.com');
-
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: '退出' }).click();
   await page.waitForURL('**/');
@@ -3447,17 +3447,26 @@ test('admin view-as is readable but does not write viewed user data', async ({ p
     };
   });
 
-  await page.goto('/docs/grammar-fill/?admin');
-  await expect(page.locator('html')).toHaveClass(/ready/);
-  await expect(page.locator('#userPill')).toContainText('管理员');
-  await expect(page.locator('#page-admin')).toHaveClass(/active/);
-  await expect(page.locator('#adminStat')).toContainText('共 1 个用户');
-  await expect(page.locator('#adminUserList')).toContainText('target-teacher');
-  await expect(page.locator('#adminFeedbackStat')).toContainText('最近 1 条反馈');
-  await expect(page.locator('#adminFeedbackList')).toContainText('AI 解析按钮点击后没有反应');
-  await expect(page.locator('#adminFeedbackList')).toContainText('新反馈');
-  await page.locator('#adminFeedbackList button', { hasText: '已分诊' }).click();
-  await expect(page.locator('#adminFeedbackList')).toContainText('已分诊');
+  await page.goto('/docs/admin/');
+  await expect(page.locator('#consolePanel')).toBeVisible();
+  await expect(page.locator('#userHint')).toContainText('共 1 个用户');
+  await expect(page.locator('#userList')).toContainText('target-teacher');
+  // 关键修复：管理列表直接显示完整邮箱
+  await expect(page.locator('#userList')).toContainText('target.teacher@example.com');
+  await expect(page.locator('#statTotal')).toHaveText('1');
+  await expect(page.locator('#statPending')).toHaveText('0');
+  await expect(page.locator('#statApproved')).toHaveText('1');
+  await expect(page.locator('#feedbackHint')).toContainText('最近 1 条反馈');
+  await expect(page.locator('#feedbackList')).toContainText('AI 解析按钮点击后没有反应');
+  await expect(page.locator('#feedbackList')).toContainText('新反馈');
+
+  // 管理员可直接给学生发送重置密码邮件
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('[data-action="reset"]').click();
+  await expect(await page.evaluate(() => (window.__passwordResets || [])[0])).toBe('target.teacher@example.com');
+
+  await page.locator('[data-feedback-status="triaged"]').click();
+  await expect(page.locator('#feedbackList')).toContainText('已分诊');
   await expect(await page.evaluate(() => {
     return (window.__supabaseUpdates || []).some(function(item) {
       return item.table === 'feedback_reports'
@@ -3466,7 +3475,9 @@ test('admin view-as is readable but does not write viewed user data', async ({ p
     });
   })).toBe(true);
 
-  await page.locator('#adminUserList .prep-list-item').first().click();
+  // 「查看数据」通过独立后台跳转到语法页的只读视图
+  await page.locator('[data-action="view"]').click();
+  await page.waitForURL('**/grammar-fill/?viewAs=1');
   await expect(page.locator('#adminBanner')).toBeVisible();
   await expect(page.locator('#adminViewingEmail')).toContainText('target-teacher');
   await expect(page.locator('#page-lesson-prep')).toHaveClass(/active/);
@@ -3485,8 +3496,9 @@ test('admin view-as is readable but does not write viewed user data', async ({ p
   })).toBe(true);
 
   await page.evaluate(() => window.exitViewAs());
-  await expect(page.locator('#adminBanner')).not.toBeVisible();
-  await expect(page.locator('#page-admin')).toHaveClass(/active/);
+  await page.waitForURL('**/admin/');
+  await expect(page.locator('#consolePanel')).toBeVisible();
+  await expect(page.locator('#userList')).toContainText('target.teacher@example.com');
 
   expect(errors).toEqual([]);
 });
@@ -4591,16 +4603,16 @@ test('gate: 待审批用户停在等待审批屏，审批通过后放行', async
   expect(errors).toEqual([]);
 });
 
-test('gate: 首页管理员可见审批直达按钮，普通用户不可见', async ({ page }) => {
+test('gate: 首页管理员可见管理后台入口，普通用户不可见', async ({ page }) => {
   const errors = collectFatalBrowserErrors(page);
 
-  // 普通登录用户：无审批按钮
+  // 普通登录用户：无管理后台按钮
   await mockGateSession(page);
   await page.goto('/docs/');
   await expect(page.locator('#headerRight')).toContainText('gate-user');
-  await expect(page.locator('#headerRight')).not.toContainText('审批管理');
+  await expect(page.locator('#headerRight')).not.toContainText('管理后台');
 
-  // 管理员：出现审批直达按钮，指向语法填空 ?admin 面板
+  // 管理员：出现管理后台按钮，指向独立页面 /admin/
   // （page.route 是页面级拦截，新页面需重新安装桩）
   const adminPage = await page.context().newPage();
   await installBrowserStubs(adminPage);
@@ -4613,7 +4625,7 @@ test('gate: 首页管理员可见审批直达按钮，普通用户不可见', as
     window.__mockIsAdmin = true;
   });
   await adminPage.goto('/docs/');
-  await expect(adminPage.locator('#headerRight')).toContainText('审批管理');
+  await expect(adminPage.locator('#headerRight')).toContainText('管理后台');
   await adminPage.close();
 
   expect(errors).toEqual([]);

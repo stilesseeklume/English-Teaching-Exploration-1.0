@@ -259,7 +259,6 @@
       || page === 'error-profile'
       || page === 'error-import'
       || page === 'student-timeline'
-      || page === 'admin'
     ) {
       return page;
     }
@@ -267,7 +266,7 @@
   }
 
   function isProtectedPage(page) {
-    return page === 'lesson-prep' || page === 'admin' || page === 'error-profile' || page === 'error-import' || page === 'student-timeline';
+    return page === 'lesson-prep' || page === 'error-profile' || page === 'error-import' || page === 'student-timeline';
   }
 
   function buildPageAuthGuard(page, isAuthenticated) {
@@ -337,7 +336,6 @@
     var renderAction = '';
     if (page === 'home') renderAction = 'navigate-home-cards';
     if (page === 'lesson-prep') renderAction = 'render-lesson-prep';
-    if (page === 'admin') renderAction = 'render-admin';
     if (page === 'points-training') renderAction = 'render-points-training';
     return {
       page: page,
