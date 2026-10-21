@@ -250,24 +250,6 @@
             { lv: 1, tree: '├', txt: '🚤 1d 船 → 林中 accommodation', gloss: '再转船，住雨林中央' },
             { lv: 1, tree: '└', txt: '3d：local guide + plants / animals（unique）', gloss: '干什么' }
           ],
-          // 示范段：三句原文对三行笔记，页边直接把「怎么砍」摆出来
-          cuts: [
-            {
-              src: 'A short flight from Cusco takes you from the Andes into the Amazon rainforest.',
-              note: '✈ 短途飞行 Cusco → Andes → Amazon',
-              tag: '怎么去'
-            },
-            {
-              src: 'From there, you\'ll spend one day travelling by boat to your accommodation in the middle of the forest.',
-              note: '🚤 1d 船 → 林中 accommodation',
-              tag: '住哪'
-            },
-            {
-              src: 'You can then spend three days exploring the rainforest with a local guide and enjoying the plants and animals unique to the rainforest.',
-              note: '3d：local guide + plants / animals（unique）',
-              tag: '干什么'
-            }
-          ],
           anchors: [
             'A short flight from Cusco takes you from the Andes into the Amazon rainforest.'
           ],

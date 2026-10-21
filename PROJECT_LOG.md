@@ -1772,7 +1772,31 @@ Dock 原来是半透明毛玻璃（surface 82% + `backdrop-filter`）。点「�
 
 ### 状态
 
-- 随本次提交推送。
+- 曾随提交推送；老师看过线上效果后判定拆句示范多余，当天已删除（见下条）。
+
+---
+
+## 2026-10-21 · 回退：删除 Amazon 拆句示范
+
+### 原因
+
+- 老师看过线上页面后明确：『三句原文 → 三行笔记』完全没必要，多余。示范应回到六段统一的成品笔记视图。
+
+### 改法
+
+- 删除 `docs/data/interpreting_notes_method.js` 中 Amazon 段的 `cuts` 数据。
+- 删除 `docs/methods/notes-method.js` 的 `cutHtml()`，`detailHtml()` 去掉 `cuts` 分支，恢复统一的「角色 → 这一段只练这一件 → 成品笔记 → 为什么这么切」结构。
+- 删除 `docs/methods/notes-method.html` 的全部 `.nm-cut*` 样式。
+
+### 验证
+
+- 六段逐段点击：`cut` 均为 false，成品笔记、drill、tip、role 均在，视图统一；`pageerror` 0。
+- 页边宽度保留 `clamp(440px,32vw,560px)`：实测缩到 420px 后概况段溢出从 335 涨到 363，故不随拆句块一起收回。
+- `node --check` 两个 JS 通过；`bash scripts/check_static_site.sh` 通过。
+
+### 状态
+
+- 本地已改，未提交。
 
 ---
 
