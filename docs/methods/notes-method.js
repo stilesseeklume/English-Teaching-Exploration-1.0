@@ -3,10 +3,11 @@
 // 口译笔记法（跨单元方法模块）· 页面逻辑
 //
 // 结构：一条线读下来，不是一张菜单。
+//   页首四格条：四件事常驻在书页上方，点到哪一段，哪一格亮（不是目录，是这堂课的四句话）
 //   ① 示范（读书模式：整屏书页 + 页边笔记。点段落 → 镜头平移，笔记在页边长出来）
-//   ② 四原则（走完示范再归纳，每条都能点回示范里的那一段）
-//   ③ 符号表（折叠，抄到笔记本第一页）
-//   ④ U3 迁移（学生自己写 + 一处真实缺陷）
+//   ② 符号表（折叠，抄到笔记本第一页）
+//   ③ U3 迁移（学生自己写 + 一处真实缺陷）
+//   页尾：方法依据 References（每条做法与出处逐条对照）
 //
 // 数据来源：docs/data/interpreting_notes_method.js（方法层）
 //           docs/data/textbook_reading_notes.js（U3 成品笔记，单一来源，不复制）
@@ -25,7 +26,7 @@
   };
 
   var dockApi = null;
-  var pickBook = null; // mountBook 装配好后交给四原则使用
+  var pickBook = null; // mountBook 装配好后交给页首四格条使用
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -89,7 +90,7 @@
     return '<h3 class="nm-h3"' + (extra ? ' ' + extra : '') + '>' + esc(t) + '</h3>';
   }
 
-  // 方法依据：文献按编号排，页面做法与出处逐条对照
+  // 方法依据：给老师查证用，默认收起，不占学生的视野
   function refsHtml() {
     var r = M.refs;
     if (!r) return '';
@@ -102,20 +103,20 @@
     var map = (r.map || []).map(function (m) {
       return '<tr><td style="font-weight:700">' + esc(m.k) + '</td><td>' + esc(m.v) + '</td></tr>';
     }).join('');
-    return '<div class="nm-refs" id="nm-refs">' +
-      '<div class="nm-refs-cap">' + esc(r.title) + ' · References</div>' +
+    return '<details class="nm-refs" id="nm-refs">' +
+      '<summary class="nm-refs-cap">教师参考 · 方法依据</summary>' +
+      '<p class="nm-refs-tag">这一块是给老师查证用的，学生不必读。</p>' +
       (r.lead ? '<p class="nm-refs-lead">' + esc(r.lead) + '</p>' : '') +
       '<ol class="nm-refs-list">' + items + '</ol>' +
       (map ? '<div class="nm-table-wrap" style="margin-top:10px"><table class="nm-table nm-refs-map">' +
         '<thead><tr><th>页面做法</th><th>依据</th></tr></thead><tbody>' + map + '</tbody></table></div>' : '') +
       (r.note ? '<p class="nm-refs-note">' + esc(r.note) + '</p>' : '') +
-      '</div>';
+      '</details>';
   }
 
   // ───────────────────────── 顶部导航（底部 Dock）─────────────────────────
   var NAV = [
     { key: 'demo', text: '示范', label: '示范' },
-    { key: 'rules', text: '四原则', label: '四原则' },
     { key: 'symbols', text: '符号表', label: '符号表' },
     { key: 'u3', text: 'U3 迁移', label: 'U3 迁移' }
   ];
@@ -146,10 +147,56 @@
   }
 
   // ───────────────────────── 渲染 ─────────────────────────
+  // 页首常驻四格条：一进页面就摆出来，点一条直接跳到对应段落。
+  // 下面那行随段落换：讲哪一段，就把哪一句原则原样摆在书页上方。
+  function renderGuide() {
+    var host = el('nmGuide');
+    if (!host) return;
+    var rules = M.rules || [];
+    host.innerHTML =
+      '<div class="nm-guide-top">' +
+        '<span class="nm-guide-cap">看笔记，只盯四件事</span>' +
+        rules.map(function (r, i) {
+          return '<button type="button" class="nm-cue" data-cue="' + i + '" title="' + esc(r.d) + '">' +
+            '<b>' + esc(r.no) + '</b><span>' + esc(r.short || r.name) + '</span></button>';
+        }).join('') +
+        '</div>' +
+      '<div class="nm-guide-say" id="nmGuideSay"></div>';
+    host.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cue]');
+      if (!b || !pickBook) return;
+      pickBook(+b.getAttribute('data-cue'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  function paintGuide() {
+    var host = el('nmGuide');
+    if (!host) return;
+    var say = el('nmGuideSay');
+    var rules = M.rules || [];
+    var cue = (state.view === 'sec' && state.sec < rules.length) ? state.sec : -1;
+    host.querySelectorAll('.nm-cue').forEach(function (b) {
+      b.classList.toggle('on', +b.getAttribute('data-cue') === cue);
+    });
+    var varOn = state.view === 'sec' && state.sec >= rules.length;
+    host.classList.toggle('var-on', varOn);
+    if (!say) return;
+    if (cue >= 0) {
+      say.innerHTML = '<b>' + esc(rules[cue].no + ' ' + rules[cue].name) + '</b>' + esc(rules[cue].d);
+    } else if (varOn) {
+      var v = ((M.variations || {}).items) || [];
+      var item = v[state.sec - rules.length] || v[0] || {};
+      say.innerHTML = '<b>变通 · ' + esc(item.k || '') + '</b>' + esc(item.d || '');
+    } else {
+      say.innerHTML = '<b>从 ① 开始</b>点任意一段，先问「这段在回答什么」，顶格那行就是答案。';
+    }
+  }
+
   function renderAll() {
     var host = el('nmPanels');
-    if (host) host.innerHTML = sectionRules() + sectionSymbols() + sectionU3();
-    bindRules();
+    if (host) host.innerHTML = sectionSymbols() + sectionU3() + refsHtml();
+    renderGuide();
     mountBook();
   }
 
@@ -305,6 +352,7 @@
       side.scrollTop = 0;
       side.classList.toggle('more', side.scrollHeight > side.clientHeight + 4);
       paintSecNav();
+      paintGuide();
     }
     function pickSec(i) {
       var s = (U2.sections || [])[i];
@@ -411,7 +459,7 @@
     document.addEventListener('keydown', function (e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'Escape') { wholePage(); return; }
-      // 只有示范区在当前视野里时，←/→ 和 1–6 才换段，避免在下面读四原则时误切
+      // 只有示范区在当前视野里时，←/→ 和 1–6 才换段，避免在下面读符号表时误切
       var book = document.querySelector('.nm-book');
       if (!book) return;
       var r = book.getBoundingClientRect();
@@ -481,36 +529,35 @@
         '<span>p. ' + esc(pg.print || '') + '</span></div>' +
       '<h2 class="nm-n-name">' + esc(s.label) + '</h2>' +
       '<div class="nm-n-role">' + esc(s.role || '') + '</div>' +
-      (s.drill ? '<div class="nm-n-drill"><b>这一步在练</b>' + esc(s.drill) + '</div>' : '') +
+      (s.drill ? '<div class="nm-n-drill"><b>这一段只练这一件</b>' + esc(s.drill) + '</div>' : '') +
       '<div class="nm-n-cap">这一段的口译笔记</div>' + treeHtml(s.notes) +
       '<div class="nm-n-cap">为什么这么切</div>' +
       '<p class="nm-n-why">' + esc(s.tip || '') + '</p>' +
       '</div>';
   }
 
-  // ===== ② 四原则 =====
-  var RULE_TARGET = [0, 1, 2, 4]; // 原则 → 示范里对应段落下标
-
-  function sectionRules() {
-    var b = M.branch || {};
-    var items = b.items || [];
-    return '<section class="nm-sec" id="nm-rules">' +
+  // ===== ② 符号表（附：语言、锚句、自检、通用模具）=====
+  function sectionSymbols() {
+    var s = M.symbols || {};
+    var ab = s.abbr || {};
+    return '<section class="nm-sec" id="nm-symbols">' +
       '<div class="nm-sechead">' +
         '<span class="nm-stepno">②</span>' +
-        '<div><h2 class="nm-h2">' + esc(b.title || '四原则') + '</h2>' +
-        '<p class="nm-sub">刚才六段里用的就是这四条。点任意一条，回到书页上看它长什么样。手写时只靠缩进，不画树形符；依据见本节末 [1–3]。</p></div>' +
+        '<div><h2 class="nm-h2">符号表</h2>' +
+        '<p class="nm-sub">抄到笔记本第一页，之后每篇都只用这一套。原则依据 Rozan [1]；符号除通行逻辑符号外为本站约定。手写只靠缩进，不画树形符。</p></div>' +
       '</div>' +
-      '<div class="nm-rules">' + items.map(function (it, i) {
-        var t = RULE_TARGET[i];
-        return '<button class="nm-rule" type="button" data-goto="' + t + '">' +
-          '<span class="nm-rule-no">' + esc(it.no) + '</span>' +
-          '<span class="nm-rule-name">' + esc(it.name) + '</span>' +
-          '<span class="nm-rule-d">' + esc(it.d) + '</span>' +
-          (it.bad ? '<span class="nm-rule-bad">反面：' + esc(it.bad) + '</span>' : '') +
-          '<span class="nm-rule-go">看示范 · ' + esc((U2.sections[t] || {}).short || '') + ' →</span>' +
-        '</button>';
-      }).join('') + '</div>' +
-      ((b.counter) ? '<div class="nm-callout" style="margin-top:14px"><b>' + esc(b.counter.title) + '</b><br>' + esc(b.counter.d) + '</div>' : '') +
+      '<details class="nm-more" open>' +
+        '<summary>符号与缩写</summary>' +
+        '<div class="nm-table-wrap"><table class="nm-table">' +
+        '<thead><tr>' + ((s.cols) || []).map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead>' +
+        '<tbody>' + ((s.rows) || []).map(function (r) {
+          return '<tr><td class="nm-sym">' + esc(r.sym) + '</td><td>' + esc(r.mean) + '</td>' +
+            '<td class="nm-exm">' + esc(r.ex) + '</td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        h3(ab.title || '缩写规则') +
+        '<ul class="nm-steps">' + ((ab.items) || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' +
+        '<div class="nm-callout" style="margin-top:14px">同一篇里自己定、定了就不改。<b>符号的价值不在于标准，在于「看到就想起」</b>。</div>' +
+      '</details>' +
       '<details class="nm-more"><summary>中英怎么选 · 锚句怎么挑 · 一条自检</summary>' +
         kvRows((M.lang || {}).items) +
         '<p class="nm-note">' + esc((M.lang || {}).tip || '') + '</p>' +
@@ -529,45 +576,10 @@
           }).join('') + '</tr>';
         }).join('')) + '</tbody></table></div>' +
       '</details>' +
-      refsHtml() +
       '</section>';
   }
 
-  function bindRules() {
-    document.querySelectorAll('.nm-rule').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        if (pickBook) pickBook(+btn.getAttribute('data-goto'));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    });
-  }
-
-  // ===== ③ 符号表 =====
-  function sectionSymbols() {
-    var s = M.symbols || {};
-    var ab = s.abbr || {};
-    return '<section class="nm-sec" id="nm-symbols">' +
-      '<div class="nm-sechead">' +
-        '<span class="nm-stepno">③</span>' +
-        '<div><h2 class="nm-h2">符号表</h2>' +
-        '<p class="nm-sub">抄到笔记本第一页，之后每篇都只用这一套。原则依据 Rozan [1]；符号除通行逻辑符号外为本站约定。手写只靠缩进，不画树形符。</p></div>' +
-      '</div>' +
-      '<details class="nm-more" open>' +
-        '<summary>符号与缩写</summary>' +
-        '<div class="nm-table-wrap"><table class="nm-table">' +
-        '<thead><tr>' + ((s.cols) || []).map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead>' +
-        '<tbody>' + ((s.rows) || []).map(function (r) {
-          return '<tr><td class="nm-sym">' + esc(r.sym) + '</td><td>' + esc(r.mean) + '</td>' +
-            '<td class="nm-exm">' + esc(r.ex) + '</td></tr>';
-        }).join('') + '</tbody></table></div>' +
-        h3(ab.title || '缩写规则') +
-        '<ul class="nm-steps">' + ((ab.items) || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' +
-        '<div class="nm-callout" style="margin-top:14px">同一篇里自己定、定了就不改。<b>符号的价值不在于标准，在于「看到就想起」</b>。</div>' +
-      '</details>' +
-      '</section>';
-  }
-
-  // ===== ④ U3 迁移 =====
+  // ===== ③ U3 迁移 =====
   function u3Note() {
     var all = window.TEXTBOOK_READING_NOTES || {};
     var key = (M.demoU3 || {}).readingKey || '必修一|U3|RT';
@@ -577,7 +589,6 @@
   function sectionU3() {
     var u = M.demoU3 || {};
     var up = u.upgrade || {};
-    var fl = u.flaw || {};
     var note = u3Note();
 
     var ready;
@@ -599,7 +610,7 @@
 
     return '<section class="nm-sec" id="nm-u3">' +
       '<div class="nm-sechead">' +
-        '<span class="nm-stepno">④</span>' +
+        '<span class="nm-stepno">③</span>' +
         '<div><h2 class="nm-h2">U3 迁移 · ' + esc(u.title || '') + '</h2>' +
         '<p class="nm-sub">换一篇，学生自己写；写完来这里对答案。</p></div>' +
       '</div>' +
@@ -612,15 +623,6 @@
       '</details>' +
       h3('成品笔记（对照用）') +
       ready +
-      h3(fl.title || '一处真实的缺陷') +
-      '<p class="nm-lead">' + esc(fl.desc || '') + '</p>' +
-      '<div class="nm-flaw">' +
-        '<div class="nm-flaw-col bad"><div class="nm-flaw-cap">' + esc(fl.beforeTitle || '') + '</div>' +
-          '<pre class="nm-code">' + esc((fl.before || []).join('\n')) + '</pre></div>' +
-        '<div class="nm-flaw-col good"><div class="nm-flaw-cap">' + esc(fl.afterTitle || '') + '</div>' +
-          '<pre class="nm-code">' + esc((fl.after || []).join('\n')) + '</pre></div>' +
-      '</div>' +
-      (fl.tip ? '<div class="nm-callout" style="margin-top:14px">' + esc(fl.tip) + '</div>' : '') +
       h3(((u.class || {}).title) || '课堂动作') +
       '<ol class="nm-steps">' + (((u.class || {}).steps) || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol>' +
       '</section>';
