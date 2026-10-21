@@ -14,24 +14,21 @@
   bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 300;
+  z-index: 900;
   display: flex;
   align-items: flex-end;
   gap: 2px;
   padding: 6px 6px 8px;
-  background: var(--surface, #fff);
-  border: 0.5px solid var(--border, #e5e5ea);
+  /* 实底不用毛玻璃：固定元素 + backdrop-filter 在长页面滚动后
+     可能整块不绘制（Chrome/Safari 都有这个合成 bug），这里改用
+     不透明底色 + 更深的投影，滚动到任何位置都看得见、点得到 */
+  background: var(--surface-2, var(--surface, #fff));
+  border: 1px solid var(--border, #e5e5ea);
   border-radius: 20px;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, .10), 0 0 0 1px rgba(0, 0, 0, .04);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  backdrop-filter: saturate(180%) blur(24px);
-}
-/* 玻璃感：支持 color-mix 的浏览器把底色压成半透明 */
-@supports (background: color-mix(in srgb, #fff 80%, transparent)) {
-  .sk-dock { background: color-mix(in srgb, var(--surface, #fff) 82%, transparent); }
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .10);
 }
 [data-theme="dark"] .sk-dock {
-  box-shadow: 0 8px 26px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .06);
 }
 
 .sk-dock-divider {
@@ -70,6 +67,23 @@
 .sk-dock-item:hover + .sk-dock-item { transform: scale(1.08); }
 .sk-dock-item:has(+ .sk-dock-item:hover) { transform: scale(1.08); }
 .sk-dock-item:active { transform: scale(.92); }
+
+/* 带中文标签的项：图标 + 文字 */
+.sk-dock-item.has-txt {
+  width: auto;
+  min-width: 46px;
+  padding: 0 12px;
+  gap: 6px;
+  font-size: 17px;
+}
+.sk-dock-ico { line-height: 1; }
+.sk-dock-txt {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.sk-dock-item.has-txt::after { display: none; }
 
 /* 悬停标签 */
 .sk-dock-item::after {
@@ -124,4 +138,6 @@ body.focus-mode .sk-dock { display: none !important; }
 @media (max-width: 560px) {
   .sk-dock { bottom: 10px; padding: 5px 5px 7px; border-radius: 17px; }
   .sk-dock-item { width: 40px; height: 40px; font-size: 19px; border-radius: 11px; }
+  .sk-dock-item.has-txt { padding: 0 8px; gap: 4px; font-size: 16px; }
+  .sk-dock-txt { font-size: 11px; }
 }

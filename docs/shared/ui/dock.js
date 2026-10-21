@@ -68,7 +68,19 @@
     (opts.items || []).forEach(function (it) {
       var b = makeItem(it.label || it.key || '');
       b.setAttribute('data-key', it.key || '');
-      b.textContent = it.icon || '';
+      if (it.text) {
+        b.className += ' has-txt';
+        var ico = document.createElement('span');
+        ico.className = 'sk-dock-ico';
+        ico.textContent = it.icon || '';
+        var txt = document.createElement('span');
+        txt.className = 'sk-dock-txt';
+        txt.textContent = it.text;
+        b.appendChild(ico);
+        b.appendChild(txt);
+      } else {
+        b.textContent = it.icon || '';
+      }
       b.addEventListener('click', function () {
         if (typeof it.onSelect === 'function') it.onSelect();
       });

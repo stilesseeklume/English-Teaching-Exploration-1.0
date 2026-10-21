@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Legends · 读书模式</title>
+<link rel="stylesheet" href="../shared/ui/dock.css">
+<style>
+  :root{
+    --desk:#e8e5dd; --paper:#faf8f2; --ink:#2b2a26; --ink-2:#55524a;
+    --muted:#8d8779; --rule:#ded7c7; --mark:#ffd166; --accent:#b98a28;
+    /* 共享 Dock 的设计令牌 */
+    --surface:var(--paper); --surface-3:#f1ece0; --border:var(--rule);
+    --text:var(--ink); --text-2:var(--ink-2); --text-3:var(--muted); --accent-bg:#fff6e4;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--desk); color:var(--ink); overflow:hidden;
+  }
+  .bk-stage{
+    position:fixed; inset:0; display:grid;
+    grid-template-columns:minmax(0,1fr) clamp(400px,31vw,560px);
+  }
+  /* ── 书页 ── */
+  .bk-view{
+    position:relative; overflow:hidden; background:var(--desk);
+    touch-action:none; cursor:grab;
+  }
+  .bk-view.dragging{cursor:grabbing;}
+  .bk-canvas{
+    position:absolute; left:0; top:0; width:1241px; height:1754px;
+    transform-origin:0 0; will-change:transform;
+  }
+  .bk-canvas.ease{transition:transform .62s cubic-bezier(.22,.61,.25,1);}
+  .bk-img{display:block; width:1241px; height:1754px; user-select:none; -webkit-user-drag:none;}
+  .bk-hits{position:absolute; inset:0; isolation:isolate;}
+  .hit{
+    position:absolute; border-radius:4px; background:transparent; cursor:pointer;
+    transition:background .18s ease; pointer-events:auto;
+  }
+  .hit.hot{background:rgba(255,209,102,.46); mix-blend-mode:multiply;}
+  .hit.on{background:rgba(255,193,54,.62); mix-blend-mode:multiply;}
+  .hit.on::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:1.5px;
+    background:var(--accent); opacity:.5; border-radius:2px;
+  }
+  /* 段名热区：书页上的标题本身就是入口 */
+  .sec-hit{
+    position:absolute; border-radius:6px; background:transparent; cursor:pointer;
+    transition:background .2s ease;
+  }
+  .sec-hit.hot{background:rgba(255,209,102,.22); mix-blend-mode:multiply;}
+  .sec-hit.on{background:rgba(255,193,54,.34); mix-blend-mode:multiply;}
+  /* 篇级热区：压在蓝色横条上，用白描边而不是黄色 */
+  .map-hit{
+    position:absolute; border-radius:3px; background:transparent; cursor:pointer;
+    transition:background .2s ease, box-shadow .2s ease;
+  }
+  .map-hit.hot{background:rgba(255,255,255,.13); box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);}
+  .map-hit.on{background:rgba(255,255,255,.2); box-shadow:inset 0 0 0 2px rgba(255,255,255,.75);}
+  /* ── 页边 ── */
+  .bk-margin{
+    position:relative; background:var(--paper);
+    border-left:1px solid var(--rule);
+    padding:24px 22px 20px; overflow:hidden;
+  }
+  .bk-margin::before{
+    content:''; position:absolute; left:9px; top:0; bottom:0; width:1px;
+    background:linear-gradient(to bottom,transparent,var(--rule) 12%,var(--rule) 88%,transparent);
+    opacity:.55;
+  }
+  .bk-hint{
+    position:absolute; left:24px; right:24px; top:26%; text-align:left;
+    transition:opacity .35s ease; pointer-events:none;
+  }
+  .bk-hint b{display:block; font-size:19px; font-weight:600; color:var(--ink-2); letter-spacing:.01em;}
+  .bk-hint span{display:block; margin-top:9px; font-size:16px; line-height:1.9; color:var(--muted);}
+  .bk-hint.gone{opacity:0;}
+  /* 批注 */
+  .note{
+    position:absolute; left:20px; right:20px; top:16px;
+    max-height:calc(100% - 88px);
+    overflow:auto; overscroll-behavior:contain; padding:2px 0 6px;
+    transition:opacity .26s ease, transform .26s cubic-bezier(.22,.61,.25,1);
+    opacity:0; transform:translateY(8px); pointer-events:none;
+    scrollbar-width:thin;
+  }
+  .note.in{opacity:1; transform:none; pointer-events:auto;}
+  .n-kicker{
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+  }
+  .n-kicker .n-rule{flex:1; height:1px; background:var(--rule);}
+  .n-nav{display:flex; gap:2px; margin-left:2px;}
+  .n-nav button{
+    width:26px; height:26px; border:0; background:none; color:var(--muted);
+    cursor:pointer; border-radius:6px; font-size:16px; line-height:1; padding:0;
+  }
+  .n-nav button:hover{background:#fff; color:var(--ink);}
+  .n-nav button:disabled{opacity:.22; cursor:default; background:none;}
+  .n-en{
+    margin:12px 0 0; font-family:Georgia,"Times New Roman",serif;
+    font-size:24px; line-height:1.62; color:var(--ink);
+  }
+  .n-en mark{background:linear-gradient(transparent 58%,rgba(255,209,102,.65) 58%); color:inherit;}
+  /* 句子里的重点词可点：点词直接单独讲 */
+  .n-wk{
+    font:inherit; color:inherit; background:none; border:0; padding:0; margin:0;
+    border-bottom:1.5px dotted rgba(185,138,40,.6); cursor:pointer;
+  }
+  .n-wk:hover{color:var(--accent); background:#fff2cc; border-bottom-color:var(--accent);}
+  .n-zh{margin:10px 0 0; font-size:19px; line-height:1.8; color:var(--ink-2);}
+  .n-row{display:grid; grid-template-columns:48px minmax(0,1fr); gap:10px; margin-top:18px;}
+  .n-lab{
+    font-size:14px; font-weight:600; letter-spacing:.06em; color:var(--accent);
+    padding-top:3px;
+  }
+  .n-val{font-size:19.5px; line-height:1.75; color:var(--ink-2);}
+  .n-val b{color:var(--ink); font-weight:600;}
+  .n-words{
+    display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:20px;
+    padding-top:13px; border-top:1px dashed var(--rule);
+  }
+  .n-words-cap{font-size:13.5px; color:var(--muted); margin-right:3px;}
+  .n-chip{
+    font:inherit; font-size:16.5px; color:var(--ink); background:#fff;
+    border:1px solid var(--rule); border-radius:999px; padding:7px 13px; cursor:pointer;
+    transition:border-color .18s, background .18s, transform .18s;
+  }
+  .n-chip:hover{border-color:var(--accent); background:#fffaf0; transform:translateY(-1px);}
+  .n-chip i{font-style:normal; color:var(--muted); margin-left:5px; font-size:13.5px;}
+  /* 段卡 */
+  .s-head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
+  .s-head b{
+    font-family:Georgia,"Times New Roman",serif; font-size:30px; font-weight:600;
+    letter-spacing:-.01em; color:var(--ink);
+  }
+  .s-head span{font-size:14.5px; color:var(--muted);}
+  .s-role{margin-top:8px; font-size:16px; font-weight:600; letter-spacing:.04em; color:var(--accent);}
+  .s-gist{margin:10px 0 0; font-size:20.5px; line-height:1.78; color:var(--ink-2);}
+  .s-sec{margin-top:24px;}
+  .s-cap{
+    font-size:13.5px; letter-spacing:.09em; color:var(--muted); margin-bottom:9px;
+  }
+  .s-q{border-top:1px dashed var(--rule); padding-top:13px; margin-top:13px;}
+  .s-q:first-of-type{border-top:0; padding-top:0; margin-top:0;}
+  .s-qq{
+    display:flex; gap:9px; width:100%; text-align:left; font:inherit;
+    font-size:19px; line-height:1.7; color:var(--ink); background:none;
+    border:0; padding:0; cursor:pointer;
+  }
+  .s-qq i{font-style:normal; font-size:13px; color:var(--accent); padding-top:5px; flex:none;}
+  .s-qq:hover span{color:var(--accent);}
+  .s-qa{display:none; margin:9px 0 0 24px; font-size:18.5px; line-height:1.75; color:var(--ink-2);}
+  .s-q.open .s-qa{display:block;}
+  .s-fold{margin-top:20px; border-top:1px dashed var(--rule); padding-top:12px;}
+  .s-fold summary{
+    display:flex; align-items:center; gap:7px; cursor:pointer; list-style:none;
+    font-size:16px; letter-spacing:.04em; color:var(--accent); font-weight:600;
+    padding:4px 0;
+  }
+  .s-fold summary::-webkit-details-marker{display:none;}
+  .s-fold summary::before{content:'＋'; font-size:13px; color:var(--muted);}
+  .s-fold[open] summary::before{content:'−';}
+  .s-notes{margin-top:9px; display:flex; flex-direction:column; gap:7px;}
+  .s-note{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:15.5px;
+    line-height:1.62; color:var(--ink-2); white-space:pre-wrap;
+  }
+  .s-note em{
+    font-style:normal; display:block; font-family:-apple-system,"PingFang SC",sans-serif;
+    font-size:13.5px; color:var(--muted); margin:1px 0 2px 2px;
+  }
+  .s-tr{margin-top:10px; font-size:18.5px; line-height:1.82; color:var(--ink-2);}
+  .s-tr p{margin:0 0 7px;}
+  .s-jump{
+    margin-top:22px; font:inherit; font-size:16px; color:var(--accent);
+    background:#fffaf0; border:1px solid var(--rule); border-radius:999px;
+    padding:8px 16px; cursor:pointer;
+  }
+  .s-jump:hover{border-color:var(--accent);}
+  /* 篇卡 */
+  .m-head b{
+    display:block; font-family:Georgia,"Times New Roman",serif; font-size:32px;
+    font-weight:600; letter-spacing:-.01em;
+  }
+  .m-head span{display:block; margin-top:4px; font-size:14px; color:var(--muted);}
+  .m-lead{margin:12px 0 0; font-size:19px; line-height:1.78; color:var(--ink-2);}
+  /* 篇层五步：读前 → 扫读 → 骨架 → 认门 → 读后 */
+  .m-steps{display:flex; gap:3px; margin:16px 0 2px;}
+  .m-steps button{
+    flex:1; text-align:center; font:inherit; font-size:12.5px; color:var(--muted);
+    background:none; border:0; border-top:2px solid var(--rule);
+    padding:8px 2px 0; cursor:pointer;
+  }
+  .m-steps button:hover{color:var(--ink); border-top-color:#cdbf9c;}
+  .m-steps button.done{color:var(--accent); border-top-color:#e6cf99;}
+  .m-steps button.cur{color:var(--ink); border-top-color:var(--accent); font-weight:600;}
+  .m-step{display:none;}
+  .m-step.on{display:block;}
+  .m-guide{margin:10px 0 0; font-size:17px; line-height:1.7; color:var(--muted);}
+  .m-skim{margin-top:2px;}
+  .m-sk{border-top:1px dashed var(--rule);}
+  .m-sk-q{
+    display:flex; align-items:flex-start; gap:9px; width:100%; text-align:left; font:inherit;
+    font-size:18px; line-height:1.55; color:var(--ink-2); background:none;
+    border:0; padding:14px 0; cursor:pointer;
+  }
+  .m-sk-q i{font-style:normal; font-size:13px; color:var(--accent); padding-top:4px; flex:none;}
+  .m-sk-q b{font-weight:400; font-family:Georgia,"Times New Roman",serif; color:var(--ink);}
+  .m-sk-more{margin-left:auto; flex:none; font-size:13.5px; color:var(--accent); padding-top:4px;}
+  .m-sk.open .m-sk-more{color:var(--muted);}
+  .m-sk-a{display:none; padding:0 0 16px 24px;}
+  .m-sk.open .m-sk-a{display:block;}
+  .m-sk-a b{display:block; font-size:18px; color:var(--ink);}
+  .m-sk-a span{display:block; margin-top:5px; font-size:17.5px; line-height:1.7; color:var(--ink-2);}
+  .m-chain{display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:12px 0 2px;}
+  .m-chain b{
+    font-size:16.5px; font-weight:600; color:var(--ink); background:#fff;
+    border:1px solid var(--rule); border-radius:999px; padding:6px 12px;
+  }
+  .m-chain i{font-style:normal; color:var(--accent);}
+  .m-pager{
+    display:flex; gap:8px; margin-top:20px; padding:12px 0 2px;
+    position:sticky; bottom:0; background:linear-gradient(to top,var(--paper) 76%,rgba(250,248,242,0));
+  }
+  .m-pager button{
+    font:inherit; font-size:16px; padding:9px 16px; cursor:pointer;
+    border:1px solid var(--rule); border-radius:999px; background:#fff; color:var(--ink);
+  }
+  .m-pager button.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .m-pager button.primary:disabled{opacity:.34; cursor:default;}
+  .m-pager .m-sp{flex:1;}
+  .g-part{
+    display:grid; grid-template-columns:24px minmax(0,1fr); gap:9px;
+    padding:12px 0 0; margin-top:12px; border-top:1px dashed var(--rule);
+  }
+  .g-part:first-of-type{border-top:0; margin-top:0; padding-top:0;}
+  .g-no{font-size:14px; color:var(--accent); padding-top:3px;}
+  .g-nm{font-size:19px; font-weight:600; color:var(--ink);}
+  .g-nm em{font-style:normal; font-weight:400; font-size:13px; color:var(--muted); margin-left:6px;}
+  .g-rl{font-size:15.5px; color:var(--accent); margin-top:3px;}
+  .g-tx{font-family:Georgia,serif; font-size:17.5px; line-height:1.6; color:var(--ink-2); margin-top:4px;}
+  .g-nt{font-size:15.5px; line-height:1.65; color:var(--muted); margin-top:4px;}
+  .m-map{margin-top:10px; padding-left:14px; border-left:1px solid var(--rule);}
+  .m-root{font-family:Georgia,serif; font-size:22px; font-weight:600; padding-bottom:3px;}
+  .m-br{position:relative; margin-top:14px;}
+  .m-br::before{
+    content:''; position:absolute; left:-14px; top:10px; width:10px; height:1px;
+    background:var(--rule);
+  }
+  .m-bt{display:flex; align-items:center; gap:7px; font-size:19px; font-weight:600; color:var(--ink);}
+  .m-bt i{font-style:normal;}
+  .m-bp{margin:5px 0 0 21px; padding:0; list-style:none;}
+  .m-bp li{font-size:17.5px; line-height:1.72; color:var(--ink-2);}
+  .m-bp li::before{content:'·'; color:var(--muted); margin-right:6px;}
+  /* 词条 */
+  .n-back{
+    font:inherit; font-size:15.5px; color:var(--muted); background:none; border:0;
+    padding:0 0 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .n-back:hover{color:var(--accent);}
+  .n-w{display:flex; align-items:baseline; gap:10px;}
+  .n-w b{font-family:Georgia,serif; font-size:34px; font-weight:600; letter-spacing:-.01em;}
+  .n-w span{font-size:15.5px; color:var(--muted); font-family:Georgia,serif;}
+  .n-pos{font-size:17px; color:var(--muted); margin-top:3px;}
+  .n-rows{margin-top:16px; display:flex; flex-direction:column; gap:13px;}
+  .n-r{display:grid; grid-template-columns:50px minmax(0,1fr); gap:8px;}
+  .n-r dt{font-size:13.5px; font-weight:600; color:var(--accent); padding-top:4px;}
+  .n-r dd{margin:0; font-size:18.5px; line-height:1.65; color:var(--ink-2);}
+  .n-r dd em{font-style:normal; display:block; color:var(--muted); font-size:15px; margin-top:3px;}
+  /* 词条里的课本原句：把词标出来，讲词不离句 */
+  .n-sent{margin-top:20px; padding-top:13px; border-top:1px dashed var(--rule);}
+  .n-sent p{
+    margin:0; font-family:Georgia,serif; font-size:18px; line-height:1.7; color:var(--ink-2);
+  }
+  .n-sent p b{
+    font-weight:600; color:var(--ink);
+    background:linear-gradient(transparent 58%,rgba(255,209,102,.7) 58%);
+  }
+  /* 引线 */
+  .bk-lead{position:absolute; inset:0; pointer-events:none; overflow:visible;}
+  .bk-lead path{fill:none; stroke:var(--accent); stroke-width:1.4; opacity:.55;}
+  .bk-pno{
+    position:absolute; left:20px; bottom:16px;
+    font-family:Georgia,serif; font-size:11px; color:rgba(0,0,0,.28);
+    pointer-events:none;
+  }
+  /* 底部 Dock：落在页边底端，不遮书页；篇 / 段 / 句 / 词 随时切 */
+  .sk-dock{
+    left:auto; right:14px; bottom:10px; transform:none;
+    gap:1px; padding:4px 5px 5px; border-radius:16px;
+    background:rgba(250,248,242,.94);
+  }
+  .sk-dock-item{width:42px; height:42px; font-size:18px; border-radius:11px;}
+  .sk-dock-item.has-txt{min-width:42px; padding:0 9px; gap:5px; font-size:16px;}
+  .sk-dock-txt{font-size:12.5px;}
+  .sk-dock-item::after{bottom:auto; top:-20px;}
+  @media (max-width:1100px){
+    .bk-stage{grid-template-columns:minmax(0,1fr) 380px;}
+    .n-en{font-size:22px;}
+    .s-gist{font-size:19px;}
+    .n-val{font-size:18px;}
+    .s-qq{font-size:17.5px;}
+    .sk-dock-item.has-txt{padding:0 7px; gap:4px;}
+    .sk-dock-txt{font-size:12px;}
+  }
+</style>
+</head>
+<body>
+<div class="bk-stage">
+  <div class="bk-view" id="view">
+    <div class="bk-canvas" id="canvas">
+      <img class="bk-img" id="img" src="../assets/textbook/bx1/u3-rt-p38-page.webp" alt="课本 p38">
+      <div class="bk-hits" id="hits"></div>
+    </div>
+  </div>
+
+  <aside class="bk-margin" id="margin">
+    <div class="bk-hint" id="hint">
+      <b>点书上的句子</b>
+      <span>句子的讲解在页边长出来。<br>点段名看这一段，点 LIVING LEGENDS 看整篇。<br>滚轮放大，按住纸拖动，← → 换句。</span>
+    </div>
+    <div class="note" id="note"></div>
+    <span class="bk-pno">p. 38</span>
+  </aside>
+
+  <svg class="bk-lead" id="lead"></svg>
+</div>
+
+<!-- 全站登录门禁（功能页强制登录） -->
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../shared/cloud.js"></script>
+<script src="../shared/gate.js"></script>
+
+<script src="../shared/ui/dock.js"></script>
+<script src="../data/textbook_reading_notes.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var IMG_W = 1241, IMG_H = 1754;
+
+  // 每句在整页图上的分段矩形 [x1, y, x2]，y 统一按行高铺满
+  var SENT = [
+    {
+      en: 'As a player, Lang Ping brought honour and glory to her country.',
+      zh: '作为运动员，郎平为祖国赢得了荣誉与光荣。',
+      st: '“As a player,” 介词短语提到句首作状语 —— 先说身份，再讲功绩。这一句是三个人称排比的起点。',
+      pt: '先遮住 As a player，问学生：为什么作者不从 2015 年那场比赛写起？排比先立人，再讲事。',
+      words: [{ card: 'honour', text: 'honour' }],
+      rects: [[0.1015,0.5957,0.4496],[0.1015,0.6123,0.2703]]
+    },
+    {
+      en: 'As a coach, she led the China women\u2019s volleyball team to medals at world championships and the Olympics.',
+      zh: '作为教练，她带领中国女排在世界锦标赛和奥运会上夺得奖牌。',
+      st: 'lead sb to sth（带领某人走向…）；at world championships and the Olympics 两个赛事并列，介词 at 表场合。',
+      pt: 'medals 是复数、不带冠词 —— 强调的是“多枚、多次”。可以问：为什么这里不用 a medal？',
+      words: [{ card: 'coach', text: 'coach' }, { card: 'medal', text: 'medals' }],
+      rects: [[0.2703,0.6123,0.4496],[0.1015,0.6288,0.448],[0.1015,0.6453,0.4488]]
+    },
+    {
+      en: 'As a person, Lang Ping is loved by fans at home and abroad.',
+      zh: '作为一个人，郎平深受国内外球迷的喜爱。',
+      st: '被动语态 be loved by；at home and abroad（国内外）是固定搭配。',
+      pt: '排比的第三句换了视角：从“成绩”转到“人品”。这一句也是下一句“考验”的伏笔 —— 她被人爱，是因为她扛住了什么。',
+      words: [],
+      rects: [[0.1015,0.6619,0.4408],[0.1015,0.679,0.2478]]
+    },
+    {
+      en: 'When the Chinese team was preparing for the 2015 World Cup, her determination was tested.',
+      zh: '当中国队备战 2015 年世界杯时，她的决心受到了考验。',
+      st: 'When 引导时间状语从句（was preparing 用过去进行时铺背景）+ 主句被动 was tested。',
+      pt: '全段的转折点：从“荣誉”进入“逆境”。test 在这里不是“考试”，是“考验”。',
+      words: [{ card: 'determination', text: 'determination' }],
+      rects: [[0.2478,0.679,0.4496],[0.1015,0.6955,0.4496],[0.1015,0.712,0.3255]]
+    },
+    {
+      en: 'The team that Lang Ping had built was falling apart.',
+      zh: '郎平一手组建的队伍正濒临瓦解。',
+      st: '定语从句 that Lang Ping had built 插在主语和谓语之间；had built 用过去完成时，表示比“瓦解”更早的动作。',
+      pt: '一句话把“她建的”和“它塌了”并置，张力就在这。读的时候，在 built 后停一下。',
+      words: [{ card: 'fall apart', text: 'falling apart' }],
+      rects: [[0.3255,0.712,0.4496],[0.1015,0.7286,0.4259]]
+    },
+    {
+      en: 'One of the best players had been injured, and the team captain had to leave because of heart problems.',
+      zh: '一名最好的球员受伤了，队长又因心脏问题不得不离队。',
+      st: 'one of + 复数名词；had been injured 是过去完成时的被动；have to 表客观上“不得不”。',
+      pt: '两个坏消息并列，动词都是 had… —— 过去完成时在这里表示“在世界杯之前就已经发生了”。',
+      words: [{ card: 'injure', text: 'injured' }],
+      rects: [[0.4259,0.7286,0.4496],[0.1015,0.7451,0.4496],[0.1015,0.7616,0.4496],[0.1015,0.7787,0.1761]]
+    },
+    {
+      en: 'Losing two important players was a big challenge, but Lang Ping did not lose heart.',
+      zh: '失去两名重要球员是个巨大的挑战，但郎平没有气馁。',
+      st: '动名词 Losing… 作主语，谓语用单数 was；lose heart 是“失去信心、气馁”。',
+      pt: '考点：lose heart（气馁）≠ lose one\u2019s heart（爱上某人）。这一句也是情绪的转折。',
+      words: [{ card: 'lose heart', text: 'lose heart' }],
+      rects: [[0.1761,0.7787,0.4496],[0.1015,0.7953,0.4496],[0.1015,0.8118,0.1499]]
+    },
+    {
+      en: 'She had faced difficulties before, and she knew that her young players could win if they worked together as a team.',
+      zh: '她以前也面对过困难，她知道只要年轻队员团结一致，就能赢。',
+      st: '三层嵌套：she knew + that 宾语从句 + if 条件从句；could 表示过去语境下的“能够”。',
+      pt: '这是“为什么她没垮”的答案：经验（had faced）+ 信任（knew）。让学生找这两处动词。',
+      words: [],
+      rects: [[0.1499,0.8118,0.4496],[0.1015,0.8283,0.4456],[0.1015,0.8449,0.3674]]
+    },
+    {
+      en: 'Two weeks later, they were world champions!',
+      zh: '两周后，她们成了世界冠军！',
+      st: 'Two weeks later 是时间推进的标记；world champions 作表语，表示身份时不加冠词。',
+      pt: '全段最短的一句，也是情绪的落点。读完停一下，让那个感叹号落地。',
+      words: [{ card: 'champion', text: 'champions' }],
+      rects: [[0.3674,0.8449,0.4496],[0.1015,0.862,0.386]]
+    },
+    {
+      en: 'Then in 2016, Lang Ping led her volleyball team to Olympic gold in Brazil.',
+      zh: '接着在 2016 年，郎平带领她的排球队在巴西夺得奥运金牌。',
+      st: 'Then + in 2016 时间状语前置；lead sb to sth 第二次出现，与第二句呼应。',
+      pt: '与开头 As a coach 形成闭环：教练这条线，从奖牌走到金牌。',
+      words: [],
+      rects: [[0.386,0.862,0.4496],[0.1015,0.8785,0.4496],[0.1015,0.895,0.2853]]
+    }
+  ];
+  var LINE_H = 0.0152;   // 行框统一高度（占整页高）
+
+  // 段级入口：标题本身就是热区（坐标按整页比例）。s 对应数据里的 sections 序号。
+  var SEC_HIT = [
+    { s: 0, x1: 0.083, y1: 0.170, x2: 0.645, y2: 0.220 },   // Intro 正文
+    { s: 1, x1: 0.099, y1: 0.5578, x2: 0.243, y2: 0.5806 }, // Lang Ping 标题
+    { s: 2, x1: 0.500, y1: 0.5578, x2: 0.713, y2: 0.5806 }, // Michael Jordan 标题
+    { s: 3, x1: 0.493, y1: 0.836, x2: 0.913, y2: 0.876 }    // Your Suggestions 正文
+  ];
+
+  // 篇级入口：LIVING LEGENDS 蓝色横条
+  var MAP_BOX = { x1: 0.110, y1: 0.406, x2: 0.888, y2: 0.472 };
+
+  // ── 词卡 ──
+  var noteData = (window.TEXTBOOK_READING_NOTES || {})['必修一|U3|RT'] || {};
+  var WORDS = {};
+  (noteData.sections || []).forEach(function(sec){
+    (sec.words || []).forEach(function(w){ WORDS[w.w] = w; });
+  });
+
+  // 本页生词：记住每个词出现在第几句，点词时把那一句框回画面
+  var PAGE_WORDS = [];
+  SENT.forEach(function(s, i){
+    (s.words || []).forEach(function(w){
+      if (!WORDS[w.card]) return;
+      if (PAGE_WORDS.some(function(x){ return x.card === w.card; })) return;
+      PAGE_WORDS.push({ card: w.card, text: w.text, s: i });
+    });
+  });
+
+  var st = {
+    mode: '',          // 'sent' 句层 / 'sec' 段层 / 'map' 篇层 / 'words' 生词
+    card: '',          // 'word' 词卡
+    s: -1, sec: -1,
+    mapStep: 1,        // 篇层五步：1 读前 → 2 扫读 → 3 骨架 → 4 认门 → 5 读后
+    skim: {},          // 扫读时已经点开过的段
+    anchor: null,      // 当前批注要贴住的那个热区
+    z: 1, tx: 0, ty: 0, drag: false, moved: false
+  };
+
+  var view = document.getElementById('view');
+  var canvas = document.getElementById('canvas');
+  var hits = document.getElementById('hits');
+  var margin = document.getElementById('margin');
+  var note = document.getElementById('note');
+  var hint = document.getElementById('hint');
+  var lead = document.getElementById('lead');
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── 建热区 ──
+  SENT.forEach(function(s, i){
+    s.rects.forEach(function(r){
+      var d = document.createElement('div');
+      d.className = 'hit';
+      d.setAttribute('data-s', i);
+      d.style.left = (r[0]*100) + '%';
+      d.style.top = (r[1]*100) + '%';
+      d.style.width = ((r[2]-r[0])*100) + '%';
+      d.style.height = (LINE_H*100) + '%';
+      hits.appendChild(d);
+    });
+  });
+
+  SEC_HIT.forEach(function(b){
+    var d = document.createElement('div');
+    d.className = 'sec-hit';
+    d.setAttribute('data-sec', b.s);
+    d.style.left = (b.x1 * 100) + '%';
+    d.style.top = (b.y1 * 100) + '%';
+    d.style.width = ((b.x2 - b.x1) * 100) + '%';
+    d.style.height = ((b.y2 - b.y1) * 100) + '%';
+    hits.appendChild(d);
+  });
+
+  (function(){
+    var d = document.createElement('div');
+    d.className = 'map-hit';
+    d.setAttribute('data-map', '1');
+    d.style.left = (MAP_BOX.x1 * 100) + '%';
+    d.style.top = (MAP_BOX.y1 * 100) + '%';
+    d.style.width = ((MAP_BOX.x2 - MAP_BOX.x1) * 100) + '%';
+    d.style.height = ((MAP_BOX.y2 - MAP_BOX.y1) * 100) + '%';
+    hits.appendChild(d);
+  })();
+
+  function kind(el){
+    if (el.classList.contains('map-hit')) return 'map';
+    return el.classList.contains('sec-hit') ? 'sec' : 's';
+  }
+  function key(el){
+    var k = kind(el);
+    return el.getAttribute(k === 'map' ? 'data-map' : (k === 'sec' ? 'data-sec' : 'data-s'));
+  }
+
+  // 镜头移动后，浏览器会在指针没动的情况下补发一次 pointerover，
+  // 这会让另一句莫名亮起来。只在指针真的移动过时才认悬停。
+  var lastPt = { x: -1e9, y: -1e9 };
+  hits.addEventListener('pointermove', function(e){ lastPt.x = e.clientX; lastPt.y = e.clientY; });
+
+  hits.addEventListener('pointerover', function(e){
+    if (e.clientX === lastPt.x && e.clientY === lastPt.y) return;
+    var t = e.target.closest('.hit, .sec-hit, .map-hit'); if (!t) return;
+    hits.querySelectorAll('.hit, .sec-hit, .map-hit').forEach(function(b){
+      b.classList.toggle('hot', kind(b) === kind(t) && key(b) === key(t));
+    });
+  });
+  hits.addEventListener('pointerleave', function(){
+    if (st.mode) return;
+    hits.querySelectorAll('.hot').forEach(function(b){ b.classList.remove('hot'); });
+  });
+  hits.addEventListener('click', function(e){
+    if (st.moved) return;
+    if (e.target.closest('.map-hit')) { openMap(); return; }
+    var sec = e.target.closest('.sec-hit');
+    if (sec) { openSection(parseInt(sec.getAttribute('data-sec'), 10)); return; }
+    var t = e.target.closest('.hit');
+    if (!t) return;
+    open(parseInt(t.getAttribute('data-s'), 10));
+  });
+
+  // ── 镜头 ──
+  function apply(){
+    canvas.style.transform = 'translate(' + st.tx + 'px,' + st.ty + 'px) scale(' + st.z + ')';
+    drawLead();
+  }
+  function easeOn(){ canvas.classList.add('ease'); }
+  function easeOff(){ canvas.classList.remove('ease'); }
+
+  function viewW(){ return view.clientWidth; }
+  function viewH(){ return view.clientHeight; }
+
+  // 统一镜头：把页面上一块内容（整页比例坐标）放进可视区。
+  // 讲什么就框什么——句层框一句话，段层框整段，篇层框书名横幅。
+  // 宽高同时约束，取「能完整放下」的最大倍率，再把这块内容居中。
+  function frameBox(x1, y1, x2, y2, minZ, maxZ){
+    var W = viewW(), H = viewH();
+    var bw = Math.max(0.02, x2 - x1);
+    var bh = Math.max(0.008, y2 - y1);
+    var z = Math.min(W * 0.92 / (IMG_W * bw), H * 0.86 / (IMG_H * bh));
+    z = Math.max(minZ, Math.min(maxZ, z));
+    st.z = z;
+    st.tx = W * 0.5 - ((x1 + x2) / 2) * IMG_W * z;
+    st.ty = H * 0.46 - ((y1 + y2) / 2) * IMG_H * z;
+    clamp();
+  }
+  function boxOfRects(rs){
+    var x1 = 1, x2 = 0;
+    rs.forEach(function(r){ x1 = Math.min(x1, r[0]); x2 = Math.max(x2, r[2]); });
+    return [x1, rs[0][1], x2, rs[rs.length - 1][1] + LINE_H];
+  }
+  // 句层：所有句子共用一个倍率，换句时只上下移动，镜头不会一抽一抽地缩放
+  var Z_SENT = 0;
+  function sentZ(){
+    if (Z_SENT) return Z_SENT;
+    var z = 9;
+    SENT.forEach(function(s){
+      var b = boxOfRects(s.rects);
+      z = Math.min(z, viewW() * 0.92 / (IMG_W * (b[2] - b[0])));
+    });
+    Z_SENT = Math.max(1.5, Math.min(2.2, z));
+    return Z_SENT;
+  }
+  // 句子所在的那一栏的中心（郎平在左栏、乔丹在右栏）
+  function colCenter(y){
+    var secs = noteData.sections || [];
+    for (var i = 0; i < secs.length; i++) {
+      var h = secs[i].hot;
+      if (h && y >= h.y && y <= h.y + h.h) return h.x + h.w / 2;
+    }
+    return 0.2845;
+  }
+  function focus(s){
+    var b = boxOfRects(SENT[s].rects);
+    st.z = sentZ();
+    st.tx = viewW() * 0.5 - colCenter(b[1]) * IMG_W * st.z;
+    st.ty = viewH() * 0.46 - ((b[1] + b[3]) / 2) * IMG_H * st.z;
+    clamp();
+  }
+  // 段层：从段首到段末整块进画面（用数据里的 hot 框）
+  function focusSec(i){
+    var d = (noteData.sections || [])[i];
+    var b = d && d.hot
+      ? [d.hot.x, d.hot.y, d.hot.x + d.hot.w, d.hot.y + d.hot.h]
+      : (function(){
+          var h = SEC_HIT.filter(function(x){ return x.s === i; })[0];
+          return h ? [h.x1, h.y1, h.x2, h.y2] : null;
+        })();
+    if (!b) return;
+    frameBox(b[0], b[1], b[2], b[3], 0.5, 1.35);
+  }
+  // 篇层：书名横幅整条进画面
+  function frameMap(){
+    frameBox(MAP_BOX.x1, MAP_BOX.y1, MAP_BOX.x2, MAP_BOX.y2, 0.45, 0.95);
+  }
+  // 读前与扫读要看得见全文，骨架才回到书名横幅
+  function frameForStep(n){
+    if (n === 3) {
+      easeOn();
+      frameMap();
+      apply();
+      setTimeout(function(){ easeOff(); sync(); }, 700);
+    } else {
+      wholePage();
+    }
+  }
+
+  function wholePage(){
+    var z = Math.min(viewW() / IMG_W, viewH() / IMG_H) * 0.94;
+    st.z = z;
+    st.tx = (viewW() - IMG_W * z) / 2;
+    st.ty = (viewH() - IMG_H * z) / 2;
+    easeOn(); apply();
+    setTimeout(function(){ easeOff(); sync(); }, 700);
+  }
+
+  function clamp(){
+    var w = IMG_W * st.z, h = IMG_H * st.z;
+    st.tx = Math.min(viewW() * 0.6, Math.max(viewW() * 0.4 - w, st.tx));
+    st.ty = Math.min(viewH() * 0.6, Math.max(viewH() * 0.4 - h, st.ty));
+  }
+
+  // 打开先看整页：像翻开一本书，先见全貌，再点进去
+  // （首帧不加缓动，避免一进来先看到一次从 100% 缩到整页的抽动）
+  function home(){
+    var z = Math.min(viewW() / IMG_W, viewH() / IMG_H) * 0.94;
+    st.z = z;
+    st.tx = (viewW() - IMG_W * z) / 2;
+    st.ty = (viewH() - IMG_H * z) / 2;
+    apply();
+  }
+
+  function sync(){
+    place();
+    drawLead();
+  }
+
+  // ── 批注 ──
+  function open(s){
+    st.mode = 'sent'; st.s = s; st.sec = -1;
+    st.card = '';
+    st.anchor = null;
+    hits.querySelectorAll('.hit').forEach(function(b){
+      var on = b.getAttribute('data-s') === String(s);
+      b.classList.toggle('on', on);
+      b.classList.toggle('hot', false);
+      if (on && !st.anchor) st.anchor = b;
+    });
+    hits.querySelectorAll('.sec-hit, .map-hit').forEach(function(b){
+      b.classList.remove('on', 'hot');
+    });
+    hint.classList.add('gone');
+    renderNote(s);
+    paintDock();
+    easeOn();
+    focus(s);
+    apply();
+    setTimeout(function(){ easeOff(); sync(); }, 700);
+  }
+
+  function openSection(i){
+    var secs = noteData.sections || [];
+    if (!secs[i]) return;
+    st.mode = 'sec'; st.sec = i; st.s = -1;
+    st.card = '';
+    st.anchor = null;
+    hits.querySelectorAll('.hit, .map-hit').forEach(function(b){ b.classList.remove('on', 'hot'); });
+    hits.querySelectorAll('.sec-hit').forEach(function(b){
+      var on = b.getAttribute('data-sec') === String(i);
+      b.classList.toggle('on', on);
+      b.classList.toggle('hot', false);
+      if (on) st.anchor = b;
+    });
+    hint.classList.add('gone');
+    renderSection(i);
+    paintDock();
+    easeOn();
+    focusSec(i);
+    apply();
+    setTimeout(function(){ easeOff(); sync(); }, 700);
+  }
+
+  function openMap(){
+    st.mode = 'map'; st.s = -1; st.sec = -1; st.anchor = null;
+    st.card = '';
+    st.mapStep = 1; st.skim = {};
+    hits.querySelectorAll('.hit, .sec-hit').forEach(function(b){ b.classList.remove('on', 'hot'); });
+    var box = hits.querySelector('.map-hit');
+    if (box) { box.classList.add('on'); box.classList.remove('hot'); st.anchor = box; }
+    hint.classList.add('gone');
+    renderMap();
+    paintDock();
+    frameForStep(1);
+    setTimeout(function(){ easeOff(); sync(); }, 700);
+  }
+
+  function close(){
+    var wasOpen = st.mode !== '';
+    st.mode = ''; st.s = -1; st.sec = -1; st.anchor = null; st.card = '';
+    note.classList.remove('in');
+    hits.querySelectorAll('.on,.hot').forEach(function(b){ b.classList.remove('on','hot'); });
+    lead.innerHTML = '';
+    hint.classList.remove('gone');
+    paintDock();
+    if (wasOpen) wholePage();
+  }
+
+  // ── 底部 Dock：整篇 / 本段 / 本句 / 生词 ──
+  // 本页的句级数据都在第 2 段（Lang Ping），所以「本段」固定回到这一段
+  var SECTION_OF_SENT = 1;
+  var dockApi = null;
+
+  function paintDock(){
+    if (!dockApi) return;
+    var k = '';
+    if (st.mode === 'map') k = 'map';
+    else if (st.mode === 'sec') k = 'sec';
+    else if (st.mode === 'words' || st.card === 'word') k = 'words';
+    else if (st.mode === 'sent') k = 'sent';
+    dockApi.setActive(k);
+  }
+
+  function openWordList(){
+    st.mode = 'words'; st.s = -1; st.sec = -1; st.anchor = null; st.card = '';
+    hits.querySelectorAll('.on,.hot').forEach(function(b){ b.classList.remove('on','hot'); });
+    lead.innerHTML = '';
+    hint.classList.add('gone');
+    renderWordList();
+    paintDock();
+  }
+
+  function renderWordList(){
+    var chips = PAGE_WORDS.map(function(w){
+      var c = WORDS[w.card] || {};
+      return '<button class="n-chip" data-card="' + esc(w.card) + '" data-s="' + w.s +
+        '" data-w="' + esc(w.text) + '">' + esc(w.text) +
+        '<i>' + esc(c.zh || '') + ' · 句 ' + (w.s + 1) + '</i></button>';
+    }).join('');
+
+    note.innerHTML =
+      '<div class="n-kicker"><span>本页生词 / ' + PAGE_WORDS.length + ' 个</span><i class="n-rule"></i></div>' +
+      '<div class="m-head"><b>单词也能单独讲</b><span>点一个词，镜头回到它所在的句子</span></div>' +
+      '<div class="n-words">' + chips + '</div>';
+
+    note.querySelectorAll('.n-chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var card = WORDS[b.getAttribute('data-card')];
+        if (!card) return;
+        var s = parseInt(b.getAttribute('data-s'), 10);
+        open(s);
+        renderWord(card, s, b.getAttribute('data-w'));
+      });
+    });
+
+    note.scrollTop = 0;
+    note.classList.remove('in');
+    void note.offsetWidth;
+    note.classList.add('in');
+  }
+
+  function buildDock(){
+    if (!window.SeeklumeDock) return;
+    dockApi = window.SeeklumeDock.mount({
+      items: [
+        { key: 'map', icon: '📖', text: '整篇', label: '整篇（M）',
+          onSelect: function(){ if (st.mode !== 'map') openMap(); } },
+        { key: 'sec', icon: '¶', text: '本段', label: '本段',
+          onSelect: function(){ if (st.mode !== 'sec') openSection(SECTION_OF_SENT); } },
+        { key: 'sent', icon: '❞', text: '本句', label: '本句',
+          onSelect: function(){
+            if (st.card === 'word') { renderNote(st.s); return; }
+            if (st.mode !== 'sent') open(st.s >= 0 ? st.s : 0);
+          } },
+        { key: 'words', icon: 'A', text: '生词', label: '生词',
+          onSelect: function(){ if (st.mode !== 'words') openWordList(); } },
+        { key: 'close', icon: '✕', label: '收起（Esc）', onSelect: close }
+      ],
+      active: ''
+    });
+  }
+
+  // 句子里的重点词直接做成可点入口：讲句子时，点到哪个词就讲哪个词
+  function markedSentence(en, words){
+    var list = (words || []).filter(function(w){ return w && w.text; })
+      .map(function(w){ return { text: w.text, card: w.card }; })
+      .sort(function(a, b){ return b.text.length - a.text.length; });
+    if (!list.length) return esc(en);
+    var out = '', i = 0;
+    while (i < en.length) {
+      var hit = null;
+      for (var k = 0; k < list.length; k++) {
+        var t = list[k].text;
+        if (en.substr(i, t.length).toLowerCase() !== t.toLowerCase()) continue;
+        var before = i > 0 ? en.charAt(i - 1) : ' ';
+        var after = en.charAt(i + t.length);
+        if (!after) after = ' ';
+        if (/[A-Za-z]/.test(before) || /[A-Za-z]/.test(after)) continue;
+        hit = list[k]; break;
+      }
+      if (hit) {
+        out += '<button type="button" class="n-wk" data-card="' + esc(hit.card) +
+          '" data-w="' + esc(hit.text) + '">' + esc(en.substr(i, hit.text.length)) + '</button>';
+        i += hit.text.length;
+      } else {
+        out += esc(en.charAt(i));
+        i++;
+      }
+    }
+    return out;
+  }
+
+  function renderNote(s){
+    st.card = '';
+    var d = SENT[s];
+    var chips = (d.words || []).map(function(w){
+      var c = WORDS[w.card];
+      return '<button class="n-chip" data-card="' + esc(w.card) + '" data-w="' + esc(w.text) + '">' +
+        esc(w.text) + '<i>' + (c ? esc(c.zh) : '') + '</i></button>';
+    }).join('');
+
+    note.innerHTML =
+      '<div class="n-kicker"><span>第 ' + (s + 1) + ' 句 / ' + SENT.length + '</span>' +
+        '<i class="n-rule"></i>' +
+        '<span class="n-nav">' +
+          '<button type="button" data-nav="-1"' + (s === 0 ? ' disabled' : '') + ' aria-label="上一句">‹</button>' +
+          '<button type="button" data-nav="1"' + (s === SENT.length - 1 ? ' disabled' : '') + ' aria-label="下一句">›</button>' +
+        '</span>' +
+      '</div>' +
+      '<p class="n-en">' + markedSentence(d.en, d.words) + '</p>' +
+      '<p class="n-zh">' + esc(d.zh) + '</p>' +
+      '<div class="n-row"><span class="n-lab">结构</span><span class="n-val">' + esc(d.st) + '</span></div>' +
+      '<div class="n-row"><span class="n-lab">可讲</span><span class="n-val">' + esc(d.pt) + '</span></div>' +
+      (chips ? '<div class="n-words"><span class="n-words-cap">讲单词</span>' + chips + '</div>' : '');
+
+    note.querySelectorAll('.n-wk, .n-chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var card = WORDS[b.getAttribute('data-card')];
+        if (card) renderWord(card, s, b.getAttribute('data-w') || b.textContent);
+      });
+    });
+    note.querySelectorAll('[data-nav]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var n = s + parseInt(b.getAttribute('data-nav'), 10);
+        if (n >= 0 && n < SENT.length) open(n);
+      });
+    });
+
+    note.classList.remove('in');
+    void note.offsetWidth;
+    note.classList.add('in');
+    note.scrollTop = 0;
+    paintDock();
+    requestAnimationFrame(place);
+  }
+
+  function qList(list){
+    return (list || []).map(function(q, k){
+      return '<div class="s-q">' +
+        '<button type="button" class="s-qq">' +
+          '<i>Q' + (k + 1) + '</i><span>' + esc(q.q) + '</span>' +
+        '</button>' +
+        '<div class="s-qa">' + esc(q.a) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ── 段卡：这一段在文章里干什么 + 问题 + 复述骨架 + 段译 ──
+  function renderSection(i){
+    var secs = noteData.sections || [];
+    var d = secs[i]; if (!d) return;
+
+    var qs = qList(d.inquiry);
+
+    var notes = (d.notes || []).map(function(n){
+      return '<div class="s-note" style="padding-left:' + ((n.lv || 0) * 15) + 'px">' +
+        esc(n.tree || '') + ' ' + esc(n.txt || '') +
+        (n.gloss ? '<em>' + esc(n.gloss) + '</em>' : '') +
+      '</div>';
+    }).join('');
+
+    var tr = (d.translation || []).map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('');
+
+    note.innerHTML =
+      '<div class="n-kicker"><span>第 ' + (i + 1) + ' 段 / 共 ' + secs.length + ' 段</span>' +
+        '<i class="n-rule"></i>' +
+        '<span class="n-nav">' +
+          '<button type="button" data-nav="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="上一段">‹</button>' +
+          '<button type="button" data-nav="1"' + (i === secs.length - 1 ? ' disabled' : '') + ' aria-label="下一段">›</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="s-head"><b>' + esc(d.label) + '</b><span>' + esc(d.short || '') + '</span></div>' +
+      (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
+      (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
+      (qs ? '<div class="s-sec"><div class="s-cap">问题 · 点开对答案（英文作答）</div>' + qs + '</div>' : '') +
+      (notes ? '<details class="s-fold"><summary>复述骨架</summary><div class="s-notes">' + notes + '</div></details>' : '') +
+      (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '') +
+      (i === 1 ? '<button type="button" class="s-jump" id="sJump">逐句读这 ' + SENT.length + ' 句 →</button>' : '');
+
+    note.querySelectorAll('.s-qq').forEach(function(b){
+      b.addEventListener('click', function(){
+        b.parentNode.classList.toggle('open');
+        place();
+      });
+    });
+    note.querySelectorAll('[data-nav]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var n = i + parseInt(b.getAttribute('data-nav'), 10);
+        if (n >= 0 && n < secs.length) openSection(n);
+      });
+    });
+    var jump = note.querySelector('#sJump');
+    if (jump) jump.addEventListener('click', function(){ open(0); });
+
+    note.classList.remove('in');
+    void note.offsetWidth;
+    note.classList.add('in');
+    note.scrollTop = 0;
+    requestAnimationFrame(place);
+  }
+
+  // ── 篇卡：五步走 —— 读前 → 扫读 → 骨架 → 认门 → 读后 ──
+  // 整篇架构不能一上来就摊开：先带问题读，再逐段判断，最后才把判断串成骨架。
+  var MAP_STEPS = ['读前', '扫读', '骨架', '认门', '读后'];
+
+  function renderMap(){
+    var d = noteData;
+    var secs = d.sections || [];
+    var step = st.mapStep || 1;
+
+    var bar = MAP_STEPS.map(function(name, k){
+      var n = k + 1;
+      return '<button type="button" class="' + (n === step ? 'cur' : (n < step ? 'done' : '')) +
+        '" data-map-step="' + n + '">' + n + ' ' + esc(name) + '</button>';
+    }).join('');
+
+    var pre = qList((d.inquiry || {}).pre);
+    var post = qList((d.inquiry || {}).post);
+
+    var done = secs.filter(function(s, k){ return !!st.skim[k]; }).length;
+
+    var skim = secs.map(function(s, k){
+      var open = !!st.skim[k];
+      return '<div class="m-sk' + (open ? ' open' : '') + '" data-sk="' + k + '">' +
+        '<button type="button" class="m-sk-q"><i>' + ('0' + (k + 1)).slice(-2) + '</i>' +
+          '<b>' + esc(s.open || s.label) + '</b>' +
+          '<span class="m-sk-more">' + (open ? '已看' : '这一段在干什么？') + '</span></button>' +
+        '<div class="m-sk-a"><b>' + esc(s.label) + ' · ' + esc(s.role || '') + '</b>' +
+          '<span>' + esc(s.gist || '') + '</span></div>' +
+      '</div>';
+    }).join('');
+
+    var chain = secs.map(function(s, k){
+      return (k ? '<i>→</i>' : '') + '<b>' + esc(s.short || s.label) + '</b>';
+    }).join('');
+
+    var parts = (d.genreParts || []).map(function(p){
+      return '<div class="g-part">' +
+        '<span class="g-no">' + esc(p.no) + '</span><div>' +
+          '<div class="g-nm">' + esc(p.name) + '<em>' + esc(p.en) + '</em></div>' +
+          '<div class="g-rl">' + esc(p.role) + '</div>' +
+          '<div class="g-tx">' + esc(p.text) + '</div>' +
+          '<div class="g-nt">' + esc(p.note) + '</div>' +
+        '</div></div>';
+    }).join('');
+
+    var w = d.whole || {};
+    var map =
+      '<div class="m-map"><div class="m-root">' + esc(w.center || d.title) + '</div>' +
+      (w.branches || []).map(function(b){
+        return '<div class="m-br"><div class="m-bt"><i>' + esc(b.icon || '') + '</i>' +
+          '<span>' + esc(b.title) + '</span></div>' +
+          '<ul class="m-bp">' + (b.points || []).map(function(p){
+            return '<li>' + esc(p) + '</li>';
+          }).join('') + '</ul></div>';
+      }).join('') +
+      '</div>';
+
+    var pager = '<div class="m-pager">' +
+      (step > 1 ? '<button type="button" data-map-step="' + (step - 1) + '">← 上一步</button>' : '') +
+      '<span class="m-sp"></span>' +
+      (step === 2
+        ? '<button type="button" class="primary" data-map-step="3">立骨架 →</button>'
+        : (step < MAP_STEPS.length
+            ? '<button type="button" class="primary" data-map-step="' + (step + 1) + '">下一步：' +
+                MAP_STEPS[step] + ' →</button>'
+            : '<button type="button" data-map-close>回到整页</button>')) +
+      '</div>';
+
+    note.innerHTML =
+      '<div class="n-kicker"><span>整篇 / ' + esc(d.title) + '</span>' +
+        '<i class="n-rule"></i>' +
+        '<span class="n-nav"><button type="button" data-map-close aria-label="收起">×</button></span>' +
+      '</div>' +
+      '<div class="m-head"><b>' + esc(d.title) + '</b><span>' + esc(d.sub || '') + ' · ' +
+        esc(d.genre || '') + '</span></div>' +
+      '<div class="m-steps">' + bar + '</div>' +
+
+      '<div class="m-step' + (step === 1 ? ' on' : '') + '">' +
+        '<p class="m-guide">先别急着看结构。带着这三个问题读完全文，读完再回来点开答案。</p>' +
+        (pre ? '<div class="s-sec"><div class="s-cap">读前问题 · 点开对答案</div>' + pre + '</div>' : '') +
+      '</div>' +
+
+      '<div class="m-step' + (step === 2 ? ' on' : '') + '">' +
+        '<p class="m-guide">扫读（skimming）：每段只看开头一句，先判断它在全文里干什么。四段都判断过，骨架自己就浮出来了。</p>' +
+        '<div class="s-sec"><div class="s-cap">四段 · 逐段点开（<b id="skDone">' + done + '</b> / ' +
+          secs.length + '）</div><div class="m-skim">' + skim + '</div></div>' +
+      '</div>' +
+
+      '<div class="m-step' + (step === 3 ? ' on' : '') + '">' +
+        '<p class="m-guide">把刚才的判断按顺序串起来——这就是全文的骨架，是读出来的，不是背下来的。</p>' +
+        '<div class="m-chain">' + chain + '</div>' +
+        (map ? '<div class="s-sec"><div class="s-cap">整篇架构 · 顺着刚才四步再走一遍</div>' + map + '</div>' : '') +
+      '</div>' +
+
+      '<div class="m-step' + (step === 4 ? ' on' : '') + '">' +
+        '<p class="m-guide">这一类文章都有同一副骨架。下次遇到杂志人物稿，先找这五块。</p>' +
+        (parts ? '<div class="s-sec"><div class="s-cap">这一类文章的骨架 · 五部件</div>' + parts + '</div>' : '') +
+      '</div>' +
+
+      '<div class="m-step' + (step === 5 ? ' on' : '') + '">' +
+        '<p class="m-guide">读完了，合起来想：两篇人物稿的写法有什么不同？</p>' +
+        (post ? '<div class="s-sec"><div class="s-cap">读后 · 合起来想</div>' + post + '</div>' : '') +
+      '</div>' +
+
+      pager;
+
+    note.querySelectorAll('.s-qq').forEach(function(b){
+      b.addEventListener('click', function(){ b.parentNode.classList.toggle('open'); });
+    });
+    note.querySelectorAll('.m-sk-q').forEach(function(b){
+      b.addEventListener('click', function(){
+        var row = b.parentNode;
+        var k = parseInt(row.getAttribute('data-sk'), 10);
+        var on = !row.classList.contains('open');
+        row.classList.toggle('open', on);
+        st.skim[k] = on;
+        b.querySelector('.m-sk-more').textContent = on ? '已看' : '这一段在干什么？';
+        var n = secs.filter(function(s, i){ return !!st.skim[i]; }).length;
+        var cnt = note.querySelector('#skDone');
+        if (cnt) cnt.textContent = n;
+      });
+    });
+    note.querySelectorAll('[data-map-step]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var n = parseInt(b.getAttribute('data-map-step'), 10);
+        if (n && n !== st.mapStep) { st.mapStep = n; renderMap(); frameForStep(n); }
+      });
+    });
+    note.querySelectorAll('[data-map-close]').forEach(function(b){
+      b.addEventListener('click', close);
+    });
+
+    note.classList.remove('in');
+    void note.offsetWidth;
+    note.classList.add('in');
+    note.scrollTop = 0;
+    requestAnimationFrame(place);
+  }
+
+  function row(label, val){
+    return '<div class="n-r"><dt>' + label + '</dt><dd>' + val + '</dd></div>';
+  }
+
+  // 在课本原句里把这个词标黄：讲词不离句
+  function markWord(sent, word){
+    var i = word ? sent.toLowerCase().indexOf(word.toLowerCase()) : -1;
+    if (i < 0) return esc(sent);
+    return esc(sent.slice(0, i)) + '<b>' + esc(sent.slice(i, i + word.length)) + '</b>' +
+      esc(sent.slice(i + word.length));
+  }
+
+  function renderWord(cd, s, surface){
+    st.card = 'word';
+    var rows = '';
+    if (cd.root) {
+      rows += row('词根', '<b>' + esc(cd.root.seg || '') + '</b>　' + esc(cd.root.mean || '') +
+        ((cd.root.kin && cd.root.kin.length) ? '<em>同源：' + cd.root.kin.map(esc).join(' · ') + '</em>' : ''));
+    }
+    if (cd.affix && cd.affix.length) {
+      rows += row('构词', cd.affix.map(function(a){
+        return esc(a.af) + ' ' + esc(a.mean) + '　' + esc(a.ex);
+      }).join('<br>'));
+    }
+    if (cd.family && cd.family.length) rows += row('词族', cd.family.map(esc).join('<br>'));
+    if (cd.chunks && cd.chunks.length) rows += row('词块', cd.chunks.map(esc).join('<br>'));
+    if (cd.pitfall) rows += row('注意', esc(cd.pitfall));
+    if (cd.use) rows += row('用', esc(cd.use));
+
+    var sent = cd.sent || (s >= 0 ? SENT[s].en : '');
+
+    note.innerHTML =
+      '<button class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
+      '<div class="n-w"><b>' + esc(cd.w) + '</b>' + (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') + '</div>' +
+      '<div class="n-pos">' + esc(cd.pos || '') + '　' + esc(cd.zh || '') + '</div>' +
+      '<div class="n-rows">' + rows + '</div>' +
+      (sent ? '<div class="n-sent"><div class="s-cap">课本原句</div><p>' +
+        markWord(sent, surface || cd.w) + '</p></div>' : '');
+
+    note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
+    note.scrollTop = 0;
+    note.classList.remove('in');
+    void note.offsetWidth;
+    note.classList.add('in');
+    paintDock();
+    requestAnimationFrame(place);
+  }
+
+  // 讲解卡高度跟内容走；引线从书上的句子指到卡片左上角
+  function place(){ drawLead(); }
+
+  function drawLead(){
+    if (!st.anchor) { lead.innerHTML = ''; return; }
+    var sb = document.querySelector('.bk-stage').getBoundingClientRect();
+    var hb = st.anchor.getBoundingClientRect();
+    var nb = note.getBoundingClientRect();
+    var x1 = hb.right - sb.left, y1 = hb.top - sb.top + hb.height / 2;
+    var x2 = nb.left - sb.left;
+    // 卡高随内容走，终点固定落在卡片顶缘，避免指到卡内某一句话上
+    var y2 = nb.top - sb.top + 14;
+    if (x2 <= x1) { lead.innerHTML = ''; return; }
+    var mx = (x1 + x2) / 2;
+    lead.setAttribute('viewBox', '0 0 ' + sb.width + ' ' + sb.height);
+    lead.innerHTML = '<path d="M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2 + '"/>';
+  }
+
+  // ── 拖动 / 缩放 ──
+  var down = null;
+  view.addEventListener('pointerdown', function(e){
+    if (e.button !== 0) return;
+    st.drag = true; st.moved = false;
+    down = { x: e.clientX, y: e.clientY, tx: st.tx, ty: st.ty };
+    easeOff();
+  });
+  view.addEventListener('pointermove', function(e){
+    if (!st.drag) return;
+    var dx = e.clientX - down.x, dy = e.clientY - down.y;
+    if (!st.moved && Math.abs(dx) + Math.abs(dy) > 4) {
+      st.moved = true; view.classList.add('dragging');
+      try { view.setPointerCapture(e.pointerId); } catch(err){}
+    }
+    if (!st.moved) return;
+    st.tx = down.tx + dx; st.ty = down.ty + dy;
+    clamp(); apply(); sync();
+  });
+  view.addEventListener('pointerup', function(){
+    st.drag = false;
+    view.classList.remove('dragging');
+    setTimeout(function(){ st.moved = false; }, 0);
+  });
+
+  view.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var r = view.getBoundingClientRect();
+    var mx = e.clientX - r.left, my = e.clientY - r.top;
+    var f = Math.exp(-e.deltaY * 0.0016);
+    var z2 = Math.max(0.35, Math.min(5, st.z * f));
+    var k = z2 / st.z;
+    st.tx = mx - (mx - st.tx) * k;
+    st.ty = my - (my - st.ty) * k;
+    st.z = z2; clamp(); apply(); sync();
+  }, { passive: false });
+
+  // ── 键盘 ──
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      var dir = e.key === 'ArrowRight' ? 1 : -1;
+      if (st.mode === 'map') {
+        var n = st.mapStep + dir;
+        if (n >= 1 && n <= MAP_STEPS.length) { st.mapStep = n; renderMap(); frameForStep(n); }
+      } else if (st.mode === 'sec') {
+        openSection(Math.max(0, Math.min(SEC_HIT.length - 1, st.sec + dir)));
+      } else {
+        open(Math.max(0, Math.min(SENT.length - 1, st.s < 0 ? 0 : st.s + dir)));
+      }
+    } else if (e.key === 'm' || e.key === 'M') {
+      openMap();
+    } else if (e.key === 'Escape') {
+      close();
+    } else if (e.key === '0') {
+      wholePage();
+    } else if (e.key === '+' || e.key === '=') {
+      st.z = Math.min(5, st.z * 1.2); clamp(); apply(); sync();
+    } else if (e.key === '-') {
+      st.z = Math.max(0.35, st.z / 1.2); clamp(); apply(); sync();
+    }
+  });
+
+  window.addEventListener('resize', function(){ Z_SENT = 0; clamp(); apply(); sync(); });
+  canvas.addEventListener('transitionend', function(e){
+    if (e.propertyName === 'transform') sync();
+  });
+
+  home();
+  buildDock();
+})();
+</script>
+</body>
+</html>
