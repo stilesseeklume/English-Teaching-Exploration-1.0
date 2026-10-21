@@ -45,7 +45,7 @@
   .nm-guide.var-on .nm-guide-say b{color:var(--ink);}
 
   /* ===== 整屏书页 + 页边 ===== */
-  .nm-book{display:grid;grid-template-columns:minmax(0,1fr) clamp(420px,29vw,500px);
+  .nm-book{display:grid;grid-template-columns:minmax(0,1fr) clamp(440px,32vw,560px);
     height:calc(100dvh - 160px);background:var(--desk);border-bottom:1px solid var(--rule);}
 
   .nm-view{position:relative;overflow:hidden;overflow:clip;background:var(--desk);touch-action:none;cursor:grab;}
@@ -164,9 +164,24 @@
     font-size:calc(13px * var(--ns));line-height:1.65;color:var(--ink-2);}
   .nm-n-drill b{display:block;font-size:calc(9.5px * var(--ns));letter-spacing:.12em;text-transform:uppercase;
     color:var(--accent);margin-bottom:2px;}
-  .nm-n-cap{margin:12px 0 4px;font-size:calc(10px * var(--ns));letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-  .nm-n-cap:first-of-type{margin-top:12px;}
+  .nm-n-cap{margin:9px 0 3px;font-size:calc(10px * var(--ns));letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+  .nm-n-cap:first-of-type{margin-top:9px;}
   .nm-n-why{margin:0;font-size:calc(13px * var(--ns));line-height:1.75;color:var(--ink-2);}
+  /* Amazon 示范段：把「原句 → 笔记行」当场拆开给学生看 */
+  .nm-cut{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+  .nm-cut-root{margin:0 0 1px;font-size:calc(12.5px * var(--ns));color:var(--muted);}
+  .nm-cut-root b{font-family:var(--font-note);font-size:calc(14px * var(--ns));font-weight:600;color:var(--ink);}
+  .nm-cut-root em{margin-left:8px;font-style:normal;}
+  .nm-cut-row{padding-left:11px;border-left:2px solid rgba(185,138,40,.26);}
+  .nm-cut-src{font-size:calc(12.5px * var(--ns));line-height:1.32;color:var(--muted);}
+  .nm-cut-src i{display:inline-block;min-width:15px;font-style:normal;font-weight:700;color:var(--accent);}
+  .nm-cut-to{margin-top:2px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .nm-cut-to span{font-size:calc(12.5px * var(--ns));color:var(--accent);}
+  .nm-cut-to b{font-family:var(--font-note);font-size:calc(13.5px * var(--ns));font-weight:600;color:var(--ink);}
+  .nm-cut-to em{font-style:normal;font-size:calc(11px * var(--ns));color:var(--muted);}
+  .nm-cut-check{margin-top:2px;padding:6px 9px;background:#fff;border:1px dashed var(--rule);border-radius:4px;
+    font-size:calc(12px * var(--ns));line-height:1.45;color:var(--ink-2);}
+  .nm-cut-check b{margin-right:5px;color:var(--accent);}
 
   /* 段号条：骨架 · 1–6，一点即换段 */
   .nm-secnav{display:flex;align-items:center;gap:2px;flex:0 0 auto;margin-top:9px;padding-top:8px;

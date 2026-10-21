@@ -189,7 +189,7 @@
       var item = v[state.sec - rules.length] || v[0] || {};
       say.innerHTML = '<b>变通 · ' + esc(item.k || '') + '</b>' + esc(item.d || '');
     } else {
-      say.innerHTML = '<b>从 ① 开始</b>点任意一段，先问「这段在回答什么」，顶格那行就是答案。';
+      say.innerHTML = '<b>从 ① 开始</b>点任意一段，先问「这段在回答什么」，最左边那行就是答案。';
     }
   }
 
@@ -518,6 +518,23 @@
       '</div>';
   }
 
+  // 示范段专用：把「原句 → 笔记行」一排一排摆出来，学生看得见怎么砍
+  function cutHtml(s) {
+    var root = (s.notes || [])[0] || {};
+    return '<div class="nm-cut">' +
+      (root.txt ? '<p class="nm-cut-root">顶格：<b>' + esc(root.txt) + '</b>' +
+        (root.gloss ? '<em>' + esc(root.gloss) + '</em>' : '') + '</p>' : '') +
+      (s.cuts || []).map(function (c, i) {
+        return '<div class="nm-cut-row">' +
+          '<div class="nm-cut-src"><i>' + (i + 1) + '</i>' + esc(c.src) + '</div>' +
+          '<div class="nm-cut-to"><span>↳</span><b>' + esc(c.note) + '</b>' +
+            (c.tag ? '<em>' + esc(c.tag) + '</em>' : '') + '</div>' +
+        '</div>';
+      }).join('') +
+      '<div class="nm-cut-check"><b>写完就验</b>遮住原文，只看这三行，把三句英文说回来；说不出来就补一个名词，不要抄整句。</div>' +
+      '</div>';
+  }
+
   function detailHtml() {
     var u = U2;
     var s = (u.sections || [])[state.sec];
@@ -528,11 +545,15 @@
       '<div class="nm-n-kicker" style="margin-top:10px"><span>' + pad2(state.sec + 1) + '</span><span class="r"></span>' +
         '<span>p. ' + esc(pg.print || '') + '</span></div>' +
       '<h2 class="nm-n-name">' + esc(s.label) + '</h2>' +
-      '<div class="nm-n-role">' + esc(s.role || '') + '</div>' +
-      (s.drill ? '<div class="nm-n-drill"><b>这一段只练这一件</b>' + esc(s.drill) + '</div>' : '') +
-      '<div class="nm-n-cap">这一段的口译笔记</div>' + treeHtml(s.notes) +
-      '<div class="nm-n-cap">为什么这么切</div>' +
-      '<p class="nm-n-why">' + esc(s.tip || '') + '</p>' +
+      (s.cuts ? '' : '<div class="nm-n-role">' + esc(s.role || '') + '</div>') +
+      // 示范段：顶部四格条已经写着这一条原则，「怎么切」也由每行的标签说明，页边不再重复
+      (!s.cuts && s.drill ? '<div class="nm-n-drill"><b>这一段只练这一件</b>' + esc(s.drill) + '</div>' : '') +
+      (s.cuts
+        ? '<div class="nm-n-cap">这三行是怎么砍出来的</div>' + cutHtml(s)
+        : '<div class="nm-n-cap">这一段的口译笔记</div>' + treeHtml(s.notes)) +
+      (s.cuts ? '' :
+        '<div class="nm-n-cap">为什么这么切</div>' +
+        '<p class="nm-n-why">' + esc(s.tip || '') + '</p>') +
       '</div>';
   }
 
@@ -544,7 +565,7 @@
       '<div class="nm-sechead">' +
         '<span class="nm-stepno">②</span>' +
         '<div><h2 class="nm-h2">符号表</h2>' +
-        '<p class="nm-sub">抄到笔记本第一页，之后每篇都只用这一套。原则依据 Rozan [1]；符号除通行逻辑符号外为本站约定。手写只靠缩进，不画树形符。</p></div>' +
+        '<p class="nm-sub">抄到笔记本第一页，之后每篇都只用这一套。手写只靠缩进，不画树形符。</p></div>' +
       '</div>' +
       '<details class="nm-more" open>' +
         '<summary>符号与缩写</summary>' +

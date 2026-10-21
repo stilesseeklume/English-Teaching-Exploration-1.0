@@ -6,7 +6,7 @@
 //   那一层回答「这篇课文怎么读、怎么记」；这一层回答「笔记这套方法本身怎么写」。
 //
 // 用途：一页小版块，把方法讲给老师与学生——
-//   原理（笔记不是记录，是线索）→ 分叉原则 / 中英选择 / 锚句 → 符号表
+//   原理（笔记不是记录，是线索）→ 四条原则 / 中英选择 / 锚句 → 符号表
 //   → U2《Travel Peru》示范（可交互课本 + 逐块笔记 + 原文锚句）→ U3《Living Legends》迁移
 //
 // 样例选择：U2 RT 学生已背过，拿它做「适应期」示范；U3 RT 做「迁移期」，让学生自己写。
@@ -32,15 +32,15 @@
     rules: [
       {
         no: '①', name: '先定问题', short: '先定问题', target: 0,
-        d: '这一段在回答什么问题？答案就是顶格那行，其余都挂在它下面。'
+        d: '这一段在回答什么问题？答案写在最左边，其余写在它下面，往右空一格。'
       },
       {
-        no: '②', name: '同一组问题', short: '同一组问题', target: 1,
-        d: '并排的几行，回答的是同一副模板的槽位：怎么去、住哪、干什么。'
+        no: '②', name: '同一类问题', short: '同一类问题', target: 1,
+        d: '并排的几行，回答的是同一类问题：怎么去、住哪、干什么。'
       },
       {
         no: '③', name: '一件事一行', short: '一件事一行', target: 2,
-        d: '一个槽位一件事；第二件往下退一级。缩进就是层级，不用连接词。'
+        d: '一件事写一行；第二件，往右空一格再写。不用写 because、so。'
       },
       {
         no: '④', name: '只记名词', short: '只记名词', target: 3,
@@ -52,8 +52,8 @@
     variations: {
       title: '变通',
       items: [
-        { k: '槽位够用就停', d: 'Titicaca 只留「怎么去 / 住哪 / 特色」三条，不硬凑第四条。' },
-        { k: '只有一件事就不分叉', d: '结尾号召一行到底；硬分叉是拿结构凑热闹。' }
+        { k: '够用就停', d: 'Titicaca 写「怎么去、住哪、特色」三行就够，不用硬凑第四行。' },
+        { k: '只有一件事就写一行', d: '结尾就一句号召，写一行就够了，不用拆。' }
       ]
     },
 
@@ -72,9 +72,9 @@
     anchor: {
       title: '锚句：「这一段只背一句，背哪句」',
       items: [
-        { k: '怎么挑', d: '跟着笔记层级走：每一层，取原文里最先出现、最能代表这一层的那一句。' },
+        { k: '怎么挑', d: '跟着缩进走：每一行，取原文里最先出现、最能代表这一行的那一句。' },
         { k: '多少句', d: '一段 1–2 句封顶。超过两句，说明这一段有两个重心，那应该拆成两段看。' },
-        { k: '两个依据', d: '结构担当（这一段的骨架靠它撑）+ 题眼担当（老师会问、考试会挖的那句）。' }
+        { k: '两种句子', d: '撑住这一段的那句 + 老师会问、考试会挖的那句。' }
       ],
       vs: {
         title: '锚句 ≠ 重点句型',
@@ -91,7 +91,7 @@
       title: '符号表',
       cols: ['符号', '含义', '例'],
       rows: [
-        { sym: '缩进', mean: '层级从属：下级往右退，手写不画树形符', ex: '挂在上一级下面' },
+        { sym: '缩进', mean: '下一层往右空一格，手写不画树形符', ex: '写在上一行下面' },
         { sym: '→', mean: '导致、指向、结果是', ex: 'as player → honour' },
         { sym: '∵', mean: '因为', ex: 'captain 走 ∵ heart' },
         { sym: '∴', mean: '所以', ex: '∴ 2wk → 世界冠军' },
@@ -139,10 +139,10 @@
       ],
       map: [
         { k: '① 先定问题', v: 'Rozan 原则 1 [1]；吴钟明 [3]' },
-        { k: '② 同一组问题', v: '课本 p27 任务 4 的路线表；Gillies [2]' },
+        { k: '② 同一类问题', v: '课本 p27 任务 4 的路线表；Gillies [2]' },
         { k: '③ 一件事一行', v: 'Rozan 原则 6–7（竖排、缩进）[1]' },
         { k: '④ 只记名词', v: '本站课堂规则，文献无此原文' },
-        { k: '变通（够用就停、不分叉）', v: '本站课堂规则，文献无此原文' }
+        { k: '变通（够用就停、只有一件事就写一行）', v: '本站课堂规则，文献无此原文' }
       ],
       note: '手写时只靠缩进，不画树形符。符号表中除 →、∵、∴ 等通行逻辑符号外，其余为本站约定，不是各教材的统一标准。'
     },
@@ -208,15 +208,15 @@
           page: 0,
           hot: { x: 0.122, y: 0.242, w: 0.330, h: 0.240 },
           shot: '../assets/textbook/bx1/u2-rt-p26-s1.webp',
-          drill: '① 先定问题：这段在回答「Peru 是什么」，顶格写「Peru 概况」，其余都挂在它下面。',
-          tip: '切分从「这段在回答什么问题」开始：这一段回答「Peru 是什么」，所以主干只留 位置 / 三区 / 历史 / 语言，其余全丢。',
+          drill: '① 先定问题：这段在回答「Peru 是什么」，最左边写「Peru 概况」，其余写在下面，往右空一格。',
+          tip: '这一段回答「Peru 是什么」，所以最左边只写 位置 / 三区 / 历史 / 语言，其余全丢。',
           gist: '先说秘鲁在哪、分哪三块、历史上有过什么，最后用一句话解释为什么秘鲁说西班牙语。',
           notes: [
             { lv: 0, tree: '●', txt: 'Peru 概况 · 太平洋岸', gloss: '顶格：这一段讲什么' },
             { lv: 1, tree: '├', txt: '位置：Pacific coast @S.America', gloss: '在哪' },
             { lv: 1, tree: '├', txt: '3 区：coast（窄·干·平）+ Andes + Amazon', gloss: '沿海 · 山地 · 雨林' },
             { lv: 1, tree: '├', txt: '1400s–1500s = 古 Inca 帝国中心', gloss: '历史高光' },
-            { lv: 2, tree: '└', txt: 'Machu Picchu ← Inca emperor 住', gloss: '往下沉一级：帝王的城' },
+            { lv: 2, tree: '└', txt: 'Machu Picchu ← Inca emperor 住', gloss: '往右空一格：帝王的城' },
             { lv: 1, tree: '├', txt: '16c Spain 控 → 1821', gloss: '殖民与独立' },
             { lv: 1, tree: '└', txt: '∴ 主要官方语 = Spanish', gloss: '用逻辑符号收尾，不写 so' }
           ],
@@ -241,14 +241,32 @@
           hot: { x: 0.172, y: 0.572, w: 0.366, h: 0.372 },
           focus: { x: 0.172, y: 0.752, w: 0.366, h: 0.192 },
           shot: '../assets/textbook/bx1/u2-rt-p26-s2.webp',
-          drill: '② 同一组问题：怎么去 / 住哪 / 干什么，三行答的是同一副路线模板的槽位。',
-          tip: '同一组问题：这一段三件事是「怎么去 / 住哪 / 干什么」，同一副路线模板的三个槽位；不要把路线细节塞进时间分支。',
+          drill: '② 同一类问题：怎么去 / 住哪 / 干什么，三行回答的是同一类问题。',
+          tip: '这三件事就是「怎么去、住哪、干什么」三个问题；不要把路线细节塞进时间那一行。',
           gist: '从库斯科飞一小段到雨林，再乘船一天进到森林中央住下，然后用三天跟向导探索雨林特有的动植物。',
           notes: [
             { lv: 0, tree: '●', txt: 'Amazon 雨林 · 4 天', gloss: '去哪 + 待几天' },
             { lv: 1, tree: '├', txt: '✈ 短途飞行 Cusco → Andes → Amazon', gloss: '怎么去' },
             { lv: 1, tree: '├', txt: '🚤 1d 船 → 林中 accommodation', gloss: '再转船，住雨林中央' },
             { lv: 1, tree: '└', txt: '3d：local guide + plants / animals（unique）', gloss: '干什么' }
+          ],
+          // 示范段：三句原文对三行笔记，页边直接把「怎么砍」摆出来
+          cuts: [
+            {
+              src: 'A short flight from Cusco takes you from the Andes into the Amazon rainforest.',
+              note: '✈ 短途飞行 Cusco → Andes → Amazon',
+              tag: '怎么去'
+            },
+            {
+              src: 'From there, you\'ll spend one day travelling by boat to your accommodation in the middle of the forest.',
+              note: '🚤 1d 船 → 林中 accommodation',
+              tag: '住哪'
+            },
+            {
+              src: 'You can then spend three days exploring the rainforest with a local guide and enjoying the plants and animals unique to the rainforest.',
+              note: '3d：local guide + plants / animals（unique）',
+              tag: '干什么'
+            }
           ],
           anchors: [
             'A short flight from Cusco takes you from the Andes into the Amazon rainforest.'
@@ -268,15 +286,15 @@
           hot: { x: 0.536, y: 0.572, w: 0.404, h: 0.372 },
           focus: { x: 0.536, y: 0.772, w: 0.404, h: 0.172 },
           shot: '../assets/textbook/bx1/u2-rt-p26-s3.webp',
-          drill: '③ 一件事一行：先「到达」，再「探索」；干砌石是第三件事，再往下退一级。',
-          tip: '一件事一行：先「到达」再「探索」，再往下才讲干砌石——一层只做一件事，学生照着能一步步说回去。',
+          drill: '③ 一件事一行：先写「到达」，再写「探索」；干砌石是第三件事，往右空一格再写。',
+          tip: '一件事一行：先「到达」再「探索」，再往下才写干砌石——一行只写一件事，照着能一步步说回去。',
           gist: '四天徒步穿越安第斯山脉走到马丘比丘，到了之后用一天探索古城；这一段的重心是印加人的干砌石建筑法。',
           notes: [
             { lv: 0, tree: '●', txt: 'Machu Picchu · 4d 徒步', gloss: '去哪 + 待几天' },
             { lv: 1, tree: '├', txt: '徒步 → Andes paths → 古城', gloss: '怎么去：走进去' },
             { lv: 1, tree: '├', txt: '到达 → 1d explore + amazed', gloss: '到了干什么' },
-            { lv: 1, tree: '└', txt: '尤其 amazing = Inca dry stone', gloss: '这一段的重心，单独一层' },
-            { lv: 2, tree: '└', txt: '切石 exact size → 墙靠 perfect fit（≠ 加固）', gloss: '再沉一级：解释干砌石' }
+            { lv: 1, tree: '└', txt: '尤其 amazing = Inca dry stone', gloss: '这一段最想说的，单独写一行' },
+            { lv: 2, tree: '└', txt: '切石 exact size → 墙靠 perfect fit（≠ 加固）', gloss: '再往右空一格：解释干砌石' }
           ],
           anchors: [
             'This four-day walking tour will take you on amazing paths through the Andes Mountains on the way to the city of Machu Picchu.',
@@ -325,8 +343,8 @@
           hot: { x: 0.472, y: 0.552, w: 0.436, h: 0.344 },
           focus: { x: 0.472, y: 0.754, w: 0.436, h: 0.142 },
           shot: '../assets/textbook/bx1/u2-rt-p27-s5.webp',
-          drill: '变通：槽位够用就停——怎么去 / 住哪 / 特色，三条就够，不硬凑第四条。',
-          tip: '槽位够用就停：这一段只留「怎么去 → 住哪 → 特色」三条，不要为了工整硬拆成四条。',
+          drill: '变通：够用就停——怎么去、住哪、特色，三行就够，不用硬凑第四行。',
+          tip: '够用就停：这一段只写「怎么去、住哪、特色」三行，不用为了整齐硬拆第四行。',
           gist: '沿新公路驱车一天从库斯科到的的喀喀湖，再乘船到岛上，与当地乌鲁斯人家同住三天；岛和房子都用湖里的水草造。',
           notes: [
             { lv: 0, tree: '●', txt: 'Titicaca · 3d 住岛', gloss: '去哪 + 待几天' },
@@ -351,8 +369,8 @@
           page: 1,
           hot: { x: 0.030, y: 0.892, w: 0.940, h: 0.074 },
           shot: '../assets/textbook/bx1/u2-rt-p27-s6.webp',
-          drill: '变通：只有一个槽位——一行到底，不分叉。',
-          tip: '只有一个槽位：结尾一句号召，一行到底，展开反而拖慢背诵。',
+          drill: '变通：只有一件事——写一行就够了，不用拆。',
+          tip: '只有一件事：结尾就一句号召，写一行；拆开反而背得慢。',
           gist: '一句号召收尾：来体验秘鲁的一切——从印加文化、西班牙村庄，到雨林、高山和海岸。',
           notes: [
             { lv: 0, tree: '●', txt: '号召 · Come to Peru', gloss: '结尾' },
@@ -405,11 +423,11 @@
         '这个差异本身就是最好的教学素材。最后把成品笔记亮出来，作为标准答案对照。',
 
       upgrade: {
-        title: '结构升级：从「并列」到「嵌套」',
+        title: '结构升级：从「六块并排」到「块里还有小线」',
         rows: [
           { k: 'U2', d: '并列的六块——四条线路夹在概况与号召之间。' },
           { k: 'U3', d: '征稿 + 两个例证，例证内部各有自己的小线：郎平「三重身份 → 一次考验 → 结果」，乔丹「球技 → 精神 → 回馈」。' },
-          { k: '难度', d: '嵌套骨架比并列难一级，正好接着练；但四条原则没变。' }
+          { k: '难度', d: '例证里面还有小线，比 U2 的并列难一点，正好接着练；但四条原则没变。' }
         ]
       },
 
