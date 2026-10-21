@@ -39,7 +39,7 @@
   .bk-hits{position:absolute; inset:0; isolation:isolate;}
   .hit{
     position:absolute; border-radius:4px; background:transparent; cursor:pointer;
-    transition:background .18s ease; pointer-events:auto;
+    transition:background .18s ease; pointer-events:auto; z-index:3;
   }
   .hit.hot{background:rgba(255,209,102,.46); mix-blend-mode:multiply;}
   .hit.on{background:rgba(255,193,54,.62); mix-blend-mode:multiply;}
@@ -50,14 +50,14 @@
   /* 段名热区：书页上的标题本身就是入口 */
   .sec-hit{
     position:absolute; border-radius:6px; background:transparent; cursor:pointer;
-    transition:background .2s ease;
+    transition:background .2s ease; z-index:2;
   }
   .sec-hit.hot{background:rgba(255,209,102,.22); mix-blend-mode:multiply;}
   .sec-hit.on{background:rgba(255,193,54,.34); mix-blend-mode:multiply;}
   /* 篇级热区：压在蓝色横条上，用白描边而不是黄色 */
   .map-hit{
     position:absolute; border-radius:3px; background:transparent; cursor:pointer;
-    transition:background .2s ease, box-shadow .2s ease;
+    transition:background .2s ease, box-shadow .2s ease; z-index:4;
   }
   .map-hit.hot{background:rgba(255,255,255,.13); box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);}
   .map-hit.on{background:rgba(255,255,255,.2); box-shadow:inset 0 0 0 2px rgba(255,255,255,.75);}
@@ -82,7 +82,10 @@
   /* 批注 */
   .note{
     position:absolute; left:20px; right:20px; top:16px;
-    max-height:calc(100% - 88px);
+    max-height:calc(100% - 76px);
+    /* 讲解区基准字号：随屏高微调，默认让卡片内容大致占到面板高度的 3/4；
+       底部「字小 / 字大」通过 --ns 在此基准上增减 */
+    font-size:calc(clamp(20px, 2.72vh, 31px) * var(--ns, 1));
     overflow:auto; overscroll-behavior:contain; padding:2px 0 6px;
     transition:opacity .26s ease, transform .26s cubic-bezier(.22,.61,.25,1);
     opacity:0; transform:translateY(8px); pointer-events:none;
@@ -91,19 +94,19 @@
   .note.in{opacity:1; transform:none; pointer-events:auto;}
   .n-kicker{
     display:flex; align-items:center; gap:8px;
-    font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+    font-size:.75em; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
   }
   .n-kicker .n-rule{flex:1; height:1px; background:var(--rule);}
   .n-nav{display:flex; gap:2px; margin-left:2px;}
   .n-nav button{
-    width:26px; height:26px; border:0; background:none; color:var(--muted);
-    cursor:pointer; border-radius:6px; font-size:16px; line-height:1; padding:0;
+    width:1.65em; height:1.65em; border:0; background:none; color:var(--muted);
+    cursor:pointer; border-radius:.35em; font-size:1.333em; line-height:1; padding:0;
   }
   .n-nav button:hover{background:#fff; color:var(--ink);}
   .n-nav button:disabled{opacity:.22; cursor:default; background:none;}
   .n-en{
-    margin:12px 0 0; font-family:Georgia,"Times New Roman",serif;
-    font-size:24px; line-height:1.62; color:var(--ink);
+    margin:10px 0 0; font-family:Georgia,"Times New Roman",serif;
+    font-size:1.35em; line-height:1.4; color:var(--ink);
   }
   .n-en mark{background:linear-gradient(transparent 58%,rgba(255,209,102,.65) 58%); color:inherit;}
   /* 句子里的重点词可点：点词直接单独讲 */
@@ -112,90 +115,111 @@
     border-bottom:1.5px dotted rgba(185,138,40,.6); cursor:pointer;
   }
   .n-wk:hover{color:var(--accent); background:#fff2cc; border-bottom-color:var(--accent);}
-  .n-zh{margin:10px 0 0; font-size:19px; line-height:1.8; color:var(--ink-2);}
-  .n-row{display:grid; grid-template-columns:48px minmax(0,1fr); gap:10px; margin-top:18px;}
+  .n-zh{margin:7px 0 0; font-size:1.0625em; line-height:1.55; color:var(--ink-2);}
+  .n-row{display:block; margin-top:9px; line-height:1.52;}
   .n-lab{
-    font-size:14px; font-weight:600; letter-spacing:.06em; color:var(--accent);
-    padding-top:3px;
+    display:inline; font-size:.8125em; font-weight:600; letter-spacing:.04em;
+    color:var(--accent); margin-right:7px;
   }
-  .n-val{font-size:19.5px; line-height:1.75; color:var(--ink-2);}
+  .n-val{display:inline; font-size:1em; line-height:1.52; color:var(--ink-2);}
   .n-val b{color:var(--ink); font-weight:600;}
   .n-words{
-    display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:20px;
-    padding-top:13px; border-top:1px dashed var(--rule);
+    display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:9px;
+    padding-top:7px; border-top:1px dashed var(--rule);
   }
-  .n-words-cap{font-size:13.5px; color:var(--muted); margin-right:3px;}
+  .n-words-cap{font-size:.78em; color:var(--muted); margin-right:2px;}
   .n-chip{
-    font:inherit; font-size:16.5px; color:var(--ink); background:#fff;
-    border:1px solid var(--rule); border-radius:999px; padding:7px 13px; cursor:pointer;
+    font:inherit; font-size:.90625em; color:var(--ink); background:#fff;
+    border:1px solid var(--rule); border-radius:999px; padding:5px 10px; cursor:pointer;
     transition:border-color .18s, background .18s, transform .18s;
   }
   .n-chip:hover{border-color:var(--accent); background:#fffaf0; transform:translateY(-1px);}
-  .n-chip i{font-style:normal; color:var(--muted); margin-left:5px; font-size:13.5px;}
+  .n-chip i{font-style:normal; color:var(--muted); margin-left:5px; font-size:.82em;}
   /* 段卡 */
   .s-head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
   .s-head b{
-    font-family:Georgia,"Times New Roman",serif; font-size:30px; font-weight:600;
+    font-family:Georgia,"Times New Roman",serif; font-size:1.875em; font-weight:600;
     letter-spacing:-.01em; color:var(--ink);
   }
-  .s-head span{font-size:14.5px; color:var(--muted);}
-  .s-role{margin-top:8px; font-size:16px; font-weight:600; letter-spacing:.04em; color:var(--accent);}
-  .s-gist{margin:10px 0 0; font-size:20.5px; line-height:1.78; color:var(--ink-2);}
+  .s-head span{font-size:.90625em; color:var(--muted);}
+  .s-role{margin-top:8px; font-size:1em; font-weight:600; letter-spacing:.04em; color:var(--accent);}
+  .s-gist{margin:10px 0 0; font-size:1.28125em; line-height:1.78; color:var(--ink-2);}
   .s-sec{margin-top:24px;}
   .s-cap{
-    font-size:13.5px; letter-spacing:.09em; color:var(--muted); margin-bottom:9px;
+    font-size:.84375em; letter-spacing:.09em; color:var(--muted); margin-bottom:9px;
   }
   .s-q{border-top:1px dashed var(--rule); padding-top:13px; margin-top:13px;}
   .s-q:first-of-type{border-top:0; padding-top:0; margin-top:0;}
   .s-qq{
     display:flex; gap:9px; width:100%; text-align:left; font:inherit;
-    font-size:19px; line-height:1.7; color:var(--ink); background:none;
+    font-size:1.1875em; line-height:1.7; color:var(--ink); background:none;
     border:0; padding:0; cursor:pointer;
   }
-  .s-qq i{font-style:normal; font-size:13px; color:var(--accent); padding-top:5px; flex:none;}
+  .s-qq i{font-style:normal; font-size:.684em; color:var(--accent); padding-top:5px; flex:none;}
   .s-qq:hover span{color:var(--accent);}
-  .s-qa{display:none; margin:9px 0 0 24px; font-size:18.5px; line-height:1.75; color:var(--ink-2);}
+  .s-qa{display:none; margin:9px 0 0 24px; font-size:1.15625em; line-height:1.75; color:var(--ink-2);}
   .s-q.open .s-qa{display:block;}
+  /* 卡住了：先给一步台阶，答案再藏一层 */
+  .s-hint{
+    padding:10px 12px; background:#fff8e8; border-left:3px solid #e6cf99;
+    border-radius:6px; font-size:1em; line-height:1.62; color:var(--ink-2);
+  }
+  .s-hint b{display:block; font-size:.8125em; letter-spacing:.06em; color:var(--accent); margin-bottom:5px;}
+  .s-reveal{
+    margin-top:10px; font:inherit; font-size:.9375em; color:var(--accent);
+    background:#fff; border:1px solid var(--rule); border-radius:999px;
+    padding:6px 14px; cursor:pointer;
+  }
+  .s-reveal:hover{border-color:var(--accent); background:#fffaf0;}
+  .s-ans{display:none; margin-top:11px; padding-top:10px; border-top:1px dashed var(--rule);}
+  .s-q.revealed .s-ans{display:block;}
+  .s-q.revealed .s-reveal{display:none;}
+  .s-ans b{display:block; font-size:.8125em; letter-spacing:.08em; color:var(--muted);}
+  .s-ans span{display:block; margin-top:5px; font-size:1.0625em; line-height:1.68; color:var(--ink-2);}
+  /* 这一段的手法 */
+  .s-crafts{display:flex; flex-direction:column; gap:9px; margin-top:10px;}
+  .s-craft{font-size:1.0625em; line-height:1.68; color:var(--ink-2);}
+  .s-craft b{display:block; font-size:.9375em; color:var(--ink); margin-bottom:2px;}
   .s-fold{margin-top:20px; border-top:1px dashed var(--rule); padding-top:12px;}
   .s-fold summary{
     display:flex; align-items:center; gap:7px; cursor:pointer; list-style:none;
-    font-size:16px; letter-spacing:.04em; color:var(--accent); font-weight:600;
+    font-size:1em; letter-spacing:.04em; color:var(--accent); font-weight:600;
     padding:4px 0;
   }
   .s-fold summary::-webkit-details-marker{display:none;}
-  .s-fold summary::before{content:'＋'; font-size:13px; color:var(--muted);}
+  .s-fold summary::before{content:'＋'; font-size:.8125em; color:var(--muted);}
   .s-fold[open] summary::before{content:'−';}
   .s-notes{margin-top:9px; display:flex; flex-direction:column; gap:7px;}
   .s-note{
-    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:15.5px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.96875em;
     line-height:1.62; color:var(--ink-2); white-space:pre-wrap;
   }
   .s-note em{
     font-style:normal; display:block; font-family:-apple-system,"PingFang SC",sans-serif;
-    font-size:13.5px; color:var(--muted); margin:1px 0 2px 2px;
+    font-size:.871em; color:var(--muted); margin:1px 0 2px 2px;
   }
   .s-note.lv1,.s-note.lv2{border-left:1px solid rgba(185,138,40,.24);}
   .s-note-dot{display:inline-block;width:6px;height:6px;border-radius:50%;
     background:var(--accent);margin-right:7px;vertical-align:middle;}
-  .s-tr{margin-top:10px; font-size:18.5px; line-height:1.82; color:var(--ink-2);}
+  .s-tr{margin-top:10px; font-size:1.15625em; line-height:1.82; color:var(--ink-2);}
   .s-tr p{margin:0 0 7px;}
   .s-jump{
-    margin-top:22px; font:inherit; font-size:16px; color:var(--accent);
+    margin-top:22px; font:inherit; font-size:1em; color:var(--accent);
     background:#fffaf0; border:1px solid var(--rule); border-radius:999px;
     padding:8px 16px; cursor:pointer;
   }
   .s-jump:hover{border-color:var(--accent);}
   /* 篇卡 */
   .m-head b{
-    display:block; font-family:Georgia,"Times New Roman",serif; font-size:32px;
+    display:block; font-family:Georgia,"Times New Roman",serif; font-size:2em;
     font-weight:600; letter-spacing:-.01em;
   }
-  .m-head span{display:block; margin-top:4px; font-size:14px; color:var(--muted);}
-  .m-lead{margin:12px 0 0; font-size:19px; line-height:1.78; color:var(--ink-2);}
+  .m-head span{display:block; margin-top:4px; font-size:.875em; color:var(--muted);}
+  .m-lead{margin:12px 0 0; font-size:1.1875em; line-height:1.78; color:var(--ink-2);}
   /* 篇层五步：读前 → 扫读 → 骨架 → 认门 → 读后 */
   .m-steps{display:flex; gap:3px; margin:16px 0 2px;}
   .m-steps button{
-    flex:1; text-align:center; font:inherit; font-size:12.5px; color:var(--muted);
+    flex:1; text-align:center; font:inherit; font-size:.78125em; color:var(--muted);
     background:none; border:0; border-top:2px solid var(--rule);
     padding:8px 2px 0; cursor:pointer;
   }
@@ -204,25 +228,25 @@
   .m-steps button.cur{color:var(--ink); border-top-color:var(--accent); font-weight:600;}
   .m-step{display:none;}
   .m-step.on{display:block;}
-  .m-guide{margin:10px 0 0; font-size:17px; line-height:1.7; color:var(--muted);}
+  .m-guide{margin:10px 0 0; font-size:1.0625em; line-height:1.7; color:var(--muted);}
   .m-skim{margin-top:2px;}
   .m-sk{border-top:1px dashed var(--rule);}
   .m-sk-q{
     display:flex; align-items:flex-start; gap:9px; width:100%; text-align:left; font:inherit;
-    font-size:18px; line-height:1.55; color:var(--ink-2); background:none;
+    font-size:1.125em; line-height:1.55; color:var(--ink-2); background:none;
     border:0; padding:14px 0; cursor:pointer;
   }
-  .m-sk-q i{font-style:normal; font-size:13px; color:var(--accent); padding-top:4px; flex:none;}
+  .m-sk-q i{font-style:normal; font-size:.722em; color:var(--accent); padding-top:4px; flex:none;}
   .m-sk-q b{font-weight:400; font-family:Georgia,"Times New Roman",serif; color:var(--ink);}
-  .m-sk-more{margin-left:auto; flex:none; font-size:13.5px; color:var(--accent); padding-top:4px;}
+  .m-sk-more{margin-left:auto; flex:none; font-size:.75em; color:var(--accent); padding-top:4px;}
   .m-sk.open .m-sk-more{color:var(--muted);}
   .m-sk-a{display:none; padding:0 0 16px 24px;}
   .m-sk.open .m-sk-a{display:block;}
-  .m-sk-a b{display:block; font-size:18px; color:var(--ink);}
-  .m-sk-a span{display:block; margin-top:5px; font-size:17.5px; line-height:1.7; color:var(--ink-2);}
+  .m-sk-a b{display:block; font-size:1.125em; color:var(--ink);}
+  .m-sk-a span{display:block; margin-top:5px; font-size:1.09375em; line-height:1.7; color:var(--ink-2);}
   .m-chain{display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:12px 0 2px;}
   .m-chain b{
-    font-size:16.5px; font-weight:600; color:var(--ink); background:#fff;
+    font-size:1.03125em; font-weight:600; color:var(--ink); background:#fff;
     border:1px solid var(--rule); border-radius:999px; padding:6px 12px;
   }
   .m-chain i{font-style:normal; color:var(--accent);}
@@ -231,7 +255,7 @@
     position:sticky; bottom:0; background:linear-gradient(to top,var(--paper) 76%,rgba(250,248,242,0));
   }
   .m-pager button{
-    font:inherit; font-size:16px; padding:9px 16px; cursor:pointer;
+    font:inherit; font-size:1em; padding:9px 16px; cursor:pointer;
     border:1px solid var(--rule); border-radius:999px; background:#fff; color:var(--ink);
   }
   .m-pager button.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
@@ -242,43 +266,43 @@
     padding:12px 0 0; margin-top:12px; border-top:1px dashed var(--rule);
   }
   .g-part:first-of-type{border-top:0; margin-top:0; padding-top:0;}
-  .g-no{font-size:14px; color:var(--accent); padding-top:3px;}
-  .g-nm{font-size:19px; font-weight:600; color:var(--ink);}
-  .g-nm em{font-style:normal; font-weight:400; font-size:13px; color:var(--muted); margin-left:6px;}
-  .g-rl{font-size:15.5px; color:var(--accent); margin-top:3px;}
-  .g-tx{font-family:Georgia,serif; font-size:17.5px; line-height:1.6; color:var(--ink-2); margin-top:4px;}
-  .g-nt{font-size:15.5px; line-height:1.65; color:var(--muted); margin-top:4px;}
+  .g-no{font-size:.875em; color:var(--accent); padding-top:3px;}
+  .g-nm{font-size:1.1875em; font-weight:600; color:var(--ink);}
+  .g-nm em{font-style:normal; font-weight:400; font-size:.684em; color:var(--muted); margin-left:6px;}
+  .g-rl{font-size:.96875em; color:var(--accent); margin-top:3px;}
+  .g-tx{font-family:Georgia,serif; font-size:1.09375em; line-height:1.6; color:var(--ink-2); margin-top:4px;}
+  .g-nt{font-size:.96875em; line-height:1.65; color:var(--muted); margin-top:4px;}
   .m-map{margin-top:10px; padding-left:14px; border-left:1px solid var(--rule);}
-  .m-root{font-family:Georgia,serif; font-size:22px; font-weight:600; padding-bottom:3px;}
+  .m-root{font-family:Georgia,serif; font-size:1.375em; font-weight:600; padding-bottom:3px;}
   .m-br{position:relative; margin-top:14px;}
   .m-br::before{
     content:''; position:absolute; left:-14px; top:10px; width:10px; height:1px;
     background:var(--rule);
   }
-  .m-bt{display:flex; align-items:center; gap:7px; font-size:19px; font-weight:600; color:var(--ink);}
+  .m-bt{display:flex; align-items:center; gap:7px; font-size:1.1875em; font-weight:600; color:var(--ink);}
   .m-bt i{font-style:normal;}
   .m-bp{margin:5px 0 0 21px; padding:0; list-style:none;}
-  .m-bp li{font-size:17.5px; line-height:1.72; color:var(--ink-2);}
+  .m-bp li{font-size:1.09375em; line-height:1.72; color:var(--ink-2);}
   .m-bp li::before{content:'·'; color:var(--muted); margin-right:6px;}
   /* 词条 */
   .n-back{
-    font:inherit; font-size:15.5px; color:var(--muted); background:none; border:0;
+    font:inherit; font-size:.96875em; color:var(--muted); background:none; border:0;
     padding:0 0 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
   }
   .n-back:hover{color:var(--accent);}
   .n-w{display:flex; align-items:baseline; gap:10px;}
-  .n-w b{font-family:Georgia,serif; font-size:34px; font-weight:600; letter-spacing:-.01em;}
-  .n-w span{font-size:15.5px; color:var(--muted); font-family:Georgia,serif;}
-  .n-pos{font-size:17px; color:var(--muted); margin-top:3px;}
+  .n-w b{font-family:Georgia,serif; font-size:2.125em; font-weight:600; letter-spacing:-.01em;}
+  .n-w span{font-size:.96875em; color:var(--muted); font-family:Georgia,serif;}
+  .n-pos{font-size:1.0625em; color:var(--muted); margin-top:3px;}
   .n-rows{margin-top:16px; display:flex; flex-direction:column; gap:13px;}
-  .n-r{display:grid; grid-template-columns:50px minmax(0,1fr); gap:8px;}
-  .n-r dt{font-size:13.5px; font-weight:600; color:var(--accent); padding-top:4px;}
-  .n-r dd{margin:0; font-size:18.5px; line-height:1.65; color:var(--ink-2);}
-  .n-r dd em{font-style:normal; display:block; color:var(--muted); font-size:15px; margin-top:3px;}
+  .n-r{display:grid; grid-template-columns:2.4em minmax(0,1fr); gap:8px;}
+  .n-r dt{font-size:.84375em; font-weight:600; color:var(--accent); padding-top:4px;}
+  .n-r dd{margin:0; font-size:1.15625em; line-height:1.65; color:var(--ink-2);}
+  .n-r dd em{font-style:normal; display:block; color:var(--muted); font-size:.811em; margin-top:3px;}
   /* 词条里的课本原句：把词标出来，讲词不离句 */
   .n-sent{margin-top:20px; padding-top:13px; border-top:1px dashed var(--rule);}
   .n-sent p{
-    margin:0; font-family:Georgia,serif; font-size:18px; line-height:1.7; color:var(--ink-2);
+    margin:0; font-family:Georgia,serif; font-size:1.125em; line-height:1.7; color:var(--ink-2);
   }
   .n-sent p b{
     font-weight:600; color:var(--ink);
@@ -304,14 +328,16 @@
   .sk-dock-item::after{bottom:auto; top:-20px;}
   /* 「整篇」是总，后面几项是分：留一道呼吸，不用符号 */
   .sk-dock-item[data-key="map"]{margin-right:6px;}
+  /* 字号调节自成一组，与阅读导航隔开 */
+  .sk-dock-item[data-key="fs-down"]{margin-left:6px;}
+  .sk-dock-item[data-key="fs-up"]{margin-right:6px;}
+  /* 七项 Dock 在窄屏会压到左下角页码，页码让位 */
+  @media (max-width:1460px){.bk-pno{display:none;}}
   @media (max-width:1100px){
     :root{--sk-mw:380px;}
     .bk-stage{grid-template-columns:minmax(0,1fr) 380px;}
-    .n-en{font-size:22px;}
-    .s-gist{font-size:19px;}
-    .n-val{font-size:18px;}
-    .s-qq{font-size:17.5px;}
-    .sk-dock-item,.sk-dock-item.has-txt{padding:0 8px; min-width:42px;}
+    .sk-dock-item,.sk-dock-item.has-txt{padding:0 7px; min-width:40px;}
+    .sk-dock-txt{font-size:12.5px;}
   }
 </style>
 </head>
@@ -327,7 +353,7 @@
   <aside class="bk-margin" id="margin">
     <div class="bk-hint" id="hint">
       <b>点书上的句子</b>
-      <span>句子的讲解在页边长出来。<br>点段名看这一段，点 LIVING LEGENDS 看整篇。<br>滚轮放大，按住纸拖动，← → 换句。</span>
+      <span>页边按「读懂 → 词块 → 句型 → 写法」讲这一句。<br>点段名看这一段，点 LIVING LEGENDS 看整篇。<br>滚轮放大，按住纸拖动，← → 换句。</span>
     </div>
     <div class="note" id="note"></div>
     <span class="bk-pno">p. 38</span>
@@ -351,89 +377,265 @@
   var IMG_W = 1241, IMG_H = 1754;
 
   // 每句在整页图上的分段矩形 [x1, y, x2]，y 统一按行高铺满
+  // sec = 所属段落（0 Intro / 1 Lang Ping / 2 Michael Jordan / 3 Your Suggestions）
   var SENT = [
     {
+      sec: 0,
+      en: "Help us choose some \u201cLiving Legends of Sports\u201d.",
+      zh: "请帮我们评选一些“体育界的传奇人物”。",
+      say: "杂志在向读者发出邀请：帮我们选一选，谁配得上“体育界的传奇人物”。",
+      chunk: "help sb do sth 帮某人做某事",
+      pat: "祈使句，主语 you 省略，像编辑当面说话。",
+      craft: "开篇先发邀请，把读者拉进来。",
+      words: [{ card: 'legend', text: 'Legends' }],
+      rects: [[0.0782,0.1785,0.4577]]
+    },
+    {
+      sec: 0,
+      en: "They must be athletes who are masters in their sports and also set good examples for others.",
+      zh: "他们必须是在各自项目中技艺精湛、同时为他人树立好榜样的运动员。",
+      say: "全文的“尺子”：在自己项目里是 masters，还要 set good examples。",
+      chunk: "be masters in one’s sport 技艺精湛；set good examples 树立榜样",
+      pat: "who... 定语从句，修饰 athletes。",
+      craft: "先立标准，再举例——先立尺，后量人。",
+      words: [{ card: 'master', text: 'masters' }, { card: 'set an example', text: 'set good examples' }, { card: 'athlete', text: 'athletes' }],
+      rects: [[0.4610,0.1785,0.6400],[0.0790,0.1933,0.6360]]
+    },
+    {
+      sec: 0,
+      en: 'Here are our first two choices.',
+      zh: "以下是我们选出的前两位。",
+      say: "一句话把镜头从“征集”转到“人物”；first two choices 说明后面还有更多。",
+      chunk: "here are... 以下是……；first two choices 头两位",
+      pat: "Here are... 是完全倒装，主语在 be 后面。",
+      craft: "过渡句：最短的话换场景。",
+      words: [],
+      rects: [[0.0782,0.2087,0.3070]]
+    },
+    {
+      sec: 1,
       en: 'As a player, Lang Ping brought honour and glory to her country.',
-      zh: '作为运动员，郎平为祖国赢得了荣誉与光荣。',
-      st: '“As a player,” 介词短语提到句首作状语 —— 先说身份，再讲功绩。这一句是三个人称排比的起点。',
-      pt: '先遮住 As a player，问学生：为什么作者不从 2015 年那场比赛写起？排比先立人，再讲事。',
-      words: [{ card: 'honour', text: 'honour' }],
-      rects: [[0.1015,0.5957,0.4496],[0.1015,0.6123,0.2703]]
+      zh: "作为运动员，郎平为祖国赢得了荣誉与光荣。",
+      say: "先立身份：作为运动员，她把 honour and glory（荣誉与光荣）带给了祖国。",
+      chunk: "bring honour and glory to 为……赢得荣誉与光荣",
+      pat: "As a player 介词短语置首，先交代身份。",
+      craft: "排比第一句：先立人，后讲事。",
+      words: [{ card: 'honour', text: 'honour' }, { card: 'glory', text: 'glory' }],
+      rects: [[0.0991,0.5959,0.4649],[0.0999,0.6124,0.2683]]
     },
     {
+      sec: 1,
       en: 'As a coach, she led the China women\u2019s volleyball team to medals at world championships and the Olympics.',
-      zh: '作为教练，她带领中国女排在世界锦标赛和奥运会上夺得奖牌。',
-      st: 'lead sb to sth（带领某人走向…）；at world championships and the Olympics 两个赛事并列，介词 at 表场合。',
-      pt: 'medals 是复数、不带冠词 —— 强调的是“多枚、多次”。可以问：为什么这里不用 a medal？',
+      zh: "作为教练，她带领中国女排在世界锦标赛和奥运会上夺得奖牌。",
+      say: "第二重身份：教练，带队拿到世锦赛和奥运会奖牌；medals 是复数，强调很多块。",
+      chunk: "lead sb to sth 带领某人取得……",
+      pat: "at + 赛事，表示“在……赛场上”。",
+      craft: "同一句式再来一次，排比节奏就起来了。",
       words: [{ card: 'coach', text: 'coach' }, { card: 'medal', text: 'medals' }],
-      rects: [[0.2703,0.6123,0.4496],[0.1015,0.6288,0.448],[0.1015,0.6453,0.4488]]
+      rects: [[0.2716,0.6124,0.4641],[0.0999,0.6289,0.4641],[0.0999,0.6455,0.4633]]
     },
     {
+      sec: 1,
       en: 'As a person, Lang Ping is loved by fans at home and abroad.',
-      zh: '作为一个人，郎平深受国内外球迷的喜爱。',
-      st: '被动语态 be loved by；at home and abroad（国内外）是固定搭配。',
-      pt: '排比的第三句换了视角：从“成绩”转到“人品”。这一句也是下一句“考验”的伏笔 —— 她被人爱，是因为她扛住了什么。',
-      words: [],
-      rects: [[0.1015,0.6619,0.4408],[0.1015,0.679,0.2478]]
+      zh: "作为个人，郎平深受国内外球迷的喜爱。",
+      say: "第三重身份：作为“人”，她深受国内外球迷喜爱。",
+      chunk: "be loved by 受……喜爱；at home and abroad 国内外",
+      pat: "被动语态，重点落在“她被爱”。",
+      craft: "三个 As a... 从成绩写到人品，一层比一层深。",
+      words: [{ card: 'abroad', text: 'abroad' }],
+      rects: [[0.0991,0.662,0.4649],[0.0991,0.6791,0.253]]
     },
     {
+      sec: 1,
       en: 'When the Chinese team was preparing for the 2015 World Cup, her determination was tested.',
-      zh: '当中国队备战 2015 年世界杯时，她的决心受到了考验。',
-      st: 'When 引导时间状语从句（was preparing 用过去进行时铺背景）+ 主句被动 was tested。',
-      pt: '全段的转折点：从“荣誉”进入“逆境”。test 在这里不是“考试”，是“考验”。',
+      zh: "当中国队备战 2015 年世界杯时，她的决心受到了考验。",
+      say: "镜头一转：2015 年世界杯备战，她的决心受到考验，故事进入逆境。",
+      chunk: "prepare for 备战；one’s determination was tested 决心受到考验",
+      pat: "When 时间状语从句 + 主句被动。",
+      craft: "转折句：荣誉之后立刻写困难。",
       words: [{ card: 'determination', text: 'determination' }],
-      rects: [[0.2478,0.679,0.4496],[0.1015,0.6955,0.4496],[0.1015,0.712,0.3255]]
+      rects: [[0.2587,0.6791,0.4649],[0.0991,0.6956,0.4649],[0.0999,0.7122,0.3312]]
     },
     {
+      sec: 1,
       en: 'The team that Lang Ping had built was falling apart.',
-      zh: '郎平一手组建的队伍正濒临瓦解。',
-      st: '定语从句 that Lang Ping had built 插在主语和谓语之间；had built 用过去完成时，表示比“瓦解”更早的动作。',
-      pt: '一句话把“她建的”和“它塌了”并置，张力就在这。读的时候，在 built 后停一下。',
+      zh: "郎平一手组建的队伍正濒临瓦解。",
+      say: "郎平一手组建的队伍正 falling apart（瓦解）。自己建的队要散了，张力就在这里。",
+      chunk: "fall apart 崩溃；瓦解",
+      pat: "that Lang Ping had built 定语从句插在主语和谓语之间。",
+      craft: "“她建的”和“它塌了”并置，对比越短越有力。",
       words: [{ card: 'fall apart', text: 'falling apart' }],
-      rects: [[0.3255,0.712,0.4496],[0.1015,0.7286,0.4259]]
+      rects: [[0.3376,0.7122,0.4649],[0.0999,0.7287,0.423]]
     },
     {
+      sec: 1,
       en: 'One of the best players had been injured, and the team captain had to leave because of heart problems.',
-      zh: '一名最好的球员受伤了，队长又因心脏问题不得不离队。',
-      st: 'one of + 复数名词；had been injured 是过去完成时的被动；have to 表客观上“不得不”。',
-      pt: '两个坏消息并列，动词都是 had… —— 过去完成时在这里表示“在世界杯之前就已经发生了”。',
+      zh: "一名最好的球员受伤了，队长又因心脏问题不得不离队。",
+      say: "两个坏消息一起砸下来：主力受伤，队长因心脏问题离队。",
+      chunk: "one of the best players 最好的球员之一；because of 因为",
+      pat: "had been injured 是过去完成时的被动；had to 是 have to 的过去式，表“不得不”。",
+      craft: "用两个具体的人讲困难，比空说“队伍很困难”有力。",
       words: [{ card: 'injure', text: 'injured' }],
-      rects: [[0.4259,0.7286,0.4496],[0.1015,0.7451,0.4496],[0.1015,0.7616,0.4496],[0.1015,0.7787,0.1761]]
+      rects: [[0.4287,0.7287,0.4641],[0.0999,0.7452,0.4641],[0.0991,0.7618,0.4649],[0.0991,0.7789,0.1813]]
     },
     {
+      sec: 1,
       en: 'Losing two important players was a big challenge, but Lang Ping did not lose heart.',
-      zh: '失去两名重要球员是个巨大的挑战，但郎平没有气馁。',
-      st: '动名词 Losing… 作主语，谓语用单数 was；lose heart 是“失去信心、气馁”。',
-      pt: '考点：lose heart（气馁）≠ lose one\u2019s heart（爱上某人）。这一句也是情绪的转折。',
-      words: [{ card: 'lose heart', text: 'lose heart' }],
-      rects: [[0.1761,0.7787,0.4496],[0.1015,0.7953,0.4496],[0.1015,0.8118,0.1499]]
+      zh: "失去两名重要球员是个巨大的挑战，但郎平没有气馁。",
+      say: "失去两员大将，但郎平没有 lose heart（气馁）。",
+      chunk: "lose heart 气馁（≠ lose one’s heart 爱上某人）",
+      pat: "Losing... 动名词作主语，谓语用单数 was。",
+      craft: "but 一词立骨：先压下去，再抬起来。",
+      words: [{ card: 'challenge', text: 'challenge' }, { card: 'lose heart', text: 'lose heart' }],
+      rects: [[0.1853,0.7789,0.4641],[0.0999,0.7954,0.4649],[0.0991,0.8119,0.1467]]
     },
     {
+      sec: 1,
       en: 'She had faced difficulties before, and she knew that her young players could win if they worked together as a team.',
-      zh: '她以前也面对过困难，她知道只要年轻队员团结一致，就能赢。',
-      st: '三层嵌套：she knew + that 宾语从句 + if 条件从句；could 表示过去语境下的“能够”。',
-      pt: '这是“为什么她没垮”的答案：经验（had faced）+ 信任（knew）。让学生找这两处动词。',
+      zh: "她以前也面对过困难，她知道只要年轻队员团结一致，就能赢。",
+      say: "她为什么没垮？她以前就面对过困难，也知道年轻队员团结就能赢。",
+      chunk: "face difficulties 面对困难；work together as a team 团结协作",
+      pat: "she knew + that 宾语从句 + if 条件从句。",
+      craft: "因果句：给“为什么”，人物精神才立得住。",
       words: [],
-      rects: [[0.1499,0.8118,0.4496],[0.1015,0.8283,0.4456],[0.1015,0.8449,0.3674]]
+      rects: [[0.1523,0.8119,0.4649],[0.0999,0.8285,0.4674],[0.0991,0.845,0.365]]
     },
     {
+      sec: 1,
       en: 'Two weeks later, they were world champions!',
-      zh: '两周后，她们成了世界冠军！',
-      st: 'Two weeks later 是时间推进的标记；world champions 作表语，表示身份时不加冠词。',
-      pt: '全段最短的一句，也是情绪的落点。读完停一下，让那个感叹号落地。',
+      zh: "两周后，她们成了世界冠军！",
+      say: "两周后，她们成了世界冠军！全段最短的一句，也是情绪的落点。",
+      chunk: "two weeks later 两周后；world champions 世界冠军",
+      pat: "world champions 作表语，表身份不加冠词。",
+      craft: "短句收束：前面越长，这一句越有力。",
       words: [{ card: 'champion', text: 'champions' }],
-      rects: [[0.3674,0.8449,0.4496],[0.1015,0.862,0.386]]
+      rects: [[0.3699,0.845,0.4641],[0.0999,0.8621,0.3916]]
     },
     {
+      sec: 1,
       en: 'Then in 2016, Lang Ping led her volleyball team to Olympic gold in Brazil.',
-      zh: '接着在 2016 年，郎平带领她的排球队在巴西夺得奥运金牌。',
-      st: 'Then + in 2016 时间状语前置；lead sb to sth 第二次出现，与第二句呼应。',
-      pt: '与开头 As a coach 形成闭环：教练这条线，从奖牌走到金牌。',
+      zh: "接着在 2016 年，郎平带领她的排球队在巴西夺得奥运金牌。",
+      say: "2016 年，她带队在巴西拿下奥运金牌。lead...to... 第二次出现，接上“教练”那条线。",
+      chunk: "lead sb to sth 带领某人取得……；Olympic gold 奥运金牌",
+      pat: "Then in 2016 时间状语前置；led 是 lead 的过去式。",
+      craft: "首尾呼应：从奖牌走到金牌。",
       words: [],
-      rects: [[0.386,0.862,0.4496],[0.1015,0.8785,0.4496],[0.1015,0.895,0.2853]]
+      rects: [[0.3973,0.8621,0.4649],[0.0991,0.8786,0.4641],[0.0999,0.8929,0.2925]]
+    },
+    {
+      sec: 2,
+      en: "When Michael Jordan\u2019s feet left the ground, time seemed to stand still.",
+      zh: "当迈克尔·乔丹双脚离地的那一瞬间，时间仿佛静止了。",
+      say: "乔丹双脚离地的那一瞬间，时间仿佛静止。作者先给画面，不先报数据。",
+      chunk: "leave the ground 离地；stand still 静止不动",
+      pat: "When 时间状语从句；seem to do sth 似乎……",
+      craft: "画面开头：一个动作抓住读者。",
+      words: [],
+      rects: [[0.4996,0.5959,0.8638],[0.4996,0.6124,0.7236]]
+    },
+    {
+      sec: 2,
+      en: 'The player who became known as \u201cAir Jordan\u201d changed basketball with his graceful moves and jumps.',
+      zh: "这位被称为“飞人乔丹”的球员，用优雅的动作和跳跃改变了篮球。",
+      say: "他后来被叫作“飞人乔丹”，用优雅的动作和跳跃改变了篮球。",
+      chunk: "become known as 被称为；graceful moves and jumps 优雅的动作和跳跃",
+      pat: "who... 定语从句，修饰 The player。",
+      craft: "给人物一个称号，比一堆形容词好记。",
+      words: [{ card: 'graceful', text: 'graceful' }],
+      rects: [[0.7293,0.6124,0.8646],[0.4996,0.6289,0.8646],[0.4996,0.6455,0.8646],[0.498,0.662,0.556]]
+    },
+    {
+      sec: 2,
+      en: 'Jordan\u2019s skills were impressive, but the mental strength that he showed made him unique.',
+      zh: "乔丹的球技令人赞叹，但他展现出的精神力量更让他独一无二。",
+      say: "题眼：球技 impressive，但让他 unique 的是 mental strength。",
+      chunk: "mental strength 精神力量；make sb unique 独一无二",
+      pat: "that he showed 是定语从句，修饰 mental strength。",
+      craft: "转折立主题：先承认球技，再抬出精神。",
+      words: [{ card: 'strength', text: 'strength' }, { card: 'mental', text: 'mental' }, { card: 'unique', text: 'unique' }],
+      rects: [[0.5616,0.662,0.8646],[0.4996,0.6791,0.8646],[0.4996,0.6956,0.5995]]
+    },
+    {
+      sec: 2,
+      en: 'In the final seconds of a game, Jordan always seemed to find a way to win.',
+      zh: "在比赛的最后几秒，乔丹似乎总能找到制胜之道。",
+      say: "比赛最后几秒，他总能找到赢的办法——“总能”比“很厉害”具体得多。",
+      chunk: "in the final seconds 在最后几秒；find a way to win 找到赢的办法",
+      pat: "seem to do sth 似乎……；a way to do sth 做某事的方法。",
+      craft: "用具体时刻证明他关键时刻靠得住。",
+      words: [],
+      rects: [[0.6052,0.6956,0.8638],[0.4996,0.7122,0.8638]]
+    },
+    {
+      sec: 2,
+      en: 'Jordan says that the secret to his success is learning from his failures.',
+      zh: "乔丹说，他成功的秘诀在于从失败中学习。",
+      say: "乔丹说：成功的秘诀是 learning from his failures（从失败中学习）。",
+      chunk: "the secret to success 成功的秘诀；learn from failures 从失败中学习",
+      pat: "that... 宾语从句；learning 动名词作表语。",
+      craft: "引语前先铺垫一句，读者才会认真听。",
+      words: [{ card: 'failure', text: 'failures' }, { card: 'secret', text: 'secret' }],
+      rects: [[0.4996,0.7287,0.8646],[0.4996,0.7452,0.7454]]
+    },
+    {
+      sec: 2,
+      en: "\u201cI can accept failure; everyone fails at something. But I can\u2019t accept not trying.\u201d",
+      zh: "“我可以接受失败，每个人都会在某些事上失败。但我不能接受不去尝试。”",
+      say: "“我可以接受失败，但不能接受不去尝试。”accept failure 与 accept not trying，态度全出。",
+      chunk: "accept failure 接受失败；fail at sth 在某事上失败",
+      pat: "not trying 是动名词否定式，作 accept 的宾语。",
+      craft: "直接引语：让读者听本人说。",
+      words: [{ card: 'accept', text: 'accept' }],
+      rects: [[0.751,0.7452,0.8646],[0.4996,0.7618,0.8646],[0.4996,0.7789,0.7341]]
+    },
+    {
+      sec: 2,
+      en: 'Losing games taught him to practise harder and never give up.',
+      zh: "输掉比赛教会他更加刻苦地训练，永不放弃。",
+      say: "输球教会他练得更狠、永不放弃。",
+      chunk: "practise harder 更刻苦地练习；never give up 永不放弃",
+      pat: "Losing games 动名词作主语；teach sb to do sth 教某人做某事。",
+      craft: "把“失败”写成“老师”，境界就不同了。",
+      words: [{ card: 'practise', text: 'practise' }, { card: 'never give up', text: 'never give up' }],
+      rects: [[0.7397,0.7789,0.8646],[0.4996,0.7954,0.8646],[0.4996,0.8119,0.5705]]
+    },
+    {
+      sec: 2,
+      en: 'In life, Jordan has learnt to share his success with others.',
+      zh: "在生活中，乔丹学会了与他人分享自己的成功。",
+      say: "球场上争胜，生活里学会 share（分享）——文章从职业生涯走到人生态度。",
+      chunk: "share sth with others 与他人分享；in life 在生活中",
+      pat: "has learnt to do sth 现在完成时 + 不定式。",
+      craft: "段内转折：一句话换场景。",
+      words: [{ card: 'share', text: 'share' }],
+      rects: [[0.5761,0.8119,0.8646],[0.4996,0.8285,0.6954]]
+    },
+    {
+      sec: 2,
+      en: 'The Boys and Girls Club which he started in Chicago has been helping young people since 1996.',
+      zh: "他 1996 年在芝加哥创办的男孩女孩俱乐部，一直帮助年轻人。",
+      say: "具体事实：他 1996 年在芝加哥创办的俱乐部，一直帮助年轻人到现在。",
+      chunk: "start a club 创办俱乐部；since 1996 自 1996 年以来",
+      pat: "which... 定语从句；has been helping 现在完成进行时。",
+      craft: "时间 + 地点 + 机构，人物就落地了。",
+      words: [],
+      rects: [[0.7002,0.8285,0.8646],[0.4996,0.845,0.8646],[0.4996,0.8621,0.7728]]
+    },
+    {
+      sec: 3,
+      en: 'Send your suggestions for \u201cLiving Legends of Sports\u201d to LLS@sports.net.',
+      zh: "请把你对“体育界的传奇人物”的建议发送到 LLS@sports.net。",
+      say: "最后一句把镜头交回读者：把你心中的传奇人物发到 LLS@sports.net。",
+      chunk: "send sth to 把某物发送到；suggestions for ……的建议",
+      pat: "祈使句 Send... 开头，主语 you 省略。",
+      craft: "首尾呼应：开头请人选，结尾请人投。",
+      words: [{ card: 'suggestion', text: 'suggestions' }],
+      rects: [[0.4996,0.8929,0.8654],[0.4996,0.9071,0.6978]]
     }
   ];
   var LINE_H = 0.0152;   // 行框统一高度（占整页高）
+  // 句卡顶部只放一个短段名，长英文段名会换行，挤掉讲解
+  var SEC_NAV = ['开篇', '郎平', '乔丹', '结尾'];
 
   // 段级入口：标题本身就是热区（坐标按整页比例）。s 对应数据里的 sections 序号。
   var SEC_HIT = [
@@ -596,22 +798,15 @@
       var b = boxOfRects(s.rects);
       z = Math.min(z, viewW() * 0.92 / (IMG_W * (b[2] - b[0])));
     });
-    Z_SENT = Math.max(1.5, Math.min(2.2, z));
+    // 长句（开篇那句横跨整栏）要让整句进画面，倍率就得降下来
+    Z_SENT = Math.max(1.2, Math.min(2.2, z));
     return Z_SENT;
   }
-  // 句子所在的那一栏的中心（郎平在左栏、乔丹在右栏）
-  function colCenter(y){
-    var secs = noteData.sections || [];
-    for (var i = 0; i < secs.length; i++) {
-      var h = secs[i].hot;
-      if (h && y >= h.y && y <= h.y + h.h) return h.x + h.w / 2;
-    }
-    return 0.2845;
-  }
+  // 句层：横向按句子自身居中，纵向保持同一套倍率
   function focus(s){
     var b = boxOfRects(SENT[s].rects);
     st.z = sentZ();
-    st.tx = viewW() * 0.5 - colCenter(b[1]) * IMG_W * st.z;
+    st.tx = viewW() * 0.5 - ((b[0] + b[2]) / 2) * IMG_W * st.z;
     st.ty = viewH() * 0.46 - ((b[1] + b[3]) / 2) * IMG_H * st.z;
     clamp();
   }
@@ -675,7 +870,7 @@
 
   // ── 批注 ──
   function open(s){
-    st.mode = 'sent'; st.s = s; st.sec = -1;
+    st.mode = 'sent'; st.s = s; st.sec = SENT[s].sec;
     st.card = '';
     st.anchor = null;
     hits.querySelectorAll('.hit').forEach(function(b){
@@ -743,10 +938,34 @@
     if (wasOpen) wholePage();
   }
 
-  // ── 底部 Dock：整篇 / 本段 / 本句 / 生词 ──
-  // 本页的句级数据都在第 2 段（Lang Ping），所以「本段」固定回到这一段
-  var SECTION_OF_SENT = 1;
+  // ── 底部 Dock：整篇 / 本段 / 本句 / 生词 / 字号 ──
   var dockApi = null;
+
+  // 这一段的第一句在全文里的序号
+  function firstSentOfSection(i){
+    for (var k = 0; k < SENT.length; k++) if (SENT[k].sec === i) return k;
+    return 0;
+  }
+
+  // 讲解字号：基准值已在 CSS 里按屏高定好，这里只做等比增减。
+  // 默认停在中间档，让字卡、句卡一屏大致占到面板高度的 3/4。
+  var FS_STEPS = [0.82, 0.91, 1, 1.12, 1.25];
+  var fsIdx = 2;
+  try {
+    var savedFs = parseInt(localStorage.getItem('seeklume.readingNoteFs'), 10);
+    if (savedFs >= 0 && savedFs < FS_STEPS.length) fsIdx = savedFs;
+  } catch (err) {}
+  function applyFs(){
+    margin.style.setProperty('--ns', FS_STEPS[fsIdx]);
+    place();
+  }
+  function stepFs(dir){
+    var n = Math.max(0, Math.min(FS_STEPS.length - 1, fsIdx + dir));
+    if (n === fsIdx) return;
+    fsIdx = n;
+    try { localStorage.setItem('seeklume.readingNoteFs', String(fsIdx)); } catch (err) {}
+    applyFs();
+  }
 
   function paintDock(){
     if (!dockApi) return;
@@ -803,14 +1022,22 @@
         { key: 'map', text: '整篇', label: '整篇（M）',
           onSelect: function(){ if (st.mode !== 'map') openMap(); } },
         { key: 'sec', text: '本段', label: '本段',
-          onSelect: function(){ if (st.mode !== 'sec') openSection(SECTION_OF_SENT); } },
+          onSelect: function(){
+            if (st.mode === 'sec') return;
+            var i = st.s >= 0 ? SENT[st.s].sec : 1;
+            openSection(i);
+          } },
         { key: 'sent', text: '本句', label: '本句',
           onSelect: function(){
             if (st.card === 'word') { renderNote(st.s); return; }
-            if (st.mode !== 'sent') open(st.s >= 0 ? st.s : 0);
+            if (st.mode !== 'sent') open(st.s >= 0 ? st.s : firstSentOfSection(st.sec >= 0 ? st.sec : 1));
           } },
         { key: 'words', text: '生词', label: '生词',
           onSelect: function(){ if (st.mode !== 'words') openWordList(); } },
+        { key: 'fs-down', text: '字小', label: '讲解字号调小',
+          onSelect: function(){ stepFs(-1); } },
+        { key: 'fs-up', text: '字大', label: '讲解字号调大',
+          onSelect: function(){ stepFs(1); } },
         { key: 'close', text: '收起', label: '收起（Esc）', onSelect: close }
       ],
       active: ''
@@ -850,14 +1077,15 @@
   function renderNote(s){
     st.card = '';
     var d = SENT[s];
+    // 句卡里的词只露词形，释义点开词卡再看——省地方，也更像课堂上的一个“抓手”
     var chips = (d.words || []).map(function(w){
-      var c = WORDS[w.card];
       return '<button class="n-chip" data-card="' + esc(w.card) + '" data-w="' + esc(w.text) + '">' +
-        esc(w.text) + '<i>' + (c ? esc(c.zh) : '') + '</i></button>';
+        esc(w.text) + '</button>';
     }).join('');
 
     note.innerHTML =
-      '<div class="n-kicker"><span>第 ' + (s + 1) + ' 句 / ' + SENT.length + '</span>' +
+      '<div class="n-kicker"><span>第 ' + (s + 1) + ' 句 / ' + SENT.length +
+        (SEC_NAV[d.sec] ? ' · ' + SEC_NAV[d.sec] : '') + '</span>' +
         '<i class="n-rule"></i>' +
         '<span class="n-nav">' +
           '<button type="button" data-nav="-1"' + (s === 0 ? ' disabled' : '') + ' aria-label="上一句">‹</button>' +
@@ -866,8 +1094,10 @@
       '</div>' +
       '<p class="n-en">' + markedSentence(d.en, d.words) + '</p>' +
       '<p class="n-zh">' + esc(d.zh) + '</p>' +
-      '<div class="n-row"><span class="n-lab">结构</span><span class="n-val">' + esc(d.st) + '</span></div>' +
-      '<div class="n-row"><span class="n-lab">可讲</span><span class="n-val">' + esc(d.pt) + '</span></div>' +
+      (d.say ? '<div class="n-row"><span class="n-lab">读懂</span><span class="n-val">' + esc(d.say) + '</span></div>' : '') +
+      (d.chunk ? '<div class="n-row"><span class="n-lab">词块</span><span class="n-val">' + esc(d.chunk) + '</span></div>' : '') +
+      (d.pat ? '<div class="n-row"><span class="n-lab">句型</span><span class="n-val">' + esc(d.pat) + '</span></div>' : '') +
+      (d.craft ? '<div class="n-row"><span class="n-lab">写法</span><span class="n-val">' + esc(d.craft) + '</span></div>' : '') +
       (chips ? '<div class="n-words"><span class="n-words-cap">讲单词</span>' + chips + '</div>' : '');
 
     note.querySelectorAll('.n-wk, .n-chip').forEach(function(b){
@@ -891,15 +1121,42 @@
     requestAnimationFrame(place);
   }
 
+  // 问题卡：先自己想 → 卡住了看提示 → 最后才对答案。
+  // 答案默认藏着，学生不会被一大段英文吓退。
   function qList(list){
     return (list || []).map(function(q, k){
       return '<div class="s-q">' +
         '<button type="button" class="s-qq">' +
           '<i>Q' + (k + 1) + '</i><span>' + esc(q.q) + '</span>' +
         '</button>' +
-        '<div class="s-qa">' + esc(q.a) + '</div>' +
+        '<div class="s-qa">' +
+          (q.hint ? '<div class="s-hint"><b>卡住了？先走这一步</b>' + esc(q.hint) + '</div>' : '') +
+          '<button type="button" class="s-reveal">对答案</button>' +
+          '<div class="s-ans"><b>参考答案</b><span>' + esc(q.a) + '</span></div>' +
+        '</div>' +
       '</div>';
     }).join('');
+  }
+
+  // 所有问题卡共用一套交互：点题展开，点「对答案」才亮答案
+  function bindQuestions(root){
+    root.querySelectorAll('.s-qq').forEach(function(b){
+      b.addEventListener('click', function(){
+        var row = b.parentNode;
+        row.classList.toggle('open');
+        // 展开后把这题带到面板顶部：提示和答案从一页干净的地方开始
+        if (row.classList.contains('open')) row.scrollIntoView({ block: 'start' });
+        place();
+      });
+    });
+    root.querySelectorAll('.s-reveal').forEach(function(b){
+      b.addEventListener('click', function(){
+        var row = b.parentNode.parentNode;
+        row.classList.add('revealed');
+        row.scrollIntoView({ block: 'nearest' });
+        place();
+      });
+    });
   }
 
   // ── 段卡：这一段在文章里干什么 + 问题 + 复述骨架 + 段译 ──
@@ -921,6 +1178,13 @@
 
     var tr = (d.translation || []).map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('');
 
+    var crafts = (d.crafts || []).map(function(c){
+      return '<div class="s-craft"><b>' + esc(c.name) + '</b><span>' + esc(c.how) + '</span></div>';
+    }).join('');
+
+    var first = firstSentOfSection(i);
+    var sentCount = SENT.filter(function(x){ return x.sec === i; }).length;
+
     note.innerHTML =
       '<div class="n-kicker"><span>第 ' + (i + 1) + ' 段 / 共 ' + secs.length + ' 段</span>' +
         '<i class="n-rule"></i>' +
@@ -932,17 +1196,13 @@
       '<div class="s-head"><b>' + esc(d.label) + '</b><span>' + esc(d.short || '') + '</span></div>' +
       (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
       (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
-      (qs ? '<div class="s-sec"><div class="s-cap">问题 · 点开对答案（英文作答）</div>' + qs + '</div>' : '') +
+      (qs ? '<div class="s-sec"><div class="s-cap">问题 · 先自己想，卡住了看提示，最后对答案（英文作答）</div>' + qs + '</div>' : '') +
       (notes ? '<details class="s-fold"><summary>复述骨架</summary><div class="s-notes">' + notes + '</div></details>' : '') +
+      (crafts ? '<details class="s-fold"><summary>这一段的手法</summary><div class="s-crafts">' + crafts + '</div></details>' : '') +
       (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '') +
-      (i === 1 ? '<button type="button" class="s-jump" id="sJump">逐句读这 ' + SENT.length + ' 句 →</button>' : '');
+      (sentCount ? '<button type="button" class="s-jump" id="sJump">逐句读这一段（' + sentCount + ' 句）→</button>' : '');
 
-    note.querySelectorAll('.s-qq').forEach(function(b){
-      b.addEventListener('click', function(){
-        b.parentNode.classList.toggle('open');
-        place();
-      });
-    });
+    bindQuestions(note);
     note.querySelectorAll('[data-nav]').forEach(function(b){
       b.addEventListener('click', function(){
         var n = i + parseInt(b.getAttribute('data-nav'), 10);
@@ -950,7 +1210,7 @@
       });
     });
     var jump = note.querySelector('#sJump');
-    if (jump) jump.addEventListener('click', function(){ open(0); });
+    if (jump) jump.addEventListener('click', function(){ open(first); });
 
     note.classList.remove('in');
     void note.offsetWidth;
@@ -1065,9 +1325,7 @@
 
       pager;
 
-    note.querySelectorAll('.s-qq').forEach(function(b){
-      b.addEventListener('click', function(){ b.parentNode.classList.toggle('open'); });
-    });
+    bindQuestions(note);
     note.querySelectorAll('.m-sk-q').forEach(function(b){
       b.addEventListener('click', function(){
         var row = b.parentNode;
@@ -1232,6 +1490,7 @@
     if (e.propertyName === 'transform') sync();
   });
 
+  applyFs();
   home();
   buildDock();
 })();

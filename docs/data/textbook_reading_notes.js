@@ -69,10 +69,23 @@
             { lv: 1, tree: '└', txt: 'here = first 2 choices', gloss: '先推出两位人选' }
           ],
           inquiry: [
-            { q: 'What does "us" refer to?', a: 'The editors of a sports magazine. The writer is asking readers to help choose "Living Legends of Sports", so "us" is the magazine\'s editorial team, not the author alone.' },
-            { q: 'What is special about this paragraph?', a: 'It works as the lead. It states the purpose of the writing and tells readers how to take part: choose the legends and send in their suggestions.' },
-            { q: 'What are the key words in the second sentence?', a: '"masters in their sports" and "set good examples for others". These two expressions give the two criteria for choosing a living legend.' },
-            { q: 'From the key words, what can we predict about the main body?', a: 'The body will show, with examples, that each athlete is a master in his or her sport and also sets a good example for others.' }
+            { q: 'What does "us" refer to?',
+              hint: '看第 1 句 Help us choose...：是谁在请读者帮忙？文章最后的邮箱 LLS@sports.net 也能给你线索。',
+              a: 'The editors of a sports magazine. They ask readers to help them choose the legends.' },
+            { q: 'What is special about this paragraph?',
+              hint: '看第 1–3 句：它先提出什么，再给出什么？',
+              a: 'It is the lead. It introduces the topic and gives the two criteria for choosing a legend.' },
+            { q: 'What are the key words in the second sentence?',
+              hint: '看第 2 句：有两个并列的短语，一个讲“技艺”，一个讲“榜样”。把它们画出来。',
+              a: '"masters in their sports" and "set good examples for others".' },
+            { q: 'From the key words, what can we predict about the main body?',
+              hint: '看第 2–3 句：标准有两条，后面的两个人应该各证明哪一条？',
+              a: 'The body will show that each athlete is a master in his or her sport and also sets a good example for others.' }
+          ],
+          crafts: [
+            { name: '呼唤读者', how: '开头用 Help us choose... 直接对读者说话，把“你”拉进文章。' },
+            { name: '先立标准，再举例', how: '第二句给出两条标准，后面两段各用一个人来证明。' },
+            { name: '过渡句', how: 'Here are our first two choices. 一句话从“征集”切到“人物”。' }
           ],
           // hot = 该段在「整页原书图」上的点击热区（相对整页的 0~1 比例坐标）
           hot: { x: 0.083, y: 0.172, w: 0.562, h: 0.046 },
@@ -167,11 +180,27 @@
             { lv: 1, tree: '└', txt: '∴ 2wk → 世界冠军 ! / 2016 → 奥运金 @巴西', gloss: '结果：两周后夺冠 · 2016 里约登顶' }
           ],
           inquiry: [
-            { q: 'Why is Lang Ping a master in her sport?', a: 'The three "As a ..." phrases answer it: as a player she brought honour and glory to her country; as a coach she led the China women\'s volleyball team to medals at world championships and the Olympics; as a person she is loved by fans at home and abroad.' },
-            { q: 'What example of Lang Ping is given?', a: 'The 2015 World Cup. The team she had built was falling apart because one of the best players had been injured and the captain had to leave because of heart problems, but she did not lose heart, and two weeks later they were world champions. Then in 2016 she led the team to Olympic gold in Brazil.' },
-            { q: 'How many parts can the paragraph be divided into? What are they?', a: 'Two parts. The first three sentences (the "As a ..." series) sum up her three roles; the rest of the paragraph gives one example — the 2015 World Cup — and its result.' },
-            { q: 'What is the function of using the three "As..." phrases at the beginning?', a: 'The parallel "As a player / As a coach / As a person" presents her achievements from three angles at once, so the reader sees at the very start how complete her contribution is.' },
-            { q: 'How is the example clearly presented?', a: 'It follows introduction — development — conclusion: her determination was tested (introduction), the team was falling apart and two key players were lost (development), and two weeks later they were world champions, with Olympic gold in 2016 (result).' }
+            { q: 'Why is Lang Ping a master in her sport?',
+              hint: '看第 4–6 句的三个 As a...：作者从哪三个身份写她？每个身份各做成了什么？',
+              a: 'Because she was a great player, a successful coach, and a person loved by fans at home and abroad.' },
+            { q: 'What example of Lang Ping is given?',
+              hint: '从第 7 句 When the Chinese team... 开始：哪一年、哪场比赛？队里出了什么事？结果呢？',
+              a: 'The 2015 World Cup. Two key players were lost, but she did not lose heart, and two weeks later her team were world champions.' },
+            { q: 'How many parts can the paragraph be divided into? What are they?',
+              hint: '看第 4–13 句：前几句都在讲“身份”，从哪一句开始讲“一件事”？',
+              a: 'Two parts. The first three sentences sum up her three roles; the rest tells one story — the 2015 World Cup.' },
+            { q: 'What is the function of using the three "As..." phrases at the beginning?',
+              hint: '看第 4–6 句：三个身份一起出现，你第一眼看到的是她的哪一面？是单一，还是全面？',
+              a: 'The parallel "As a player / As a coach / As a person" shows her contribution from three angles at once, so it looks complete and strong.' },
+            { q: 'How is the example clearly presented?',
+              hint: '看第 7–12 句：找三样东西：考验（起因）、困难（经过）、结果。',
+              a: 'First, her determination was tested. Then, the team was falling apart and two key players were lost. Finally, two weeks later they were world champions.' }
+          ],
+          crafts: [
+            { name: '排比', how: '三个 As a... 从运动员、教练、个人三个角度写同一个人，先把“全面”立起来。' },
+            { name: '转折', how: 'but 把“失去两名主力”和“没有气馁”顶在一起，精神一下就出来了。' },
+            { name: '短句收束', how: 'Two weeks later, they were world champions! 前面铺得越长，这一句越有力。' },
+            { name: '首尾呼应', how: '从 as a coach 的 medals 到 2016 的 Olympic gold，教练这条线走完了。' }
           ],
           hot: { x: 0.083, y: 0.558, w: 0.403, h: 0.352 },
           gist: '用「运动员、教练、个人」三个身份概括郎平的贡献，再用 2015 年世界杯「主力受伤、队长离队」的逆境，说明她没有气馁，最终带队夺冠。',
@@ -253,6 +282,27 @@
               blank: 'Two weeks later, they were world ___s!',
               family: ['champion n. 冠军', 'championship n. 锦标赛；冠军称号'],
               chunks: ['world champion', 'defend one\'s title as champion']
+            },
+            {
+              w: 'glory', ipa: '/ˈɡlɔːri/', pos: 'n.', zh: '光荣；荣誉', tier: 'simple', src: '课本 p114',
+              sent: 'As a player, Lang Ping brought honour and glory to her country.',
+              blank: 'As a player, Lang Ping brought honour and ___ to her country.',
+              family: ['glory n. 光荣', 'glorious adj. 光荣的'],
+              chunks: ['bring glory to', 'for the glory of', 'go to glory']
+            },
+            {
+              w: 'abroad', ipa: '/əˈbrɔːd/', pos: 'adv.', zh: '在国外；到国外', tier: 'simple', src: '课本 p114',
+              sent: 'As a person, Lang Ping is loved by fans at home and abroad.',
+              blank: 'As a person, Lang Ping is loved by fans at home and ___.',
+              family: ['abroad adv. 在国外', 'at home and abroad 国内外'],
+              chunks: ['at home and abroad', 'go abroad', 'study abroad']
+            },
+            {
+              w: 'challenge', ipa: '/ˈtʃælɪndʒ/', pos: 'n. & v.', zh: '挑战 / 向……挑战', tier: 'simple', src: '课本 p114',
+              sent: 'Losing two important players was a big challenge, but Lang Ping did not lose heart.',
+              blank: 'Losing two important players was a big ___, but Lang Ping did not lose heart.',
+              family: ['challenge n./v. 挑战', 'challenging adj. 有挑战性的'],
+              chunks: ['a big challenge', 'face a challenge', 'challenge sb to sth']
             }
           ],
           shots: [
@@ -289,11 +339,28 @@
             { lv: 1, tree: '└', txt: 'share success + Boys&Girls Club @Chicago 1996', gloss: '回馈：芝加哥青少年俱乐部，1996 起' }
           ],
           inquiry: [
-            { q: 'Why is Michael Jordan a master in his sport?', a: 'He became known as "Air Jordan" and changed basketball with his graceful moves and jumps. His skills were impressive, and in the final seconds of a game he always seemed to find a way to win.' },
-            { q: 'What example does Jordan set?', a: 'He shows mental strength: he learns from his failures, practises harder and never gives up. In life he also shares his success with others — the Boys and Girls Club he started in Chicago has been helping young people since 1996.' },
-            { q: 'How many parts can the paragraph be divided into?', a: 'Two parts: his basketball career (skills and the will to win) and his attitude to life (learning from failures and sharing success). The sentence "Jordan\'s skills were impressive, but the mental strength that he showed made him unique" is the transition.' },
-            { q: 'What are the key words about his career life?', a: '"skills" and "mental strength". Skills: "time seemed to stand still", "Air Jordan", "graceful moves and jumps". Mental strength: "learning from his failures", "never give up", and the quotation "I can accept failure ... But I can\'t accept not trying."' },
-            { q: 'How does the writer convey his message?', a: 'Three ways: a vivid image ("time seemed to stand still"), a direct quotation, and one concrete example of how he shares his success with others (the Boys and Girls Club in Chicago since 1996).' }
+            { q: 'Why is Michael Jordan a master in his sport?',
+              hint: '看第 14–17 句：找三样东西：他的称号、他的动作、他在最后几秒的表现。',
+              a: 'He became "Air Jordan", changed basketball with his graceful moves and jumps, and always found a way to win in the final seconds.' },
+            { q: 'What example does Jordan set?',
+              hint: '看第 18–22 句：他的 mental strength 来自哪里？他又把成功用在了哪里？',
+              a: 'He learns from his failures and never gives up. In life, he shares his success with young people through his club in Chicago.' },
+            { q: 'How many parts can the paragraph be divided into?',
+              hint: '看第 16 句 Jordan\'s skills were impressive, but...：but 前后各在讲什么？',
+              a: 'Two parts: his basketball career (skills and the will to win) and his attitude to life (learning from failures and sharing success). The "but" sentence is the transition.' },
+            { q: 'What are the key words about his career life?',
+              hint: '看第 15–16 句和第 18–20 句：球技用哪些词？精神用哪些词？各找两个。',
+              a: 'Skills: "Air Jordan", "graceful moves and jumps". Mental strength: "learning from his failures", "never give up".' },
+            { q: 'How does the writer convey his message?',
+              hint: '看第 14、19、22 句：作者用了三种“看得见”的东西：一个画面、一句原话、一个事实。',
+              a: 'A vivid image ("time seemed to stand still"), a direct quotation, and a concrete fact (the Boys and Girls Club since 1996).' }
+          ],
+          crafts: [
+            { name: '画面开头', how: 'When ... feet left the ground, time seemed to stand still. 先用一个动作抓住读者。' },
+            { name: '给称号', how: 'Air Jordan 三个字，比“他跳得很高”更有记忆点。' },
+            { name: '转折立主题', how: 'skills were impressive, but the mental strength... 先承认球技，再抬出精神。' },
+            { name: '直接引语', how: '用乔丹原话，让读者听本人说。' },
+            { name: '事实收尾', how: 'Boys and Girls Club + Chicago + since 1996，时间、地点、机构都在，人物落地。' }
           ],
           hot: { x: 0.493, y: 0.558, w: 0.452, h: 0.288 },
           gist: '先写乔丹「飞人」般的球技，再强调真正让他与众不同的是「精神力量」——他的成功秘诀是从失败中学习；最后落到他创办俱乐部、回馈青少年。',
@@ -371,6 +438,20 @@
               blank: 'Losing games taught him to practise harder and never give ___.',
               family: ['give up 放弃', 'give in 让步；屈服', 'give away 送掉'],
               chunks: ['never give up', 'give up doing sth', 'not give up hope']
+            },
+            {
+              w: 'mental', ipa: '/ˈmentl/', pos: 'adj.', zh: '精神的；心理的', tier: 'simple', src: '课本 p114',
+              sent: '… but the mental strength that he showed made him unique.',
+              blank: '… but the ___ strength that he showed made him unique.',
+              family: ['mind n. 头脑', 'mental adj. 精神的', 'mentally adv. 精神上'],
+              chunks: ['mental strength', 'mental health', 'mental pressure']
+            },
+            {
+              w: 'secret', ipa: '/ˈsiːkrət/', pos: 'n. & adj.', zh: '秘诀；秘密 / 秘密的', tier: 'simple', src: '课本 p114',
+              sent: 'Jordan says that the secret to his success is learning from his failures.',
+              blank: 'Jordan says that the ___ to his success is learning from his failures.',
+              family: ['secret n./adj. 秘密（的）', 'secretly adv. 秘密地'],
+              chunks: ['the secret to success', 'keep a secret', 'in secret']
             }
           ],
           shots: [
@@ -401,7 +482,13 @@
             { lv: 0, tree: '●', txt: '投稿 → LLS@sports.net', gloss: '首尾呼应 · 关门句' }
           ],
           inquiry: [
-            { q: 'What can this additional information tell us?', a: 'The email address LLS@sports.net tells us that the text is a magazine article: it asks readers for suggestions and gives them a place to send them. It also closes the circle with the opening "Help us choose ...".' }
+            { q: 'What can this additional information tell us?',
+              hint: '看第 23 句的邮箱：谁会留一个投稿邮箱？再看它和第 1 句哪一句呼应。',
+              a: 'It shows that this is a magazine article asking for readers\' suggestions. It also echoes the opening "Help us choose...".' }
+          ],
+          crafts: [
+            { name: '首尾呼应', how: '与开头的 Help us choose... 呼应，文章合拢。' },
+            { name: '祈使句', how: 'Send ... 直接、干脆，像编辑最后叮嘱一句。' }
           ],
           hot: { x: 0.493, y: 0.838, w: 0.42, h: 0.038 },
           gist: '收束全文，请读者把自己心中的「体育传奇人物」投稿到指定邮箱，呼应开篇的征集。',
@@ -506,19 +593,25 @@
       inquiry: {
         pre: [
           { q: 'What does "legend" mean, and what is a "living legend"?',
-            a: 'A legend is an old story that has been passed down and is admired. A "living legend" is a person who is still alive and is admired for being a master in his or her sport and for setting a good example for others.' },
+            hint: '看标题和第 1 句：legend 原意是“传说、被传颂的故事”；living 是“活着的”。合起来指什么人？',
+            a: 'A legend is an admired old story. A living legend is a person who is still alive and admired for being a master and a good example.' },
           { q: 'In this text, does "legend" refer to a person or a story?',
-            a: 'A person. The title is "Living Legends", and the pictures and captions below it show Lang Ping and Michael Jordan — two athletes, not stories.' },
+            hint: '看标题和第 1–2 句：说的是人还是故事？',
+            a: 'A person. The title is "Living Legends" and the pictures show Lang Ping and Michael Jordan.' },
           { q: 'Why are Lang Ping and Michael Jordan chosen as "living legends"?',
-            a: 'Because both of them meet the two criteria in the lead: they are masters in their sports and they set good examples for others.' }
+            hint: '回到第 2 句那两条标准，逐条对照两个人。',
+            a: 'Because both are masters in their sports and both set good examples for others.' }
         ],
         post: [
           { q: 'Do you agree that Lang Ping and Michael Jordan are living legends? Why?',
-            a: 'Yes. Both were outstanding in their own sport, and both still give something back — Lang Ping as a coach, and Jordan through the Boys and Girls Club he started for young people.' },
+            hint: '用第 2 句的两条标准回答：他们各自哪里“master”，哪里“example”？',
+            a: 'Yes. Both were outstanding in their sports, and both still give something back — Lang Ping as a coach, Jordan through his club for young people.' },
           { q: 'Is the story about Lang Ping told in the same way as that of Michael Jordan?',
-            a: 'No. Lang Ping\'s paragraph moves from her three roles to one challenge and its result (challenge — solution — result). Jordan\'s paragraph is held together by a transition sentence: skills first, then mental strength, then sharing success.' },
+            hint: '看第 4–6 句和第 16 句：郎平段按什么顺序走？乔丹段用哪一句转折？',
+            a: 'No. Lang Ping\'s story moves from her three roles to one challenge and its result. Jordan\'s paragraph is held together by a transition sentence: skills, then mental strength, then sharing success.' },
           { q: 'Using the writing skills in the text, how could you write about your favourite sports legend?',
-            a: 'Do what the text does: tell one complete, concrete story to show how good the athlete is, and use a transition sentence to link ability with character.' }
+            hint: '看第 4–6 句、第 16 句和第 22 句：本文有两个可借的招：一个具体故事；一句转折把“能力”接到“精神”。',
+            a: 'Tell one concrete story to show how good the athlete is, and use a transition sentence to link ability with character.' }
         ]
       },
 
