@@ -12,6 +12,7 @@
     /* 共享 Dock 的设计令牌 */
     --surface:var(--paper); --surface-3:#f1ece0; --border:var(--rule);
     --text:var(--ink); --text-2:var(--ink-2); --text-3:var(--muted); --accent-bg:#fff6e4;
+    --sk-mw:clamp(400px,31vw,560px);   /* 页边宽度，Dock 据此居中 */
   }
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;}
@@ -288,24 +289,26 @@
     font-family:Georgia,serif; font-size:11px; color:rgba(0,0,0,.28);
     pointer-events:none;
   }
-  /* 底部 Dock：落在页边底端，不遮书页；篇 / 段 / 句 / 词 随时切 */
+  /* 底部 Dock：居中落在页边下沿，不压书页、不压讲解正文 */
   .sk-dock{
-    left:auto; right:14px; bottom:10px; transform:none;
-    gap:1px; padding:4px 5px 5px; border-radius:16px;
-    background:rgba(250,248,242,.94);
+    left:auto; right:calc(var(--sk-mw) / 2); transform:translateX(50%);
+    bottom:12px; gap:1px; padding:4px 6px 5px; border-radius:16px;
+    background:rgba(250,248,242,.96);
   }
-  .sk-dock-item{width:42px; height:42px; font-size:18px; border-radius:11px;}
-  .sk-dock-item.has-txt{min-width:42px; padding:0 9px; gap:5px; font-size:16px;}
-  .sk-dock-txt{font-size:12.5px;}
+  .sk-dock-item{width:auto; min-width:44px; height:40px; padding:0 10px; font-size:14px; border-radius:11px;}
+  .sk-dock-item.has-txt{min-width:44px; padding:0 10px; font-size:14px;}
+  .sk-dock-txt{font-size:13px; letter-spacing:0;}
   .sk-dock-item::after{bottom:auto; top:-20px;}
+  /* 「整篇」是总，后面几项是分：留一道呼吸，不用符号 */
+  .sk-dock-item[data-key="map"]{margin-right:6px;}
   @media (max-width:1100px){
+    :root{--sk-mw:380px;}
     .bk-stage{grid-template-columns:minmax(0,1fr) 380px;}
     .n-en{font-size:22px;}
     .s-gist{font-size:19px;}
     .n-val{font-size:18px;}
     .s-qq{font-size:17.5px;}
-    .sk-dock-item.has-txt{padding:0 7px; gap:4px;}
-    .sk-dock-txt{font-size:12px;}
+    .sk-dock-item,.sk-dock-item.has-txt{padding:0 8px; min-width:42px;}
   }
 </style>
 </head>
@@ -794,18 +797,18 @@
     if (!window.SeeklumeDock) return;
     dockApi = window.SeeklumeDock.mount({
       items: [
-        { key: 'map', icon: '📖', text: '整篇', label: '整篇（M）',
+        { key: 'map', text: '整篇', label: '整篇（M）',
           onSelect: function(){ if (st.mode !== 'map') openMap(); } },
-        { key: 'sec', icon: '¶', text: '本段', label: '本段',
+        { key: 'sec', text: '本段', label: '本段',
           onSelect: function(){ if (st.mode !== 'sec') openSection(SECTION_OF_SENT); } },
-        { key: 'sent', icon: '❞', text: '本句', label: '本句',
+        { key: 'sent', text: '本句', label: '本句',
           onSelect: function(){
             if (st.card === 'word') { renderNote(st.s); return; }
             if (st.mode !== 'sent') open(st.s >= 0 ? st.s : 0);
           } },
-        { key: 'words', icon: 'A', text: '生词', label: '生词',
+        { key: 'words', text: '生词', label: '生词',
           onSelect: function(){ if (st.mode !== 'words') openWordList(); } },
-        { key: 'close', icon: '✕', label: '收起（Esc）', onSelect: close }
+        { key: 'close', text: '收起', label: '收起（Esc）', onSelect: close }
       ],
       active: ''
     });

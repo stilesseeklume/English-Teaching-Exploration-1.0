@@ -88,19 +88,20 @@
 
   // ───────────────────────── 顶部导航（底部 Dock）─────────────────────────
   var NAV = [
-    { key: 'demo', icon: '①', text: '示范', label: '① 示范' },
-    { key: 'rules', icon: '②', text: '四原则', label: '② 四原则' },
-    { key: 'symbols', icon: '③', text: '符号表', label: '③ 符号表' },
-    { key: 'u3', icon: '④', text: 'U3 迁移', label: '④ U3 迁移' }
+    { key: 'demo', text: '示范', label: '示范' },
+    { key: 'rules', text: '四原则', label: '四原则' },
+    { key: 'symbols', text: '符号表', label: '符号表' },
+    { key: 'u3', text: 'U3 迁移', label: 'U3 迁移' }
   ];
 
   function buildDock() {
     if (!window.SeeklumeDock) return;
     dockApi = window.SeeklumeDock.mount({
-      home: '../index.html',
-      items: NAV.map(function (n) {
+      items: [{ key: 'home', text: '首页', label: '首页',
+        onSelect: function () { location.href = '../index.html'; } }]
+        .concat(NAV.map(function (n) {
         return {
-          key: n.key, icon: n.icon, text: n.text, label: n.label,
+          key: n.key, text: n.text, label: n.label,
           onSelect: function () {
             if (n.key === 'demo') {
               dockApi.setActive('demo');
@@ -113,7 +114,7 @@
             dockApi.setActive(n.key);
           }
         };
-      }),
+      })),
       active: 'demo'
     });
   }

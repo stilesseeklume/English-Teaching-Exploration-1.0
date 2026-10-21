@@ -70,13 +70,16 @@
       b.setAttribute('data-key', it.key || '');
       if (it.text) {
         b.className += ' has-txt';
-        var ico = document.createElement('span');
-        ico.className = 'sk-dock-ico';
-        ico.textContent = it.icon || '';
+        // 只给中文标签的项不再塞空图标，避免图标位留出一条空隙
+        if (it.icon) {
+          var ico = document.createElement('span');
+          ico.className = 'sk-dock-ico';
+          ico.textContent = it.icon;
+          b.appendChild(ico);
+        }
         var txt = document.createElement('span');
         txt.className = 'sk-dock-txt';
         txt.textContent = it.text;
-        b.appendChild(ico);
         b.appendChild(txt);
       } else {
         b.textContent = it.icon || '';
