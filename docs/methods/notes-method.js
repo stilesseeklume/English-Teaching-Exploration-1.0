@@ -38,9 +38,13 @@
   // ───────────────────────── 通用零件 ─────────────────────────
   function noteLines(list) {
     return (list || []).map(function (it) {
-      var lv = it.lv ? ' lv' + it.lv : '';
-      return '<div class="nm-nline' + lv + '">' +
-        '<span class="nm-ntree">' + esc(it.tree || '') + '</span>' +
+      var lv = it.lv || 0;
+      var t = String(it.tree || '').trim();
+      // 手写笔记只靠缩进，不画 ├ └；这里也不再把树形符印出来
+      var mark = lv === 0 ? '<i class="nm-ntree-dot"></i>'
+        : (isConnector(t) || t === '●' ? '' : esc(t));
+      return '<div class="nm-nline lv' + lv + '">' +
+        '<span class="nm-ntree">' + mark + '</span>' +
         '<span class="nm-ntxt">' + esc(it.txt) + '</span>' +
         (it.gloss ? '<span class="nm-ngloss">' + esc(it.gloss) + '</span>' : '') +
         '</div>';
@@ -61,11 +65,10 @@
   function treeHtml(list) {
     return '<div class="nm-tree">' + (list || []).map(function (it) {
       var lv = it.lv || 0;
-      var t = it.tree || '';
-      var mark;
-      if (lv === 0) mark = '<span class="nm-t-dot"></span>';
-      else if (isConnector(t)) mark = '<span class="nm-t-br">' + esc(t) + '</span>';
-      else mark = '<span class="nm-t-sym">' + esc(t) + '</span>';
+      var t = String(it.tree || '').trim();
+      // 层级只由缩进和左侧细线表达；├ └ 不是笔记符号，不印出来
+      var mark = lv === 0 ? '<span class="nm-t-dot"></span>'
+        : (isConnector(t) || t === '●' ? '<span class="nm-t-br is-plain"></span>' : '<span class="nm-t-sym">' + esc(t) + '</span>');
       return '<div class="nm-t-row lv' + lv + '">' + mark +
         '<div class="nm-t-body"><span class="nm-t-txt">' + richTxt(it.txt) + '</span>' +
         (it.gloss ? '<span class="nm-t-gl">' + esc(it.gloss) + '</span>' : '') +
@@ -84,6 +87,29 @@
 
   function h3(t, extra) {
     return '<h3 class="nm-h3"' + (extra ? ' ' + extra : '') + '>' + esc(t) + '</h3>';
+  }
+
+  // 方法依据：文献按编号排，页面做法与出处逐条对照
+  function refsHtml() {
+    var r = M.refs;
+    if (!r) return '';
+    var items = (r.items || []).map(function (it) {
+      var t = esc(it.text);
+      return '<li id="nm-ref-' + esc(it.id) + '">' +
+        (it.href ? '<a href="' + esc(it.href) + '" target="_blank" rel="noopener">' + t + '</a>' : t) +
+        '</li>';
+    }).join('');
+    var map = (r.map || []).map(function (m) {
+      return '<tr><td style="font-weight:700">' + esc(m.k) + '</td><td>' + esc(m.v) + '</td></tr>';
+    }).join('');
+    return '<div class="nm-refs" id="nm-refs">' +
+      '<div class="nm-refs-cap">' + esc(r.title) + ' · References</div>' +
+      (r.lead ? '<p class="nm-refs-lead">' + esc(r.lead) + '</p>' : '') +
+      '<ol class="nm-refs-list">' + items + '</ol>' +
+      (map ? '<div class="nm-table-wrap" style="margin-top:10px"><table class="nm-table nm-refs-map">' +
+        '<thead><tr><th>页面做法</th><th>依据</th></tr></thead><tbody>' + map + '</tbody></table></div>' : '') +
+      (r.note ? '<p class="nm-refs-note">' + esc(r.note) + '</p>' : '') +
+      '</div>';
   }
 
   // ───────────────────────── 顶部导航（底部 Dock）─────────────────────────
@@ -179,6 +205,7 @@
     // ── 镜头 ──
     var cam = { z: 1, tx: 0, ty: 0 };
     var vw = 0, vh = 0;
+    var wholeMode = false; // true = 整页视野（进页默认）
 
     function measure() {
       var r = view.getBoundingClientRect();
@@ -219,6 +246,7 @@
     }
     function home() {
       measure();
+      wholeMode = false;
       var s = (U2.sections || [])[firstOfPage()];
       var h = s && (s.focus || s.hot);
       if (h) {
@@ -232,6 +260,7 @@
     }
     function focusSec(i) {
       measure();
+      wholeMode = false;
       var s = (U2.sections || [])[i], h = s && (s.focus || s.hot);
       if (!h) return;
       aim(h);
@@ -239,6 +268,7 @@
     }
     function wholePage() {
       measure();
+      wholeMode = true;
       cam.z = Math.min(vw / IMG_W, vh / IMG_H) * 0.96;
       cam.tx = (vw - IMG_W * cam.z) / 2;
       cam.ty = (vh - IMG_H * cam.z) / 2;
@@ -397,7 +427,9 @@
     window.addEventListener('resize', function () {
       clearTimeout(rt);
       rt = setTimeout(function () {
-        if (state.sec >= 0) focusSec(state.sec); else home();
+        if (state.sec >= 0) focusSec(state.sec);
+        else if (wholeMode) wholePage();
+        else home();
       }, 160);
     });
 
@@ -405,7 +437,7 @@
     paintPage();
     renderSide();
     measure();
-    home();
+    wholePage();
 
     pickBook = pickSec;
     window.__nmBook = { pick: pickSec, whole: wholePage, home: home };
@@ -466,7 +498,7 @@
       '<div class="nm-sechead">' +
         '<span class="nm-stepno">②</span>' +
         '<div><h2 class="nm-h2">' + esc(b.title || '四原则') + '</h2>' +
-        '<p class="nm-sub">刚才六段里用的就是这四条。点任意一条，回到书页上看它长什么样。</p></div>' +
+        '<p class="nm-sub">刚才六段里用的就是这四条。点任意一条，回到书页上看它长什么样。手写时只靠缩进，不画树形符；依据见本节末 [1–3]。</p></div>' +
       '</div>' +
       '<div class="nm-rules">' + items.map(function (it, i) {
         var t = RULE_TARGET[i];
@@ -497,6 +529,7 @@
           }).join('') + '</tr>';
         }).join('')) + '</tbody></table></div>' +
       '</details>' +
+      refsHtml() +
       '</section>';
   }
 
@@ -517,7 +550,7 @@
       '<div class="nm-sechead">' +
         '<span class="nm-stepno">③</span>' +
         '<div><h2 class="nm-h2">符号表</h2>' +
-        '<p class="nm-sub">抄到笔记本第一页，之后每篇都只用这一套。</p></div>' +
+        '<p class="nm-sub">抄到笔记本第一页，之后每篇都只用这一套。原则依据 Rozan [1]；符号除通行逻辑符号外为本站约定。手写只靠缩进，不画树形符。</p></div>' +
       '</div>' +
       '<details class="nm-more" open>' +
         '<summary>符号与缩写</summary>' +

@@ -36,7 +36,7 @@
       },
       {
         no: '2', name: '缩进', en: 'Indent',
-        d: '缩进表示从属：谁是谁的下级，用缩进加树形符号说清楚，不用连接词。',
+        d: '缩进表示从属：谁是谁的下级，用缩进说清楚，不用连接词，也不画树形符号。',
         bad: '用「然后」「所以」把内容串成一句——那是句子，不是结构。'
       },
       {
@@ -112,8 +112,7 @@
       title: '符号表',
       cols: ['符号', '含义', '例'],
       rows: [
-        { sym: '●', mean: '主题 / 顶格（一段的顶）', ex: '● LP 郎平' },
-        { sym: '├ └', mean: '分支 / 末分支', ex: '挂在 ● 下面' },
+        { sym: '缩进', mean: '层级从属：下级往右退，手写不画树形符', ex: '挂在上一级下面' },
         { sym: '→', mean: '导致、指向、结果是', ex: 'as player → honour' },
         { sym: '∵', mean: '因为', ex: 'captain 走 ∵ heart' },
         { sym: '∴', mean: '所以', ex: '∴ 2wk → 世界冠军' },
@@ -137,6 +136,37 @@
           '同一篇里自己定，定了就不改——你自己看得懂就行'
         ]
       }
+    },
+
+    // ── 方法依据（页面上标在四原则与符号表旁边）──
+    refs: {
+      title: '方法依据',
+      lead: '这套笔记法来自交替传译笔记的通行体系；本页只做了课堂化压缩，没有另创一套。',
+      items: [
+        {
+          id: '1',
+          text: 'Rozan, J.-F. (1956). La prise de notes en interprétation consécutive. Genève: Georg. 英译：Note-taking in Consecutive Interpreting, trans. A. Gillies, Cracow: Tertium, 2002.',
+          href: 'https://interpretertrainingresources.eu/tag/rozan/'
+        },
+        {
+          id: '2',
+          text: 'Gillies, A. (2017). Note-taking for Consecutive Interpreting: A Short Course (2nd ed.). London: Routledge. DOI: 10.4324/9781315648996.',
+          href: 'https://doi.org/10.4324/9781315648996'
+        },
+        {
+          id: '3',
+          text: '吴钟明 主编（2024）.《英语口译笔记法实战指导》（第四版）. 武汉：武汉大学出版社. ISBN 978-7-307-24587-7.',
+          href: 'https://wdp.com.cn/books/2025-02-13/11190.html'
+        }
+      ],
+      map: [
+        { k: '记意不记词 · 少写', v: 'Rozan 原则 1 [1]' },
+        { k: '竖排 · 一行一个意群', v: 'Rozan 原则 6 [1]；吴钟明 [3]' },
+        { k: '缩进表示从属', v: 'Rozan 原则 7 [1]' },
+        { k: '缩写 · 连接 · 否定 · 强调', v: 'Rozan 原则 2–5 [1]' },
+        { k: '分叉四原则（按问题切、同级 3–5 个等）', v: '本站课堂规则；结构分析思路参考 Gillies [2]，文献无此原文' }
+      ],
+      note: '手写时只靠缩进，不画树形符。符号表中除 →、∵、∴ 等通行逻辑符号外，其余为本站约定，不是各教材的统一标准。'
     },
 
     // ── 自检 ──
