@@ -64,9 +64,16 @@
           short: '征稿 · 两条标准',
           open: 'Help us choose some "Living Legends of Sports".',
           notes: [
-            { lv: 0, tree: '●', txt: 'Living Legends of Sports', gloss: '征稿 · 全文话题' },
-            { lv: 1, tree: '├', txt: '选谁 → masters + good examples', gloss: '两条标准：技艺精湛 + 树立榜样' },
-            { lv: 1, tree: '└', txt: 'here = first 2 choices', gloss: '先推出两位人选' }
+            { lv: 0, tree: '●', txt: 'Living Legends of Sports', gloss: '征稿 · 全文话题',
+              words: ['legend'], chunks: ['Living Legends of Sports'],
+              pat: '祈使句：Help us... 主语 you 省略' },
+            { lv: 1, tree: '├', txt: '选谁 → masters + good examples', gloss: '两条标准：技艺精湛 + 树立榜样',
+              words: ['master', 'set an example', 'athlete'],
+              chunks: ["be masters in one's sport", 'set good examples for others'],
+              pat: 'who 引导定语从句修饰 athletes' },
+            { lv: 1, tree: '└', txt: 'here = first 2 choices', gloss: '先推出两位人选',
+              chunks: ['Here are our first two choices.'],
+              pat: '完全倒装：主语在 be 之后' }
           ],
           inquiry: [
             { q: 'What does "us" refer to?',
@@ -186,12 +193,26 @@
           open: 'As a player, Lang Ping brought honour and glory to her country.',
           notes: [
             { lv: 0, tree: '●', txt: 'LP 郎平', gloss: '例证一 · 主线顶格' },
-            { lv: 1, tree: '├', txt: 'as player → honour + glory → 国', gloss: '球员：为国赢得荣誉' },
-            { lv: 1, tree: '├', txt: 'as coach → 中女排 → medals 世锦赛/奥运', gloss: '教练：带队拿奖牌' },
-            { lv: 1, tree: '├', txt: 'as person → fans 爱 home + abroad', gloss: '为人：海内外球迷喜爱' },
-            { lv: 1, tree: '├', txt: '2015 WCup：best player ↑injured + captain 走 ∵ heart', gloss: '考验：主力受伤 · 队长因心脏病离队' },
-            { lv: 1, tree: '├', txt: '2 ↓ ≠ lose heart → faced 难 before', gloss: '连失两员，她没气馁 · 她见过风浪' },
-            { lv: 1, tree: '└', txt: '∴ 2wk → 世界冠军 ! / 2016 → 奥运金 @巴西', gloss: '结果：两周后夺冠 · 2016 里约登顶' }
+            { lv: 1, tree: '├', txt: 'as player → honour + glory → 国', gloss: '球员：为国赢得荣誉',
+              words: ['honour', 'glory'], chunks: ['bring honour and glory to'],
+              pat: 'As a player 介词短语置首，先交代身份' },
+            { lv: 1, tree: '├', txt: 'as coach → 中女排 → medals 世锦赛/奥运', gloss: '教练：带队拿奖牌',
+              words: ['coach', 'medal'], chunks: ['lead sb to sth'],
+              pat: 'at + 赛事，表示“在……赛场上”' },
+            { lv: 1, tree: '├', txt: 'as person → fans 爱 home + abroad', gloss: '为人：海内外球迷喜爱',
+              words: ['abroad'], chunks: ['be loved by', 'at home and abroad'],
+              pat: '被动语态，重点落在“她被爱”' },
+            { lv: 1, tree: '├', txt: '2015 WCup：best player ↑injured + captain 走 ∵ heart', gloss: '考验：主力受伤 · 队长因心脏病离队',
+              words: ['determination', 'injure', 'fall apart'],
+              chunks: ['prepare for', "one's determination was tested"],
+              pat: '过去完成时的被动：had been injured' },
+            { lv: 1, tree: '├', txt: '2 ↓ ≠ lose heart → faced 难 before', gloss: '连失两员，她没气馁 · 她见过风浪',
+              words: ['challenge', 'lose heart'],
+              chunks: ['face difficulties', 'work together as a team'],
+              pat: '动名词作主语：Losing... was...（谓语用单数）' },
+            { lv: 1, tree: '└', txt: '∴ 2wk → 世界冠军 ! / 2016 → 奥运金 @巴西', gloss: '结果：两周后夺冠 · 2016 里约登顶',
+              words: ['champion'], chunks: ['world champions', 'Olympic gold'],
+              pat: '短句收束：前面越长，这一句越有力' }
           ],
           inquiry: [
             { q: 'Why is Lang Ping a master in her sport?',
@@ -344,13 +365,27 @@
           short: '乔丹 · 个人精神',
           open: "When Michael Jordan's feet left the ground, time seemed to stand still.",
           notes: [
-            { lv: 0, tree: '●', txt: 'MJ 乔丹', gloss: '例证二 · 主线顶格' },
-            { lv: 1, tree: '├', txt: '"Air Jordan"：graceful moves + jumps → 改篮球', gloss: '球技：飞人用优雅动作改写篮球' },
-            { lv: 1, tree: '├', txt: 'skills impressive ↳ mental strength = unique', gloss: '题眼：真正独特的是精神力量' },
-            { lv: 1, tree: '├', txt: 'final sec → 总 find a way to win', gloss: '最后几秒总能找到赢的办法' },
-            { lv: 1, tree: '├', txt: 'secret = learn ∵ failures：accept 败 ≠ accept 不 try', gloss: '秘诀：从失败中学习，不试不可接受' },
-            { lv: 1, tree: '├', txt: '败 → practise harder + never give up', gloss: '失败让他练得更狠 · 绝不放弃' },
-            { lv: 1, tree: '└', txt: 'share success + Boys&Girls Club @Chicago 1996', gloss: '回馈：芝加哥青少年俱乐部，1996 起' }
+            { lv: 0, tree: '●', txt: 'MJ 乔丹', gloss: '例证二 · 主线顶格',
+              pat: 'When 时间状语从句 + seem to do sth' },
+            { lv: 1, tree: '├', txt: '"Air Jordan"：graceful moves + jumps → 改篮球', gloss: '球技：飞人用优雅动作改写篮球',
+              words: ['graceful'], chunks: ['become known as', 'graceful moves and jumps'],
+              pat: 'who 引导定语从句修饰 The player' },
+            { lv: 1, tree: '├', txt: 'skills impressive ↳ mental strength = unique', gloss: '题眼：真正独特的是精神力量',
+              words: ['strength', 'mental', 'unique'], chunks: ['mental strength', 'make sb unique'],
+              pat: 'but 转折立主题；that he showed 定语从句' },
+            { lv: 1, tree: '├', txt: 'final sec → 总 find a way to win', gloss: '最后几秒总能找到赢的办法',
+              chunks: ['in the final seconds', 'find a way to win'],
+              pat: 'seem to do sth；a way to do sth' },
+            { lv: 1, tree: '├', txt: 'secret = learn ∵ failures：accept 败 ≠ accept 不 try', gloss: '秘诀：从失败中学习，不试不可接受',
+              words: ['failure', 'secret', 'accept'],
+              chunks: ['the secret to success', 'learn from failures'],
+              pat: 'that 宾语从句；learning 动名词作表语' },
+            { lv: 1, tree: '├', txt: '败 → practise harder + never give up', gloss: '失败让他练得更狠 · 绝不放弃',
+              words: ['practise', 'never give up'], chunks: ['practise harder', 'never give up'],
+              pat: '动名词作主语：Losing games taught him to...' },
+            { lv: 1, tree: '└', txt: 'share success + Boys&Girls Club @Chicago 1996', gloss: '回馈：芝加哥青少年俱乐部，1996 起',
+              words: ['share'], chunks: ['share sth with others', 'since 1996'],
+              pat: 'which 定语从句；has been helping 现在完成进行时' }
           ],
           inquiry: [
             { q: 'Why is Michael Jordan a master in his sport?',
@@ -493,7 +528,9 @@
           short: '号召投稿',
           open: 'Send your suggestions for "Living Legends of Sports" to LLS@sports.net.',
           notes: [
-            { lv: 0, tree: '●', txt: '投稿 → LLS@sports.net', gloss: '首尾呼应 · 关门句' }
+            { lv: 0, tree: '●', txt: '投稿 → LLS@sports.net', gloss: '首尾呼应 · 关门句',
+              words: ['suggestion'], chunks: ['send sth to', 'suggestions for'],
+              pat: '祈使句：Send... 主语 you 省略' }
           ],
           inquiry: [
             { q: 'What can this additional information tell us?',
