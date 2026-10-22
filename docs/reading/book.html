@@ -12,7 +12,8 @@
     /* 共享 Dock 的设计令牌 */
     --surface:var(--paper); --surface-3:#f1ece0; --border:var(--rule);
     --text:var(--ink); --text-2:var(--ink-2); --text-3:var(--muted); --accent-bg:#fff6e4;
-    --sk-mw:clamp(400px,31vw,560px);   /* 页边宽度，Dock 据此居中 */
+    --margin-w:clamp(400px,31vw,560px); /* 页边宽度，可拖拽调整 */
+    --sk-mw:var(--margin-w);            /* Dock 据此居中 */
   }
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;}
@@ -22,8 +23,19 @@
   }
   .bk-stage{
     position:fixed; inset:0; display:grid;
-    grid-template-columns:minmax(0,1fr) clamp(400px,31vw,560px);
+    grid-template-columns:minmax(0,1fr) var(--margin-w);
   }
+  /* 书页与页边之间的拖拽条：左右拉，改讲解区宽度 */
+  .bk-resize{
+    position:absolute; top:0; bottom:0; right:calc(var(--margin-w) - 6px);
+    width:12px; z-index:30; cursor:col-resize; touch-action:none;
+  }
+  .bk-resize::after{
+    content:''; position:absolute; left:5px; top:50%; width:2px; height:44px;
+    margin-top:-22px; background:var(--rule); border-radius:2px; opacity:.85;
+    transition:background .15s, opacity .15s;
+  }
+  .bk-resize:hover::after,.bk-resize.dragging::after{background:var(--accent); opacity:1;}
   /* ── 书页 ── */
   .bk-view{
     position:relative; overflow:hidden; background:var(--desk);
@@ -104,18 +116,7 @@
   }
   .n-nav button:hover{background:#fff; color:var(--ink);}
   .n-nav button:disabled{opacity:.22; cursor:default; background:none;}
-  .n-en{
-    margin:10px 0 0; font-family:Georgia,"Times New Roman",serif;
-    font-size:1.35em; line-height:1.4; color:var(--ink);
-  }
-  .n-en mark{background:linear-gradient(transparent 58%,rgba(255,209,102,.65) 58%); color:inherit;}
-  /* 句子里的重点词可点：点词直接单独讲 */
-  .n-wk{
-    font:inherit; color:inherit; background:none; border:0; padding:0; margin:0;
-    border-bottom:1.5px dotted rgba(185,138,40,.6); cursor:pointer;
-  }
-  .n-wk:hover{color:var(--accent); background:#fff2cc; border-bottom-color:var(--accent);}
-  .n-zh{margin:7px 0 0; font-size:1.0625em; line-height:1.55; color:var(--ink-2);}
+  .n-nav button.m-close{width:auto; padding:0 5px; font-size:1em; letter-spacing:.04em;}
   .n-row{display:block; margin-top:9px; line-height:1.52;}
   .n-lab{
     display:inline; font-size:.8125em; font-weight:600; letter-spacing:.04em;
@@ -135,6 +136,26 @@
   }
   .n-chip:hover{border-color:var(--accent); background:#fffaf0; transform:translateY(-1px);}
   .n-chip i{font-style:normal; color:var(--muted); margin-left:5px; font-size:.82em;}
+  /* 复述骨架：逐句点开，讲完一段整副亮出来 */
+  .n-skel{margin-top:14px; padding-top:10px; border-top:1px dashed var(--rule);}
+  .n-skel-cap{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .n-skel-cap span{font-size:.78em; letter-spacing:.06em; color:var(--muted);}
+  .n-skel-btn{
+    flex:none; font:inherit; font-size:.8125em; color:var(--accent); background:#fff;
+    border:1px solid var(--rule); border-radius:999px; padding:5px 12px; cursor:pointer;
+  }
+  .n-skel-btn:hover{border-color:var(--accent); background:#fffaf0;}
+  .n-skel-btn:disabled{
+    color:var(--muted); background:#fbfaf7; border-color:var(--rule); opacity:.75; cursor:default;
+  }
+  .n-skel-list{margin-top:8px; display:flex; flex-direction:column; gap:6px;}
+  .n-skel-list.skel-sum{gap:11px; margin-top:4px;}
+  .n-skel-list.skel-sum .s-note{font-size:1.0625em; line-height:1.7;}
+  .n-skel .s-note.new{animation:skelIn .42s ease both;}
+  @keyframes skelIn{from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;}}
+  .n-skel.full{border-top-color:rgba(185,138,40,.5);}
+  .n-skel.full .n-skel-cap span{color:var(--accent); font-weight:600;}
+  .n-skel-done{margin:8px 0 0; font-size:.8125em; color:var(--muted);}
   /* 段卡 */
   .s-head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
   .s-head b{
@@ -189,7 +210,6 @@
   .s-fold summary::-webkit-details-marker{display:none;}
   .s-fold summary::before{content:'＋'; font-size:.8125em; color:var(--muted);}
   .s-fold[open] summary::before{content:'−';}
-  .s-notes{margin-top:9px; display:flex; flex-direction:column; gap:7px;}
   .s-note{
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.96875em;
     line-height:1.62; color:var(--ink-2); white-space:pre-wrap;
@@ -209,58 +229,33 @@
     padding:8px 16px; cursor:pointer;
   }
   .s-jump:hover{border-color:var(--accent);}
-  /* 篇卡 */
+  /* 篇卡：一屏看完整篇骨架，不再分五步 */
   .m-head b{
-    display:block; font-family:Georgia,"Times New Roman",serif; font-size:2em;
+    display:block; font-family:Georgia,"Times New Roman",serif; font-size:1.75em;
     font-weight:600; letter-spacing:-.01em;
   }
-  .m-head span{display:block; margin-top:4px; font-size:.875em; color:var(--muted);}
-  .m-lead{margin:12px 0 0; font-size:1.1875em; line-height:1.78; color:var(--ink-2);}
-  /* 篇层五步：读前 → 扫读 → 骨架 → 认门 → 读后 */
-  .m-steps{display:flex; gap:3px; margin:16px 0 2px;}
-  .m-steps button{
-    flex:1; text-align:center; font:inherit; font-size:.78125em; color:var(--muted);
-    background:none; border:0; border-top:2px solid var(--rule);
-    padding:8px 2px 0; cursor:pointer;
+  .m-head span{display:block; margin-top:3px; font-size:.875em; color:var(--muted);}
+  .m-guide{margin:9px 0 0; font-size:1em; line-height:1.65; color:var(--muted);}
+  .m-spine{margin-top:12px;}
+  .m-node{
+    display:grid; grid-template-columns:2.1em minmax(0,1fr); gap:9px;
+    width:100%; text-align:left; font:inherit; background:none; border:0;
+    border-top:1px dashed var(--rule); padding:12px 0; cursor:pointer;
   }
-  .m-steps button:hover{color:var(--ink); border-top-color:#cdbf9c;}
-  .m-steps button.done{color:var(--accent); border-top-color:#e6cf99;}
-  .m-steps button.cur{color:var(--ink); border-top-color:var(--accent); font-weight:600;}
-  .m-step{display:none;}
-  .m-step.on{display:block;}
-  .m-guide{margin:10px 0 0; font-size:1.0625em; line-height:1.7; color:var(--muted);}
-  .m-skim{margin-top:2px;}
-  .m-sk{border-top:1px dashed var(--rule);}
-  .m-sk-q{
-    display:flex; align-items:flex-start; gap:9px; width:100%; text-align:left; font:inherit;
-    font-size:1.125em; line-height:1.55; color:var(--ink-2); background:none;
-    border:0; padding:14px 0; cursor:pointer;
+  .m-node:first-child{border-top:0; padding-top:2px;}
+  .m-node:hover b{color:var(--accent);}
+  .m-node i{font-style:normal; font-size:.875em; color:var(--accent); padding-top:3px;}
+  .m-node b{
+    display:block; font-family:Georgia,"Times New Roman",serif;
+    font-size:1.25em; font-weight:600; color:var(--ink);
   }
-  .m-sk-q i{font-style:normal; font-size:.722em; color:var(--accent); padding-top:4px; flex:none;}
-  .m-sk-q b{font-weight:400; font-family:Georgia,"Times New Roman",serif; color:var(--ink);}
-  .m-sk-more{margin-left:auto; flex:none; font-size:.75em; color:var(--accent); padding-top:4px;}
-  .m-sk.open .m-sk-more{color:var(--muted);}
-  .m-sk-a{display:none; padding:0 0 16px 24px;}
-  .m-sk.open .m-sk-a{display:block;}
-  .m-sk-a b{display:block; font-size:1.125em; color:var(--ink);}
-  .m-sk-a span{display:block; margin-top:5px; font-size:1.09375em; line-height:1.7; color:var(--ink-2);}
-  .m-chain{display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:12px 0 2px;}
-  .m-chain b{
-    font-size:1.03125em; font-weight:600; color:var(--ink); background:#fff;
-    border:1px solid var(--rule); border-radius:999px; padding:6px 12px;
+  .m-node b em{
+    font-style:normal; font-family:-apple-system,"PingFang SC",sans-serif;
+    font-size:.68em; font-weight:400; color:var(--muted); margin-left:6px;
+    white-space:nowrap;
   }
-  .m-chain i{font-style:normal; color:var(--accent);}
-  .m-pager{
-    display:flex; gap:8px; margin-top:20px; padding:12px 0 2px;
-    position:sticky; bottom:0; background:linear-gradient(to top,var(--paper) 76%,rgba(250,248,242,0));
-  }
-  .m-pager button{
-    font:inherit; font-size:1em; padding:9px 16px; cursor:pointer;
-    border:1px solid var(--rule); border-radius:999px; background:#fff; color:var(--ink);
-  }
-  .m-pager button.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
-  .m-pager button.primary:disabled{opacity:.34; cursor:default;}
-  .m-pager .m-sp{flex:1;}
+  .m-node small{display:block; margin-top:3px; font-size:.9375em; line-height:1.55; color:var(--ink-2);}
+  .m-fold-body{padding:2px 0 4px;}
   .g-part{
     display:grid; grid-template-columns:24px minmax(0,1fr); gap:9px;
     padding:12px 0 0; margin-top:12px; border-top:1px dashed var(--rule);
@@ -272,18 +267,6 @@
   .g-rl{font-size:.96875em; color:var(--accent); margin-top:3px;}
   .g-tx{font-family:Georgia,serif; font-size:1.09375em; line-height:1.6; color:var(--ink-2); margin-top:4px;}
   .g-nt{font-size:.96875em; line-height:1.65; color:var(--muted); margin-top:4px;}
-  .m-map{margin-top:10px; padding-left:14px; border-left:1px solid var(--rule);}
-  .m-root{font-family:Georgia,serif; font-size:1.375em; font-weight:600; padding-bottom:3px;}
-  .m-br{position:relative; margin-top:14px;}
-  .m-br::before{
-    content:''; position:absolute; left:-14px; top:10px; width:10px; height:1px;
-    background:var(--rule);
-  }
-  .m-bt{display:flex; align-items:center; gap:7px; font-size:1.1875em; font-weight:600; color:var(--ink);}
-  .m-bt i{font-style:normal;}
-  .m-bp{margin:5px 0 0 21px; padding:0; list-style:none;}
-  .m-bp li{font-size:1.09375em; line-height:1.72; color:var(--ink-2);}
-  .m-bp li::before{content:'·'; color:var(--muted); margin-right:6px;}
   /* 词条 */
   .n-back{
     font:inherit; font-size:.96875em; color:var(--muted); background:none; border:0;
@@ -293,21 +276,27 @@
   .n-w{display:flex; align-items:baseline; gap:10px;}
   .n-w b{font-family:Georgia,serif; font-size:2.125em; font-weight:600; letter-spacing:-.01em;}
   .n-w span{font-size:.96875em; color:var(--muted); font-family:Georgia,serif;}
-  .n-pos{font-size:1.0625em; color:var(--muted); margin-top:3px;}
+  /* 词卡：先给英文释义，中文释义折起来按需打开 */
+  .n-def{margin:9px 0 0; font-size:1.09375em; line-height:1.65; color:var(--ink);}
+  .n-def i{font-style:normal; font-size:.8em; color:var(--muted); margin-right:6px;}
+  .n-fold{margin-top:9px;}
+  .n-fold summary{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer; list-style:none;
+    font-size:.9375em; color:var(--muted); padding:2px 0;
+  }
+  .n-fold summary::-webkit-details-marker{display:none;}
+  .n-fold summary::before{content:'＋'; font-size:.9em; color:var(--muted);}
+  .n-fold[open] summary::before{content:'−';}
+  .n-fold-body{
+    margin-top:4px; padding:8px 11px; background:#fff;
+    border:1px solid var(--rule); border-radius:8px;
+    font-size:1.03125em; line-height:1.65; color:var(--ink-2);
+  }
   .n-rows{margin-top:16px; display:flex; flex-direction:column; gap:13px;}
   .n-r{display:grid; grid-template-columns:2.4em minmax(0,1fr); gap:8px;}
   .n-r dt{font-size:.84375em; font-weight:600; color:var(--accent); padding-top:4px;}
   .n-r dd{margin:0; font-size:1.15625em; line-height:1.65; color:var(--ink-2);}
   .n-r dd em{font-style:normal; display:block; color:var(--muted); font-size:.811em; margin-top:3px;}
-  /* 词条里的课本原句：把词标出来，讲词不离句 */
-  .n-sent{margin-top:20px; padding-top:13px; border-top:1px dashed var(--rule);}
-  .n-sent p{
-    margin:0; font-family:Georgia,serif; font-size:1.125em; line-height:1.7; color:var(--ink-2);
-  }
-  .n-sent p b{
-    font-weight:600; color:var(--ink);
-    background:linear-gradient(transparent 58%,rgba(255,209,102,.7) 58%);
-  }
   /* 引线 */
   .bk-lead{position:absolute; inset:0; pointer-events:none; overflow:visible;}
   .bk-lead path{fill:none; stroke:var(--accent); stroke-width:1.4; opacity:.55;}
@@ -328,16 +317,18 @@
   .sk-dock-item::after{bottom:auto; top:-20px;}
   /* 「整篇」是总，后面几项是分：留一道呼吸，不用符号 */
   .sk-dock-item[data-key="map"]{margin-right:6px;}
-  /* 字号调节自成一组，与阅读导航隔开 */
+  /* 字号调节与「收起」各自成组，和阅读导航隔开 */
   .sk-dock-item[data-key="fs-down"]{margin-left:6px;}
-  .sk-dock-item[data-key="fs-up"]{margin-right:6px;}
+  .sk-dock-item[data-key="close"]{margin-left:6px;}
   /* 七项 Dock 在窄屏会压到左下角页码，页码让位 */
   @media (max-width:1460px){.bk-pno{display:none;}}
   @media (max-width:1100px){
-    :root{--sk-mw:380px;}
-    .bk-stage{grid-template-columns:minmax(0,1fr) 380px;}
     .sk-dock-item,.sk-dock-item.has-txt{padding:0 7px; min-width:40px;}
     .sk-dock-txt{font-size:12.5px;}
+  }
+  @media (max-width:900px){
+    :root{--margin-w:380px;}
+    .bk-resize{display:none;}
   }
 </style>
 </head>
@@ -359,6 +350,7 @@
     <span class="bk-pno">p. 38</span>
   </aside>
 
+  <div class="bk-resize" id="resize" title="拖动调整讲解区宽度"></div>
   <svg class="bk-lead" id="lead"></svg>
 </div>
 
@@ -633,6 +625,7 @@
       rects: [[0.4996,0.8929,0.8654],[0.4996,0.9071,0.6978]]
     }
   ];
+
   var LINE_H = 0.0152;   // 行框统一高度（占整页高）
   // 句卡顶部只放一个短段名，长英文段名会换行，挤掉讲解
   var SEC_NAV = ['开篇', '郎平', '乔丹', '结尾'];
@@ -669,9 +662,9 @@
     mode: '',          // 'sent' 句层 / 'sec' 段层 / 'map' 篇层 / 'words' 生词
     card: '',          // 'word' 词卡
     s: -1, sec: -1,
-    mapStep: 1,        // 篇层五步：1 读前 → 2 扫读 → 3 骨架 → 4 认门 → 5 读后
-    skim: {},          // 扫读时已经点开过的段
+    lastSec: 1,        // 最近讲过的段：从「整篇」回来时，「本段」不丢上下文
     anchor: null,      // 当前批注要贴住的那个热区
+    skel: {},          // 段序号 → 已写到第几条骨架（按 notes 顺序，0 起）
     z: 1, tx: 0, ty: 0, drag: false, moved: false
   };
 
@@ -822,22 +815,6 @@
     if (!b) return;
     frameBox(b[0], b[1], b[2], b[3], 0.5, 1.35);
   }
-  // 篇层：书名横幅整条进画面
-  function frameMap(){
-    frameBox(MAP_BOX.x1, MAP_BOX.y1, MAP_BOX.x2, MAP_BOX.y2, 0.45, 0.95);
-  }
-  // 读前与扫读要看得见全文，骨架才回到书名横幅
-  function frameForStep(n){
-    if (n === 3) {
-      easeOn();
-      frameMap();
-      apply();
-      setTimeout(function(){ easeOff(); sync(); }, 700);
-    } else {
-      wholePage();
-    }
-  }
-
   function wholePage(){
     var z = Math.min(viewW() / IMG_W, viewH() / IMG_H) * 0.94;
     st.z = z;
@@ -870,7 +847,7 @@
 
   // ── 批注 ──
   function open(s){
-    st.mode = 'sent'; st.s = s; st.sec = SENT[s].sec;
+    st.mode = 'sent'; st.s = s; st.sec = SENT[s].sec; st.lastSec = st.sec;
     st.card = '';
     st.anchor = null;
     hits.querySelectorAll('.hit').forEach(function(b){
@@ -894,9 +871,12 @@
   function openSection(i){
     var secs = noteData.sections || [];
     if (!secs[i]) return;
-    st.mode = 'sec'; st.sec = i; st.s = -1;
+    // 从逐句里点「本段」回来不丢刚写的骨架；重新进这一段讲，则从空白开始
+    var sameSec = st.mode === 'sent' && st.sec === i;
+    st.mode = 'sec'; st.sec = i; st.s = -1; st.lastSec = i;
     st.card = '';
     st.anchor = null;
+    if (!sameSec) st.skel[i] = 0;
     hits.querySelectorAll('.hit, .map-hit').forEach(function(b){ b.classList.remove('on', 'hot'); });
     hits.querySelectorAll('.sec-hit').forEach(function(b){
       var on = b.getAttribute('data-sec') === String(i);
@@ -916,20 +896,20 @@
   function openMap(){
     st.mode = 'map'; st.s = -1; st.sec = -1; st.anchor = null;
     st.card = '';
-    st.mapStep = 1; st.skim = {};
     hits.querySelectorAll('.hit, .sec-hit').forEach(function(b){ b.classList.remove('on', 'hot'); });
     var box = hits.querySelector('.map-hit');
     if (box) { box.classList.add('on'); box.classList.remove('hot'); st.anchor = box; }
     hint.classList.add('gone');
     renderMap();
     paintDock();
-    frameForStep(1);
+    wholePage();
     setTimeout(function(){ easeOff(); sync(); }, 700);
   }
 
   function close(){
     var wasOpen = st.mode !== '';
     st.mode = ''; st.s = -1; st.sec = -1; st.anchor = null; st.card = '';
+    st.skel = {};
     note.classList.remove('in');
     hits.querySelectorAll('.on,.hot').forEach(function(b){ b.classList.remove('on','hot'); });
     lead.innerHTML = '';
@@ -967,14 +947,78 @@
     applyFs();
   }
 
+  // Dock 跟着当前层级换：句层给上一句/下一句，段层给上一段/下一段，
+  // 篇层只留回书页和生词。同类动作不再全都堆在一排里打架。
+  function dockItems(){
+    var items = [];
+    function add(key, text, label, fn){
+      items.push({ key: key, text: text, label: label, onSelect: fn });
+    }
+
+    if (st.card === 'word') {
+      add('back-sent', '回本句', '回到本句', function(){ renderNote(st.s); });
+      add('prev-sent', '上一句', '上一句', function(){ if (st.s > 0) open(st.s - 1); });
+      add('next-sent', '下一句', '下一句', function(){ if (st.s < SENT.length - 1) open(st.s + 1); });
+      add('sec', '本段', '本段', function(){ openSection(SENT[st.s].sec); });
+      add('close', '收起', '收起（Esc）', close);
+      return items;
+    }
+
+    if (st.card === 'skel') {
+      add('back-sent', '回本句', '回到本句', function(){ renderNote(st.s); });
+      add('sec', '本段', '本段', function(){ openSection(st.lastSec); });
+      add('map', '整篇', '整篇（M）', openMap);
+      add('close', '收起', '收起（Esc）', close);
+      return items;
+    }
+
+    if (st.mode === 'map') {
+      add('back-book', '回书页', '回到书页', close);
+      add('words', '生词', '生词', function(){ openWordList(); });
+      add('close', '收起', '收起（Esc）', close);
+      return items;
+    }
+
+    if (st.mode === 'words') {
+      add('back-book', '回书页', '回到书页', close);
+      add('map', '整篇', '整篇（M）', openMap);
+      add('close', '收起', '收起（Esc）', close);
+      return items;
+    }
+
+    if (st.mode === 'sec') {
+      add('prev-sec', '上一段', '上一段', function(){ if (st.sec > 0) openSection(st.sec - 1); });
+      add('next-sec', '下一段', '下一段', function(){ if (st.sec < (noteData.sections || []).length - 1) openSection(st.sec + 1); });
+      add('sent', '逐句', '逐句读这一段', function(){ open(firstSentOfSection(st.sec)); });
+      add('map', '整篇', '整篇（M）', openMap);
+      add('words', '生词', '生词', function(){ openWordList(); });
+      add('close', '收起', '收起（Esc）', close);
+      return items;
+    }
+
+    if (st.mode === 'sent') {
+      add('prev-sent', '上一句', '上一句', function(){ if (st.s > 0) open(st.s - 1); });
+      add('next-sent', '下一句', '下一句', function(){ if (st.s < SENT.length - 1) open(st.s + 1); });
+      add('sec', '本段', '本段', function(){ openSection(SENT[st.s].sec); });
+      add('map', '整篇', '整篇（M）', openMap);
+      add('fs-down', '字小', '讲解字号调小', function(){ stepFs(-1); });
+      add('fs-up', '字大', '讲解字号调大', function(){ stepFs(1); });
+      add('close', '收起', '收起（Esc）', close);
+      return items;
+    }
+
+    // 还没打开任何卡片：只给两个入口
+    add('map', '整篇', '整篇（M）', openMap);
+    add('words', '生词', '生词', function(){ openWordList(); });
+    return items;
+  }
+
   function paintDock(){
-    if (!dockApi) return;
-    var k = '';
-    if (st.mode === 'map') k = 'map';
-    else if (st.mode === 'sec') k = 'sec';
-    else if (st.mode === 'words' || st.card === 'word') k = 'words';
-    else if (st.mode === 'sent') k = 'sent';
-    dockApi.setActive(k);
+    if (!window.SeeklumeDock) return;
+    dockApi = window.SeeklumeDock.mount({
+      items: dockItems(),
+      active: ''
+    });
   }
 
   function openWordList(){
@@ -1015,63 +1059,84 @@
     note.classList.add('in');
   }
 
-  function buildDock(){
-    if (!window.SeeklumeDock) return;
-    dockApi = window.SeeklumeDock.mount({
-      items: [
-        { key: 'map', text: '整篇', label: '整篇（M）',
-          onSelect: function(){ if (st.mode !== 'map') openMap(); } },
-        { key: 'sec', text: '本段', label: '本段',
-          onSelect: function(){
-            if (st.mode === 'sec') return;
-            var i = st.s >= 0 ? SENT[st.s].sec : 1;
-            openSection(i);
-          } },
-        { key: 'sent', text: '本句', label: '本句',
-          onSelect: function(){
-            if (st.card === 'word') { renderNote(st.s); return; }
-            if (st.mode !== 'sent') open(st.s >= 0 ? st.s : firstSentOfSection(st.sec >= 0 ? st.sec : 1));
-          } },
-        { key: 'words', text: '生词', label: '生词',
-          onSelect: function(){ if (st.mode !== 'words') openWordList(); } },
-        { key: 'fs-down', text: '字小', label: '讲解字号调小',
-          onSelect: function(){ stepFs(-1); } },
-        { key: 'fs-up', text: '字大', label: '讲解字号调大',
-          onSelect: function(){ stepFs(1); } },
-        { key: 'close', text: '收起', label: '收起（Esc）', onSelect: close }
-      ],
-      active: ''
+  // ── 复述骨架：不按句子硬绑，老师讲完一组点一下，按 notes 顺序写下一条 ──
+  function skelRow(n, isNew){
+    var lv = n.lv || 0;
+    return '<div class="s-note lv' + lv + (isNew ? ' new' : '') + '" style="padding-left:' + (lv * 15) + 'px">' +
+      (lv === 0 ? '<span class="s-note-dot"></span>' : '') +
+      esc(n.txt || '') +
+      (n.gloss ? '<em>' + esc(n.gloss) + '</em>' : '') +
+    '</div>';
+  }
+
+  function skelBlock(d, s, fresh){
+    var ns = (noteData.sections[d.sec] || {}).notes || [];
+    var count = st.skel[d.sec] || 0;
+    var rows = '';
+    for (var k = 0; k < count && k < ns.length; k++) {
+      rows += skelRow(ns[k], fresh === k);
+    }
+    var complete = ns.length > 0 && count >= ns.length;
+    return '<div class="n-skel' + (complete ? ' full' : '') + '">' +
+      '<div class="n-skel-cap">' +
+        '<span>' + (complete ? '本段骨架 · 完整'
+          : '复述骨架 · ' + esc((noteData.sections[d.sec] || {}).label || '')) + '</span>' +
+        (complete
+          ? '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>'
+          : '<button type="button" class="n-skel-btn" data-skel>写下一条</button>') +
+      '</div>' +
+      (rows ? '<div class="n-skel-list">' + rows + '</div>' : '') +
+      (complete ? '<p class="n-skel-done">这一段讲完了，点「总展示」让学生看整副骨架。</p>' : '') +
+    '</div>';
+  }
+
+  function bindSkel(d, s){
+    var show = note.querySelector('[data-skel-show]');
+    if (show) {
+      show.addEventListener('click', function(){ renderSkelSummary(d.sec, s); });
+      return;
+    }
+    var btn = note.querySelector('[data-skel]');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var ns = (noteData.sections[d.sec] || {}).notes || [];
+      var count = st.skel[d.sec] || 0;
+      if (count >= ns.length) return;
+      // 与当前讲到第几句无关：老师讲完一组，点一下，按 notes 顺序写下一条
+      st.skel[d.sec] = count + 1;
+      var box = note.querySelector('.n-skel');
+      if (!box) return;
+      // 只换骨架这一块：书页和这一句的讲解都不动
+      box.outerHTML = skelBlock(d, s, count);
+      bindSkel(d, s);
+      var nb = note.querySelector('.n-skel');
+      if (!nb) return;
+      var freshRow = nb.querySelector('.s-note.new');
+      if (freshRow) freshRow.scrollIntoView({ block: 'nearest' });
+      requestAnimationFrame(place);
     });
   }
 
-  // 句子里的重点词直接做成可点入口：讲句子时，点到哪个词就讲哪个词
-  function markedSentence(en, words){
-    var list = (words || []).filter(function(w){ return w && w.text; })
-      .map(function(w){ return { text: w.text, card: w.card }; })
-      .sort(function(a, b){ return b.text.length - a.text.length; });
-    if (!list.length) return esc(en);
-    var out = '', i = 0;
-    while (i < en.length) {
-      var hit = null;
-      for (var k = 0; k < list.length; k++) {
-        var t = list[k].text;
-        if (en.substr(i, t.length).toLowerCase() !== t.toLowerCase()) continue;
-        var before = i > 0 ? en.charAt(i - 1) : ' ';
-        var after = en.charAt(i + t.length);
-        if (!after) after = ' ';
-        if (/[A-Za-z]/.test(before) || /[A-Za-z]/.test(after)) continue;
-        hit = list[k]; break;
-      }
-      if (hit) {
-        out += '<button type="button" class="n-wk" data-card="' + esc(hit.card) +
-          '" data-w="' + esc(hit.text) + '">' + esc(en.substr(i, hit.text.length)) + '</button>';
-        i += hit.text.length;
-      } else {
-        out += esc(en.charAt(i));
-        i++;
-      }
-    }
-    return out;
+  // 一段讲完：把整副骨架单独铺开，学生看总展示
+  function renderSkelSummary(secIdx, s){
+    var d = (noteData.sections || [])[secIdx] || {};
+    var ns = d.notes || [];
+    var count = st.skel[secIdx] || 0;
+    var rows = ns.slice(0, count).map(function(n){ return skelRow(n, false); }).join('');
+    st.card = 'skel';
+    note.innerHTML =
+      '<button type="button" class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
+      '<div class="s-head"><b>' + esc(d.label || '') + '</b><span>' + esc(d.short || '') + '</span></div>' +
+      (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
+      '<div class="s-sec"><div class="s-cap">复述骨架 · 照着它把这一段讲一遍</div>' +
+        '<div class="n-skel-list skel-sum">' + rows + '</div></div>';
+    note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
+    note.classList.remove('in');
+    void note.offsetWidth;
+    note.classList.add('in');
+    note.scrollTop = 0;
+    paintDock();
+    requestAnimationFrame(place);
   }
 
   function renderNote(s){
@@ -1092,13 +1157,14 @@
           '<button type="button" data-nav="1"' + (s === SENT.length - 1 ? ' disabled' : '') + ' aria-label="下一句">›</button>' +
         '</span>' +
       '</div>' +
-      '<p class="n-en">' + markedSentence(d.en, d.words) + '</p>' +
-      '<p class="n-zh">' + esc(d.zh) + '</p>' +
       (d.say ? '<div class="n-row"><span class="n-lab">读懂</span><span class="n-val">' + esc(d.say) + '</span></div>' : '') +
       (d.chunk ? '<div class="n-row"><span class="n-lab">词块</span><span class="n-val">' + esc(d.chunk) + '</span></div>' : '') +
       (d.pat ? '<div class="n-row"><span class="n-lab">句型</span><span class="n-val">' + esc(d.pat) + '</span></div>' : '') +
       (d.craft ? '<div class="n-row"><span class="n-lab">写法</span><span class="n-val">' + esc(d.craft) + '</span></div>' : '') +
-      (chips ? '<div class="n-words"><span class="n-words-cap">讲单词</span>' + chips + '</div>' : '');
+      (chips ? '<div class="n-words"><span class="n-words-cap">讲单词</span>' + chips + '</div>' : '') +
+      (((noteData.sections[d.sec] || {}).notes || []).length ? skelBlock(d, s) : '');
+
+    bindSkel(d, s);
 
     note.querySelectorAll('.n-wk, .n-chip').forEach(function(b){
       b.addEventListener('click', function(){
@@ -1159,22 +1225,13 @@
     });
   }
 
-  // ── 段卡：这一段在文章里干什么 + 问题 + 复述骨架 + 段译 ──
+  // ── 段卡：这一段在文章里干什么 + 问题 + 段译 ──
+  // 复述骨架不在段卡出现：逐句讲的时候，老师写一句、点一句，骨架才长出来。
   function renderSection(i){
     var secs = noteData.sections || [];
     var d = secs[i]; if (!d) return;
 
     var qs = qList(d.inquiry);
-
-    var notes = (d.notes || []).map(function(n){
-      var lv = n.lv || 0;
-      // 手写笔记只靠缩进；●/├/└ 不再印到页面上
-      return '<div class="s-note lv' + lv + '" style="padding-left:' + (lv * 15) + 'px">' +
-        (lv === 0 ? '<span class="s-note-dot"></span>' : '') +
-        esc(n.txt || '') +
-        (n.gloss ? '<em>' + esc(n.gloss) + '</em>' : '') +
-      '</div>';
-    }).join('');
 
     var tr = (d.translation || []).map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('');
 
@@ -1197,7 +1254,6 @@
       (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
       (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
       (qs ? '<div class="s-sec"><div class="s-cap">问题 · 先自己想，卡住了看提示，最后对答案（英文作答）</div>' + qs + '</div>' : '') +
-      (notes ? '<details class="s-fold"><summary>复述骨架</summary><div class="s-notes">' + notes + '</div></details>' : '') +
       (crafts ? '<details class="s-fold"><summary>这一段的手法</summary><div class="s-crafts">' + crafts + '</div></details>' : '') +
       (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '') +
       (sentCount ? '<button type="button" class="s-jump" id="sJump">逐句读这一段（' + sentCount + ' 句）→</button>' : '');
@@ -1219,39 +1275,22 @@
     requestAnimationFrame(place);
   }
 
-  // ── 篇卡：五步走 —— 读前 → 扫读 → 骨架 → 认门 → 读后 ──
-  // 整篇架构不能一上来就摊开：先带问题读，再逐段判断，最后才把判断串成骨架。
-  var MAP_STEPS = ['读前', '扫读', '骨架', '认门', '读后'];
-
+  // ── 篇卡：一屏看完整篇骨架 —— 四段各干什么，点一段进段卡 ──
+  // 不再用「读前→扫读→骨架→认门→读后」五步翻页：课堂上老师要的是
+  // 一眼看见全文，而不是连点五次下一步。
   function renderMap(){
     var d = noteData;
     var secs = d.sections || [];
-    var step = st.mapStep || 1;
+    var inq = d.inquiry || {};
+    var pre = qList(inq.pre);
+    var post = qList(inq.post);
 
-    var bar = MAP_STEPS.map(function(name, k){
-      var n = k + 1;
-      return '<button type="button" class="' + (n === step ? 'cur' : (n < step ? 'done' : '')) +
-        '" data-map-step="' + n + '">' + n + ' ' + esc(name) + '</button>';
-    }).join('');
-
-    var pre = qList((d.inquiry || {}).pre);
-    var post = qList((d.inquiry || {}).post);
-
-    var done = secs.filter(function(s, k){ return !!st.skim[k]; }).length;
-
-    var skim = secs.map(function(s, k){
-      var open = !!st.skim[k];
-      return '<div class="m-sk' + (open ? ' open' : '') + '" data-sk="' + k + '">' +
-        '<button type="button" class="m-sk-q"><i>' + ('0' + (k + 1)).slice(-2) + '</i>' +
-          '<b>' + esc(s.open || s.label) + '</b>' +
-          '<span class="m-sk-more">' + (open ? '已看' : '这一段在干什么？') + '</span></button>' +
-        '<div class="m-sk-a"><b>' + esc(s.label) + ' · ' + esc(s.role || '') + '</b>' +
-          '<span>' + esc(s.gist || '') + '</span></div>' +
-      '</div>';
-    }).join('');
-
-    var chain = secs.map(function(s, k){
-      return (k ? '<i>→</i>' : '') + '<b>' + esc(s.short || s.label) + '</b>';
+    var spine = secs.map(function(s, k){
+      return '<button type="button" class="m-node" data-open-sec="' + k + '">' +
+        '<i>' + ('0' + (k + 1)).slice(-2) + '</i>' +
+        '<span><b>' + esc(s.label) + '<em>' + esc(s.short || '') + '</em></b>' +
+          '<small>' + esc(s.role || '') + '</small></span>' +
+      '</button>';
     }).join('');
 
     var parts = (d.genreParts || []).map(function(p){
@@ -1264,85 +1303,25 @@
         '</div></div>';
     }).join('');
 
-    var w = d.whole || {};
-    var map =
-      '<div class="m-map"><div class="m-root">' + esc(w.center || d.title) + '</div>' +
-      (w.branches || []).map(function(b){
-        return '<div class="m-br"><div class="m-bt"><i>' + esc(b.icon || '') + '</i>' +
-          '<span>' + esc(b.title) + '</span></div>' +
-          '<ul class="m-bp">' + (b.points || []).map(function(p){
-            return '<li>' + esc(p) + '</li>';
-          }).join('') + '</ul></div>';
-      }).join('') +
-      '</div>';
-
-    var pager = '<div class="m-pager">' +
-      (step > 1 ? '<button type="button" data-map-step="' + (step - 1) + '">← 上一步</button>' : '') +
-      '<span class="m-sp"></span>' +
-      (step === 2
-        ? '<button type="button" class="primary" data-map-step="3">立骨架 →</button>'
-        : (step < MAP_STEPS.length
-            ? '<button type="button" class="primary" data-map-step="' + (step + 1) + '">下一步：' +
-                MAP_STEPS[step] + ' →</button>'
-            : '<button type="button" data-map-close>回到整页</button>')) +
-      '</div>';
-
     note.innerHTML =
-      '<div class="n-kicker"><span>整篇 / ' + esc(d.title) + '</span>' +
+      '<div class="n-kicker"><span>整篇 / ' + secs.length + ' 段</span>' +
         '<i class="n-rule"></i>' +
-        '<span class="n-nav"><button type="button" data-map-close aria-label="收起">×</button></span>' +
+        '<span class="n-nav"><button type="button" class="m-close" data-map-close>收起</button></span>' +
       '</div>' +
-      '<div class="m-head"><b>' + esc(d.title) + '</b><span>' + esc(d.sub || '') + ' · ' +
-        esc(d.genre || '') + '</span></div>' +
-      '<div class="m-steps">' + bar + '</div>' +
-
-      '<div class="m-step' + (step === 1 ? ' on' : '') + '">' +
-        '<p class="m-guide">先别急着看结构。带着这三个问题读完全文，读完再回来点开答案。</p>' +
-        (pre ? '<div class="s-sec"><div class="s-cap">读前问题 · 点开对答案</div>' + pre + '</div>' : '') +
-      '</div>' +
-
-      '<div class="m-step' + (step === 2 ? ' on' : '') + '">' +
-        '<p class="m-guide">扫读（skimming）：每段只看开头一句，先判断它在全文里干什么。四段都判断过，骨架自己就浮出来了。</p>' +
-        '<div class="s-sec"><div class="s-cap">四段 · 逐段点开（<b id="skDone">' + done + '</b> / ' +
-          secs.length + '）</div><div class="m-skim">' + skim + '</div></div>' +
-      '</div>' +
-
-      '<div class="m-step' + (step === 3 ? ' on' : '') + '">' +
-        '<p class="m-guide">把刚才的判断按顺序串起来——这就是全文的骨架，是读出来的，不是背下来的。</p>' +
-        '<div class="m-chain">' + chain + '</div>' +
-        (map ? '<div class="s-sec"><div class="s-cap">整篇架构 · 顺着刚才四步再走一遍</div>' + map + '</div>' : '') +
-      '</div>' +
-
-      '<div class="m-step' + (step === 4 ? ' on' : '') + '">' +
-        '<p class="m-guide">这一类文章都有同一副骨架。下次遇到杂志人物稿，先找这五块。</p>' +
-        (parts ? '<div class="s-sec"><div class="s-cap">这一类文章的骨架 · 五部件</div>' + parts + '</div>' : '') +
-      '</div>' +
-
-      '<div class="m-step' + (step === 5 ? ' on' : '') + '">' +
-        '<p class="m-guide">读完了，合起来想：两篇人物稿的写法有什么不同？</p>' +
-        (post ? '<div class="s-sec"><div class="s-cap">读后 · 合起来想</div>' + post + '</div>' : '') +
-      '</div>' +
-
-      pager;
+      '<div class="m-head"><b>' + esc(d.title) + '</b><span>' + esc(d.sub || '') + '</span></div>' +
+      '<p class="m-guide">先带着问题读；读完后，用这四段把全文串起来。点任意一段进段卡。</p>' +
+      '<div class="m-spine">' + spine + '</div>' +
+      (pre ? '<details class="s-fold"><summary>读前 · 带着问题读（' + (inq.pre || []).length +
+        '）</summary><div class="m-fold-body">' + pre + '</div></details>' : '') +
+      (parts ? '<details class="s-fold"><summary>这一类文章的骨架 · 五部件</summary>' +
+        '<div class="m-fold-body">' + parts + '</div></details>' : '') +
+      (post ? '<details class="s-fold"><summary>读后 · 合起来想（' + (inq.post || []).length +
+        '）</summary><div class="m-fold-body">' + post + '</div></details>' : '');
 
     bindQuestions(note);
-    note.querySelectorAll('.m-sk-q').forEach(function(b){
+    note.querySelectorAll('[data-open-sec]').forEach(function(b){
       b.addEventListener('click', function(){
-        var row = b.parentNode;
-        var k = parseInt(row.getAttribute('data-sk'), 10);
-        var on = !row.classList.contains('open');
-        row.classList.toggle('open', on);
-        st.skim[k] = on;
-        b.querySelector('.m-sk-more').textContent = on ? '已看' : '这一段在干什么？';
-        var n = secs.filter(function(s, i){ return !!st.skim[i]; }).length;
-        var cnt = note.querySelector('#skDone');
-        if (cnt) cnt.textContent = n;
-      });
-    });
-    note.querySelectorAll('[data-map-step]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var n = parseInt(b.getAttribute('data-map-step'), 10);
-        if (n && n !== st.mapStep) { st.mapStep = n; renderMap(); frameForStep(n); }
+        openSection(parseInt(b.getAttribute('data-open-sec'), 10));
       });
     });
     note.querySelectorAll('[data-map-close]').forEach(function(b){
@@ -1360,15 +1339,7 @@
     return '<div class="n-r"><dt>' + label + '</dt><dd>' + val + '</dd></div>';
   }
 
-  // 在课本原句里把这个词标黄：讲词不离句
-  function markWord(sent, word){
-    var i = word ? sent.toLowerCase().indexOf(word.toLowerCase()) : -1;
-    if (i < 0) return esc(sent);
-    return esc(sent.slice(0, i)) + '<b>' + esc(sent.slice(i, i + word.length)) + '</b>' +
-      esc(sent.slice(i + word.length));
-  }
-
-  function renderWord(cd, s, surface){
+  function renderWord(cd, s){
     st.card = 'word';
     var rows = '';
     if (cd.root) {
@@ -1385,15 +1356,12 @@
     if (cd.pitfall) rows += row('注意', esc(cd.pitfall));
     if (cd.use) rows += row('用', esc(cd.use));
 
-    var sent = cd.sent || (s >= 0 ? SENT[s].en : '');
-
     note.innerHTML =
       '<button class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
       '<div class="n-w"><b>' + esc(cd.w) + '</b>' + (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') + '</div>' +
-      '<div class="n-pos">' + esc(cd.pos || '') + '　' + esc(cd.zh || '') + '</div>' +
-      '<div class="n-rows">' + rows + '</div>' +
-      (sent ? '<div class="n-sent"><div class="s-cap">课本原句</div><p>' +
-        markWord(sent, surface || cd.w) + '</p></div>' : '');
+      (cd.en ? '<p class="n-def">' + (cd.pos ? '<i>' + esc(cd.pos) + '</i>' : '') + esc(cd.en) + '</p>' : '') +
+      (cd.zh ? '<details class="n-fold"><summary>中文释义</summary><div class="n-fold-body">' + esc(cd.zh) + '</div></details>' : '') +
+      '<div class="n-rows">' + rows + '</div>';
 
     note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
     note.scrollTop = 0;
@@ -1465,8 +1433,8 @@
       e.preventDefault();
       var dir = e.key === 'ArrowRight' ? 1 : -1;
       if (st.mode === 'map') {
-        var n = st.mapStep + dir;
-        if (n >= 1 && n <= MAP_STEPS.length) { st.mapStep = n; renderMap(); frameForStep(n); }
+        // 篇卡是一屏总览，不翻页
+        return;
       } else if (st.mode === 'sec') {
         openSection(Math.max(0, Math.min(SEC_HIT.length - 1, st.sec + dir)));
       } else {
@@ -1492,7 +1460,7 @@
 
   applyFs();
   home();
-  buildDock();
+  paintDock();
 })();
 </script>
 </body>

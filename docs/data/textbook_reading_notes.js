@@ -99,7 +99,7 @@
           // 词卡：tier=core 全套（猜→翻→用）／simple 简卡；词根词缀写在 root / affix 里
           words: [
             {
-              w: 'legend', ipa: '/ˈledʒənd/', pos: 'n.', zh: '传奇人物；传说', tier: 'core', src: '课本 p114',
+              w: 'legend', ipa: '/ˈledʒənd/', pos: 'n.', zh: '传奇人物；传说', en: 'a famous person or story that many people admire', tier: 'core', src: '课本 p114',
               sent: 'Help us choose some "Living Legends of Sports".',
               blank: 'Help us choose some "Living ___s of Sports".',
               root: { seg: 'leg-', mean: '读、选（拉丁 legere）', kin: ['legend 本义「该被读的东西」→ 传说 → 传奇人物', 'legible 清晰可读', 'lecture 讲座', 'collect 收集'] },
@@ -110,7 +110,7 @@
               use: '用 legend 说一句：说说你心中的 living legend 是谁。'
             },
             {
-              w: 'master', ipa: '/ˈmɑːstə(r)/', pos: 'n. & v.', zh: '大师；主人 / 掌握', tier: 'core', src: '课本 p114',
+              w: 'master', ipa: '/ˈmɑːstə(r)/', pos: 'n. & v.', zh: '大师；主人 / 掌握', en: 'a person who is very skilled at something; to learn a skill completely', tier: 'core', src: '课本 p114',
               sent: 'They must be athletes who are masters in their sports.',
               blank: 'They must be athletes who are ___s in their sports.',
               root: { seg: 'master', mean: '拉丁 magister「更优者」（magis 更大）', kin: ['master 高人一等的人 → 大师', 'mastery 精通', 'magistrate 地方法官'] },
@@ -121,7 +121,7 @@
               use: '用 master 介绍一位你佩服的人。'
             },
             {
-              w: 'set an example', ipa: '', pos: 'phr.', zh: '树立榜样', tier: 'core', src: '课本 p114',
+              w: 'set an example', ipa: '', pos: 'phr.', zh: '树立榜样', en: 'to behave in a way that others should copy', tier: 'core', src: '课本 p114',
               sent: 'They must be … masters in their sports and also set good examples for others.',
               blank: 'They must be … masters in their sports and also ___ good examples for others.',
               root: { seg: 'exempl-', mean: '取出来（拉丁 exemplum = ex- 出 + emere 取）', kin: ['example 拿出来给人看的东西 → 例子、榜样', 'sample 样品', 'exemplary 典范的'] },
@@ -132,14 +132,14 @@
               use: '用 set an example 说一句：谁为你树立了榜样？'
             },
             {
-              w: 'athlete', ipa: '/ˈæθliːt/', pos: 'n.', zh: '运动员', tier: 'simple', src: '课本 p114',
+              w: 'athlete', ipa: '/ˈæθliːt/', pos: 'n.', zh: '运动员', en: 'a person who is good at sports and competes in events', tier: 'simple', src: '课本 p114',
               sent: 'They must be athletes who are masters in their sports.',
               blank: 'They must be ___s who are masters in their sports.',
               family: ['athlete n. 运动员', 'athletic adj. 运动的', 'athletics n. 田径运动'],
               chunks: ['a professional athlete', 'a track-and-field athlete']
             },
             {
-              w: 'suggestion', ipa: '/səˈdʒestʃən/', pos: 'n.', zh: '建议', tier: 'simple', src: '课本 p114',
+              w: 'suggestion', ipa: '/səˈdʒestʃən/', pos: 'n.', zh: '建议', en: 'an idea or plan that you offer for someone to consider', tier: 'simple', src: '课本 p114',
               sent: 'Send your suggestions for "Living Legends of Sports" to LLS@sports.net.',
               blank: 'Send your ___s for "Living Legends of Sports" to LLS@sports.net.',
               family: ['suggest v. 建议', 'suggestion n. 建议'],
@@ -212,7 +212,7 @@
           ],
           words: [
             {
-              w: 'determination', ipa: '/dɪˌtɜːmɪˈneɪʃn/', pos: 'n.', zh: '决心；果断', tier: 'core', src: '课本 p114',
+              w: 'determination', ipa: '/dɪˌtɜːmɪˈneɪʃn/', pos: 'n.', zh: '决心；果断', en: 'the quality of continuing to try even when something is difficult', tier: 'core', src: '课本 p114',
               sent: 'When the Chinese team was preparing for the 2015 World Cup, her determination was tested.',
               blank: 'When the Chinese team was preparing for the 2015 World Cup, her ___ was tested.',
               root: { seg: 'termin-', mean: '界限、终点（拉丁 terminus）', kin: ['determine = 彻底划定界限 → 决定', 'terminus 终点', 'terminal 终端', 'terminate 终止'] },
@@ -223,7 +223,7 @@
               use: '用 determination 说一句：你为了什么而坚持过？'
             },
             {
-              w: 'injure', ipa: '/ˈɪndʒə(r)/', pos: 'v.', zh: '使受伤', tier: 'core', src: '课本 p114',
+              w: 'injure', ipa: '/ˈɪndʒə(r)/', pos: 'v.', zh: '使受伤', en: 'to hurt yourself or someone else, especially in an accident', tier: 'core', src: '课本 p114',
               sent: 'One of the best players had been injured, and the team captain had to leave because of heart problems.',
               blank: 'One of the best players had been ___d, and the team captain had to leave because of heart problems.',
               root: { seg: 'jur-', mean: '法律、权利（拉丁 jus / juris）', kin: ['injure 本义「不合法地侵害」→ 伤害', 'injury 伤', 'jury 陪审团', 'justice 公正'] },
@@ -234,7 +234,7 @@
               use: '用 injure / injured / injury 各说一句。'
             },
             {
-              w: 'fall apart', ipa: '', pos: 'phr.', zh: '崩溃；瓦解', tier: 'core', src: '课本 p114',
+              w: 'fall apart', ipa: '', pos: 'phr.', zh: '崩溃；瓦解', en: 'to break into pieces; to start to fail completely', tier: 'core', src: '课本 p114',
               sent: 'The team that Lang Ping had built was falling apart.',
               blank: 'The team that Lang Ping had built was falling ___.',
               root: { seg: 'apart', mean: '法语 à part「到一边去」→ 分开', kin: ['take apart 拆开', 'tell apart 分辨', 'come apart 散开'] },
@@ -245,7 +245,7 @@
               use: '用 fall apart 说一句：什么情况下你会觉得「一切都垮了」？'
             },
             {
-              w: 'lose heart', ipa: '', pos: 'phr.', zh: '灰心；气馁', tier: 'core', src: '课本 p114',
+              w: 'lose heart', ipa: '', pos: 'phr.', zh: '灰心；气馁', en: 'to become discouraged and stop hoping to succeed', tier: 'core', src: '课本 p114',
               sent: 'Losing two important players was a big challenge, but Lang Ping did not lose heart.',
               blank: 'Losing two important players was a big challenge, but Lang Ping did not lose ___.',
               root: { seg: 'heart', mean: '这里指「勇气、心气」', kin: ['lose heart 丢了心气 → 气馁', 'take heart 振作起来'] },
@@ -256,49 +256,49 @@
               use: '用 lose heart 说一句：遇到什么也别 lose heart？'
             },
             {
-              w: 'honour', ipa: '/ˈɒnə(r)/', pos: 'n. & v.', zh: '荣誉；尊敬 / 尊敬', tier: 'simple', src: '课本 p114',
+              w: 'honour', ipa: '/ˈɒnə(r)/', pos: 'n. & v.', zh: '荣誉；尊敬 / 尊敬', en: 'great respect and admiration; to show respect to someone', tier: 'simple', src: '课本 p114',
               sent: 'As a player, Lang Ping brought honour and glory to her country.',
               blank: 'As a player, Lang Ping brought ___ and glory to her country.',
               family: ['honour n./v.', 'honourable adj. 值得尊敬的', 'honoured adj. 感到荣幸的'],
               chunks: ['bring honour to', 'in honour of', 'have the honour to do sth']
             },
             {
-              w: 'coach', ipa: '/kəʊtʃ/', pos: 'n. & v.', zh: '教练 / 训练', tier: 'simple', src: '课本 p114',
+              w: 'coach', ipa: '/kəʊtʃ/', pos: 'n. & v.', zh: '教练 / 训练', en: 'a person who trains a team or player; to train them', tier: 'simple', src: '课本 p114',
               sent: 'As a coach, she led the China women\'s volleyball team to medals at world championships and the Olympics.',
               blank: 'As a ___, she led the China women\'s volleyball team to medals at world championships and the Olympics.',
               family: ['coach n. 教练', 'coaching n. 教练工作'],
               chunks: ['a head coach', 'coach sb in sth']
             },
             {
-              w: 'medal', ipa: '/ˈmedl/', pos: 'n.', zh: '奖牌', tier: 'simple', src: '课本 p114',
+              w: 'medal', ipa: '/ˈmedl/', pos: 'n.', zh: '奖牌', en: 'a metal disc given as a prize in a competition', tier: 'simple', src: '课本 p114',
               sent: '… she led the China women\'s volleyball team to medals at world championships and the Olympics.',
               blank: '… she led the China women\'s volleyball team to ___s at world championships and the Olympics.',
               family: ['medal n. 奖牌', 'medalist n. 奖牌获得者'],
               chunks: ['win a gold medal', 'an Olympic medal']
             },
             {
-              w: 'champion', ipa: '/ˈtʃæmpiən/', pos: 'n.', zh: '冠军', tier: 'simple', src: '课本 p114',
+              w: 'champion', ipa: '/ˈtʃæmpiən/', pos: 'n.', zh: '冠军', en: 'a person or team that wins a competition', tier: 'simple', src: '课本 p114',
               sent: 'Two weeks later, they were world champions!',
               blank: 'Two weeks later, they were world ___s!',
               family: ['champion n. 冠军', 'championship n. 锦标赛；冠军称号'],
               chunks: ['world champion', 'defend one\'s title as champion']
             },
             {
-              w: 'glory', ipa: '/ˈɡlɔːri/', pos: 'n.', zh: '光荣；荣誉', tier: 'simple', src: '课本 p114',
+              w: 'glory', ipa: '/ˈɡlɔːri/', pos: 'n.', zh: '光荣；荣誉', en: 'great honour and praise won through success', tier: 'simple', src: '课本 p114',
               sent: 'As a player, Lang Ping brought honour and glory to her country.',
               blank: 'As a player, Lang Ping brought honour and ___ to her country.',
               family: ['glory n. 光荣', 'glorious adj. 光荣的'],
               chunks: ['bring glory to', 'for the glory of', 'go to glory']
             },
             {
-              w: 'abroad', ipa: '/əˈbrɔːd/', pos: 'adv.', zh: '在国外；到国外', tier: 'simple', src: '课本 p114',
+              w: 'abroad', ipa: '/əˈbrɔːd/', pos: 'adv.', zh: '在国外；到国外', en: 'in or to a foreign country', tier: 'simple', src: '课本 p114',
               sent: 'As a person, Lang Ping is loved by fans at home and abroad.',
               blank: 'As a person, Lang Ping is loved by fans at home and ___.',
               family: ['abroad adv. 在国外', 'at home and abroad 国内外'],
               chunks: ['at home and abroad', 'go abroad', 'study abroad']
             },
             {
-              w: 'challenge', ipa: '/ˈtʃælɪndʒ/', pos: 'n. & v.', zh: '挑战 / 向……挑战', tier: 'simple', src: '课本 p114',
+              w: 'challenge', ipa: '/ˈtʃælɪndʒ/', pos: 'n. & v.', zh: '挑战 / 向……挑战', en: 'something difficult that tests your ability; to invite someone to compete', tier: 'simple', src: '课本 p114',
               sent: 'Losing two important players was a big challenge, but Lang Ping did not lose heart.',
               blank: 'Losing two important players was a big ___, but Lang Ping did not lose heart.',
               family: ['challenge n./v. 挑战', 'challenging adj. 有挑战性的'],
@@ -372,7 +372,7 @@
           ],
           words: [
             {
-              w: 'graceful', ipa: '/ˈɡreɪsfl/', pos: 'adj.', zh: '优雅的；优美的', tier: 'core', src: '课本 p114',
+              w: 'graceful', ipa: '/ˈɡreɪsfl/', pos: 'adj.', zh: '优雅的；优美的', en: 'moving in a smooth and attractive way', tier: 'core', src: '课本 p114',
               sent: 'The player who became known as "Air Jordan" changed basketball with his graceful moves and jumps.',
               blank: 'The player who became known as "Air Jordan" changed basketball with his ___ moves and jumps.',
               root: { seg: 'grat- / grace-', mean: '喜爱、恩惠（拉丁 gratia）', kin: ['grace 优雅；恩典', 'grateful 感激的', 'gratitude 感激', 'gracious 亲切的'] },
@@ -383,7 +383,7 @@
               use: '用 graceful 说一句：谁的动作让你觉得 graceful？'
             },
             {
-              w: 'strength', ipa: '/streŋθ/', pos: 'n.', zh: '力量；强项', tier: 'core', src: '课本 p114',
+              w: 'strength', ipa: '/streŋθ/', pos: 'n.', zh: '力量；强项', en: 'the quality of being strong; a good point in someone\'s character', tier: 'core', src: '课本 p114',
               sent: 'Jordan\'s skills were impressive, but the mental strength that he showed made him unique.',
               blank: 'Jordan\'s skills were impressive, but the mental ___ that he showed made him unique.',
               root: { seg: 'strong + -th', mean: '元音变化 + 名词后缀（同类：long→length, wide→width, deep→depth）', kin: ['strong 强的 → strength 力量', 'strengthen 加强'] },
@@ -394,7 +394,7 @@
               use: '用 strength 说一句：你最强的地方是什么？'
             },
             {
-              w: 'failure', ipa: '/ˈfeɪljə(r)/', pos: 'n.', zh: '失败；失败者', tier: 'core', src: '课本 p114',
+              w: 'failure', ipa: '/ˈfeɪljə(r)/', pos: 'n.', zh: '失败；失败者', en: 'a lack of success; an attempt that does not succeed', tier: 'core', src: '课本 p114',
               sent: 'Jordan says that the secret to his success is learning from his failures.',
               blank: 'Jordan says that the secret to his success is learning from his ___s.',
               root: { seg: 'fall-', mean: '拉丁 fallere「欺骗、使失望」', kin: ['fail 使失望 → 失败', 'failure 失败', 'failing 缺点'] },
@@ -405,49 +405,49 @@
               use: '用 failure 说一句：你从哪次 failure 里学到了什么？'
             },
             {
-              w: 'unique', ipa: '/juˈniːk/', pos: 'adj.', zh: '独特的；唯一的', tier: 'simple', src: '课本 p114',
+              w: 'unique', ipa: '/juˈniːk/', pos: 'adj.', zh: '独特的；唯一的', en: 'the only one of its kind; very special', tier: 'simple', src: '课本 p114',
               sent: '… but the mental strength that he showed made him unique.',
               blank: '… but the mental strength that he showed made him ___.',
               family: ['unique adj. 独特的', 'uniqueness n. 独特性'],
               chunks: ['be unique to sb/sth', 'a unique opportunity']
             },
             {
-              w: 'accept', ipa: '/əkˈsept/', pos: 'v.', zh: '接受', tier: 'simple', src: '课本 p114',
+              w: 'accept', ipa: '/əkˈsept/', pos: 'v.', zh: '接受', en: 'to agree to take something or to admit a fact', tier: 'simple', src: '课本 p114',
               sent: '"I can accept failure; everyone fails at something."',
               blank: '"I can ___ failure; everyone fails at something."',
               family: ['accept v. 接受', 'acceptable adj. 可接受的', 'acceptance n. 接受'],
               chunks: ['accept failure', 'accept responsibility', 'an accepted fact']
             },
             {
-              w: 'practise', ipa: '/ˈpræktɪs/', pos: 'v.', zh: '练习', tier: 'simple', src: '课本 p114',
+              w: 'practise', ipa: '/ˈpræktɪs/', pos: 'v.', zh: '练习', en: 'to do something repeatedly in order to improve', tier: 'simple', src: '课本 p114',
               sent: 'Losing games taught him to practise harder and never give up.',
               blank: 'Losing games taught him to ___ harder and never give up.',
               family: ['practise v. 练习（英式）', 'practice n. 练习', 'practical adj. 实际的'],
               chunks: ['practise doing sth', 'practise hard', 'put … into practice']
             },
             {
-              w: 'share', ipa: '/ʃeə(r)/', pos: 'v. & n.', zh: '分享；分担 / 份额', tier: 'simple', src: '课本 p114',
+              w: 'share', ipa: '/ʃeə(r)/', pos: 'v. & n.', zh: '分享；分担 / 份额', en: 'to give part of something to others; a part that belongs to someone', tier: 'simple', src: '课本 p114',
               sent: 'In life, Jordan has learnt to share his success with others.',
               blank: 'In life, Jordan has learnt to ___ his success with others.',
               family: ['share v./n.', 'shared adj. 共有的'],
               chunks: ['share sth with sb', 'share in sth', 'a fair share']
             },
             {
-              w: 'never give up', ipa: '', pos: 'phr.', zh: '永不放弃', tier: 'simple', src: '课本 p114',
+              w: 'never give up', ipa: '', pos: 'phr.', zh: '永不放弃', en: 'to keep trying and never stop, even when it is hard', tier: 'simple', src: '课本 p114',
               sent: 'Losing games taught him to practise harder and never give up.',
               blank: 'Losing games taught him to practise harder and never give ___.',
               family: ['give up 放弃', 'give in 让步；屈服', 'give away 送掉'],
               chunks: ['never give up', 'give up doing sth', 'not give up hope']
             },
             {
-              w: 'mental', ipa: '/ˈmentl/', pos: 'adj.', zh: '精神的；心理的', tier: 'simple', src: '课本 p114',
+              w: 'mental', ipa: '/ˈmentl/', pos: 'adj.', zh: '精神的；心理的', en: 'relating to the mind or to thinking', tier: 'simple', src: '课本 p114',
               sent: '… but the mental strength that he showed made him unique.',
               blank: '… but the ___ strength that he showed made him unique.',
               family: ['mind n. 头脑', 'mental adj. 精神的', 'mentally adv. 精神上'],
               chunks: ['mental strength', 'mental health', 'mental pressure']
             },
             {
-              w: 'secret', ipa: '/ˈsiːkrət/', pos: 'n. & adj.', zh: '秘诀；秘密 / 秘密的', tier: 'simple', src: '课本 p114',
+              w: 'secret', ipa: '/ˈsiːkrət/', pos: 'n. & adj.', zh: '秘诀；秘密 / 秘密的', en: 'something you do not tell others; the reason for success that is not obvious', tier: 'simple', src: '课本 p114',
               sent: 'Jordan says that the secret to his success is learning from his failures.',
               blank: 'Jordan says that the ___ to his success is learning from his failures.',
               family: ['secret n./adj. 秘密（的）', 'secretly adv. 秘密地'],
@@ -525,7 +525,7 @@
       // 放到「拼回去」的卡片网格里收尾。
       unitWords: [
         {
-          w: 'compete', ipa: '/kəmˈpiːt/', pos: 'v.', zh: '竞争；参赛', tier: 'core', src: '课本 p114（单元词）',
+          w: 'compete', ipa: '/kəmˈpiːt/', pos: 'v.', zh: '竞争；参赛', en: 'to try to win against others in a game or contest', tier: 'core', src: '课本 p114（单元词）',
           sent: 'Athletes from all over the world compete in the Olympic Games.',
           blank: 'Athletes from all over the world ___ in the Olympic Games.',
           root: { seg: 'pet-', mean: '寻求、争取（拉丁 petere）', kin: ['compete = com-（一起）+ petere（求）→ 一起争 → 竞争', 'appetite 食欲', 'petition 请愿'] },
@@ -536,7 +536,7 @@
           use: '用 compete 说一句：你参加过什么比赛？'
         },
         {
-          w: 'make sense', ipa: '', pos: 'phr.', zh: '讲得通；有意义', tier: 'core', src: '课本 p114（单元词）',
+          w: 'make sense', ipa: '', pos: 'phr.', zh: '讲得通；有意义', en: 'to be reasonable or easy to understand', tier: 'core', src: '课本 p114（单元词）',
           sent: 'It makes sense to warm up before you exercise.',
           blank: 'It makes ___ to warm up before you exercise.',
           root: { seg: 'sens-', mean: '感觉、知觉（拉丁 sentire / sensus）', kin: ['sense 感觉 → 意义', 'sensible 明智的', 'sensitive 敏感的', 'consent 同意'] },
