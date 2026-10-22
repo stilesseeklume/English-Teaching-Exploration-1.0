@@ -107,6 +107,11 @@
     scrollbar-width:thin;
   }
   .note.in{opacity:1; transform:none; pointer-events:auto;}
+  .n-back{
+    font:inherit; font-size:.96875em; color:var(--muted); background:none; border:0;
+    padding:0 0 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .n-back:hover{color:var(--accent);}
   .n-kicker{
     display:flex; align-items:center; gap:8px;
     font-size:.75em; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
@@ -161,6 +166,9 @@
   .s-head span{font-size:.90625em; color:var(--muted);}
   .s-role{margin-top:8px; font-size:1em; font-weight:600; letter-spacing:.04em; color:var(--accent);}
   .s-gist{margin:10px 0 0; font-size:1.28125em; line-height:1.78; color:var(--ink-2);}
+  /* 段落功能和大意收在折叠里：展开后第一行不再叠一段额外留白 */
+  .s-gist-body .s-role{margin-top:0;}
+  .s-gist-body .s-gist:first-child{margin-top:2px;}
   .s-sec{margin-top:24px;}
   .s-cap{
     font-size:.84375em; letter-spacing:.09em; color:var(--muted); margin-bottom:9px;
@@ -282,6 +290,58 @@
   .n-r dt{font-size:.84375em; font-weight:600; color:var(--accent); padding-top:4px;}
   .n-r dd{margin:0; font-size:1.15625em; line-height:1.65; color:var(--ink-2);}
   .n-r dd em{font-style:normal; display:block; color:var(--muted); font-size:.811em; margin-top:3px;}
+  /* 词卡：从页边弹到屏幕正中，放大成一张可读的卡 */
+  .wc-layer{
+    position:fixed; inset:0; z-index:960;
+    display:flex; align-items:center; justify-content:center;
+    padding:clamp(14px,3.6vh,44px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s ease, visibility .22s linear;
+  }
+  .wc-layer.on{opacity:1; visibility:visible; pointer-events:auto;}
+  .wc-backdrop{
+    position:absolute; inset:0; background:rgba(34,31,24,.44);
+    -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  }
+  .wc-card{
+    position:relative; z-index:1; display:flex; flex-direction:column;
+    width:min(820px,80vw); max-height:min(86vh,860px);
+    padding:clamp(20px,2.9vh,34px) clamp(26px,3.2vw,44px);
+    background:var(--paper); border:1px solid var(--rule); border-radius:20px;
+    box-shadow:0 36px 90px rgba(35,30,18,.32), 0 6px 20px rgba(35,30,18,.14);
+    font-size:clamp(17px,2.35vh,26px);
+    opacity:0; transform:translateY(16px) scale(.94);
+    transition:transform .3s cubic-bezier(.22,.61,.25,1), opacity .24s ease;
+  }
+  .wc-card::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:4px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    opacity:.55; border-radius:20px 20px 0 0;
+  }
+  .wc-layer.on .wc-card{opacity:1; transform:none;}
+  .wc-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; flex:none;}
+  .wc-kicker{font-size:.75em; letter-spacing:.12em; color:var(--muted);}
+  .wc-close{
+    flex:none; font:inherit; font-size:.78em; letter-spacing:.04em; color:var(--ink-2);
+    background:#fff; border:1px solid var(--rule); border-radius:999px;
+    padding:7px 16px; cursor:pointer;
+    transition:border-color .18s, color .18s, background .18s;
+  }
+  .wc-close:hover{border-color:var(--accent); color:var(--accent); background:#fffaf0;}
+  .wc-close:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .wc-body{
+    margin-top:clamp(10px,1.6vh,18px); min-height:0; overflow:auto;
+    overscroll-behavior:contain; padding:2px 6px 2px 0; scrollbar-width:thin;
+  }
+  .wc-body .n-w b{font-size:3em;}
+  .wc-body .n-w span{font-size:1.15em;}
+  .wc-body .n-def{font-size:1.4em; line-height:1.5;}
+  .wc-body .n-rows{gap:12px; margin-top:18px;}
+  .wc-body .n-r dd{font-size:1.12em; line-height:1.5;}
+  @media (max-width:900px){
+    .wc-card{width:calc(100vw - 24px); max-height:88vh; font-size:clamp(16px,2.2vh,20px);}
+    .wc-body .n-w b{font-size:2.5em;}
+  }
   /* 引线 */
   .bk-lead{position:absolute; inset:0; pointer-events:none; overflow:visible;}
   .bk-lead path{fill:none; stroke:var(--accent); stroke-width:1.4; opacity:.55;}
@@ -337,6 +397,18 @@
 
   <div class="bk-resize" id="resize" title="拖动调整讲解区宽度"></div>
   <svg class="bk-lead" id="lead"></svg>
+</div>
+
+<!-- 单词卡：点句卡里的词，在屏幕正中放大成一张卡 -->
+<div class="wc-layer" id="wordLayer" aria-hidden="true">
+  <div class="wc-backdrop" data-wc-close></div>
+  <div class="wc-card" role="dialog" aria-modal="true" aria-label="单词卡">
+    <div class="wc-bar">
+      <span class="wc-kicker" id="wordKicker">单词卡</span>
+      <button type="button" class="wc-close" data-wc-close>收起</button>
+    </div>
+    <div class="wc-body" id="wordCard"></div>
+  </div>
 </div>
 
 <!-- 全站登录门禁（功能页强制登录） -->
@@ -645,12 +717,13 @@
 
   var st = {
     mode: '',          // 'sent' 句层 / 'sec' 段层 / 'map' 篇层 / 'words' 生词
-    card: '',          // 'word' 词卡
+    card: '',          // 'skel' 骨架总展示
     s: -1, sec: -1,
     lastSec: 1,        // 最近讲过的段：从「整篇」回来时，「本段」不丢上下文
     anchor: null,      // 当前批注要贴住的那个热区
     skel: {},          // 段序号 → 已写到第几条骨架（按 notes 顺序，0 起）
     skelOpen: {},      // 段序号 → 复述骨架是否展开（默认收起）
+    wordOpen: false,   // 单词卡是否正盖在屏幕中央
     z: 1, tx: 0, ty: 0, drag: false, moved: false
   };
 
@@ -661,6 +734,9 @@
   var note = document.getElementById('note');
   var hint = document.getElementById('hint');
   var lead = document.getElementById('lead');
+  var wordLayer = document.getElementById('wordLayer');
+  var wordCard = document.getElementById('wordCard');
+  var wordKicker = document.getElementById('wordKicker');
 
   function esc(s){
     return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -893,6 +969,7 @@
   }
 
   function close(){
+    closeWord();
     var wasOpen = st.mode !== '';
     st.mode = ''; st.s = -1; st.sec = -1; st.anchor = null; st.card = '';
     st.skel = {}; st.skelOpen = {};
@@ -937,15 +1014,6 @@
     var items = [];
     function add(key, text, label, fn){
       items.push({ key: key, text: text, label: label, onSelect: fn });
-    }
-
-    if (st.card === 'word') {
-      add('back-sent', '回本句', '回到本句', function(){ renderNote(st.s); });
-      add('prev-sent', '上一句', '上一句', function(){ if (st.s > 0) open(st.s - 1); });
-      add('next-sent', '下一句', '下一句', function(){ if (st.s < SENT.length - 1) open(st.s + 1); });
-      add('sec', '本段', '本段', function(){ openSection(SENT[st.s].sec); });
-      add('close', '收起', '收起（Esc）', close);
-      return items;
     }
 
     if (st.card === 'skel') {
@@ -1134,11 +1202,14 @@
     var count = st.skel[secIdx] || 0;
     var rows = ns.slice(0, count).map(function(n){ return skelRow(n, false); }).join('');
     st.card = 'skel';
+    st.s = s;
     note.innerHTML =
+      '<button type="button" class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
       '<div class="s-head"><b>' + esc(d.label || '') + '</b><span>' + esc(d.short || '') + '</span></div>' +
       (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
       '<div class="s-sec"><div class="s-cap">复述骨架 · 照着它把这一段讲一遍</div>' +
         '<div class="n-skel-list skel-sum">' + rows + '</div></div>';
+    note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
     note.classList.remove('in');
     void note.offsetWidth;
     note.classList.add('in');
@@ -1150,8 +1221,7 @@
   function renderNote(s){
     st.card = '';
     var d = SENT[s];
-    // 每翻到一句，复述骨架先收起；老师点了「显示」才展开
-    st.skelOpen[d.sec] = false;
+    // 句间翻动不改骨架的展开状态：展开/收起只由老师点「显示 / 隐藏」控制
     // 句卡里的词只露词形，释义点开词卡再看——省地方，也更像课堂上的一个“抓手”
     var chips = (d.words || []).map(function(w){
       return '<button class="n-chip" data-card="' + esc(w.card) + '" data-w="' + esc(w.text) + '">' +
@@ -1224,13 +1294,23 @@
     });
   }
 
-  // ── 段卡：这一段在文章里干什么 + 问题 + 段译 ──
-  // 复述骨架不在段卡出现：逐句讲的时候，老师写一句、点一句，骨架才长出来。
+  // ── 段卡：问题在前，结论在后 ──
+  // 段落功能和段落大意都是「答案」，默认收起，等学生对完答案再展开；
+  // 顶部只留段号和人名/小标题，让学生先读、先想，而不是先看结论。
+  // 复述骨架不在段卡出现：逐句讲的时候，老师讲完一组点一下，骨架才长出来。
   function renderSection(i){
     var secs = noteData.sections || [];
     var d = secs[i]; if (!d) return;
 
     var qs = qList(d.inquiry);
+
+    var gist = (d.role || d.gist)
+      ? '<details class="s-fold"><summary>段落大意 · 对完答案再看</summary>' +
+          '<div class="s-gist-body">' +
+            (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
+            (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
+          '</div></details>'
+      : '';
 
     var tr = (d.translation || []).map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('');
 
@@ -1243,9 +1323,8 @@
         '<i class="n-rule"></i>' +
       '</div>' +
       '<div class="s-head"><b>' + esc(d.label) + '</b><span>' + esc(d.short || '') + '</span></div>' +
-      (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
-      (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
       (qs ? '<div class="s-sec"><div class="s-cap">问题 · 先自己想，卡住了看提示，最后对答案（英文作答）</div>' + qs + '</div>' : '') +
+      gist +
       (crafts ? '<details class="s-fold"><summary>这一段的手法</summary><div class="s-crafts">' + crafts + '</div></details>' : '') +
       (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '');
 
@@ -1317,8 +1396,9 @@
     return '<div class="n-r"><dt>' + label + '</dt><dd>' + val + '</dd></div>';
   }
 
+  // 词卡不再挤在页边：点词后弹到屏幕正中，放大成一张真正能“看”的卡。
+  // 句卡留在原位，收起后正好回到刚才那一句。
   function renderWord(cd, s){
-    st.card = 'word';
     var rows = '';
     if (cd.root) {
       rows += row('词根', '<b>' + esc(cd.root.seg || '') + '</b>　' + esc(cd.root.mean || '') +
@@ -1334,19 +1414,29 @@
     if (cd.pitfall) rows += row('注意', esc(cd.pitfall));
     if (cd.use) rows += row('用', esc(cd.use));
 
-    note.innerHTML =
+    wordCard.innerHTML =
       '<div class="n-w"><b>' + esc(cd.w) + '</b>' + (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') + '</div>' +
       (cd.en ? '<p class="n-def">' + (cd.pos ? '<i>' + esc(cd.pos) + '</i>' : '') + esc(cd.en) + '</p>' : '') +
       (cd.zh ? '<details class="n-fold"><summary>中文释义</summary><div class="n-fold-body">' + esc(cd.zh) + '</div></details>' : '') +
       '<div class="n-rows">' + rows + '</div>';
-
-    note.scrollTop = 0;
-    note.classList.remove('in');
-    void note.offsetWidth;
-    note.classList.add('in');
-    paintDock();
-    requestAnimationFrame(place);
+    wordKicker.textContent = '单词卡' + (s >= 0 ? ' · 第 ' + (s + 1) + ' 句' : '');
+    wordCard.scrollTop = 0;
+    st.wordOpen = true;
+    wordLayer.classList.add('on');
+    wordLayer.setAttribute('aria-hidden', 'false');
+    wordLayer.querySelector('.wc-close').focus({ preventScroll: true });
   }
+
+  function closeWord(){
+    if (!st.wordOpen) return;
+    st.wordOpen = false;
+    wordLayer.classList.remove('on');
+    wordLayer.setAttribute('aria-hidden', 'true');
+  }
+
+  wordLayer.querySelectorAll('[data-wc-close]').forEach(function(b){
+    b.addEventListener('click', closeWord);
+  });
 
   // 讲解卡高度跟内容走；引线从书上的句子指到卡片左上角
   function place(){ drawLead(); }
@@ -1461,6 +1551,11 @@
 
   // ── 键盘 ──
   document.addEventListener('keydown', function(e){
+    // 词卡盖在中间时，只认 Esc：不让方向键在卡背后换句
+    if (st.wordOpen) {
+      if (e.key === 'Escape') { e.preventDefault(); closeWord(); }
+      return;
+    }
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       e.preventDefault();
       var dir = e.key === 'ArrowRight' ? 1 : -1;

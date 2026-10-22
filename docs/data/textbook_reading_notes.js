@@ -118,7 +118,7 @@
               chunks: ['a master of sth', 'be a master in one\'s sport', 'master a skill'],
               affix: [{ af: '-y', mean: '名词 → 抽象名词', ex: 'master → mastery' }],
               pitfall: 'a master of …（某方面的大师）与 masters in their sports（在各自项目里出类拔萃）注意介词差异。',
-              use: '用 master 介绍一位你佩服的人。'
+              use: '推荐一位你佩服的人：He / She is a master in ___ because ___.'
             },
             {
               w: 'set an example', ipa: '', pos: 'phr.', zh: '树立榜样', en: 'to behave in a way that others should copy', tier: 'core', src: '课本 p114',
@@ -129,7 +129,7 @@
               chunks: ['set an example for sb', 'follow sb\'s example', 'for example'],
               affix: [{ af: '-ary', mean: '名词 → 形容词', ex: 'example → exemplary' }],
               pitfall: '介词是 for：set an example for others（别用 to）。',
-              use: '用 set an example 说一句：谁为你树立了榜样？'
+              use: '提名一位身边的榜样：He / She sets a good example for ___ by ___.'
             },
             {
               w: 'athlete', ipa: '/ˈæθliːt/', pos: 'n.', zh: '运动员', en: 'a person who is good at sports and competes in events', tier: 'simple', src: '课本 p114',
