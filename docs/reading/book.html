@@ -383,38 +383,49 @@
   .wc-body .n-def{font-size:1.4em; line-height:1.5;}
   .wc-body .n-rows{gap:12px; margin-top:18px;}
   .wc-body .n-r dd{font-size:1.12em; line-height:1.5;}
-  /* 复述骨架总展示：宽卡，左边骨架、右边词块与句型对照 */
+  /* 复述骨架总展示：与词卡同尺寸同字号，左边一整块骨架、右边逐行参考 */
   .sk-layer{z-index:940;}   /* 低于词卡：在骨架卡里点单词，词卡盖在它上面 */
-  .sk-card{width:min(1180px,94vw); font-size:calc(clamp(17px,2.35vh,26px));}
+  #skelLayer{align-items:flex-start; padding:2.4vh clamp(12px,2vw,28px) 0;}
+  #skelLayer .wc-card{
+    width:min(1560px,94vw);
+    height:72.6vh; max-height:72.6vh;
+    font-size:calc(clamp(18px,2.6vh,30px) * var(--sk-fs,1.18));
+  }
   .sk-body{padding-right:8px;}
-  .sk-intro{margin:0 0 14px; font-size:.9em; line-height:1.65; color:var(--muted);}
-  .sk-rows{display:flex; flex-direction:column;}
-  .sk-row{
-    display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
-    gap:clamp(24px,3.4vw,58px); padding:clamp(12px,1.6vh,18px) 0;
-    border-top:1px dashed var(--rule);
+  .sk-intro{margin:0 0 12px; font-size:.9em; line-height:1.6; color:var(--muted);}
+  /* 左栏是一整块连续笔记：只有缩进，没有行框、编号和分隔线 */
+  .sk-panes{
+    display:grid; grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);
+    gap:clamp(26px,3.6vw,64px); align-items:start;
   }
-  .sk-row:first-child{border-top:0; padding-top:2px;}
-  .sk-left{display:grid; grid-template-columns:2.2em minmax(0,1fr); gap:10px; align-items:start;}
-  .sk-no{font-size:.72em; letter-spacing:.06em; color:var(--accent); padding-top:.55em;}
-  .sk-skel .s-note{font-size:1.02em; line-height:1.68;}
-  .sk-right{border-left:1px dashed var(--rule); padding-left:clamp(18px,2.4vw,34px); min-width:0;}
-  .sk-ref{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px;}
-  .sk-ref + .sk-ref{margin-top:7px;}
-  .sk-ref > b{flex:none; min-width:2.4em; font-size:.7em; letter-spacing:.08em; color:var(--muted); font-weight:600;}
+  .sk-note-block{display:flex; flex-direction:column; gap:6px;}
+  .sk-note-block .s-note{font-size:1.04em; line-height:1.62;}
+  /* 右栏按骨架顺序逐条给参照，不强行和左栏逐行等高 */
+  .sk-ref-list{
+    display:flex; flex-direction:column; gap:clamp(10px,1.5vh,16px);
+    border-left:1px dashed var(--rule); padding-left:clamp(20px,2.6vw,38px); min-width:0;
+  }
+  .sk-ref-block{display:grid; grid-template-columns:2em minmax(0,1fr); gap:8px; align-items:start;}
+  .sk-ref-no{font-size:.78em; letter-spacing:.05em; color:var(--accent); padding-top:.3em;}
+  .sk-ref-body{min-width:0;}
+  .sk-ref{display:flex; flex-wrap:wrap; align-items:baseline; gap:7px;}
+  .sk-ref + .sk-ref{margin-top:6px;}
   .sk-tag{
-    display:inline-block; padding:3px 9px; border:1px solid var(--rule); border-radius:999px;
-    font-size:.78em; line-height:1.45; color:var(--ink-2); background:#fff;
+    display:inline-block; padding:4px 11px; border:1px solid var(--rule); border-radius:999px;
+    font-size:.9em; line-height:1.4; color:var(--ink-2); background:#fff;
   }
-  .sk-word{border-color:rgba(185,138,40,.45); color:var(--ink); background:#fffdf7;}
-  .sk-chunk{border-color:rgba(185,138,40,.28); background:#fff6e4; color:var(--ink-2);}
-  .sk-pat{flex:1; min-width:0; font-size:.82em; line-height:1.55; color:var(--ink-2);}
-  .sk-none{font-size:.82em; color:var(--muted);}
+  .sk-word{border-color:rgba(185,138,40,.5); color:var(--ink); background:#fffdf7; cursor:pointer;}
+  .sk-word:hover{border-color:var(--accent); background:#fff6e4;}
+  .sk-chunk{border-color:rgba(185,138,40,.3); background:#fff6e4; color:var(--ink-2);}
+  .sk-pat{font-size:.94em; line-height:1.5; color:var(--ink-2);}
+  .sk-pat b{font-weight:600; font-size:.86em; letter-spacing:.04em; color:var(--accent); margin-right:5px;}
   @media (max-width:900px){
-    .sk-card{width:calc(100vw - 24px);}
-    .sk-row{grid-template-columns:1fr; gap:10px;}
-    .sk-right{border-left:0; padding-left:0; padding-top:9px; border-top:1px dashed var(--rule);}
-    .sk-left{grid-template-columns:1.8em minmax(0,1fr);}
+    #skelLayer .wc-card{
+      width:calc(100vw - 24px); height:86vh; max-height:86vh;
+      font-size:calc(clamp(16px,2.2vh,20px) * var(--sk-fs,1.18));
+    }
+    .sk-panes{grid-template-columns:1fr; gap:14px;}
+    .sk-ref-list{border-left:0; padding-left:0; padding-top:12px; border-top:1px dashed var(--rule);}
   }
   @media (max-width:900px){
     #wordLayer .wc-card{
@@ -507,6 +518,8 @@
     <div class="wc-bar">
       <span class="wc-kicker" id="skelKicker">复述骨架</span>
       <div class="wc-tools">
+        <button type="button" class="wc-btn" data-sk-fs="-1">字小</button>
+        <button type="button" class="wc-btn" data-sk-fs="1">字大</button>
         <button type="button" class="wc-close" data-skel-close>收起</button>
       </div>
     </div>
@@ -1315,46 +1328,62 @@
   }
 
   // 一段讲完：整副骨架像词卡一样弹到屏幕正中。
-  // 左边是骨架（学生照着复述），右边逐行给出这一段用到的单词、词块与重点句型，
-  // 让学生复述时知道该把刚学的东西放进去。
+  // 左栏是完整的一块骨架（学生照着复述），右栏按同一次序逐条给出
+  // 这一行用到的单词、词块与重点句型，作为复述时的对照参考。
   function skelMarkRow(n){
     var parts = [];
     if (n.words && n.words.length) {
-      parts.push('<div class="sk-ref"><b>单词</b>' + n.words.map(function(w){
+      parts.push('<div class="sk-ref">' + n.words.map(function(w){
         return WORDS[w]
           ? '<button type="button" class="sk-tag sk-word" data-sk-word="' + esc(w) + '">' + esc(w) + '</button>'
           : '<span class="sk-tag sk-word">' + esc(w) + '</span>';
       }).join('') + '</div>');
     }
     if (n.chunks && n.chunks.length) {
-      parts.push('<div class="sk-ref"><b>词块</b>' + n.chunks.map(function(c){
+      parts.push('<div class="sk-ref">' + n.chunks.map(function(c){
         return '<span class="sk-tag sk-chunk">' + esc(c) + '</span>';
       }).join('') + '</div>');
     }
     if (n.pat) {
-      parts.push('<div class="sk-ref"><b>句型</b><span class="sk-pat">' + esc(n.pat) + '</span></div>');
+      parts.push('<div class="sk-ref"><span class="sk-pat"><b>句型</b>' + esc(n.pat) + '</span></div>');
     }
-    return parts.length ? parts.join('') : '<div class="sk-none">—</div>';
+    return parts.join('');
   }
 
   function openSkelCard(secIdx){
     var d = (noteData.sections || [])[secIdx] || {};
     var ns = d.notes || [];
     var count = st.skel[secIdx] || 0;
-    var rows = ns.slice(0, count).map(function(n, k){
-      return '<div class="sk-row">' +
-        '<div class="sk-left"><span class="sk-no">' + ('0' + (k + 1)).slice(-2) + '</span>' +
-          '<div class="sk-skel">' + skelRow(n, false) + '</div></div>' +
-        '<div class="sk-right">' + skelMarkRow(n) + '</div>' +
+    var shown = ns.slice(0, count);
+
+    // 左栏：整块骨架连在一起，不加编号、不加横线
+    var noteBlock = shown.map(function(n){
+      var lv = n.lv || 0;
+      return '<div class="s-note lv' + lv + '" style="padding-left:' + (lv * 24) + 'px">' +
+        (lv === 0 ? '<span class="s-note-dot"></span>' : '') + esc(n.txt || '') +
+        (n.gloss ? '<em>' + esc(n.gloss) + '</em>' : '') +
+      '</div>';
+    }).join('');
+
+    // 右栏：同一顺序的参照；有标注的才排号，编号与左栏行序一致
+    var refList = shown.map(function(n, k){
+      var marks = skelMarkRow(n);
+      if (!marks) return '';
+      return '<div class="sk-ref-block">' +
+        '<span class="sk-ref-no">' + ('0' + (k + 1)).slice(-2) + '</span>' +
+        '<div class="sk-ref-body">' + marks + '</div>' +
       '</div>';
     }).join('');
 
     document.getElementById('skelKicker').textContent =
       '复述骨架 · ' + (d.label || '') + (d.short ? ' · ' + d.short : '') + ' · 共 ' + count + ' 条';
     document.getElementById('skelCard').innerHTML =
-      '<p class="sk-intro">照着左边的骨架把这一段讲一遍；右边的单词、词块和句型就是这一段用到的内容，' +
+      '<p class="sk-intro">照着左边的骨架把这一段讲一遍；右边按同样的顺序列了每一行用到的单词、词块和句型，' +
         '尽量把它们说进去。点单词可打开词卡。</p>' +
-      '<div class="sk-rows">' + rows + '</div>';
+      '<div class="sk-panes">' +
+        '<div class="sk-note-block">' + noteBlock + '</div>' +
+        '<div class="sk-ref-list">' + refList + '</div>' +
+      '</div>';
 
     document.getElementById('skelCard').querySelectorAll('[data-sk-word]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -1366,6 +1395,7 @@
     st.skelCardOpen = true;
     skelLayer.classList.add('on');
     skelLayer.setAttribute('aria-hidden', 'false');
+    applySkelFs();
     skelLayer.querySelector('.wc-close').focus({ preventScroll: true });
   }
 
@@ -1715,6 +1745,27 @@
         try { localStorage.setItem('seeklume.wordCardFs', String(wcFsIdx)); } catch (err) {}
       }
       applyWcFs();
+      b.blur();
+    });
+  });
+
+  // 骨架卡字号：和词卡同一套档位，各自记忆
+  var skFsIdx = 2;
+  try {
+    var savedSkFs = parseInt(localStorage.getItem('seeklume.skelCardFs'), 10);
+    if (savedSkFs >= 0 && savedSkFs < WC_FS.length) skFsIdx = savedSkFs;
+  } catch (err) {}
+  function applySkelFs(){
+    skelLayer.querySelector('.wc-card').style.setProperty('--sk-fs', WC_FS[skFsIdx]);
+  }
+  skelLayer.querySelectorAll('[data-sk-fs]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var n = Math.max(0, Math.min(WC_FS.length - 1, skFsIdx + parseInt(b.getAttribute('data-sk-fs'), 10)));
+      if (n !== skFsIdx) {
+        skFsIdx = n;
+        try { localStorage.setItem('seeklume.skelCardFs', String(skFsIdx)); } catch (err) {}
+      }
+      applySkelFs();
       b.blur();
     });
   });
