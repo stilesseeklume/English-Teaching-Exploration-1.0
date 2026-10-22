@@ -149,8 +149,6 @@
     color:var(--muted); background:#fbfaf7; border-color:var(--rule); opacity:.75; cursor:default;
   }
   .n-skel-list{margin-top:8px; display:flex; flex-direction:column; gap:6px;}
-  .n-skel-list.skel-sum{gap:11px; margin-top:4px;}
-  .n-skel-list.skel-sum .s-note{font-size:1.0625em; line-height:1.7;}
   .n-skel .s-note.new{animation:skelIn .42s ease both;}
   @keyframes skelIn{from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;}}
   .n-skel.full{border-top-color:rgba(185,138,40,.5);}
@@ -372,6 +370,39 @@
   .wc-body .n-def{font-size:1.4em; line-height:1.5;}
   .wc-body .n-rows{gap:12px; margin-top:18px;}
   .wc-body .n-r dd{font-size:1.12em; line-height:1.5;}
+  /* 复述骨架总展示：宽卡，左边骨架、右边词块与句型对照 */
+  .sk-layer{z-index:940;}   /* 低于词卡：在骨架卡里点单词，词卡盖在它上面 */
+  .sk-card{width:min(1180px,94vw); font-size:calc(clamp(17px,2.35vh,26px));}
+  .sk-body{padding-right:8px;}
+  .sk-intro{margin:0 0 14px; font-size:.9em; line-height:1.65; color:var(--muted);}
+  .sk-rows{display:flex; flex-direction:column;}
+  .sk-row{
+    display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+    gap:clamp(24px,3.4vw,58px); padding:clamp(12px,1.6vh,18px) 0;
+    border-top:1px dashed var(--rule);
+  }
+  .sk-row:first-child{border-top:0; padding-top:2px;}
+  .sk-left{display:grid; grid-template-columns:2.2em minmax(0,1fr); gap:10px; align-items:start;}
+  .sk-no{font-size:.72em; letter-spacing:.06em; color:var(--accent); padding-top:.55em;}
+  .sk-skel .s-note{font-size:1.02em; line-height:1.68;}
+  .sk-right{border-left:1px dashed var(--rule); padding-left:clamp(18px,2.4vw,34px); min-width:0;}
+  .sk-ref{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px;}
+  .sk-ref + .sk-ref{margin-top:7px;}
+  .sk-ref > b{flex:none; min-width:2.4em; font-size:.7em; letter-spacing:.08em; color:var(--muted); font-weight:600;}
+  .sk-tag{
+    display:inline-block; padding:3px 9px; border:1px solid var(--rule); border-radius:999px;
+    font-size:.78em; line-height:1.45; color:var(--ink-2); background:#fff;
+  }
+  .sk-word{border-color:rgba(185,138,40,.45); color:var(--ink); background:#fffdf7;}
+  .sk-chunk{border-color:rgba(185,138,40,.28); background:#fff6e4; color:var(--ink-2);}
+  .sk-pat{flex:1; min-width:0; font-size:.82em; line-height:1.55; color:var(--ink-2);}
+  .sk-none{font-size:.82em; color:var(--muted);}
+  @media (max-width:900px){
+    .sk-card{width:calc(100vw - 24px);}
+    .sk-row{grid-template-columns:1fr; gap:10px;}
+    .sk-right{border-left:0; padding-left:0; padding-top:9px; border-top:1px dashed var(--rule);}
+    .sk-left{grid-template-columns:1.8em minmax(0,1fr);}
+  }
   @media (max-width:900px){
     .wc-card{width:calc(100vw - 24px); max-height:90vh; font-size:calc(clamp(16px,2.2vh,20px) * var(--wc-fs,1));}
     .wc-body .n-w b{font-size:2.5em;}
@@ -449,6 +480,20 @@
       </div>
     </div>
     <div class="wc-body" id="wordCard"></div>
+  </div>
+</div>
+
+<!-- 复述骨架总展示：像词卡一样在屏幕正中铺开，左边骨架、右边词块与句型对照 -->
+<div class="wc-layer sk-layer" id="skelLayer" aria-hidden="true">
+  <div class="wc-backdrop" data-skel-close></div>
+  <div class="wc-card sk-card" role="dialog" aria-modal="true" aria-label="复述骨架总展示">
+    <div class="wc-bar">
+      <span class="wc-kicker" id="skelKicker">复述骨架</span>
+      <div class="wc-tools">
+        <button type="button" class="wc-close" data-skel-close>收起</button>
+      </div>
+    </div>
+    <div class="wc-body sk-body" id="skelCard"></div>
   </div>
 </div>
 
@@ -758,12 +803,13 @@
 
   var st = {
     mode: '',          // 'sent' 句层 / 'sec' 段层 / 'map' 篇层 / 'words' 生词
-    card: '',          // 'skel' 骨架总展示
+    card: '',          // 保留占位（词卡、骨架总展示已改为居中弹层）
     s: -1, sec: -1,
     lastSec: 1,        // 最近讲过的段：从「整篇」回来时，「本段」不丢上下文
     anchor: null,      // 当前批注要贴住的那个热区
     skel: {},          // 段序号 → 已写到第几条骨架（按 notes 顺序，0 起）
     skelOpen: {},      // 段序号 → 复述骨架是否展开（默认收起）
+    skelCardOpen: false, // 骨架总展示卡是否正盖在屏幕中央
     wordOpen: false,   // 单词卡是否正盖在屏幕中央
     wordFace: 'front', // 单词卡当前面：front 讲解 / back 语用与高考
     wordData: null,    // 当前词卡数据，翻面时复用
@@ -781,6 +827,7 @@
   var wordLayer = document.getElementById('wordLayer');
   var wordCard = document.getElementById('wordCard');
   var wordKicker = document.getElementById('wordKicker');
+  var skelLayer = document.getElementById('skelLayer');
 
   function esc(s){
     return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -1060,14 +1107,6 @@
       items.push({ key: key, text: text, label: label, onSelect: fn });
     }
 
-    if (st.card === 'skel') {
-      add('back-sent', '回本句', '回到本句', function(){ renderNote(st.s); });
-      add('sec', '本段', '本段', function(){ openSection(st.lastSec); });
-      add('map', '整篇', '整篇（M）', openMap);
-      add('close', '收起', '收起（Esc）', close);
-      return items;
-    }
-
     if (st.mode === 'map') {
       add('back-book', '回书页', '回到书页', close);
       add('words', '生词', '生词', function(){ openWordList(); });
@@ -1136,7 +1175,7 @@
 
     note.innerHTML =
       '<div class="n-kicker"><span>本页生词 / ' + PAGE_WORDS.length + ' 个</span><i class="n-rule"></i></div>' +
-      '<div class="m-head"><b>单词也能单独讲</b><span>点一个词，镜头回到它所在的句子</span></div>' +
+      '<div class="m-head"><b>生词表</b><span>点一个词，镜头回到它所在的句子</span></div>' +
       '<div class="n-words">' + chips + '</div>';
 
     note.querySelectorAll('.n-chip').forEach(function(b){
@@ -1223,7 +1262,7 @@
 
   function bindSkel(d, s){
     note.querySelectorAll('[data-skel-show]').forEach(function(b){
-      b.addEventListener('click', function(){ renderSkelSummary(d.sec, s); });
+      b.addEventListener('click', function(){ openSkelCard(d.sec); });
     });
     var toggle = note.querySelector('[data-skel-toggle]');
     if (toggle) {
@@ -1258,27 +1297,66 @@
     });
   }
 
-  // 一段讲完：把整副骨架单独铺开，学生看总展示
-  function renderSkelSummary(secIdx, s){
+  // 一段讲完：整副骨架像词卡一样弹到屏幕正中。
+  // 左边是骨架（学生照着复述），右边逐行给出这一段用到的单词、词块与重点句型，
+  // 让学生复述时知道该把刚学的东西放进去。
+  function skelMarkRow(n){
+    var parts = [];
+    if (n.words && n.words.length) {
+      parts.push('<div class="sk-ref"><b>单词</b>' + n.words.map(function(w){
+        return WORDS[w]
+          ? '<button type="button" class="sk-tag sk-word" data-sk-word="' + esc(w) + '">' + esc(w) + '</button>'
+          : '<span class="sk-tag sk-word">' + esc(w) + '</span>';
+      }).join('') + '</div>');
+    }
+    if (n.chunks && n.chunks.length) {
+      parts.push('<div class="sk-ref"><b>词块</b>' + n.chunks.map(function(c){
+        return '<span class="sk-tag sk-chunk">' + esc(c) + '</span>';
+      }).join('') + '</div>');
+    }
+    if (n.pat) {
+      parts.push('<div class="sk-ref"><b>句型</b><span class="sk-pat">' + esc(n.pat) + '</span></div>');
+    }
+    return parts.length ? parts.join('') : '<div class="sk-none">—</div>';
+  }
+
+  function openSkelCard(secIdx){
     var d = (noteData.sections || [])[secIdx] || {};
     var ns = d.notes || [];
     var count = st.skel[secIdx] || 0;
-    var rows = ns.slice(0, count).map(function(n){ return skelRow(n, false); }).join('');
-    st.card = 'skel';
-    st.s = s;
-    note.innerHTML =
-      '<button type="button" class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
-      '<div class="s-head"><b>' + esc(d.label || '') + '</b><span>' + esc(d.short || '') + '</span></div>' +
-      (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
-      '<div class="s-sec"><div class="s-cap">复述骨架 · 照着它把这一段讲一遍</div>' +
-        '<div class="n-skel-list skel-sum">' + rows + '</div></div>';
-    note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
-    note.classList.remove('in');
-    void note.offsetWidth;
-    note.classList.add('in');
-    note.scrollTop = 0;
-    paintDock();
-    requestAnimationFrame(place);
+    var rows = ns.slice(0, count).map(function(n, k){
+      return '<div class="sk-row">' +
+        '<div class="sk-left"><span class="sk-no">' + ('0' + (k + 1)).slice(-2) + '</span>' +
+          '<div class="sk-skel">' + skelRow(n, false) + '</div></div>' +
+        '<div class="sk-right">' + skelMarkRow(n) + '</div>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('skelKicker').textContent =
+      '复述骨架 · ' + (d.label || '') + (d.short ? ' · ' + d.short : '') + ' · 共 ' + count + ' 条';
+    document.getElementById('skelCard').innerHTML =
+      '<p class="sk-intro">照着左边的骨架把这一段讲一遍；右边的单词、词块和句型就是这一段用到的内容，' +
+        '尽量把它们说进去。点单词可打开词卡。</p>' +
+      '<div class="sk-rows">' + rows + '</div>';
+
+    document.getElementById('skelCard').querySelectorAll('[data-sk-word]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var cd = WORDS[b.getAttribute('data-sk-word')];
+        if (cd) renderWord(cd, -1);
+      });
+    });
+
+    st.skelCardOpen = true;
+    skelLayer.classList.add('on');
+    skelLayer.setAttribute('aria-hidden', 'false');
+    skelLayer.querySelector('.wc-close').focus({ preventScroll: true });
+  }
+
+  function closeSkelCard(){
+    if (!st.skelCardOpen) return;
+    st.skelCardOpen = false;
+    skelLayer.classList.remove('on');
+    skelLayer.setAttribute('aria-hidden', 'true');
   }
 
   function renderNote(s){
@@ -1491,7 +1569,7 @@
 
     var hasReveal = !!cd.useAnswer || (cd.exam && cd.exam.length > 0);
     if (hasReveal) {
-      html += '<p class="wc-back-note">先让学生自己想、自己说，再点开答案。</p>' +
+      html += '<p class="wc-back-note">先自己想、自己说，再点开答案。</p>' +
         '<button type="button" class="wc-all" data-wc-all>全部出答案</button>';
     }
 
@@ -1502,7 +1580,7 @@
         (cd.useAnswer
           ? '<span class="wc-task-hint">点这一块 → 看参考答案</span>' +
             '<div class="wc-ans"><b>参考答案</b><span>' + esc(cd.useAnswer) + '</span></div>'
-          : '<span class="wc-task-hint">口头任务 · 学生说完即可，不必统一答案</span>') +
+          : '') +
         '</section>';
     }
 
@@ -1584,6 +1662,10 @@
 
   wordLayer.querySelectorAll('[data-wc-close]').forEach(function(b){
     b.addEventListener('click', closeWord);
+  });
+
+  skelLayer.querySelectorAll('[data-skel-close]').forEach(function(b){
+    b.addEventListener('click', closeSkelCard);
   });
 
   // 翻面：正面讲解，反面语用与高考
@@ -1735,6 +1817,11 @@
     // 词卡盖在中间时，只认 Esc：不让方向键在卡背后换句
     if (st.wordOpen) {
       if (e.key === 'Escape') { e.preventDefault(); closeWord(); }
+      return;
+    }
+    // 骨架总展示盖在中间时，也只认 Esc：不让方向键在卡背后换句
+    if (st.skelCardOpen) {
+      if (e.key === 'Escape') { e.preventDefault(); closeSkelCard(); }
       return;
     }
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {

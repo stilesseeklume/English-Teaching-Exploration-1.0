@@ -294,7 +294,7 @@
           '<h2>带着这三个问题去读</h2>' +
           '<p class="ls-lead">' + esc(st.note.lead || '') + '</p>' +
         '</header>' +
-        '<div class="ls-qgrid">' + q.map(function (it) { return qCard(it, '先让学生答，点一下再对'); }).join('') + '</div>' +
+        '<div class="ls-qgrid">' + q.map(function (it) { return qCard(it, '先自己答，点一下再对'); }).join('') + '</div>' +
       '</section>' +
       '</div>';
   }

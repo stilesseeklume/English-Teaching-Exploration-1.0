@@ -90,30 +90,6 @@
     return '<h3 class="nm-h3"' + (extra ? ' ' + extra : '') + '>' + esc(t) + '</h3>';
   }
 
-  // 方法依据：给老师查证用，默认收起，不占学生的视野
-  function refsHtml() {
-    var r = M.refs;
-    if (!r) return '';
-    var items = (r.items || []).map(function (it) {
-      var t = esc(it.text);
-      return '<li id="nm-ref-' + esc(it.id) + '">' +
-        (it.href ? '<a href="' + esc(it.href) + '" target="_blank" rel="noopener">' + t + '</a>' : t) +
-        '</li>';
-    }).join('');
-    var map = (r.map || []).map(function (m) {
-      return '<tr><td style="font-weight:700">' + esc(m.k) + '</td><td>' + esc(m.v) + '</td></tr>';
-    }).join('');
-    return '<details class="nm-refs" id="nm-refs">' +
-      '<summary class="nm-refs-cap">教师参考 · 方法依据</summary>' +
-      '<p class="nm-refs-tag">这一块是给老师查证用的，学生不必读。</p>' +
-      (r.lead ? '<p class="nm-refs-lead">' + esc(r.lead) + '</p>' : '') +
-      '<ol class="nm-refs-list">' + items + '</ol>' +
-      (map ? '<div class="nm-table-wrap" style="margin-top:10px"><table class="nm-table nm-refs-map">' +
-        '<thead><tr><th>页面做法</th><th>依据</th></tr></thead><tbody>' + map + '</tbody></table></div>' : '') +
-      (r.note ? '<p class="nm-refs-note">' + esc(r.note) + '</p>' : '') +
-      '</details>';
-  }
-
   // ───────────────────────── 顶部导航（底部 Dock）─────────────────────────
   var NAV = [
     { key: 'demo', text: '示范', label: '示范' },
@@ -195,7 +171,7 @@
 
   function renderAll() {
     var host = el('nmPanels');
-    if (host) host.innerHTML = sectionSymbols() + sectionU3() + refsHtml();
+    if (host) host.innerHTML = sectionSymbols() + sectionU3();
     renderGuide();
     mountBook();
   }
@@ -564,7 +540,6 @@
         kvRows((M.anchor || {}).items) +
         '<div class="nm-callout" style="margin:12px 0"><b>' + esc((M.check || {}).rule || '') + '</b></div>' +
         kvRows((M.check || {}).rows) +
-        '<p class="nm-note">' + esc((M.check || {}).tip || '') + '</p>' +
       '</details>' +
       '<details class="nm-more"><summary>四条线路的通用模具</summary>' +
         '<p class="nm-note">' + esc((U2.mold || {}).lead || '') + '</p>' +
@@ -612,7 +587,7 @@
       '<div class="nm-sechead">' +
         '<span class="nm-stepno">③</span>' +
         '<div><h2 class="nm-h2">U3 迁移 · ' + esc(u.title || '') + '</h2>' +
-        '<p class="nm-sub">换一篇，学生自己写；写完来这里对答案。</p></div>' +
+        '<p class="nm-sub">换一篇，自己写；写完来这里对答案。</p></div>' +
       '</div>' +
       '<p class="nm-lead">' + esc(u.lead || '') + '</p>' +
       h3(up.title || '结构升级') +
@@ -623,8 +598,6 @@
       '</details>' +
       h3('成品笔记（对照用）') +
       ready +
-      h3(((u.class || {}).title) || '课堂动作') +
-      '<ol class="nm-steps">' + (((u.class || {}).steps) || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol>' +
       '</section>';
   }
 
