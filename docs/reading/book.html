@@ -385,13 +385,17 @@
   .wc-body .n-r dd{font-size:1.12em; line-height:1.5;}
   /* 复述骨架总展示：与词卡同尺寸同字号，左边一整块骨架、右边逐行参考 */
   .sk-layer{z-index:940;}   /* 低于词卡：在骨架卡里点单词，词卡盖在它上面 */
-  #skelLayer{align-items:flex-start; padding:2.4vh clamp(12px,2vw,28px) 0;}
+  /* 骨架总展示铺满整块屏幕，内容超出时在卡内往下滚 */
+  #skelLayer{align-items:stretch; padding:0;}
   #skelLayer .wc-card{
-    width:min(1560px,94vw);
-    height:72.6vh; max-height:72.6vh;
+    width:100vw; height:100vh; max-height:100vh;
+    border:0; border-radius:0; box-shadow:none;
+    padding:clamp(18px,2.6vh,30px) clamp(26px,3.6vw,56px) clamp(14px,2vh,24px);
     font-size:calc(clamp(18px,2.6vh,30px) * var(--sk-fs,1.18));
   }
-  .sk-body{padding-right:8px;}
+  #skelLayer .wc-card::before{border-radius:0;}
+  /* 底部留一大段余量：滚到底还能继续往下，把最后几行顶到屏幕上方看 */
+  .sk-body{padding-right:8px; padding-bottom:34vh;}
   .sk-intro{margin:0 0 12px; font-size:.9em; line-height:1.6; color:var(--muted);}
   /* 左栏是一整块连续笔记：只有缩进，没有行框、编号和分隔线 */
   .sk-panes{
@@ -421,7 +425,7 @@
   .sk-pat b{font-weight:600; font-size:.86em; letter-spacing:.04em; color:var(--accent); margin-right:5px;}
   @media (max-width:900px){
     #skelLayer .wc-card{
-      width:calc(100vw - 24px); height:86vh; max-height:86vh;
+      width:100vw; height:100vh; max-height:100vh;
       font-size:calc(clamp(16px,2.2vh,20px) * var(--sk-fs,1.18));
     }
     .sk-panes{grid-template-columns:1fr; gap:14px;}
