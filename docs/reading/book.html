@@ -31,11 +31,14 @@
     width:12px; z-index:30; cursor:col-resize; touch-action:none;
   }
   .bk-resize::after{
-    content:''; position:absolute; left:5px; top:50%; width:2px; height:44px;
-    margin-top:-22px; background:var(--rule); border-radius:2px; opacity:.85;
-    transition:background .15s, opacity .15s;
+    content:''; position:absolute; left:4px; top:50%; width:4px; height:64px;
+    margin-top:-32px; border-radius:2px; opacity:.9;
+    background:repeating-linear-gradient(to bottom,var(--rule) 0 3px,transparent 3px 7px);
   }
-  .bk-resize:hover::after,.bk-resize.dragging::after{background:var(--accent); opacity:1;}
+  .bk-resize:hover::after,.bk-resize.dragging::after{
+    opacity:1;
+    background:repeating-linear-gradient(to bottom,var(--accent) 0 3px,transparent 3px 7px);
+  }
   /* ── 书页 ── */
   .bk-view{
     position:relative; overflow:hidden; background:var(--desk);
@@ -109,14 +112,6 @@
     font-size:.75em; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
   }
   .n-kicker .n-rule{flex:1; height:1px; background:var(--rule);}
-  .n-nav{display:flex; gap:2px; margin-left:2px;}
-  .n-nav button{
-    width:1.65em; height:1.65em; border:0; background:none; color:var(--muted);
-    cursor:pointer; border-radius:.35em; font-size:1.333em; line-height:1; padding:0;
-  }
-  .n-nav button:hover{background:#fff; color:var(--ink);}
-  .n-nav button:disabled{opacity:.22; cursor:default; background:none;}
-  .n-nav button.m-close{width:auto; padding:0 5px; font-size:1em; letter-spacing:.04em;}
   .n-row{display:block; margin-top:9px; line-height:1.52;}
   .n-lab{
     display:inline; font-size:.8125em; font-weight:600; letter-spacing:.04em;
@@ -136,7 +131,7 @@
   }
   .n-chip:hover{border-color:var(--accent); background:#fffaf0; transform:translateY(-1px);}
   .n-chip i{font-style:normal; color:var(--muted); margin-left:5px; font-size:.82em;}
-  /* 复述骨架：逐句点开，讲完一段整副亮出来 */
+  /* 复述骨架：默认收起，点「显示」再展开；讲完一段给总展示 */
   .n-skel{margin-top:14px; padding-top:10px; border-top:1px dashed var(--rule);}
   .n-skel-cap{display:flex; align-items:center; justify-content:space-between; gap:10px;}
   .n-skel-cap span{font-size:.78em; letter-spacing:.06em; color:var(--muted);}
@@ -155,7 +150,8 @@
   @keyframes skelIn{from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;}}
   .n-skel.full{border-top-color:rgba(185,138,40,.5);}
   .n-skel.full .n-skel-cap span{color:var(--accent); font-weight:600;}
-  .n-skel-done{margin:8px 0 0; font-size:.8125em; color:var(--muted);}
+  .n-skel-body{margin-top:8px;}
+  .n-skel-write{display:inline-block; margin-top:9px;}
   /* 段卡 */
   .s-head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
   .s-head b{
@@ -223,12 +219,6 @@
     background:var(--accent);margin-right:7px;vertical-align:middle;}
   .s-tr{margin-top:10px; font-size:1.15625em; line-height:1.82; color:var(--ink-2);}
   .s-tr p{margin:0 0 7px;}
-  .s-jump{
-    margin-top:22px; font:inherit; font-size:1em; color:var(--accent);
-    background:#fffaf0; border:1px solid var(--rule); border-radius:999px;
-    padding:8px 16px; cursor:pointer;
-  }
-  .s-jump:hover{border-color:var(--accent);}
   /* 篇卡：一屏看完整篇骨架，不再分五步 */
   .m-head b{
     display:block; font-family:Georgia,"Times New Roman",serif; font-size:1.75em;
@@ -268,11 +258,6 @@
   .g-tx{font-family:Georgia,serif; font-size:1.09375em; line-height:1.6; color:var(--ink-2); margin-top:4px;}
   .g-nt{font-size:.96875em; line-height:1.65; color:var(--muted); margin-top:4px;}
   /* 词条 */
-  .n-back{
-    font:inherit; font-size:.96875em; color:var(--muted); background:none; border:0;
-    padding:0 0 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
-  }
-  .n-back:hover{color:var(--accent);}
   .n-w{display:flex; align-items:baseline; gap:10px;}
   .n-w b{font-family:Georgia,serif; font-size:2.125em; font-weight:600; letter-spacing:-.01em;}
   .n-w span{font-size:.96875em; color:var(--muted); font-family:Georgia,serif;}
@@ -344,7 +329,7 @@
   <aside class="bk-margin" id="margin">
     <div class="bk-hint" id="hint">
       <b>点书上的句子</b>
-      <span>页边按「读懂 → 词块 → 句型 → 写法」讲这一句。<br>点段名看这一段，点 LIVING LEGENDS 看整篇。<br>滚轮放大，按住纸拖动，← → 换句。</span>
+      <span>页边按「读懂 → 词块 → 句型 → 写法」讲这一句。<br>点段名看这一段，点 LIVING LEGENDS 看整篇。<br>滚轮放大，按住纸拖动，← → 换句。<br>拖中间竖线可调讲解区宽度。</span>
     </div>
     <div class="note" id="note"></div>
     <span class="bk-pno">p. 38</span>
@@ -665,6 +650,7 @@
     lastSec: 1,        // 最近讲过的段：从「整篇」回来时，「本段」不丢上下文
     anchor: null,      // 当前批注要贴住的那个热区
     skel: {},          // 段序号 → 已写到第几条骨架（按 notes 顺序，0 起）
+    skelOpen: {},      // 段序号 → 复述骨架是否展开（默认收起）
     z: 1, tx: 0, ty: 0, drag: false, moved: false
   };
 
@@ -876,7 +862,7 @@
     st.mode = 'sec'; st.sec = i; st.s = -1; st.lastSec = i;
     st.card = '';
     st.anchor = null;
-    if (!sameSec) st.skel[i] = 0;
+    if (!sameSec) { st.skel[i] = 0; st.skelOpen[i] = false; }
     hits.querySelectorAll('.hit, .map-hit').forEach(function(b){ b.classList.remove('on', 'hot'); });
     hits.querySelectorAll('.sec-hit').forEach(function(b){
       var on = b.getAttribute('data-sec') === String(i);
@@ -909,7 +895,7 @@
   function close(){
     var wasOpen = st.mode !== '';
     st.mode = ''; st.s = -1; st.sec = -1; st.anchor = null; st.card = '';
-    st.skel = {};
+    st.skel = {}; st.skelOpen = {};
     note.classList.remove('in');
     hits.querySelectorAll('.on,.hot').forEach(function(b){ b.classList.remove('on','hot'); });
     lead.innerHTML = '';
@@ -918,9 +904,7 @@
     if (wasOpen) wholePage();
   }
 
-  // ── 底部 Dock：整篇 / 本段 / 本句 / 生词 / 字号 ──
-  var dockApi = null;
-
+  // ── 底部 Dock：按当前层级装配 ──
   // 这一段的第一句在全文里的序号
   function firstSentOfSection(i){
     for (var k = 0; k < SENT.length; k++) if (SENT[k].sec === i) return k;
@@ -1015,7 +999,7 @@
 
   function paintDock(){
     if (!window.SeeklumeDock) return;
-    dockApi = window.SeeklumeDock.mount({
+    window.SeeklumeDock.mount({
       items: dockItems(),
       active: ''
     });
@@ -1072,29 +1056,54 @@
   function skelBlock(d, s, fresh){
     var ns = (noteData.sections[d.sec] || {}).notes || [];
     var count = st.skel[d.sec] || 0;
+    var open = !!st.skelOpen[d.sec];
     var rows = '';
     for (var k = 0; k < count && k < ns.length; k++) {
       rows += skelRow(ns[k], fresh === k);
     }
     var complete = ns.length > 0 && count >= ns.length;
+    var body = '';
+    var barBtn;
+    if (complete) {
+      barBtn = open
+        ? '<button type="button" class="n-skel-btn" data-skel-toggle>隐藏</button>'
+        : '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>';
+    } else {
+      barBtn = '<button type="button" class="n-skel-btn" data-skel-toggle>' + (open ? '隐藏' : '显示') + '</button>';
+    }
+    if (open) {
+      body = '<div class="n-skel-body">' +
+        (rows ? '<div class="n-skel-list">' + rows + '</div>' : '') +
+        (complete
+          ? '<button type="button" class="n-skel-btn n-skel-write" data-skel-show>总展示</button>'
+          : '<button type="button" class="n-skel-btn n-skel-write" data-skel>写下一条</button>') +
+      '</div>';
+    }
     return '<div class="n-skel' + (complete ? ' full' : '') + '">' +
       '<div class="n-skel-cap">' +
         '<span>' + (complete ? '本段骨架 · 完整'
           : '复述骨架 · ' + esc((noteData.sections[d.sec] || {}).label || '')) + '</span>' +
-        (complete
-          ? '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>'
-          : '<button type="button" class="n-skel-btn" data-skel>写下一条</button>') +
-      '</div>' +
-      (rows ? '<div class="n-skel-list">' + rows + '</div>' : '') +
-      (complete ? '<p class="n-skel-done">这一段讲完了，点「总展示」让学生看整副骨架。</p>' : '') +
+        barBtn +
+      '</div>' + body +
     '</div>';
   }
 
   function bindSkel(d, s){
-    var show = note.querySelector('[data-skel-show]');
-    if (show) {
-      show.addEventListener('click', function(){ renderSkelSummary(d.sec, s); });
-      return;
+    note.querySelectorAll('[data-skel-show]').forEach(function(b){
+      b.addEventListener('click', function(){ renderSkelSummary(d.sec, s); });
+    });
+    var toggle = note.querySelector('[data-skel-toggle]');
+    if (toggle) {
+      toggle.addEventListener('click', function(){
+        st.skelOpen[d.sec] = !st.skelOpen[d.sec];
+        var box = note.querySelector('.n-skel');
+        if (!box) return;
+        box.outerHTML = skelBlock(d, s);
+        bindSkel(d, s);
+        var body = note.querySelector('.n-skel-body');
+        if (body) body.scrollIntoView({ block: 'nearest' });
+        requestAnimationFrame(place);
+      });
     }
     var btn = note.querySelector('[data-skel]');
     if (!btn) return;
@@ -1104,6 +1113,7 @@
       if (count >= ns.length) return;
       // 与当前讲到第几句无关：老师讲完一组，点一下，按 notes 顺序写下一条
       st.skel[d.sec] = count + 1;
+      st.skelOpen[d.sec] = true;
       var box = note.querySelector('.n-skel');
       if (!box) return;
       // 只换骨架这一块：书页和这一句的讲解都不动
@@ -1125,12 +1135,10 @@
     var rows = ns.slice(0, count).map(function(n){ return skelRow(n, false); }).join('');
     st.card = 'skel';
     note.innerHTML =
-      '<button type="button" class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
       '<div class="s-head"><b>' + esc(d.label || '') + '</b><span>' + esc(d.short || '') + '</span></div>' +
       (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
       '<div class="s-sec"><div class="s-cap">复述骨架 · 照着它把这一段讲一遍</div>' +
         '<div class="n-skel-list skel-sum">' + rows + '</div></div>';
-    note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
     note.classList.remove('in');
     void note.offsetWidth;
     note.classList.add('in');
@@ -1142,6 +1150,8 @@
   function renderNote(s){
     st.card = '';
     var d = SENT[s];
+    // 每翻到一句，复述骨架先收起；老师点了「显示」才展开
+    st.skelOpen[d.sec] = false;
     // 句卡里的词只露词形，释义点开词卡再看——省地方，也更像课堂上的一个“抓手”
     var chips = (d.words || []).map(function(w){
       return '<button class="n-chip" data-card="' + esc(w.card) + '" data-w="' + esc(w.text) + '">' +
@@ -1152,10 +1162,6 @@
       '<div class="n-kicker"><span>第 ' + (s + 1) + ' 句 / ' + SENT.length +
         (SEC_NAV[d.sec] ? ' · ' + SEC_NAV[d.sec] : '') + '</span>' +
         '<i class="n-rule"></i>' +
-        '<span class="n-nav">' +
-          '<button type="button" data-nav="-1"' + (s === 0 ? ' disabled' : '') + ' aria-label="上一句">‹</button>' +
-          '<button type="button" data-nav="1"' + (s === SENT.length - 1 ? ' disabled' : '') + ' aria-label="下一句">›</button>' +
-        '</span>' +
       '</div>' +
       (d.say ? '<div class="n-row"><span class="n-lab">读懂</span><span class="n-val">' + esc(d.say) + '</span></div>' : '') +
       (d.chunk ? '<div class="n-row"><span class="n-lab">词块</span><span class="n-val">' + esc(d.chunk) + '</span></div>' : '') +
@@ -1172,13 +1178,6 @@
         if (card) renderWord(card, s, b.getAttribute('data-w') || b.textContent);
       });
     });
-    note.querySelectorAll('[data-nav]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var n = s + parseInt(b.getAttribute('data-nav'), 10);
-        if (n >= 0 && n < SENT.length) open(n);
-      });
-    });
-
     note.classList.remove('in');
     void note.offsetWidth;
     note.classList.add('in');
@@ -1239,34 +1238,18 @@
       return '<div class="s-craft"><b>' + esc(c.name) + '</b><span>' + esc(c.how) + '</span></div>';
     }).join('');
 
-    var first = firstSentOfSection(i);
-    var sentCount = SENT.filter(function(x){ return x.sec === i; }).length;
-
     note.innerHTML =
       '<div class="n-kicker"><span>第 ' + (i + 1) + ' 段 / 共 ' + secs.length + ' 段</span>' +
         '<i class="n-rule"></i>' +
-        '<span class="n-nav">' +
-          '<button type="button" data-nav="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="上一段">‹</button>' +
-          '<button type="button" data-nav="1"' + (i === secs.length - 1 ? ' disabled' : '') + ' aria-label="下一段">›</button>' +
-        '</span>' +
       '</div>' +
       '<div class="s-head"><b>' + esc(d.label) + '</b><span>' + esc(d.short || '') + '</span></div>' +
       (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
       (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
       (qs ? '<div class="s-sec"><div class="s-cap">问题 · 先自己想，卡住了看提示，最后对答案（英文作答）</div>' + qs + '</div>' : '') +
       (crafts ? '<details class="s-fold"><summary>这一段的手法</summary><div class="s-crafts">' + crafts + '</div></details>' : '') +
-      (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '') +
-      (sentCount ? '<button type="button" class="s-jump" id="sJump">逐句读这一段（' + sentCount + ' 句）→</button>' : '');
+      (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '');
 
     bindQuestions(note);
-    note.querySelectorAll('[data-nav]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var n = i + parseInt(b.getAttribute('data-nav'), 10);
-        if (n >= 0 && n < secs.length) openSection(n);
-      });
-    });
-    var jump = note.querySelector('#sJump');
-    if (jump) jump.addEventListener('click', function(){ open(first); });
 
     note.classList.remove('in');
     void note.offsetWidth;
@@ -1306,7 +1289,6 @@
     note.innerHTML =
       '<div class="n-kicker"><span>整篇 / ' + secs.length + ' 段</span>' +
         '<i class="n-rule"></i>' +
-        '<span class="n-nav"><button type="button" class="m-close" data-map-close>收起</button></span>' +
       '</div>' +
       '<div class="m-head"><b>' + esc(d.title) + '</b><span>' + esc(d.sub || '') + '</span></div>' +
       '<p class="m-guide">先带着问题读；读完后，用这四段把全文串起来。点任意一段进段卡。</p>' +
@@ -1324,10 +1306,6 @@
         openSection(parseInt(b.getAttribute('data-open-sec'), 10));
       });
     });
-    note.querySelectorAll('[data-map-close]').forEach(function(b){
-      b.addEventListener('click', close);
-    });
-
     note.classList.remove('in');
     void note.offsetWidth;
     note.classList.add('in');
@@ -1357,13 +1335,11 @@
     if (cd.use) rows += row('用', esc(cd.use));
 
     note.innerHTML =
-      '<button class="n-back" id="nBack">← 回到第 ' + (s + 1) + ' 句</button>' +
       '<div class="n-w"><b>' + esc(cd.w) + '</b>' + (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') + '</div>' +
       (cd.en ? '<p class="n-def">' + (cd.pos ? '<i>' + esc(cd.pos) + '</i>' : '') + esc(cd.en) + '</p>' : '') +
       (cd.zh ? '<details class="n-fold"><summary>中文释义</summary><div class="n-fold-body">' + esc(cd.zh) + '</div></details>' : '') +
       '<div class="n-rows">' + rows + '</div>';
 
-    note.querySelector('#nBack').addEventListener('click', function(){ renderNote(s); });
     note.scrollTop = 0;
     note.classList.remove('in');
     void note.offsetWidth;
@@ -1427,6 +1403,62 @@
     st.z = z2; clamp(); apply(); sync();
   }, { passive: false });
 
+  // ── 页边宽度：拖中间那条竖线，左右拉 ──
+  var resizeEl = document.getElementById('resize');
+  var MIN_MW = 400, MAX_MW = 760;
+  var savedMarginW = 0;
+  try { savedMarginW = parseInt(localStorage.getItem('seeklume.readingMarginW'), 10) || 0; } catch (err) {}
+
+  function maxMarginW(){
+    return Math.max(MIN_MW, Math.min(MAX_MW, window.innerWidth - 420));
+  }
+  function currentMarginW(){
+    var n = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin-w'));
+    // 没拖过时 --margin-w 还是 clamp(...) 字符串，量实际宽度更稳
+    return (isFinite(n) && n > 0) ? n : margin.getBoundingClientRect().width;
+  }
+  function setMarginW(px, save){
+    var w = Math.max(MIN_MW, Math.min(maxMarginW(), Math.round(px)));
+    document.documentElement.style.setProperty('--margin-w', w + 'px');
+    if (save) { try { localStorage.setItem('seeklume.readingMarginW', String(w)); } catch(err) {} }
+    return w;
+  }
+  // 宽度变了，镜头要按新的书页宽度重新落点
+  function relayout(){
+    Z_SENT = 0;
+    if (st.mode === 'sent' && st.s >= 0) focus(st.s);
+    else if (st.mode === 'sec' && st.sec >= 0) focusSec(st.sec);
+    else home();
+    apply(); sync();
+  }
+  if (savedMarginW && window.innerWidth > 900) setMarginW(savedMarginW, false);
+
+  var resizing = false;
+  resizeEl.addEventListener('pointerdown', function(e){
+    if (window.innerWidth <= 900) return;
+    resizing = true;
+    resizeEl.classList.add('dragging');
+    try { resizeEl.setPointerCapture(e.pointerId); } catch(err){}
+    e.preventDefault();
+  });
+  resizeEl.addEventListener('pointermove', function(e){
+    if (!resizing) return;
+    setMarginW(window.innerWidth - e.clientX, false);
+    Z_SENT = 0;
+    clamp(); apply(); sync();
+  });
+  function endResize(){
+    if (!resizing) return;
+    resizing = false;
+    resizeEl.classList.remove('dragging');
+    var w = setMarginW(currentMarginW(), false);
+    savedMarginW = w;
+    try { localStorage.setItem('seeklume.readingMarginW', String(w)); } catch(err) {}
+    relayout();
+  }
+  resizeEl.addEventListener('pointerup', endResize);
+  resizeEl.addEventListener('pointercancel', endResize);
+
   // ── 键盘 ──
   document.addEventListener('keydown', function(e){
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -1453,7 +1485,12 @@
     }
   });
 
-  window.addEventListener('resize', function(){ Z_SENT = 0; clamp(); apply(); sync(); });
+  window.addEventListener('resize', function(){
+    // 窄屏回到固定页边；宽屏恢复用户拖过的宽度
+    if (window.innerWidth <= 900) document.documentElement.style.removeProperty('--margin-w');
+    else if (savedMarginW) setMarginW(savedMarginW, false);
+    Z_SENT = 0; clamp(); apply(); sync();
+  });
   canvas.addEventListener('transitionend', function(e){
     if (e.propertyName === 'transform') sync();
   });
