@@ -118,7 +118,14 @@
               chunks: ['a master of sth', 'be a master in one\'s sport', 'master a skill'],
               affix: [{ af: '-y', mean: '名词 → 抽象名词', ex: 'master → mastery' }],
               pitfall: 'a master of …（某方面的大师）与 masters in their sports（在各自项目里出类拔萃）注意介词差异。',
-              use: '推荐一位你佩服的人：He / She is a master in ___ because ___.'
+              use: '推荐一位你佩服的人：He / She is a master in ___ because ___.',
+              useAnswer: 'He is a master in basketball because he has trained for ten years and never gives up.',
+              exam: [{
+                type: '高考 · 语法填空',
+                q: 'They must be athletes who are ___ (master) in their sports and also set good examples for others.',
+                a: 'masters',
+                why: 'athletes 是复数，master 作可数名词要跟着用复数；in their sports 指“在各自的项目里”。'
+              }]
             },
             {
               w: 'set an example', ipa: '', pos: 'phr.', zh: '树立榜样', en: 'to behave in a way that others should copy', tier: 'core', src: '课本 p114',
@@ -129,7 +136,14 @@
               chunks: ['set an example for sb', 'follow sb\'s example', 'for example'],
               affix: [{ af: '-ary', mean: '名词 → 形容词', ex: 'example → exemplary' }],
               pitfall: '介词是 for：set an example for others（别用 to）。',
-              use: '提名一位身边的榜样：He / She sets a good example for ___ by ___.'
+              use: '提名一位身边的榜样：He / She sets a good example for ___ by ___.',
+              useAnswer: 'She sets a good example for her classmates by helping them with maths after school.',
+              exam: [{
+                type: '高考 · 语法填空（双空回收）',
+                q: 'They must be athletes who are ___ (master) in their sports and also set good ___ (example) for others.',
+                a: 'masters；examples',
+                why: 'master 与复数 athletes 对应；example 泛指“榜样”，用复数；介词是 for。'
+              }]
             },
             {
               w: 'athlete', ipa: '/ˈæθliːt/', pos: 'n.', zh: '运动员', en: 'a person who is good at sports and competes in events', tier: 'simple', src: '课本 p114',

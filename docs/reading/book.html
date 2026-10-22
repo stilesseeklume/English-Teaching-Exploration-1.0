@@ -156,7 +156,9 @@
   .n-skel.full{border-top-color:rgba(185,138,40,.5);}
   .n-skel.full .n-skel-cap span{color:var(--accent); font-weight:600;}
   .n-skel-body{margin-top:8px;}
-  .n-skel-write{display:inline-block; margin-top:9px;}
+  .n-skel-acts{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .n-skel-undo{color:var(--muted); background:#fbfaf7;}
+  .n-skel-undo:hover{border-color:var(--accent); color:var(--accent); background:#fffaf0;}
   /* 段卡 */
   .s-head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
   .s-head b{
@@ -165,10 +167,6 @@
   }
   .s-head span{font-size:.90625em; color:var(--muted);}
   .s-role{margin-top:8px; font-size:1em; font-weight:600; letter-spacing:.04em; color:var(--accent);}
-  .s-gist{margin:10px 0 0; font-size:1.28125em; line-height:1.78; color:var(--ink-2);}
-  /* 段落功能和大意收在折叠里：展开后第一行不再叠一段额外留白 */
-  .s-gist-body .s-role{margin-top:0;}
-  .s-gist-body .s-gist:first-child{margin-top:2px;}
   .s-sec{margin-top:24px;}
   .s-cap{
     font-size:.84375em; letter-spacing:.09em; color:var(--muted); margin-bottom:9px;
@@ -305,11 +303,11 @@
   }
   .wc-card{
     position:relative; z-index:1; display:flex; flex-direction:column;
-    width:min(820px,80vw); max-height:min(86vh,860px);
-    padding:clamp(20px,2.9vh,34px) clamp(26px,3.2vw,44px);
+    width:min(1040px,88vw); max-height:min(92vh,980px);
+    padding:clamp(20px,2.9vh,34px) clamp(26px,3.2vw,46px);
     background:var(--paper); border:1px solid var(--rule); border-radius:20px;
     box-shadow:0 36px 90px rgba(35,30,18,.32), 0 6px 20px rgba(35,30,18,.14);
-    font-size:clamp(17px,2.35vh,26px);
+    font-size:calc(clamp(17px,2.35vh,26px) * var(--wc-fs,1));
     opacity:0; transform:translateY(16px) scale(.94);
     transition:transform .3s cubic-bezier(.22,.61,.25,1), opacity .24s ease;
   }
@@ -321,14 +319,50 @@
   .wc-layer.on .wc-card{opacity:1; transform:none;}
   .wc-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; flex:none;}
   .wc-kicker{font-size:.75em; letter-spacing:.12em; color:var(--muted);}
-  .wc-close{
+  .wc-tools{display:flex; align-items:center; gap:8px; flex:none;}
+  .wc-close,.wc-btn{
     flex:none; font:inherit; font-size:.78em; letter-spacing:.04em; color:var(--ink-2);
     background:#fff; border:1px solid var(--rule); border-radius:999px;
     padding:7px 16px; cursor:pointer;
     transition:border-color .18s, color .18s, background .18s;
   }
-  .wc-close:hover{border-color:var(--accent); color:var(--accent); background:#fffaf0;}
-  .wc-close:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .wc-close:hover,.wc-btn:hover{border-color:var(--accent); color:var(--accent); background:#fffaf0;}
+  .wc-close:focus-visible,.wc-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .wc-btn.on{border-color:var(--accent); color:var(--accent); background:#fff6e4;}
+  .wc-btn:disabled,.wc-btn:disabled:hover{
+    opacity:.4; cursor:default; color:var(--muted); background:#f7f4ec; border-color:var(--rule);
+  }
+  /* 正面：单词讲解；反面：语用 + 高考 */
+  .wc-back-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .wc-back-head b{font-family:Georgia,"Times New Roman",serif; font-size:2.4em; font-weight:600; letter-spacing:-.01em;}
+  .wc-back-head span{font-size:1em; color:var(--muted);}
+  .wc-back-note{margin:8px 0 0; font-size:.92em; line-height:1.6; color:var(--muted);}
+  .wc-all{
+    margin-top:12px; font:inherit; font-size:.85em; color:var(--accent);
+    background:#fff; border:1px solid var(--rule); border-radius:999px;
+    padding:7px 15px; cursor:pointer;
+  }
+  .wc-all:hover{border-color:var(--accent); background:#fffaf0;}
+  .wc-task{
+    margin-top:14px; padding:14px 16px 13px; background:#fff;
+    border:1px solid var(--rule); border-radius:12px; cursor:pointer;
+    transition:border-color .18s, box-shadow .18s;
+  }
+  .wc-task:hover{border-color:rgba(185,138,40,.55); box-shadow:0 4px 14px rgba(35,30,18,.06);}
+  .wc-task-k{font-size:.8em; letter-spacing:.08em; font-weight:600; color:var(--accent);}
+  .wc-task-q{margin:7px 0 0; font-size:1.16em; line-height:1.72; color:var(--ink);}
+  .wc-task-hint{display:block; margin-top:7px; font-size:.82em; letter-spacing:.03em; color:var(--muted);}
+  .wc-task.open .wc-task-hint{display:none;}
+  .wc-ans{display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--rule);}
+  .wc-task.open .wc-ans{display:block;}
+  .wc-ans b{display:block; font-size:.8em; letter-spacing:.07em; color:var(--muted);}
+  .wc-ans span{display:block; margin-top:4px; font-size:1.08em; line-height:1.7; color:var(--ink-2);}
+  .wc-ans em{display:block; margin-top:5px; font-style:normal; font-size:.9em; line-height:1.6; color:var(--muted);}
+  .wc-front-foot{
+    margin-top:16px; padding-top:12px; border-top:1px dashed var(--rule);
+    font-size:.85em; color:var(--muted);
+  }
+  .wc-front-foot b{color:var(--accent); font-weight:600;}
   .wc-body{
     margin-top:clamp(10px,1.6vh,18px); min-height:0; overflow:auto;
     overscroll-behavior:contain; padding:2px 6px 2px 0; scrollbar-width:thin;
@@ -339,8 +373,10 @@
   .wc-body .n-rows{gap:12px; margin-top:18px;}
   .wc-body .n-r dd{font-size:1.12em; line-height:1.5;}
   @media (max-width:900px){
-    .wc-card{width:calc(100vw - 24px); max-height:88vh; font-size:clamp(16px,2.2vh,20px);}
+    .wc-card{width:calc(100vw - 24px); max-height:90vh; font-size:calc(clamp(16px,2.2vh,20px) * var(--wc-fs,1));}
     .wc-body .n-w b{font-size:2.5em;}
+    .wc-tools{gap:5px;}
+    .wc-close,.wc-btn{padding:6px 11px;}
   }
   /* 引线 */
   .bk-lead{position:absolute; inset:0; pointer-events:none; overflow:visible;}
@@ -405,7 +441,12 @@
   <div class="wc-card" role="dialog" aria-modal="true" aria-label="单词卡">
     <div class="wc-bar">
       <span class="wc-kicker" id="wordKicker">单词卡</span>
-      <button type="button" class="wc-close" data-wc-close>收起</button>
+      <div class="wc-tools">
+        <button type="button" class="wc-btn" data-wc-fs="-1">字小</button>
+        <button type="button" class="wc-btn" data-wc-fs="1">字大</button>
+        <button type="button" class="wc-btn" id="wcFlip" data-wc-flip>反面：语用 · 高考</button>
+        <button type="button" class="wc-close" data-wc-close>收起</button>
+      </div>
     </div>
     <div class="wc-body" id="wordCard"></div>
   </div>
@@ -724,6 +765,9 @@
     skel: {},          // 段序号 → 已写到第几条骨架（按 notes 顺序，0 起）
     skelOpen: {},      // 段序号 → 复述骨架是否展开（默认收起）
     wordOpen: false,   // 单词卡是否正盖在屏幕中央
+    wordFace: 'front', // 单词卡当前面：front 讲解 / back 语用与高考
+    wordData: null,    // 当前词卡数据，翻面时复用
+    wordS: -1,         // 词卡来自第几句
     z: 1, tx: 0, ty: 0, drag: false, moved: false
   };
 
@@ -1132,19 +1176,27 @@
     var complete = ns.length > 0 && count >= ns.length;
     var body = '';
     var barBtn;
+    var acts = [];
+    if (count > 0) {
+      acts.push('<button type="button" class="n-skel-btn n-skel-undo" data-skel-undo>退回上一条</button>');
+    }
+    acts.push(complete
+      ? '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>'
+      : '<button type="button" class="n-skel-btn" data-skel>写下一条</button>');
     if (complete) {
       barBtn = open
         ? '<button type="button" class="n-skel-btn" data-skel-toggle>隐藏</button>'
-        : '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>';
+        : '<div class="n-skel-acts">' +
+            '<button type="button" class="n-skel-btn" data-skel-toggle>显示</button>' +
+            '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>' +
+          '</div>';
     } else {
       barBtn = '<button type="button" class="n-skel-btn" data-skel-toggle>' + (open ? '隐藏' : '显示') + '</button>';
     }
     if (open) {
       body = '<div class="n-skel-body">' +
         (rows ? '<div class="n-skel-list">' + rows + '</div>' : '') +
-        (complete
-          ? '<button type="button" class="n-skel-btn n-skel-write" data-skel-show>总展示</button>'
-          : '<button type="button" class="n-skel-btn n-skel-write" data-skel>写下一条</button>') +
+        '<div class="n-skel-acts">' + acts.join('') + '</div>' +
       '</div>';
     }
     return '<div class="n-skel' + (complete ? ' full' : '') + '">' +
@@ -1156,6 +1208,19 @@
     '</div>';
   }
 
+  // 骨架块整体重画：只换这一块，书页与这一句的讲解都不动
+  function repaintSkel(d, s, fresh){
+    var box = note.querySelector('.n-skel');
+    if (!box) return;
+    box.outerHTML = skelBlock(d, s, fresh);
+    bindSkel(d, s);
+    var nb = note.querySelector('.n-skel');
+    if (!nb) return;
+    var freshRow = nb.querySelector('.s-note.new');
+    if (freshRow) freshRow.scrollIntoView({ block: 'nearest' });
+    requestAnimationFrame(place);
+  }
+
   function bindSkel(d, s){
     note.querySelectorAll('[data-skel-show]').forEach(function(b){
       b.addEventListener('click', function(){ renderSkelSummary(d.sec, s); });
@@ -1164,13 +1229,20 @@
     if (toggle) {
       toggle.addEventListener('click', function(){
         st.skelOpen[d.sec] = !st.skelOpen[d.sec];
-        var box = note.querySelector('.n-skel');
-        if (!box) return;
-        box.outerHTML = skelBlock(d, s);
-        bindSkel(d, s);
+        repaintSkel(d, s);
         var body = note.querySelector('.n-skel-body');
         if (body) body.scrollIntoView({ block: 'nearest' });
-        requestAnimationFrame(place);
+      });
+    }
+    var undo = note.querySelector('[data-skel-undo]');
+    if (undo) {
+      undo.addEventListener('click', function(){
+        var count = st.skel[d.sec] || 0;
+        if (count <= 0) return;
+        // 误点一下：退掉刚写出的那一条，展开状态不变
+        st.skel[d.sec] = count - 1;
+        st.skelOpen[d.sec] = true;
+        repaintSkel(d, s);
       });
     }
     var btn = note.querySelector('[data-skel]');
@@ -1182,16 +1254,7 @@
       // 与当前讲到第几句无关：老师讲完一组，点一下，按 notes 顺序写下一条
       st.skel[d.sec] = count + 1;
       st.skelOpen[d.sec] = true;
-      var box = note.querySelector('.n-skel');
-      if (!box) return;
-      // 只换骨架这一块：书页和这一句的讲解都不动
-      box.outerHTML = skelBlock(d, s, count);
-      bindSkel(d, s);
-      var nb = note.querySelector('.n-skel');
-      if (!nb) return;
-      var freshRow = nb.querySelector('.s-note.new');
-      if (freshRow) freshRow.scrollIntoView({ block: 'nearest' });
-      requestAnimationFrame(place);
+      repaintSkel(d, s, count);
     });
   }
 
@@ -1294,23 +1357,14 @@
     });
   }
 
-  // ── 段卡：问题在前，结论在后 ──
-  // 段落功能和段落大意都是「答案」，默认收起，等学生对完答案再展开；
-  // 顶部只留段号和人名/小标题，让学生先读、先想，而不是先看结论。
+  // ── 段卡：只留课本里的东西 —— 段号 + 问题 + 手法 + 段译 ──
+  // 段落大意、段落功能属于 AI 归纳，不进课堂，避免先看结论、也避免与原文打架。
   // 复述骨架不在段卡出现：逐句讲的时候，老师讲完一组点一下，骨架才长出来。
   function renderSection(i){
     var secs = noteData.sections || [];
     var d = secs[i]; if (!d) return;
 
     var qs = qList(d.inquiry);
-
-    var gist = (d.role || d.gist)
-      ? '<details class="s-fold"><summary>段落大意 · 对完答案再看</summary>' +
-          '<div class="s-gist-body">' +
-            (d.role ? '<div class="s-role">' + esc(d.role) + '</div>' : '') +
-            (d.gist ? '<p class="s-gist">' + esc(d.gist) + '</p>' : '') +
-          '</div></details>'
-      : '';
 
     var tr = (d.translation || []).map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('');
 
@@ -1324,7 +1378,6 @@
       '</div>' +
       '<div class="s-head"><b>' + esc(d.label) + '</b><span>' + esc(d.short || '') + '</span></div>' +
       (qs ? '<div class="s-sec"><div class="s-cap">问题 · 先自己想，卡住了看提示，最后对答案（英文作答）</div>' + qs + '</div>' : '') +
-      gist +
       (crafts ? '<details class="s-fold"><summary>这一段的手法</summary><div class="s-crafts">' + crafts + '</div></details>' : '') +
       (tr ? '<details class="s-fold"><summary>这一段的中文</summary><div class="s-tr">' + tr + '</div></details>' : '');
 
@@ -1397,8 +1450,13 @@
   }
 
   // 词卡不再挤在页边：点词后弹到屏幕正中，放大成一张真正能“看”的卡。
-  // 句卡留在原位，收起后正好回到刚才那一句。
-  function renderWord(cd, s){
+  // 正面只放单词讲解，方便学生做笔记；语用任务与高考题放在反面。
+  // 反面每题点一下才出答案，也可以一键全部出答案。
+  function wordHasBack(cd){
+    return !!(cd && (cd.use || (cd.exam && cd.exam.length)));
+  }
+
+  function wordFrontHtml(cd){
     var rows = '';
     if (cd.root) {
       rows += row('词根', '<b>' + esc(cd.root.seg || '') + '</b>　' + esc(cd.root.mean || '') +
@@ -1412,15 +1470,105 @@
     if (cd.family && cd.family.length) rows += row('词族', cd.family.map(esc).join('<br>'));
     if (cd.chunks && cd.chunks.length) rows += row('词块', cd.chunks.map(esc).join('<br>'));
     if (cd.pitfall) rows += row('注意', esc(cd.pitfall));
-    if (cd.use) rows += row('用', esc(cd.use));
 
-    wordCard.innerHTML =
-      '<div class="n-w"><b>' + esc(cd.w) + '</b>' + (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') + '</div>' +
+    return '<div class="n-w"><b>' + esc(cd.w) + '</b>' + (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') + '</div>' +
       (cd.en ? '<p class="n-def">' + (cd.pos ? '<i>' + esc(cd.pos) + '</i>' : '') + esc(cd.en) + '</p>' : '') +
       (cd.zh ? '<details class="n-fold"><summary>中文释义</summary><div class="n-fold-body">' + esc(cd.zh) + '</div></details>' : '') +
-      '<div class="n-rows">' + rows + '</div>';
-    wordKicker.textContent = '单词卡' + (s >= 0 ? ' · 第 ' + (s + 1) + ' 句' : '');
+      '<div class="n-rows">' + rows + '</div>' +
+      (wordHasBack(cd)
+        ? '<div class="wc-front-foot">背面是 <b>语用任务</b> 和 <b>高考题</b>，点右上角「反面」翻过去。</div>'
+        : '');
+  }
+
+  function wordBackHtml(cd){
+    var html = '<div class="wc-back-head"><b>' + esc(cd.w) + '</b>' +
+      (cd.ipa ? '<span>' + esc(cd.ipa) + '</span>' : '') +
+      '<span>' + esc(cd.zh || '') + (cd.pos ? ' · ' + esc(cd.pos) : '') + '</span></div>';
+
+    if (!wordHasBack(cd)) {
+      return html + '<p class="wc-back-note">这张词卡暂时没有语用或高考练习。</p>';
+    }
+
+    var hasReveal = !!cd.useAnswer || (cd.exam && cd.exam.length > 0);
+    if (hasReveal) {
+      html += '<p class="wc-back-note">先让学生自己想、自己说，再点开答案。</p>' +
+        '<button type="button" class="wc-all" data-wc-all>全部出答案</button>';
+    }
+
+    if (cd.use) {
+      html += '<section class="wc-task"' + (cd.useAnswer ? ' data-wc-task' : '') + '>' +
+        '<div class="wc-task-k">语用 · 把它用起来</div>' +
+        '<p class="wc-task-q">' + esc(cd.use) + '</p>' +
+        (cd.useAnswer
+          ? '<span class="wc-task-hint">点这一块 → 看参考答案</span>' +
+            '<div class="wc-ans"><b>参考答案</b><span>' + esc(cd.useAnswer) + '</span></div>'
+          : '<span class="wc-task-hint">口头任务 · 学生说完即可，不必统一答案</span>') +
+        '</section>';
+    }
+
+    (cd.exam || []).forEach(function(ex){
+      html += '<section class="wc-task" data-wc-task>' +
+        '<div class="wc-task-k">' + esc(ex.type || '高考 · 语法填空') + '</div>' +
+        '<p class="wc-task-q">' + esc(ex.q) + '</p>' +
+        '<span class="wc-task-hint">点这一块 → 看答案</span>' +
+        '<div class="wc-ans"><b>答案</b><span>' + esc(ex.a) + '</span>' +
+          (ex.why ? '<em>' + esc(ex.why) + '</em>' : '') + '</div>' +
+        '</section>';
+    });
+
+    return html;
+  }
+
+  function bindWordCard(){
+    wordCard.querySelectorAll('[data-wc-task]').forEach(function(t){
+      t.addEventListener('click', function(){
+        t.classList.toggle('open');
+        syncWcAll();
+      });
+    });
+    var all = wordCard.querySelector('[data-wc-all]');
+    if (all) {
+      all.addEventListener('click', function(e){
+        e.stopPropagation();
+        var tasks = wordCard.querySelectorAll('[data-wc-task]');
+        var anyClosed = Array.prototype.some.call(tasks, function(t){ return !t.classList.contains('open'); });
+        tasks.forEach(function(t){ t.classList.toggle('open', anyClosed); });
+        syncWcAll();
+        all.blur();
+      });
+    }
+  }
+
+  function syncWcAll(){
+    var all = wordCard.querySelector('[data-wc-all]');
+    if (!all) return;
+    var tasks = wordCard.querySelectorAll('[data-wc-task]');
+    var allOpen = tasks.length > 0 && Array.prototype.every.call(tasks, function(t){ return t.classList.contains('open'); });
+    all.textContent = allOpen ? '收起答案' : '全部出答案';
+  }
+
+  function renderWordFace(){
+    var cd = st.wordData;
+    if (!cd) return;
+    var front = st.wordFace === 'front';
+    wordCard.innerHTML = front ? wordFrontHtml(cd) : wordBackHtml(cd);
+    wordKicker.textContent = '单词卡 · ' + (front ? '正面 · 讲解' : '反面 · 语用与高考') +
+      (st.wordS >= 0 ? ' · 第 ' + (st.wordS + 1) + ' 句' : '');
+    var flip = document.getElementById('wcFlip');
+    if (flip) {
+      var hasBack = wordHasBack(cd);
+      flip.disabled = !hasBack;
+      flip.textContent = hasBack ? (front ? '反面：语用 · 高考' : '回正面') : '无反面';
+    }
     wordCard.scrollTop = 0;
+    bindWordCard();
+  }
+
+  function renderWord(cd, s){
+    st.wordData = cd;
+    st.wordS = s;
+    st.wordFace = 'front';
+    renderWordFace();
     st.wordOpen = true;
     wordLayer.classList.add('on');
     wordLayer.setAttribute('aria-hidden', 'false');
@@ -1436,6 +1584,39 @@
 
   wordLayer.querySelectorAll('[data-wc-close]').forEach(function(b){
     b.addEventListener('click', closeWord);
+  });
+
+  // 翻面：正面讲解，反面语用与高考
+  var wcFlip = document.getElementById('wcFlip');
+  if (wcFlip) {
+    wcFlip.addEventListener('click', function(){
+      st.wordFace = st.wordFace === 'front' ? 'back' : 'front';
+      renderWordFace();
+      wcFlip.blur();
+    });
+  }
+
+  // 卡片字号：课堂投影时能就地放大，不用退出重进
+  var WC_FS = [0.85, 1, 1.18, 1.36, 1.55];
+  var wcFsIdx = 1;
+  try {
+    var savedWcFs = parseInt(localStorage.getItem('seeklume.wordCardFs'), 10);
+    if (savedWcFs >= 0 && savedWcFs < WC_FS.length) wcFsIdx = savedWcFs;
+  } catch (err) {}
+  function applyWcFs(){
+    wordLayer.querySelector('.wc-card').style.setProperty('--wc-fs', WC_FS[wcFsIdx]);
+  }
+  applyWcFs();
+  wordLayer.querySelectorAll('[data-wc-fs]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var n = Math.max(0, Math.min(WC_FS.length - 1, wcFsIdx + parseInt(b.getAttribute('data-wc-fs'), 10)));
+      if (n !== wcFsIdx) {
+        wcFsIdx = n;
+        try { localStorage.setItem('seeklume.wordCardFs', String(wcFsIdx)); } catch (err) {}
+      }
+      applyWcFs();
+      b.blur();
+    });
   });
 
   // 讲解卡高度跟内容走；引线从书上的句子指到卡片左上角
