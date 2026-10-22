@@ -295,6 +295,13 @@
     transition:opacity .22s ease, visibility .22s linear;
   }
   .wc-layer.on{opacity:1; visibility:visible; pointer-events:auto;}
+  /* 词卡默认铺满整屏：一次给学生看更多，内容多时在卡内往上拉 */
+  #wordLayer{align-items:flex-start; padding:1.6vh clamp(12px,2vw,28px);}
+  #wordLayer .wc-card{
+    width:min(1560px,94vw);
+    height:calc(100vh - 3.2vh); max-height:calc(100vh - 3.2vh);
+    font-size:calc(clamp(18px,2.6vh,30px) * var(--wc-fs,1));
+  }
   .wc-backdrop{
     position:absolute; inset:0; background:rgba(34,31,24,.44);
     -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
@@ -363,7 +370,13 @@
   .wc-front-foot b{color:var(--accent); font-weight:600;}
   .wc-body{
     margin-top:clamp(10px,1.6vh,18px); min-height:0; overflow:auto;
-    overscroll-behavior:contain; padding:2px 6px 2px 0; scrollbar-width:thin;
+    overscroll-behavior:contain; padding:2px 6px 14px 0;
+    scrollbar-width:thin; scrollbar-color:rgba(185,138,40,.5) transparent;
+  }
+  .wc-body::-webkit-scrollbar{width:10px;}
+  .wc-body::-webkit-scrollbar-thumb{
+    background:rgba(185,138,40,.42); border-radius:8px;
+    border:2px solid transparent; background-clip:content-box;
   }
   .wc-body .n-w b{font-size:3em;}
   .wc-body .n-w span{font-size:1.15em;}
@@ -404,7 +417,11 @@
     .sk-left{grid-template-columns:1.8em minmax(0,1fr);}
   }
   @media (max-width:900px){
-    .wc-card{width:calc(100vw - 24px); max-height:90vh; font-size:calc(clamp(16px,2.2vh,20px) * var(--wc-fs,1));}
+    #wordLayer .wc-card{
+      width:calc(100vw - 24px);
+      height:calc(100vh - 3.2vh); max-height:calc(100vh - 3.2vh);
+      font-size:calc(clamp(16px,2.2vh,20px) * var(--wc-fs,1));
+    }
     .wc-body .n-w b{font-size:2.5em;}
     .wc-tools{gap:5px;}
     .wc-close,.wc-btn{padding:6px 11px;}
@@ -1680,7 +1697,8 @@
 
   // 卡片字号：课堂投影时能就地放大，不用退出重进
   var WC_FS = [0.85, 1, 1.18, 1.36, 1.55];
-  var wcFsIdx = 1;
+  // 默认就站在“字大”一档：课堂投影先保证后排能看清，觉得挤再往小调
+  var wcFsIdx = 2;
   try {
     var savedWcFs = parseInt(localStorage.getItem('seeklume.wordCardFs'), 10);
     if (savedWcFs >= 0 && savedWcFs < WC_FS.length) wcFsIdx = savedWcFs;

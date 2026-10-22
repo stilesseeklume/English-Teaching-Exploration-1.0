@@ -18,7 +18,9 @@
 //       role    这一段在文章里干什么
 //       short   骨架导航条上的短标签（结构面板的分段 chip）
 //       gist    段落大意（一两句）
-//       notes   [{ lv, tree, txt, gloss }]  竖排复述笔记（口译笔记法）
+//       notes   [{ lv, tree, txt, gloss, words, chunks, pat }]
+//               竖排复述笔记（口译笔记法）；words/chunks/pat 是总展示右栏的对照：
+//               这一条骨架用到的单词、词块与重点句型。
 //       paras   [ 英文原文段落 ]
 //       shots   [{ src, kind:'page'|'zoom', print, title, note }]
 //       mindmap { center, branches:[{ title, icon, points:[...] }] }  这一段的小导图
@@ -114,7 +116,22 @@
               chunks: ['a living legend', 'become a legend', 'the legend of …'],
               affix: [{ af: '-ary', mean: '名词 → 形容词', ex: 'legend → legendary' }],
               pitfall: '可数名词：a legend / two legends；living legend 指「健在的传奇人物」。',
-              use: '用 legend 说一句：说说你心中的 living legend 是谁。'
+              use: '向校刊推荐一位你心中的 living legend，并说明理由：___ is a living legend because ___.',
+              useAnswer: 'Lang Ping is a living legend because she was a master in volleyball and she set a good example for young players.',
+              exam: [
+                {
+                  type: '高考 · 词族转换',
+                  q: 'The ___ (legend) coach led the team to Olympic gold.',
+                  a: 'legendary',
+                  why: '修饰名词 coach 要用形容词 legendary「传奇的」；名词 legend 指「传奇人物 / 传说」。'
+                },
+                {
+                  type: '高考 · 近义辨析',
+                  q: 'legend / myth / tale 都能译成「故事」，差别在哪？',
+                  a: 'legend 传奇：多依附真实人物或历史事件，带敬仰色彩；myth 神话：解释自然、信仰或起源，多为虚构；tale 故事：可真实可虚构，常指民间故事。',
+                  why: '阅读中作者用 legend 而不说 story，往往在暗示「这个人值得敬仰」，这是词义的褒贬色彩，不只是「故事」。'
+                }
+              ]
             },
             {
               w: 'master', ipa: '/ˈmɑːstə(r)/', pos: 'n. & v.', zh: '大师；主人 / 掌握', en: 'a person who is very skilled at something; to learn a skill completely', tier: 'core', src: '课本 p114',
@@ -283,7 +300,22 @@
               chunks: ['with determination', 'the determination to do sth', 'a person of determination'],
               affix: [{ af: '-ation', mean: '动词 → 名词', ex: 'determine → determination' }],
               pitfall: '表「决心」时不可数（不说 a determination）；determine to do sth 不接 doing。',
-              use: '用 determination 说一句：你为了什么而坚持过？'
+              use: '讲一次你靠 determination 撑下来的经历：When ___, I did not lose heart. With determination, I ___.',
+              useAnswer: 'When I failed my first English speech contest, I did not lose heart. With determination, I practised every morning and finally won second prize.',
+              exam: [
+                {
+                  type: '高考 · 词性转换',
+                  q: 'She is a ___ (determine) girl, and her ___ (determine) helped her finish the race.',
+                  a: 'determined；determination',
+                  why: '修饰人用形容词 determined「坚定的」；her 后面用名词 determination「决心」。'
+                },
+                {
+                  type: '高考 · 熟词生义',
+                  q: 'determine 在句中是「决定」还是别的意思？The police are trying to determine the cause of the fire.',
+                  a: '「查明、确定」，不是「决定」。',
+                  why: 'determine 除「决定」外，常考「查明、测定」：determine the cause / the age of ...。'
+                }
+              ]
             },
             {
               w: 'injure', ipa: '/ˈɪndʒə(r)/', pos: 'v.', zh: '使受伤', en: 'to hurt yourself or someone else, especially in an accident', tier: 'core', src: '课本 p114',
@@ -294,7 +326,22 @@
               chunks: ['be badly injured', 'suffer an injury', 'injure one\'s leg'],
               affix: [{ af: '-ed', mean: '动词 → 形容词', ex: 'injure → injured' }, { af: '-y', mean: '动词 → 名词', ex: 'injure → injury' }],
               pitfall: 'injure 多指意外受伤，wound 多指刀枪造成的伤；the injured 可指「伤员」。',
-              use: '用 injure / injured / injury 各说一句。'
+              use: '说一次受伤的经历，并说明后来怎么恢复：He / She injured his / her ___ while ___, and it took ___ to get back to training.',
+              useAnswer: 'He injured his ankle while playing basketball, and it took him two weeks to get back to training.',
+              exam: [
+                {
+                  type: '高考 · 词性转换',
+                  q: 'Two players were ___ (injure) in the match, and one of them suffered a knee ___ (injure).',
+                  a: 'injured；injury',
+                  why: 'be injured 用过去分词化的形容词；suffer an injury 用名词 injury，注意 -y 拼写（不是 injurey）。'
+                },
+                {
+                  type: '高考 · 近义辨析',
+                  q: 'injure / wound / hurt 都译「受伤」，怎么选？',
+                  a: 'injure 多指意外事故、运动中的受伤；wound 多指刀枪等造成的伤口；hurt 最口语，既可指身体疼，也可指「伤心」。',
+                  why: 'the injured 指「伤员」，the wounded 指「伤兵」；两者在阅读中出现的场景不同。'
+                }
+              ]
             },
             {
               w: 'fall apart', ipa: '', pos: 'phr.', zh: '崩溃；瓦解', en: 'to break into pieces; to start to fail completely', tier: 'core', src: '课本 p114',
@@ -305,7 +352,22 @@
               chunks: ['fall apart', 'come apart', 'be worlds apart'],
               affix: [],
               pitfall: 'apart 是一个词（不是一个 part）；既可指组织「解体」，也可指情绪「崩溃」。',
-              use: '用 fall apart 说一句：什么情况下你会觉得「一切都垮了」？'
+              use: '说一次「眼看要垮、但最后撑住」的经历：___ was falling apart, but ___.',
+              useAnswer: 'Our plan for the school concert was falling apart, but we stayed calm and worked together as a team.',
+              exam: [
+                {
+                  type: '高考 · 词块家族',
+                  q: '这四个 apart 短语分别什么意思？fall apart / take apart / tell apart / apart from',
+                  a: 'fall apart 崩溃、瓦解；take apart 拆开；tell apart 分辨、区分；apart from 除……之外。',
+                  why: 'apart 是一个词（不是 a part）；高考常在完形中用这四个短语互为干扰项。'
+                },
+                {
+                  type: '高考 · 一词多义',
+                  q: '两句里的 fall apart 意思一样吗？① The team was falling apart. ② After the bad news, he was falling apart.',
+                  a: '不一样：① 团队「解体、瓦解」；② 人「情绪崩溃」。',
+                  why: 'fall apart 既可指组织、事物散架，也可指人的精神垮掉，靠主语判断词义方向。'
+                }
+              ]
             },
             {
               w: 'lose heart', ipa: '', pos: 'phr.', zh: '灰心；气馁', en: 'to become discouraged and stop hoping to succeed', tier: 'core', src: '课本 p114',
@@ -316,7 +378,22 @@
               chunks: ['lose heart', 'not lose heart', 'take heart (from sth)'],
               affix: [],
               pitfall: '⚠️ lose heart（气馁）≠ lose one\'s heart to sb（爱上某人）；也说不出 lose hearts。',
-              use: '用 lose heart 说一句：遇到什么也别 lose heart？'
+              use: '写一句给同学的鼓励：When ___, don\'t lose heart. ___',
+              useAnswer: 'When you fail an exam, don\'t lose heart. Analyse your mistakes and try again.',
+              exam: [
+                {
+                  type: '高考 · 易混辨析',
+                  q: 'lose heart / lose one\'s heart to sb / take heart 分别是什么意思？',
+                  a: 'lose heart 灰心、气馁；lose one\'s heart to sb 爱上某人；take heart 振作起来、鼓起勇气。',
+                  why: 'lose heart 不加 one\'s，也不加复数；lose one\'s heart to 才是「爱上」。这两个短语只差一个词，意思完全不同。'
+                },
+                {
+                  type: '高考 · 词块升级',
+                  q: '把「别灰心」换成更书面的表达，可以用哪个短语？',
+                  a: 'Take heart. / Don\'t lose heart. 也可说：Don\'t be discouraged.',
+                  why: '读后续写里人物受挫后重振，常用 take heart (from sth)；比 don\'t be sad 更贴合高考书面语。'
+                }
+              ]
             },
             {
               w: 'honour', ipa: '/ˈɒnə(r)/', pos: 'n. & v.', zh: '荣誉；尊敬 / 尊敬', en: 'great respect and admiration; to show respect to someone', tier: 'simple', src: '课本 p114',
@@ -457,7 +534,22 @@
               chunks: ['graceful movements', 'a graceful dancer', 'with grace'],
               affix: [{ af: '-ful', mean: '名词 → 形容词「充满…的」', ex: 'grace → graceful' }, { af: '-less', mean: '反义后缀「没有…的」', ex: 'grace → graceless' }],
               pitfall: 'graceful 形容动作、形态优雅；gracious 形容对人亲切，别混。',
-              use: '用 graceful 说一句：谁的动作让你觉得 graceful？'
+              use: '描述一个人的动作或姿态：___ is graceful in ___. When he / she ___, ___.',
+              useAnswer: 'My dance teacher is graceful in every movement. When she dances, everyone in the room stops to watch.',
+              exam: [
+                {
+                  type: '高考 · 词族转换',
+                  q: 'She moved across the stage ___ (graceful), and her ___ (grace) left the audience breathless.',
+                  a: 'gracefully；grace',
+                  why: '修饰动词 moved 用副词 gracefully；her 后面用名词 grace「优雅」。'
+                },
+                {
+                  type: '高考 · 易混辨析',
+                  q: 'graceful / gracious / grateful 怎么分？',
+                  a: 'graceful 动作、形态优雅；gracious 待人亲切、有礼貌；grateful 感激的。',
+                  why: '三个词都源自 grace，但形容对象不同：动作 graceful，主人 gracious，心情 grateful。'
+                }
+              ]
             },
             {
               w: 'strength', ipa: '/streŋθ/', pos: 'n.', zh: '力量；强项', en: 'the quality of being strong; a good point in someone\'s character', tier: 'core', src: '课本 p114',
@@ -468,7 +560,22 @@
               chunks: ['mental strength', 'build up one\'s strength', 'strengths and weaknesses'],
               affix: [{ af: '-th', mean: '形容词 → 名词', ex: 'strong → strength' }, { af: '-en', mean: '形容词 → 动词', ex: 'strength → strengthen' }],
               pitfall: '表「力气」不可数；表「强项」可数（one of his strengths）。',
-              use: '用 strength 说一句：你最强的地方是什么？'
+              use: '说自己的一个强项，以及怎么用它：One of my strengths is ___. I use it to ___.',
+              useAnswer: 'One of my strengths is staying calm under pressure. I use it to help my team in the final minutes of a match.',
+              exam: [
+                {
+                  type: '高考 · 词性转换',
+                  q: 'Regular exercise can ___ (strength) your muscles and build up your ___ (strong).',
+                  a: 'strengthen；strength',
+                  why: 'can 后面接动词 strengthen「增强」；build up 后面接名词 strength「力量」。'
+                },
+                {
+                  type: '高考 · 可数性',
+                  q: 'strength 什么时候可数、什么时候不可数？',
+                  a: '表「力气、力量」不可数；表「强项、优势」可数，常说 one of his strengths / strengths and weaknesses。',
+                  why: '这是高考语法填空和写作的常见点：mental strength 不可数，但 play to your strengths 要用复数。'
+                }
+              ]
             },
             {
               w: 'failure', ipa: '/ˈfeɪljə(r)/', pos: 'n.', zh: '失败；失败者', en: 'a lack of success; an attempt that does not succeed', tier: 'core', src: '课本 p114',
@@ -479,7 +586,22 @@
               chunks: ['learn from failures', 'end in failure', 'a failure to do sth'],
               affix: [{ af: '-ure', mean: '动词 → 名词', ex: 'fail → failure' }],
               pitfall: '表「失败」不可数；表「一次失败 / 失败的人」可数。',
-              use: '用 failure 说一句：你从哪次 failure 里学到了什么？'
+              use: '讲一次失败，以及它教会你什么：___ was a failure, but it taught me ___.',
+              useAnswer: 'My first speech contest was a failure, but it taught me to prepare more carefully and never lose heart.',
+              exam: [
+                {
+                  type: '高考 · 可数性',
+                  q: 'failure 什么时候可数、什么时候不可数？',
+                  a: '表抽象的「失败」不可数；表「一次失败 / 失败的人或事」可数：a failure, two failures。',
+                  why: 'end in failure（以失败告终）不可数；He is a failure（他是个失败者）可数。'
+                },
+                {
+                  type: '高考 · 熟词生义',
+                  q: 'a failure to do sth 是什么意思？',
+                  a: '「未能做某事」，不是「失败去做某事」。',
+                  why: 'failure 后面接 to do 表示「没有做到」，如 his failure to answer the question；这是阅读和翻译里的高频点。'
+                }
+              ]
             },
             {
               w: 'unique', ipa: '/juˈniːk/', pos: 'adj.', zh: '独特的；唯一的', en: 'the only one of its kind; very special', tier: 'simple', src: '课本 p114',
@@ -612,7 +734,22 @@
           chunks: ['compete with / against sb', 'compete for sth', 'compete in a race'],
           affix: [{ af: '-ition', mean: '动词 → 名词', ex: 'compete → competition' }, { af: '-or', mean: '动词 → 人', ex: 'compete → competitor' }],
           pitfall: 'compete with / against sb 指对手；compete for sth 指争抢的东西。',
-          use: '用 compete 说一句：你参加过什么比赛？'
+          use: '说一次你参加比赛或竞争的经历：I competed in ___ against ___. Although ___, I ___.',
+          useAnswer: 'I competed in the school speech contest against ten other students. Although I did not win, I learned to stay calm on stage.',
+          exam: [
+            {
+              type: '高考 · 介词填空',
+              q: 'More than 100 athletes will compete ___ the gold medal, and they will compete ___ each other.',
+              a: 'for；with / against',
+              why: 'compete for 争夺（奖牌、名额）；compete with / against 与……竞争；compete in 参加（比赛、项目）。'
+            },
+            {
+              type: '高考 · 词族转换',
+              q: 'The ___ (compete) was fierce, and every ___ (compete) wanted to win.',
+              a: 'competition；competitor',
+              why: 'The 后面作主语用名词 competition「竞争」；every 后面指人用 competitor「参赛者」。'
+            }
+          ]
         },
         {
           w: 'make sense', ipa: '', pos: 'phr.', zh: '讲得通；有意义', en: 'to be reasonable or easy to understand', tier: 'core', src: '课本 p114（单元词）',
@@ -623,7 +760,22 @@
           chunks: ['make sense 讲得通', 'make sense of sth 弄懂', 'in a sense 从某种意义上说'],
           affix: [{ af: '-ible', mean: '词根 → 形容词「可…的」', ex: 'sense → sensible' }],
           pitfall: 'make sense（讲得通）与 make sense of sth（弄懂某物）差一个 of，意思差很远。',
-          use: '用 make sense 说一句：为什么运动前热身 makes sense？'
+          use: '解释一个做法为什么合理：It makes sense to ___ because ___.',
+          useAnswer: 'It makes sense to warm up before exercise because it helps prevent injuries.',
+          exam: [
+            {
+              type: '高考 · 易混辨析',
+              q: 'make sense / make sense of sth / in a sense 分别是什么意思？',
+              a: 'make sense 讲得通、有意义；make sense of sth 弄懂某物；in a sense 从某种意义上说。',
+              why: '差一个 of 或一个介词，意思就变：Can you make sense of this sentence? 是「你能弄懂这句话吗」，不是「这句话讲得通吗」。'
+            },
+            {
+              type: '高考 · 词性转换',
+              q: 'It is ___ (sense) to book tickets early, and he is ___ (sense) to criticism.',
+              a: 'sensible；sensitive',
+              why: 'sensible 明智的；sensitive 敏感的。两个词都来自 sense，但一个讲判断，一个讲感受。'
+            }
+          ]
         }
       ],
 
