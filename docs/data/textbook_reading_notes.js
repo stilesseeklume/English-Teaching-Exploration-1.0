@@ -124,15 +124,29 @@
               family: ['master n. 大师 / v. 掌握', 'mastery n. 精通', 'masterful adj. 技艺高超的'],
               chunks: ['a master of sth', 'be a master in one\'s sport', 'master a skill'],
               affix: [{ af: '-y', mean: '名词 → 抽象名词', ex: 'master → mastery' }],
-              pitfall: 'a master of …（某方面的大师）与 masters in their sports（在各自项目里出类拔萃）注意介词差异。',
-              use: '推荐一位你佩服的人：He / She is a master in ___ because ___.',
-              useAnswer: 'He is a master in basketball because he has trained for ten years and never gives up.',
-              exam: [{
-                type: '高考 · 语法填空',
-                q: 'They must be athletes who are ___ (master) in their sports and also set good examples for others.',
-                a: 'masters',
-                why: 'athletes 是复数，master 作可数名词要跟着用复数；in their sports 指“在各自的项目里”。'
-              }]
+              pitfall: 'a master of …（某方面的大师）与 masters in their sports（在各自项目里出类拔萃）注意介词差异；作动词时是「精通」，不是「成为大师」。',
+              use: '写一句推荐语，master 作名词、动词各用一次：Hearing that you are selecting "Living Legends", I\'d like to recommend ___ — he / she is a master in ___, and over the years he / she has mastered ___.',
+              useAnswer: 'Hearing that you are selecting "Living Legends", I\'d like to recommend my cousin Li Wei — he is a master in table tennis, and over the years he has mastered the art of staying calm in the final seconds.',
+              exam: [
+                {
+                  type: '高考 · 熟词生义',
+                  q: '判断 master 在句中的词性与意思：There is a great deal of pressure to master one\'s field.',
+                  a: '动词，意为「精通、掌握（某领域）」。',
+                  why: 'master 作动词是高考熟词生义的高频点：to 后面接的一定是动词，常考 master a skill / master one\'s field；名词义「大师」只是它的另一半。'
+                },
+                {
+                  type: '高考 · 词语辨析',
+                  q: '这三个词都能指「厉害的人」，差别在哪？master / expert / champion',
+                  a: 'champion 只指「冠军」（比赛的胜者）；expert 指「专家」（知识深厚，多用于专业领域）；master 指「大师」（技艺精湛，多带敬意）。',
+                  why: '完形和阅读的干扰项常在这三个词之间设局：拿过冠军不等于 master，懂知识也不等于 master；master 强调的是「技艺到了别人想学的程度」。'
+                },
+                {
+                  type: '高考 · 语法填空',
+                  q: 'They must be athletes who are ___ (master) in their sports and also set good examples for others.',
+                  a: 'masters',
+                  why: 'athletes 是复数，master 作可数名词要跟着用复数；in their sports 指“在各自的项目里”。'
+                }
+              ]
             },
             {
               w: 'set an example', ipa: '', pos: 'phr.', zh: '树立榜样', en: 'to behave in a way that others should copy', tier: 'core', src: '课本 p114',
@@ -140,17 +154,31 @@
               blank: 'They must be … masters in their sports and also ___ good examples for others.',
               root: { seg: 'exempl-', mean: '取出来（拉丁 exemplum = ex- 出 + emere 取）', kin: ['example 拿出来给人看的东西 → 例子、榜样', 'sample 样品', 'exemplary 典范的'] },
               family: ['example n. 例子；榜样', 'exemplary adj. 典范的', 'exemplify v. 举例说明'],
-              chunks: ['set an example for sb', 'follow sb\'s example', 'for example'],
+              chunks: ['set an example for sb', 'follow sb\'s example', 'lead by example', 'for example'],
               affix: [{ af: '-ary', mean: '名词 → 形容词', ex: 'example → exemplary' }],
-              pitfall: '介词是 for：set an example for others（别用 to）。',
-              use: '提名一位身边的榜样：He / She sets a good example for ___ by ___.',
-              useAnswer: 'She sets a good example for her classmates by helping them with maths after school.',
-              exam: [{
-                type: '高考 · 语法填空（双空回收）',
-                q: 'They must be athletes who are ___ (master) in their sports and also set good ___ (example) for others.',
-                a: 'masters；examples',
-                why: 'master 与复数 athletes 对应；example 泛指“榜样”，用复数；介词是 for。'
-              }]
+              pitfall: '介词用 for（课本）或 to（英式也见），但绝不能是 of：make an example of sb 是反义。',
+              use: '提名一位身边的榜样，再补一句你打算怎么学他：He / She sets a good example for ___ by ___. I will follow his / her example and ___.',
+              useAnswer: 'She sets a good example for her classmates by helping them with maths after school. I will follow her example and explain maths problems to others, too.',
+              exam: [
+                {
+                  type: '高考 · 易混辨析（for / to / of）',
+                  q: '三句里的 example 各是什么意思？① A coach should be a good example for her players. ② The judge made an example of him and gave him the maximum sentence. ③ Teachers must set a good example to their pupils.',
+                  a: '① 榜样（褒义，介词 for）；② 惩一儆百（贬义，make an example of sb，介词只能是 of）；③ 榜样（英式中也可用 to）。',
+                  why: '同一个 example：set an example for（为某人树立榜样）与 make an example of（惩罚某人以警示他人）意思相反、褒贬相反，介词只差一个词。这是完形与阅读里最狠的陷阱。'
+                },
+                {
+                  type: '高考 · 词块升级',
+                  q: '这四个「榜样」表达分别是什么意思？follow sb\'s example / lead by example / hold sb up as an example / follow in sb\'s footsteps',
+                  a: 'follow sb\'s example 仿效某人、以某人为榜样；lead by example 以身作则（用行动带头）；hold sb up as an example 把某人树为榜样（多用于表扬、表彰）；follow in sb\'s footsteps 追随某人的脚步（走上同一条路）。',
+                  why: '应用文（推荐信）与读后续写（人物升华）都能直接用，比每句都写 set an example 更有区分度。'
+                },
+                {
+                  type: '高考 · 语法填空（双空回收）',
+                  q: 'They must be athletes who are ___ (master) in their sports and also set good ___ (example) for others.',
+                  a: 'masters；examples',
+                  why: 'master 与复数 athletes 对应；example 泛指“榜样”，用复数；介词是 for。'
+                }
+              ]
             },
             {
               w: 'athlete', ipa: '/ˈæθliːt/', pos: 'n.', zh: '运动员', en: 'a person who is good at sports and competes in events', tier: 'simple', src: '课本 p114',
