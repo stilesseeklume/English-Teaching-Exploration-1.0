@@ -1912,6 +1912,33 @@ Dock 原来是半透明毛玻璃（surface 82% + `backdrop-filter`）。点「�
 
 ---
 
+## 2026-11-21 · Shadow Reading 长句自动分段 + 留白可调 + 单句循环
+
+### 原因
+
+- 老师反馈：课文里长句太多，一整段音频跟读时眼睛追不住、嘴也跟不上。
+
+### 改法（`docs/read-along/index.html`）
+
+- **长句分段**：818 条录音文本里 ≥18 词的 123 句（占 470 句真实句子的 26%）自动切成 279 段，切点规则＝主句谓宾后、结构信号词前（that/which/who/when/while/because/although/if/and/but/so、分词状语、冒号后并列项），数字+单位、专名、不定式、介词短语内部不断；每段 8–14 词，<4 词的尾巴并回上一段。
+- 音频**不重录**：用 edge-tts 的 `WordBoundary` 取词边界时间戳，按停顿中点换算成比例存进 `SPLITS` / `PART_CUTS`，播放时按 `audio.duration` 换算成秒，用 `currentTime` 定位起播、`timeupdate` 到点即停，原句语调完整保留。
+- 文本层：一段一个 `.sent` span，中间插 `.part-gap` 细缝；点任意一段只播该段。
+- **留白可调**：新增 Echo 下拉（跟句长 / 1s / 2s / 3s），原先写死的「本句时长 + 2s」改成按段时长或固定值。
+- **单句循环**：新增 Loop 下拉（1 / 2 / 3 / 5 遍），同一段读满 N 遍再走下一段。两项设置存 localStorage。
+
+### 验证
+
+- 数据一致性：`allSent` 单元数 = 分段后应有数（必修一 U4 RT 52 = 52）；词表课、无分段课文、必修二课文均正常，无 JS 报错。
+- 分段播放：第一段 0 → 3.63s 停、第二段 3.63 → 5.64s 停，均按时进入留白。
+- 循环：`unitPass` 依次 1→2→3 停留在同一句后再前进；留白 1s 实测生效。
+- 注意：本地 `python3 -m http.server` 不支持 Range，`audio.currentTime` 会被丢弃（`seekable=[0,0]`）；需用支持 Range 的服务器或直接看线上（GitHub Pages 支持 Range）。
+
+### 状态
+
+- 已提交并推送。
+
+---
+
 ## 2026-11-21 · Shadow Reading 补齐必修二（10 篇课文）
 
 - `docs/read-along/index.html`：BOOKS 里必修二 `ready:true`，5 个单元 × 2 课（Reading and Thinking / Reading for Writing），共 10 篇课文、227 条录音文本（标题句单独编号 `title_XX`，正文 `sent_XX`）。
