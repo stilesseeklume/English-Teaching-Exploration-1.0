@@ -699,7 +699,7 @@
   }
 
   function getAiParseLoginRequiredMessage() {
-    return '请先登录后再使用 AI 解析功能。';
+    return '在线 AI 解析已停用。';
   }
 
   function getAiParseNoPassagesMessage() {

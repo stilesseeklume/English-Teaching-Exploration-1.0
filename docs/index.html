@@ -828,31 +828,9 @@
   @keyframes bootFadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 <noscript><style>body { visibility: visible !important; }</style></noscript>
-<script src="./config.js"></script>
 <script>
-  // SUPABASE_URL / SUPABASE_ANON_KEY 由 ./config.js 注入到 window
-  window.__hasSessionSync = (function(){
-    try {
-      var raw = localStorage.getItem('sb-zwbvcqkfbndgmyfxtkyl-auth-token');
-      if (raw) {
-        var d = JSON.parse(raw);
-        var token = d && (d.access_token || (d.currentSession && d.currentSession.access_token));
-        var exp   = d && (d.expires_at   || (d.currentSession && d.currentSession.expires_at));
-        if (token && (!exp || exp * 1000 > Date.now())) {
-          document.documentElement.classList.add('has-session');
-          return true;
-        }
-      }
-    } catch(e) {}
-    return false;
-  })();
   setTimeout(function() { document.documentElement.classList.add('ready'); }, 200);
 </script>
-<style>
-  /* 头区文案按登录态切换：访客看品牌介绍，登录后看 dashboard 问候 */
-  html:not(.has-session) .auth-only { display: none; }
-  html.has-session .guest-only { display: none; }
-</style>
 </head>
 <body>
 
@@ -864,16 +842,13 @@
       <span class="icon-sun">&#9788;</span>
       <span class="icon-moon">&#9790;</span>
     </button>
-    <div class="header-right" id="headerRight">
-    <!-- 全站已改为开放访问，登录入口已移除（2026-11-21） -->
     <button class="header-btn primary" onclick="location.href='./read-along/'">开始学习</button>
-  </div>
   </div>
 </header>
 
 <main>
 
-  <!-- ========== 单页 · 访客与登录后共用（has-session 切换头区文案） ========== -->
+  <!-- ========== 单页 · 所有人共用 ========== -->
   <div class="view active" id="view-modules">
     <section class="hero-video">
       <div class="video-layer">
@@ -892,8 +867,8 @@
           <!-- Panel 0: 品牌 -->
           <div class="panel panel-0 active" data-panel="0">
             <div class="eyebrow" id="modulesGreeting" style="animation:fadeRise .8s cubic-bezier(.16,1,.3,1) .05s both;">Listen · Read · Speak</div>
-            <h1 class="hero-title"><span class="guest-only">Seeklume</span><span class="auth-only">今天想练什么？</span></h1>
-            <p class="hero-sub"><span class="guest-only">用真实的英语内容练听力、阅读与表达</span><span class="auth-only">先听懂，再跟读，一点点让英语成为自己的声音。</span></p>
+            <h1 class="hero-title">Seeklume</h1>
+            <p class="hero-sub">用真实的英语内容练听力、阅读与表达</p>
             <div class="hero-actions">
               <button class="liquid-glass" onclick="location.href='./read-along/'">开始 Shadow Reading <span style="font-size:18px;line-height:1;">→</span></button>
               <button class="liquid-glass secondary" onclick="location.href='./grammar-fill/'">课本语法</button>
@@ -946,243 +921,8 @@
 
 </main>
 
-<!-- ========== Auth Modal ========== -->
-<div class="modal-overlay" id="authModal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div id="authFormPanel">
-      <div class="modal-head">
-        <h3 id="authTitle">登录</h3>
-        <button class="modal-close" onclick="closeModal()">×</button>
-      </div>
-      <div id="signupHint" class="hint" style="display:none;">
-        欢迎使用 Seeklume<br>填写邮箱、用户名和密码即可注册，注册后需管理员审批。
-      </div>
-      <label>邮箱</label>
-      <input id="authEmail" type="email" placeholder="your@email.com" autocomplete="email">
-      <div id="usernameRow" style="display:none;">
-        <label>用户名</label>
-        <input id="authUsername" type="text" placeholder="你喜欢的名字" autocomplete="username">
-      </div>
-      <label>密码（≥ 6 位）</label>
-      <input id="authPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
-      <div id="authError" class="err"></div>
-      <div class="modal-actions">
-        <button id="authBtn" onclick="submitAuth()">登录</button>
-      </div>
-      <div class="modal-switch">
-        <span id="switchText">没有账号？</span>
-        <a id="switchLink" onclick="toggleMode()">注册</a>
-      </div>
-    </div>
-    <div id="authSuccessPanel" style="display:none;text-align:center;">
-      <div style="font-size:48px;color:var(--green);margin-bottom:10px;"></div>
-      <h3 style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px;">注册成功</h3>
-      <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:18px;">
-        账号 <b id="successName" style="color:var(--text);"></b> 已创建。<br>
-        注册后需管理员审批，通过后才能使用全部功能。
-      </p>
-      <button class="btn primary" style="width:100%;padding:11px;" onclick="afterSignupGoSignin()">好的 · 去登录</button>
-    </div>
-  </div>
-</div>
-
 <script>
 (function(){
-  var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1;
-  var sb = cfgValid ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
-  var state = { user: null, isAdmin: false };
-
-
-  async function detectAdmin() {
-    if (!sb || !state.user) { state.isAdmin = false; return; }
-    try {
-      var r = await sb.rpc('admin_list_users');
-      state.isAdmin = !r.error;
-    } catch (e) { state.isAdmin = false; }
-  }
-
-  async function refreshAndRoute() {
-    if (!sb) {
-      document.documentElement.classList.remove('has-session');
-      renderUserPill();
-      renderGreeting();
-      return;
-    }
-    var s = await sb.auth.getSession();
-    state.user = (s.data && s.data.session) ? s.data.session.user : null;
-    if (state.user) {
-      document.documentElement.classList.add('has-session');
-      await detectAdmin();
-    } else {
-      document.documentElement.classList.remove('has-session');
-      state.isAdmin = false;
-    }
-    renderUserPill();
-    renderGreeting();
-  }
-
-  function displayName() {
-    if (!state.user) return '';
-    return (state.user.user_metadata && state.user.user_metadata.username) ||
-           (state.user.email || '').split('@')[0] || '';
-  }
-
-  function renderUserPill() {
-    var el = document.getElementById('headerRight');
-    if (!sb) { el.innerHTML = ''; return; }
-    if (state.user) {
-      var nm = displayName();
-      var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;
-      // 仅管理员可见：独立管理后台
-      var adminBtn = state.isAdmin
-        ? '<button class="header-btn ghost" onclick="location.href=\'./admin/\'" title="用户审批 / 邮箱查找 / 账号管理">管理后台</button>'
-        : '';
-      el.innerHTML =
-        '<span title="' + nm + '" style="color:var(--text);">' + short + '</span>' +
-        adminBtn +
-        '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">Shadow Reading</button>' +
-        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">课本语法</button>' +
-        '<button class="header-btn ghost" onclick="doLogout()">退出</button>';
-    } else {
-      el.innerHTML = '<button class="header-btn ghost" onclick="openModal(\'signin\')">登录 / 注册</button>' +
-        '<button class="header-btn primary" onclick="location.href=\'./read-along/\'">开始学习</button>' +
-        '<button class="header-btn ghost" onclick="location.href=\'./grammar-fill/\'">课本语法</button>';
-    }
-  }
-
-  function showPrivacyNotice() {
-    alert('这个学习内容还在准备中，当前可以先使用 Shadow Reading。');
-  }
-
-  function renderGreeting() {
-    var el = document.getElementById('modulesGreeting');
-    if (!el) return;
-    if (!state.user) { el.textContent = 'Listen · Read · Speak'; return; }
-    var h = new Date().getHours();
-    var g = h < 6 ? '夜深辛苦了' : h < 11 ? '上午好' : h < 13 ? '中午好'
-          : h < 18 ? '下午好' : h < 22 ? '晚上好' : '今天也辛苦了';
-    el.textContent = g + '，' + displayName();
-  }
-
-  // 合并为单页后：始终展示模块网格，仅刷新头区问候
-  function showView() {
-    var m = document.getElementById('view-modules');
-    if (m) m.classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    renderGreeting();
-  }
-
-  /* 旧 #view-welcome 的分屏动画/演示/自动滚动 JS 已随单页合并删除 */
-
-  /* ===== Auth Modal ===== */
-  var _mode = 'signin';
-  function openModal(mode) {
-    _mode = mode || 'signin';
-    document.getElementById('authFormPanel').style.display = '';
-    document.getElementById('authSuccessPanel').style.display = 'none';
-    document.getElementById('authError').classList.remove('show');
-    document.getElementById('authEmail').value = '';
-    document.getElementById('authUsername').value = '';
-    document.getElementById('authPassword').value = '';
-    applyMode();
-    document.getElementById('authModal').classList.add('show');
-    setTimeout(function(){ document.getElementById('authEmail').focus(); }, 50);
-  }
-  function closeModal() { document.getElementById('authModal').classList.remove('show'); }
-  function toggleMode() {
-    _mode = _mode === 'signin' ? 'signup' : 'signin';
-    document.getElementById('authError').classList.remove('show');
-    applyMode();
-  }
-  function applyMode() {
-    var isSignin = _mode === 'signin';
-    document.getElementById('authTitle').textContent = isSignin ? '登录' : '注册';
-    document.getElementById('authBtn').textContent = isSignin ? '登录' : '创建账号';
-    document.getElementById('switchText').textContent = isSignin ? '没有账号？' : '已有账号？';
-    document.getElementById('switchLink').textContent = isSignin ? '注册' : '去登录';
-    document.getElementById('signupHint').style.display = isSignin ? 'none' : 'block';
-    document.getElementById('usernameRow').style.display = isSignin ? 'none' : 'block';
-    document.getElementById('authPassword').autocomplete = isSignin ? 'current-password' : 'new-password';
-  }
-  function afterSignupGoSignin() {
-    _mode = 'signin'; applyMode();
-    document.getElementById('authSuccessPanel').style.display = 'none';
-    document.getElementById('authFormPanel').style.display = '';
-  }
-
-  async function submitAuth() {
-    if (!sb) return;
-    var email = document.getElementById('authEmail').value.trim();
-    var username = document.getElementById('authUsername').value.trim();
-    var pwd = document.getElementById('authPassword').value;
-    var errEl = document.getElementById('authError');
-    errEl.classList.remove('show');
-
-    if (!email || email.indexOf('@') === -1) { errEl.textContent = '请输入有效的邮箱'; errEl.classList.add('show'); return; }
-    if (!pwd) { errEl.textContent = '密码不能为空'; errEl.classList.add('show'); return; }
-    if (pwd.length < 6) { errEl.textContent = '密码至少 6 位'; errEl.classList.add('show'); return; }
-    if (_mode === 'signup') {
-      if (!username) { errEl.textContent = '请设置一个用户名'; errEl.classList.add('show'); return; }
-      if (username.indexOf('@') !== -1) { errEl.textContent = '用户名不能包含 @'; errEl.classList.add('show'); return; }
-      if (username.length < 2) { errEl.textContent = '用户名至少 2 个字符'; errEl.classList.add('show'); return; }
-    }
-
-    var btn = document.getElementById('authBtn');
-    btn.disabled = true; var oldText = btn.textContent;
-    btn.innerHTML = '<span class="loading-spinner"></span>处理中…';
-    try {
-      if (_mode === 'signin') {
-        var r = await sb.auth.signInWithPassword({ email: email, password: pwd });
-        if (r.error) throw r.error;
-        closeModal();
-        await refreshAndRoute();
-      } else {
-        var r2 = await sb.auth.signUp({
-          email: email, password: pwd,
-          options: { data: { username: username } }
-        });
-        if (r2.error) throw r2.error;
-        if (r2.data && r2.data.session) {
-          closeModal();
-          await refreshAndRoute();
-        } else {
-          document.getElementById('successName').textContent = username || email;
-          document.getElementById('authFormPanel').style.display = 'none';
-          document.getElementById('authSuccessPanel').style.display = '';
-        }
-      }
-    } catch (e) {
-      var msg = (e.message || e) + '';
-      if (/email not confirmed/i.test(msg)) {
-        errEl.innerHTML = '邮箱还没验证，请去 <b>' + email + '</b> 的收件箱（包括<b>垃圾邮件</b>）找验证邮件，点链接后再来登录。';
-      } else if (/invalid login credentials/i.test(msg)) {
-        errEl.textContent = '邮箱或密码错误。';
-      } else if (/user already registered/i.test(msg) || /already.*registered/i.test(msg)) {
-        errEl.textContent = '这个邮箱已经注册过了，去登录吧。';
-      } else if (/rate limit/i.test(msg)) {
-        errEl.textContent = '请求太频繁，过 1 分钟再试。';
-      } else if (/duplicate.*username|profiles_username/i.test(msg)) {
-        errEl.textContent = '这个用户名被占用了，换一个？';
-      } else {
-        errEl.textContent = msg;
-      }
-      errEl.classList.add('show');
-    } finally {
-      btn.disabled = false; btn.textContent = oldText;
-    }
-  }
-
-  async function doLogout() {
-    if (!confirm('确定要退出登录吗？')) return;
-    try { await sb.auth.signOut(); } catch (e) {}
-    state.user = null; state.isAdmin = false;
-    await refreshAndRoute();
-  }
-
-  function goHome() {
-    showView();
-  }
-
   function toggleTheme() {
     var current = document.documentElement.getAttribute('data-theme');
     var next = current === 'dark' ? 'light' : 'dark';
@@ -1196,14 +936,6 @@
   }
 
   window.showView = showView;
-  window.openModal = openModal;
-  window.closeModal = closeModal;
-  window.toggleMode = toggleMode;
-  window.submitAuth = submitAuth;
-  window.afterSignupGoSignin = afterSignupGoSignin;
-  window.showPrivacyNotice = showPrivacyNotice;
-  window.doLogout = doLogout;
-  window.goHome = goHome;
   window.toggleTheme = toggleTheme;
 
   /* ===== 视频背景轮播 + 双面板切换 ===== */
@@ -1277,17 +1009,10 @@
   setTimeout(function() { if (_videos[0]) _videos[0].play().catch(function(){}); }, 300);
 
   (function syncInitView() {
-    // 单页：始终展示模块网格；has-session 仅切换头区文案（CSS 处理）
     var m = document.getElementById('view-modules');
     if (m) m.classList.add('active');
-    document.documentElement.classList.toggle('has-session', !!window.__hasSessionSync);
     document.documentElement.classList.add('ready');
   })();
-
-  refreshAndRoute();
-  if (sb) {
-    sb.auth.onAuthStateChange(function(){ refreshAndRoute(); });
-  }
 })();
 </script>
 

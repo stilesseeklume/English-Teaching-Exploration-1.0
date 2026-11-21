@@ -149,11 +149,10 @@
       </div>
       <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
         <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;">我的数据</div>
-        <div style="font-size:11px;color:var(--text-3);line-height:1.6;margin-bottom:10px;">导出或清空自己的错题本和备课资料。账号删除需要管理员处理，因为真实删除 Supabase Auth 用户不能在公开前端直接执行。</div>
+        <div style="font-size:11px;color:var(--text-3);line-height:1.6;margin-bottom:10px;">导出或清空存在本浏览器里的错题本和备课资料。</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button id="settingsExportDataBtn" onclick="exportMyLearningData()" style="padding:6px 14px;background:var(--surface-3);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:13px;">导出学习数据</button>
           <button id="settingsClearDataBtn" onclick="clearMyLearningData()" style="padding:6px 14px;background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:6px;cursor:pointer;font-size:13px;">清空学习数据</button>
-          <button id="settingsAccountDeleteBtn" onclick="requestMyAccountDeletion()" style="padding:6px 14px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:6px;cursor:pointer;font-size:13px;">申请删除账号</button>
         </div>
         <div id="settingsDataMsg" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
       </div>
@@ -386,7 +385,6 @@
 <script src="../shared/utils.js"></script>
 <script src="../shared/lesson-prep.js"></script>
 <script src="../shared/auth-ui.js"></script><script src="../shared/word-import.js?v=grammar-fill-20260518-import-v2"></script>
-<script src="../shared/gate.js"></script>
 <script src="../shared/observability.js"></script>
 <script src="./modules/passage-utils.js"></script>
 <script src="./modules/category-rules.js"></script>

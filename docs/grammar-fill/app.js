@@ -1957,7 +1957,7 @@ async function doAiTranslation() {
   try {
     var token = window._sb ? (await window._sb.auth.getSession()).data.session?.access_token : null;
     if (!token) {
-      passageBox.innerHTML = '<p style="color:var(--text-3);">请先登录以使用翻译功能。</p>';
+      passageBox.innerHTML = '<p style="color:var(--text-3);">在线翻译已停用。</p>';
       return;
     }
     var res = await fetch('https://zwbvcqkfbndgmyfxtkyl.supabase.co/functions/v1/translate-passage', {
@@ -2005,7 +2005,7 @@ async function translateStageSentence() {
   try {
     var session2 = window._sb ? (await window._sb.auth.getSession()).data.session : null;
     var token = session2 ? session2.access_token : null;
-    if (!token) { body.textContent = '请先登录以使用翻译。'; return; }
+    if (!token) { body.textContent = '在线翻译已停用。'; return; }
     var res = await fetch('https://zwbvcqkfbndgmyfxtkyl.supabase.co/functions/v1/translate-passage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
