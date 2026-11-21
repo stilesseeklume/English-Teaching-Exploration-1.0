@@ -58,7 +58,7 @@ git push
 1. 点「登录 / 注册」→ 切换到「注册」标签
 2. 用你的常用邮箱注册（**首次会要邮件验证** —— 详见下一段）
 3. 验证后登录，会自动弹「检测到本地有 X 道错题…是否上传到云端？」点确定，本地数据就搬上去了
-4. 用 **`liuzhenlzstiles@icloud.com`** 注册并登录的话，导航栏会出现「👥 管理员」标签，能看到所有用户
+4. 用 **`<管理员邮箱>`** 注册并登录的话，导航栏会出现「👥 管理员」标签，能看到所有用户
 
 ---
 
@@ -97,7 +97,7 @@ as $$
 begin
   insert into public.profiles (user_id, approved)
   values (new.id, coalesce(
-    new.email in ('liuzhenlzstiles@icloud.com'),
+    new.email in ('<管理员邮箱>'),
     false
   ));
   return new;
@@ -190,7 +190,7 @@ insert into public.profiles (user_id, approved)
 ```sql
 select coalesce(
   (auth.jwt() ->> 'email') in (
-    'liuzhenlzstiles@icloud.com'
+    '<管理员邮箱>'
   ),
   false
 );
@@ -201,7 +201,7 @@ select coalesce(
 ```sql
 select coalesce(
   (auth.jwt() ->> 'email') in (
-    'liuzhenlzstiles@icloud.com',
+    '<管理员邮箱>',
     '同事的邮箱@xxx.com'
   ),
   false

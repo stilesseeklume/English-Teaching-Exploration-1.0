@@ -865,7 +865,7 @@
       <span class="icon-moon">&#9790;</span>
     </button>
     <div class="header-right" id="headerRight">
-    <button class="header-btn ghost" onclick="openModal('signin')">登录 / 注册</button>
+    <!-- 全站已改为开放访问，登录入口已移除（2026-11-21） -->
     <button class="header-btn primary" onclick="location.href='./read-along/'">开始学习</button>
   </div>
   </div>
@@ -986,7 +986,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   var cfgValid = window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_') === -1;
@@ -1030,7 +1029,7 @@
 
   function renderUserPill() {
     var el = document.getElementById('headerRight');
-    if (!sb) { el.innerHTML = '<span style="color:var(--text-3);">本地模式</span>'; return; }
+    if (!sb) { el.innerHTML = ''; return; }
     if (state.user) {
       var nm = displayName();
       var short = nm.length > 18 ? nm.slice(0, 16) + '…' : nm;

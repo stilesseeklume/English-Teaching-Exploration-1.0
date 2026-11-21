@@ -31,7 +31,7 @@
     var el = document.getElementById('userPill');
     if (!el) return;
     if (!window.cloud || !window.cloud.isConfigured()) {
-      el.innerHTML = '<span style="color:var(--text-3);font-size:11px;">本地模式</span>';
+      el.innerHTML = '';
       return;
     }
     if (state.user) {

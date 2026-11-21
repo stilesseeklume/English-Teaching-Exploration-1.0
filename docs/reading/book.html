@@ -107,11 +107,6 @@
     scrollbar-width:thin;
   }
   .note.in{opacity:1; transform:none; pointer-events:auto;}
-  .n-back{
-    font:inherit; font-size:.96875em; color:var(--muted); background:none; border:0;
-    padding:0 0 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
-  }
-  .n-back:hover{color:var(--accent);}
   .n-kicker{
     display:flex; align-items:center; gap:8px;
     font-size:.75em; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
@@ -136,27 +131,6 @@
   }
   .n-chip:hover{border-color:var(--accent); background:#fffaf0; transform:translateY(-1px);}
   .n-chip i{font-style:normal; color:var(--muted); margin-left:5px; font-size:.82em;}
-  /* 复述骨架：默认收起，点「显示」再展开；讲完一段给总展示 */
-  .n-skel{margin-top:14px; padding-top:10px; border-top:1px dashed var(--rule);}
-  .n-skel-cap{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .n-skel-cap span{font-size:.78em; letter-spacing:.06em; color:var(--muted);}
-  .n-skel-btn{
-    flex:none; font:inherit; font-size:.8125em; color:var(--accent); background:#fff;
-    border:1px solid var(--rule); border-radius:999px; padding:5px 12px; cursor:pointer;
-  }
-  .n-skel-btn:hover{border-color:var(--accent); background:#fffaf0;}
-  .n-skel-btn:disabled{
-    color:var(--muted); background:#fbfaf7; border-color:var(--rule); opacity:.75; cursor:default;
-  }
-  .n-skel-list{margin-top:8px; display:flex; flex-direction:column; gap:6px;}
-  .n-skel .s-note.new{animation:skelIn .42s ease both;}
-  @keyframes skelIn{from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;}}
-  .n-skel.full{border-top-color:rgba(185,138,40,.5);}
-  .n-skel.full .n-skel-cap span{color:var(--accent); font-weight:600;}
-  .n-skel-body{margin-top:8px;}
-  .n-skel-acts{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
-  .n-skel-undo{color:var(--muted); background:#fbfaf7;}
-  .n-skel-undo:hover{border-color:var(--accent); color:var(--accent); background:#fffaf0;}
   /* 段卡 */
   .s-head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
   .s-head b{
@@ -533,7 +507,6 @@
 
 <!-- 全站登录门禁（功能页强制登录） -->
 <script src="../config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../shared/cloud.js"></script>
 <script src="../shared/gate.js"></script>
 
@@ -841,8 +814,6 @@
     s: -1, sec: -1,
     lastSec: 1,        // 最近讲过的段：从「整篇」回来时，「本段」不丢上下文
     anchor: null,      // 当前批注要贴住的那个热区
-    skel: {},          // 段序号 → 已写到第几条骨架（按 notes 顺序，0 起）
-    skelOpen: {},      // 段序号 → 复述骨架是否展开（默认收起）
     skelCardOpen: false, // 骨架总展示卡是否正盖在屏幕中央
     wordOpen: false,   // 单词卡是否正盖在屏幕中央
     wordFace: 'front', // 单词卡当前面：front 讲解 / back 语用与高考
@@ -1058,12 +1029,9 @@
   function openSection(i){
     var secs = noteData.sections || [];
     if (!secs[i]) return;
-    // 从逐句里点「本段」回来不丢刚写的骨架；重新进这一段讲，则从空白开始
-    var sameSec = st.mode === 'sent' && st.sec === i;
     st.mode = 'sec'; st.sec = i; st.s = -1; st.lastSec = i;
     st.card = '';
     st.anchor = null;
-    if (!sameSec) { st.skel[i] = 0; st.skelOpen[i] = false; }
     hits.querySelectorAll('.hit, .map-hit').forEach(function(b){ b.classList.remove('on', 'hot'); });
     hits.querySelectorAll('.sec-hit').forEach(function(b){
       var on = b.getAttribute('data-sec') === String(i);
@@ -1097,7 +1065,6 @@
     closeWord();
     var wasOpen = st.mode !== '';
     st.mode = ''; st.s = -1; st.sec = -1; st.anchor = null; st.card = '';
-    st.skel = {}; st.skelOpen = {};
     note.classList.remove('in');
     hits.querySelectorAll('.on,.hot').forEach(function(b){ b.classList.remove('on','hot'); });
     lead.innerHTML = '';
@@ -1159,6 +1126,7 @@
       add('prev-sec', '上一段', '上一段', function(){ if (st.sec > 0) openSection(st.sec - 1); });
       add('next-sec', '下一段', '下一段', function(){ if (st.sec < (noteData.sections || []).length - 1) openSection(st.sec + 1); });
       add('sent', '逐句', '逐句读这一段', function(){ open(firstSentOfSection(st.sec)); });
+      add('skel', '骨架', '看这一段的复述骨架', function(){ openSkelCard(st.sec); });
       add('map', '整篇', '整篇（M）', openMap);
       add('words', '生词', '生词', function(){ openWordList(); });
       add('close', '收起', '收起（Esc）', close);
@@ -1169,6 +1137,7 @@
       add('prev-sent', '上一句', '上一句', function(){ if (st.s > 0) open(st.s - 1); });
       add('next-sent', '下一句', '下一句', function(){ if (st.s < SENT.length - 1) open(st.s + 1); });
       add('sec', '本段', '本段', function(){ openSection(SENT[st.s].sec); });
+      add('skel', '骨架', '看这一段的复述骨架', function(){ openSkelCard(SENT[st.s].sec); });
       add('map', '整篇', '整篇（M）', openMap);
       add('fs-down', '字小', '讲解字号调小', function(){ stepFs(-1); });
       add('fs-up', '字大', '讲解字号调大', function(){ stepFs(1); });
@@ -1228,112 +1197,9 @@
     note.classList.add('in');
   }
 
-  // ── 复述骨架：不按句子硬绑，老师讲完一组点一下，按 notes 顺序写下一条 ──
-  function skelRow(n, isNew){
-    var lv = n.lv || 0;
-    return '<div class="s-note lv' + lv + (isNew ? ' new' : '') + '" style="padding-left:' + (lv * 15) + 'px">' +
-      (lv === 0 ? '<span class="s-note-dot"></span>' : '') +
-      esc(n.txt || '') +
-      (n.gloss ? '<em>' + esc(n.gloss) + '</em>' : '') +
-    '</div>';
-  }
-
-  function skelBlock(d, s, fresh){
-    var ns = (noteData.sections[d.sec] || {}).notes || [];
-    var count = st.skel[d.sec] || 0;
-    var open = !!st.skelOpen[d.sec];
-    var rows = '';
-    for (var k = 0; k < count && k < ns.length; k++) {
-      rows += skelRow(ns[k], fresh === k);
-    }
-    var complete = ns.length > 0 && count >= ns.length;
-    var body = '';
-    var barBtn;
-    var acts = [];
-    if (count > 0) {
-      acts.push('<button type="button" class="n-skel-btn n-skel-undo" data-skel-undo>退回上一条</button>');
-    }
-    acts.push(complete
-      ? '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>'
-      : '<button type="button" class="n-skel-btn" data-skel>写下一条</button>');
-    if (complete) {
-      barBtn = open
-        ? '<button type="button" class="n-skel-btn" data-skel-toggle>隐藏</button>'
-        : '<div class="n-skel-acts">' +
-            '<button type="button" class="n-skel-btn" data-skel-toggle>显示</button>' +
-            '<button type="button" class="n-skel-btn" data-skel-show>总展示</button>' +
-          '</div>';
-    } else {
-      barBtn = '<button type="button" class="n-skel-btn" data-skel-toggle>' + (open ? '隐藏' : '显示') + '</button>';
-    }
-    if (open) {
-      body = '<div class="n-skel-body">' +
-        (rows ? '<div class="n-skel-list">' + rows + '</div>' : '') +
-        '<div class="n-skel-acts">' + acts.join('') + '</div>' +
-      '</div>';
-    }
-    return '<div class="n-skel' + (complete ? ' full' : '') + '">' +
-      '<div class="n-skel-cap">' +
-        '<span>' + (complete ? '本段骨架 · 完整'
-          : '复述骨架 · ' + esc((noteData.sections[d.sec] || {}).label || '')) + '</span>' +
-        barBtn +
-      '</div>' + body +
-    '</div>';
-  }
-
-  // 骨架块整体重画：只换这一块，书页与这一句的讲解都不动
-  function repaintSkel(d, s, fresh){
-    var box = note.querySelector('.n-skel');
-    if (!box) return;
-    box.outerHTML = skelBlock(d, s, fresh);
-    bindSkel(d, s);
-    var nb = note.querySelector('.n-skel');
-    if (!nb) return;
-    var freshRow = nb.querySelector('.s-note.new');
-    if (freshRow) freshRow.scrollIntoView({ block: 'nearest' });
-    requestAnimationFrame(place);
-  }
-
-  function bindSkel(d, s){
-    note.querySelectorAll('[data-skel-show]').forEach(function(b){
-      b.addEventListener('click', function(){ openSkelCard(d.sec); });
-    });
-    var toggle = note.querySelector('[data-skel-toggle]');
-    if (toggle) {
-      toggle.addEventListener('click', function(){
-        st.skelOpen[d.sec] = !st.skelOpen[d.sec];
-        repaintSkel(d, s);
-        var body = note.querySelector('.n-skel-body');
-        if (body) body.scrollIntoView({ block: 'nearest' });
-      });
-    }
-    var undo = note.querySelector('[data-skel-undo]');
-    if (undo) {
-      undo.addEventListener('click', function(){
-        var count = st.skel[d.sec] || 0;
-        if (count <= 0) return;
-        // 误点一下：退掉刚写出的那一条，展开状态不变
-        st.skel[d.sec] = count - 1;
-        st.skelOpen[d.sec] = true;
-        repaintSkel(d, s);
-      });
-    }
-    var btn = note.querySelector('[data-skel]');
-    if (!btn) return;
-    btn.addEventListener('click', function(){
-      var ns = (noteData.sections[d.sec] || {}).notes || [];
-      var count = st.skel[d.sec] || 0;
-      if (count >= ns.length) return;
-      // 与当前讲到第几句无关：老师讲完一组，点一下，按 notes 顺序写下一条
-      st.skel[d.sec] = count + 1;
-      st.skelOpen[d.sec] = true;
-      repaintSkel(d, s, count);
-    });
-  }
-
-  // 一段讲完：整副骨架像词卡一样弹到屏幕正中。
-  // 左栏是完整的一块骨架（学生照着复述），右栏按同一次序逐条给出
-  // 这一行用到的单词、词块与重点句型，作为复述时的对照参考。
+  // ── 复述骨架 ──
+  // 课堂上骨架是老师自己在黑板上写的，屏幕上只留「一键展示」：
+  // 点 Dock 的「骨架」直接把整副卡片弹出来，不做逐条点写。
   function skelMarkRow(n){
     var parts = [];
     if (n.words && n.words.length) {
@@ -1356,9 +1222,7 @@
 
   function openSkelCard(secIdx){
     var d = (noteData.sections || [])[secIdx] || {};
-    var ns = d.notes || [];
-    var count = st.skel[secIdx] || 0;
-    var shown = ns.slice(0, count);
+    var shown = d.notes || [];
 
     // 左栏：整块骨架连在一起，不加编号、不加横线
     var noteBlock = shown.map(function(n){
@@ -1380,7 +1244,7 @@
     }).join('');
 
     document.getElementById('skelKicker').textContent =
-      '复述骨架 · ' + (d.label || '') + (d.short ? ' · ' + d.short : '') + ' · 共 ' + count + ' 条';
+      '复述骨架 · ' + (d.label || '') + (d.short ? ' · ' + d.short : '') + ' · 共 ' + shown.length + ' 条';
     document.getElementById('skelCard').innerHTML =
       '<p class="sk-intro">照着左边的骨架把这一段讲一遍；右边按同样的顺序列了每一行用到的单词、词块和句型，' +
         '尽量把它们说进去。点单词可打开词卡。</p>' +
@@ -1413,7 +1277,6 @@
   function renderNote(s){
     st.card = '';
     var d = SENT[s];
-    // 句间翻动不改骨架的展开状态：展开/收起只由老师点「显示 / 隐藏」控制
     // 句卡里的词只露词形，释义点开词卡再看——省地方，也更像课堂上的一个“抓手”
     var chips = (d.words || []).map(function(w){
       return '<button class="n-chip" data-card="' + esc(w.card) + '" data-w="' + esc(w.text) + '">' +
@@ -1429,10 +1292,7 @@
       (d.chunk ? '<div class="n-row"><span class="n-lab">词块</span><span class="n-val">' + esc(d.chunk) + '</span></div>' : '') +
       (d.pat ? '<div class="n-row"><span class="n-lab">句型</span><span class="n-val">' + esc(d.pat) + '</span></div>' : '') +
       (d.craft ? '<div class="n-row"><span class="n-lab">写法</span><span class="n-val">' + esc(d.craft) + '</span></div>' : '') +
-      (chips ? '<div class="n-words"><span class="n-words-cap">讲单词</span>' + chips + '</div>' : '') +
-      (((noteData.sections[d.sec] || {}).notes || []).length ? skelBlock(d, s) : '');
-
-    bindSkel(d, s);
+      (chips ? '<div class="n-words"><span class="n-words-cap">讲单词</span>' + chips + '</div>' : '');
 
     note.querySelectorAll('.n-wk, .n-chip').forEach(function(b){
       b.addEventListener('click', function(){
