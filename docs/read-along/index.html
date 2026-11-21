@@ -436,10 +436,9 @@
   <div class="countdown-hint">Speak with the same rhythm and tone</div>
   <div class="countdown-bar"><div class="countdown-bar-fill" id="countdownBarFill"></div></div>
 </div>
-<!-- ============== 全站登录门禁（Supabase） ============== -->
+<!-- 站点公共脚本 -->
 <script src="../config.js"></script>
 <script src="../shared/cloud.js"></script>
-<script src="../shared/gate.js"></script>
 <script src="../shared/ui/dock.js"></script>
 <script>
 /* ================= 数据：书架 → 课本 → 单元 → 课文 ================= */
@@ -455,7 +454,15 @@ var BOOKS = [
     { name:"Unit 5 · Languages Around the World", lessons:["u5_rt","u5_rw","u5_words"] }
   ]
 },
-{ id:"bixiu2", name:"\u5fc5\u4fee\u4e8c", en:"Book 2", cover:"../grammar-fill/images/textbook-covers/bixiu-2.jpg", ready:false },
+{ id:"bixiu2", name:"必修二", en:"Book 2", cover:"../grammar-fill/images/textbook-covers/bixiu-2.jpg", ready:true,
+  units:[
+    { name:"Unit 1 \u00b7 Cultural Heritage", lessons:["b2u1_rt", "b2u1_rw"] },
+    { name:"Unit 2 \u00b7 Wildlife Protection", lessons:["b2u2_rt", "b2u2_rw"] },
+    { name:"Unit 3 \u00b7 The Internet", lessons:["b2u3_rt", "b2u3_rw"] },
+    { name:"Unit 4 \u00b7 History and Traditions", lessons:["b2u4_rt", "b2u4_rw"] },
+    { name:"Unit 5 \u00b7 Music", lessons:["b2u5_rt", "b2u5_rw"] }
+  ]
+},
 { id:"bixiu3", name:"\u5fc5\u4fee\u4e09", en:"Book 3", cover:"../grammar-fill/images/textbook-covers/bixiu-3.jpg", ready:false },
 { id:"xuanbi1", name:"\u9009\u5fc5\u4e00", en:"Selective 1", cover:"../grammar-fill/images/textbook-covers/xuanbi-1.jpg", ready:false },
 { id:"xuanbi2", name:"\u9009\u5fc5\u4e8c", en:"Selective 2", cover:"../grammar-fill/images/textbook-covers/xuanbi-2.jpg", ready:false },
@@ -1388,7 +1395,446 @@ var LESSONS = {
   {en:"Denmark",zh:"丹麦",ipa:"/ˈdenmɑːk/"},
   {en:"Arabic",zh:"n. 阿拉伯语",ipa:"/ˈærəbɪk/"},
   ]
-}
+},
+"b2u1_rt":{
+  id:"b2u1_rt",
+  unitTag:"Unit 1 \u00b7 Reading and Thinking",
+  title:"From Problems to Solutions",
+  sub:"Cultural Heritage",
+  tbTitle:"Reading and Thinking",
+  tbSubtitle:"From Problems to Solutions",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"From Problems to Solutions",zh:"\u4ece\u95ee\u9898\u5230\u89e3\u51b3\u65b9\u6848"},
+  ],
+  blocks:[
+  {label:"The Challenge",sentences:[
+    {en:"Economic development is necessary if we want to improve society.",zh:"\u5982\u679c\u6211\u4eec\u60f3\u8981\u6539\u5584\u793e\u4f1a\uff0c\u7ecf\u6d4e\u53d1\u5c55\u662f\u5fc5\u8981\u7684\u3002"},
+    {en:"There comes a time when the old must give way to the new, and it is not possible to preserve everything from our past as we move towards the future.",zh:"\u603b\u4f1a\u6709\u65e7\u4e8b\u7269\u5fc5\u987b\u7ed9\u65b0\u4e8b\u7269\u8ba9\u8def\u7684\u65f6\u5019\uff0c\u5728\u6211\u4eec\u8d70\u5411\u672a\u6765\u7684\u8fc7\u7a0b\u4e2d\uff0c\u4e0d\u53ef\u80fd\u628a\u8fc7\u53bb\u7684\u4e00\u5207\u90fd\u4fdd\u5b58\u4e0b\u6765\u3002"},
+    {en:"Finding and keeping the right balance between progress and the protection of cultural sites can be a big challenge.",zh:"\u5728\u53d1\u5c55\u4e0e\u4fdd\u62a4\u6587\u5316\u9057\u5740\u4e4b\u95f4\u627e\u5230\u5e76\u4fdd\u6301\u6070\u5f53\u7684\u5e73\u8861\uff0c\u53ef\u80fd\u662f\u4e00\u4e2a\u5de8\u5927\u7684\u6311\u6218\u3002"},
+  ]},
+  {label:"The Dam",sentences:[
+    {en:"Big challenges, however, can sometimes lead to great solutions.",zh:"\u7136\u800c\uff0c\u5de8\u5927\u7684\u6311\u6218\u6709\u65f6\u4e5f\u80fd\u5e26\u6765\u4f1f\u5927\u7684\u89e3\u51b3\u65b9\u6848\u3002"},
+    {en:"In the 1950s, the Egyptian government wanted to build a new dam across the Nile in order to control floods, produce electricity, and supply water to more farmers in the area.",zh:"20 \u4e16\u7eaa 50 \u5e74\u4ee3\uff0c\u57c3\u53ca\u653f\u5e9c\u60f3\u5728\u5c3c\u7f57\u6cb3\u4e0a\u4fee\u5efa\u4e00\u5ea7\u65b0\u6c34\u575d\uff0c\u4ee5\u63a7\u5236\u6d2a\u6c34\u3001\u53d1\u7535\uff0c\u5e76\u4e3a\u8be5\u5730\u533a\u66f4\u591a\u519c\u6c11\u4f9b\u6c34\u3002"},
+    {en:"But the proposal led to protests.",zh:"\u4f46\u8fd9\u4e00\u63d0\u8bae\u5f15\u53d1\u4e86\u6297\u8bae\u3002"},
+    {en:"Water from the dam would likely damage a number of temples and destroy cultural relics that were an important part of Egypt's cultural heritage.",zh:"\u5927\u575d\u7684\u6c34\u5f88\u53ef\u80fd\u4f1a\u635f\u574f\u8bb8\u591a\u795e\u5e99\uff0c\u5e76\u6bc1\u6389\u4f5c\u4e3a\u57c3\u53ca\u6587\u5316\u9057\u4ea7\u91cd\u8981\u7ec4\u6210\u90e8\u5206\u7684\u6587\u7269\u3002"},
+    {en:"After listening to the scientists who had studied the problem, and citizens who lived near the dam, the government turned to the United Nations for help in 1959.",zh:"\u5728\u542c\u53d6\u4e86\u7814\u7a76\u8fd9\u4e00\u95ee\u9898\u7684\u79d1\u5b66\u5bb6\u548c\u4f4f\u5728\u6c34\u575d\u9644\u8fd1\u7684\u5c45\u6c11\u7684\u610f\u89c1\u540e\uff0c\u653f\u5e9c\u4e8e 1959 \u5e74\u5411\u8054\u5408\u56fd\u6c42\u52a9\u3002"},
+  ]},
+  {label:"The Committee",sentences:[
+    {en:"A committee was established to limit damage to the Egyptian buildings and prevent the loss of cultural relics.",zh:"\u4e00\u4e2a\u59d4\u5458\u4f1a\u6210\u7acb\u4e86\uff0c\u4ee5\u9650\u5236\u5bf9\u57c3\u53ca\u5efa\u7b51\u7684\u7834\u574f\uff0c\u5e76\u9632\u6b62\u6587\u7269\u635f\u5931\u3002"},
+    {en:"The group asked for contributions from different departments and raised funds within the international community.",zh:"\u8be5\u5c0f\u7ec4\u5411\u5404\u90e8\u95e8\u5f81\u96c6\u6350\u6b3e\uff0c\u5e76\u5728\u56fd\u9645\u793e\u4f1a\u7b79\u96c6\u8d44\u91d1\u3002"},
+    {en:"Experts investigated the issue, conducted several tests, and then made a proposal for how the buildings could be saved.",zh:"\u4e13\u5bb6\u4eec\u8c03\u67e5\u4e86\u8fd9\u4e2a\u95ee\u9898\uff0c\u8fdb\u884c\u4e86\u591a\u6b21\u6d4b\u8bd5\uff0c\u7136\u540e\u63d0\u51fa\u4e86\u5982\u4f55\u62ef\u6551\u8fd9\u4e9b\u5efa\u7b51\u7684\u5efa\u8bae\u3002"},
+    {en:"Finally, a document was signed, and the work began in 1960.",zh:"\u6700\u540e\uff0c\u4e00\u4efd\u6587\u4ef6\u7b7e\u7f72\u4e86\uff0c\u5de5\u7a0b\u4e8e 1960 \u5e74\u5f00\u59cb\u3002"},
+  ]},
+  {label:"The Rescue",sentences:[
+    {en:"The project brought together governments and environmentalists from around the world.",zh:"\u8fd9\u9879\u5de5\u7a0b\u628a\u4e16\u754c\u5404\u5730\u7684\u653f\u5e9c\u548c\u73af\u4fdd\u4eba\u58eb\u805a\u96c6\u5728\u4e00\u8d77\u3002"},
+    {en:"Temples and other cultural sites were taken down piece by piece, and then moved and put back together again in a place where they were safe from the water.",zh:"\u795e\u5e99\u548c\u5176\u4ed6\u6587\u5316\u9057\u5740\u88ab\u4e00\u5757\u5757\u62c6\u4e0b\uff0c\u7136\u540e\u642c\u5230\u4e0d\u4f1a\u88ab\u6c34\u6df9\u5230\u7684\u5730\u65b9\u91cd\u65b0\u7ec4\u88c5\u3002"},
+    {en:"In 1961, German engineers moved the first temple.",zh:"1961 \u5e74\uff0c\u5fb7\u56fd\u5de5\u7a0b\u5e08\u642c\u8d70\u4e86\u7b2c\u4e00\u5ea7\u795e\u5e99\u3002"},
+    {en:"Over the next 20 years, thousands of engineers and workers rescued 22 temples and countless cultural relics.",zh:"\u5728\u63a5\u4e0b\u6765\u7684 20 \u5e74\u91cc\uff0c\u6570\u5343\u540d\u5de5\u7a0b\u5e08\u548c\u5de5\u4eba\u62ef\u6551\u4e86 22 \u5ea7\u795e\u5e99\u548c\u65e0\u6570\u6587\u7269\u3002"},
+    {en:"Fifty countries donated nearly 80 million dollars to the project.",zh:"50 \u4e2a\u56fd\u5bb6\u5411\u8fd9\u9879\u5de5\u7a0b\u6350\u6b3e\u8fd1 8000 \u4e07\u7f8e\u5143\u3002"},
+  ]},
+  {label:"A Great Success",sentences:[
+    {en:"When the project ended in 1980, it was considered a great success.",zh:"1980 \u5e74\u5de5\u7a0b\u7ed3\u675f\u65f6\uff0c\u5b83\u88ab\u8ba4\u4e3a\u662f\u4e00\u6b21\u5de8\u5927\u7684\u6210\u529f\u3002"},
+    {en:"Not only had the countries found a path to the future that did not run over the relics of the past, but they had also learnt that it was possible for countries to work together to build a better tomorrow.",zh:"\u8fd9\u4e9b\u56fd\u5bb6\u4e0d\u4ec5\u627e\u5230\u4e86\u4e00\u6761\u4e0d\u8df5\u8e0f\u8fc7\u53bb\u9057\u8ff9\u7684\u901a\u5411\u672a\u6765\u7684\u9053\u8def\uff0c\u800c\u4e14\u8fd8\u8ba4\u8bc6\u5230\uff0c\u5404\u56fd\u662f\u80fd\u591f\u643a\u624b\u5171\u5efa\u66f4\u7f8e\u597d\u660e\u5929\u7684\u3002"},
+  ]},
+  {label:"Still Alive Today",sentences:[
+    {en:"The spirit of the Aswan Dam project is still alive today.",zh:"\u963f\u65af\u65fa\u5927\u575d\u5de5\u7a0b\u7684\u7cbe\u795e\u81f3\u4eca\u4ecd\u7136\u5b58\u5728\u3002"},
+    {en:"Perhaps the best example is shown by UNESCO, which runs a programme that prevents world cultural heritage sites around the world from disappearing.",zh:"\u4e5f\u8bb8\u6700\u597d\u7684\u4f8b\u5b50\u662f\u8054\u5408\u56fd\u6559\u79d1\u6587\u7ec4\u7ec7\uff0c\u5b83\u5b9e\u65bd\u4e86\u4e00\u4e2a\u9879\u76ee\uff0c\u9632\u6b62\u4e16\u754c\u5404\u5730\u7684\u4e16\u754c\u6587\u5316\u9057\u4ea7\u5730\u6d88\u5931\u3002"},
+    {en:"If a problem seems too difficult for a single nation, the global community can sometimes provide a solution.",zh:"\u5982\u679c\u4e00\u4e2a\u95ee\u9898\u5bf9\u5355\u4e2a\u56fd\u5bb6\u6765\u8bf4\u4f3c\u4e4e\u592a\u96be\uff0c\u56fd\u9645\u793e\u4f1a\u6709\u65f6\u80fd\u591f\u63d0\u4f9b\u89e3\u51b3\u529e\u6cd5\u3002"},
+  ]},
+  ]
+},
+"b2u1_rw":{
+  id:"b2u1_rw",
+  unitTag:"Unit 1 \u00b7 Reading for Writing",
+  title:"Promoting Culture Through Digital Images",
+  sub:"Cultural Heritage",
+  tbTitle:"Reading for Writing",
+  tbSubtitle:"Promoting Culture Through Digital Images",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"Promoting Culture Through Digital Images",zh:"\u7528\u6570\u5b57\u5f71\u50cf\u4fdd\u62a4\u6587\u5316"},
+  ],
+  blocks:[
+  {label:"The Lead",sentences:[
+    {en:"Lanzhou, 9 August 2017.",zh:"\u5170\u5dde\uff0c2017 \u5e74 8 \u6708 9 \u65e5\u3002"},
+    {en:"A group of researchers and scientists from China and other countries are working together to help increase knowledge and appreciation of China's ancient cultural heritage.",zh:"\u4e00\u7fa4\u6765\u81ea\u4e2d\u56fd\u548c\u5176\u4ed6\u56fd\u5bb6\u7684\u7814\u7a76\u4eba\u5458\u548c\u79d1\u5b66\u5bb6\u6b63\u5728\u5408\u4f5c\uff0c\u5e2e\u52a9\u4eba\u4eec\u66f4\u591a\u5730\u4e86\u89e3\u548c\u6b23\u8d4f\u4e2d\u56fd\u53e4\u4ee3\u6587\u5316\u9057\u4ea7\u3002"},
+    {en:"They are recording and collecting digital images of cultural relics from the Mogao Caves, which were a key stop along the Silk Road throughout China's ancient history.",zh:"\u4ed6\u4eec\u6b63\u5728\u8bb0\u5f55\u548c\u6536\u96c6\u83ab\u9ad8\u7a9f\u6587\u7269\u7684\u6570\u5b57\u5f71\u50cf\uff0c\u83ab\u9ad8\u7a9f\u5728\u4e2d\u56fd\u53e4\u4ee3\u5386\u53f2\u4e0a\u662f\u4e1d\u7ef8\u4e4b\u8def\u4e0a\u7684\u91cd\u8981\u4e00\u7ad9\u3002"},
+    {en:"Nearly 500,000 high-quality digital photographs have been produced since the international project started in 1994.",zh:"\u81ea 1994 \u5e74\u8fd9\u4e00\u56fd\u9645\u9879\u76ee\u542f\u52a8\u4ee5\u6765\uff0c\u5df2\u62cd\u6444\u4e86\u8fd1 50 \u4e07\u5f20\u9ad8\u8d28\u91cf\u7684\u6570\u5b57\u7167\u7247\u3002"},
+  ]},
+  {label:"Background",sentences:[
+    {en:"The Mogao Caves have long been a meeting point for different cultures and are part of the history of many countries.",zh:"\u83ab\u9ad8\u7a9f\u957f\u671f\u4ee5\u6765\u662f\u4e0d\u540c\u6587\u5316\u7684\u4ea4\u6c47\u70b9\uff0c\u4e5f\u662f\u8bb8\u591a\u56fd\u5bb6\u5386\u53f2\u7684\u4e00\u90e8\u5206\u3002"},
+    {en:"Today, the caves are just as international as they were at the time when people travelled the Silk Road.",zh:"\u4eca\u5929\uff0c\u8fd9\u4e9b\u6d1e\u7a9f\u548c\u5f53\u5e74\u4eba\u4eec\u8d70\u4e1d\u7ef8\u4e4b\u8def\u65f6\u4e00\u6837\u5177\u6709\u56fd\u9645\u6027\u3002"},
+    {en:"Tourists from all over the world visit Dunhuang to see the caves, and the Getty Museum in Los Angeles has even reproduced a copy of the caves and paintings for people to admire in America.",zh:"\u6765\u81ea\u4e16\u754c\u5404\u5730\u7684\u6e38\u5ba2\u5230\u6566\u714c\u53c2\u89c2\u8fd9\u4e9b\u6d1e\u7a9f\uff0c\u6d1b\u6749\u77f6\u7684\u76d6\u8482\u535a\u7269\u9986\u751a\u81f3\u590d\u5236\u4e86\u6d1e\u7a9f\u548c\u58c1\u753b\uff0c\u8ba9\u7f8e\u56fd\u6c11\u4f17\u4e5f\u80fd\u6b23\u8d4f\u3002"},
+  ]},
+  {label:"What They Hope",sentences:[
+    {en:"By sharing so many digital photos over the Internet, the group hopes to promote even wider interest around the world in China's ancient history, culture, and traditions.",zh:"\u901a\u8fc7\u5728\u4e92\u8054\u7f51\u4e0a\u5206\u4eab\u8fd9\u4e48\u591a\u6570\u5b57\u7167\u7247\uff0c\u8be5\u5c0f\u7ec4\u5e0c\u671b\u5524\u8d77\u5168\u4e16\u754c\u5bf9\u4e2d\u56fd\u53e4\u4ee3\u5386\u53f2\u3001\u6587\u5316\u548c\u4f20\u7edf\u66f4\u5e7f\u6cdb\u7684\u5174\u8da3\u3002"},
+    {en:"They also hope to further educate people about the importance of safeguarding historic and cultural relics for future generations to understand and appreciate.",zh:"\u4ed6\u4eec\u8fd8\u5e0c\u671b\u8fdb\u4e00\u6b65\u8ba9\u4eba\u4eec\u8ba4\u8bc6\u5230\u4fdd\u62a4\u5386\u53f2\u6587\u7269\u5bf9\u5b50\u5b59\u540e\u4ee3\u7406\u89e3\u548c\u6b23\u8d4f\u7684\u91cd\u8981\u6027\u3002"},
+    {en:"As one researcher who is working on the project explains, \"Appreciating one's own cultural heritage is very important for understanding oneself.\"",zh:"\u53c2\u4e0e\u8be5\u9879\u76ee\u7684\u4e00\u4f4d\u7814\u7a76\u4eba\u5458\u89e3\u91ca\u8bf4\uff1a\u201c\u6b23\u8d4f\u81ea\u5df1\u7684\u6587\u5316\u9057\u4ea7\u5bf9\u8ba4\u8bc6\u81ea\u6211\u975e\u5e38\u91cd\u8981\u3002\u201d"},
+    {en:"Appreciating the cultural heritage of other countries is very important for international communication and understanding.",zh:"\u6b23\u8d4f\u5176\u4ed6\u56fd\u5bb6\u7684\u6587\u5316\u9057\u4ea7\u5bf9\u4e8e\u56fd\u9645\u4ea4\u6d41\u4e0e\u7406\u89e3\u975e\u5e38\u91cd\u8981\u3002"},
+  ]},
+  ]
+},
+"b2u2_rt":{
+  id:"b2u2_rt",
+  unitTag:"Unit 2 \u00b7 Reading and Thinking",
+  title:"A Day in the Clouds",
+  sub:"Wildlife Protection",
+  tbTitle:"Reading and Thinking",
+  tbSubtitle:"A Day in the Clouds",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"A Day in the Clouds",zh:"\u4e91\u7aef\u7684\u4e00\u5929"},
+  ],
+  blocks:[
+  {label:"The Hike",sentences:[
+    {en:"The air is thin and we have to rest several times on the short hike from camp.",zh:"\u7a7a\u6c14\u7a00\u8584\uff0c\u4ece\u8425\u5730\u51fa\u53d1\u7684\u77ed\u9014\u5f92\u6b65\u4e2d\u6211\u4eec\u4e0d\u5f97\u4e0d\u4f11\u606f\u597d\u51e0\u6b21\u3002"},
+    {en:"To our left, snow-covered mountains disappear into clouds that seem almost close enough to touch.",zh:"\u5728\u6211\u4eec\u5de6\u8fb9\uff0c\u767d\u96ea\u8986\u76d6\u7684\u7fa4\u5c71\u6d88\u5931\u5728\u4f3c\u4e4e\u8fd1\u5f97\u51e0\u4e4e\u89e6\u624b\u53ef\u53ca\u7684\u4e91\u5c42\u4e2d\u3002"},
+    {en:"On the plain in front of us, we can just make out a herd of graceful animals.",zh:"\u5728\u6211\u4eec\u9762\u524d\u7684\u5e73\u539f\u4e0a\uff0c\u6211\u4eec\u53ea\u80fd\u52c9\u5f3a\u8fa8\u8ba4\u51fa\u4e00\u7fa4\u59ff\u6001\u4f18\u96c5\u7684\u52a8\u7269\u3002"},
+    {en:"This is why we're here \u2014 to observe Tibetan antelopes.",zh:"\u8fd9\u5c31\u662f\u6211\u4eec\u6765\u8fd9\u91cc\u7684\u539f\u56e0\u2014\u2014\u89c2\u5bdf\u85cf\u7f9a\u7f8a\u3002"},
+  ]},
+  {label:"The Danger",sentences:[
+    {en:"Tibetan antelopes live on the plains of Xizang, Xinjiang, and Qinghai.",zh:"\u85cf\u7f9a\u7f8a\u751f\u6d3b\u5728\u897f\u85cf\u3001\u65b0\u7586\u548c\u9752\u6d77\u7684\u5e73\u539f\u4e0a\u3002"},
+    {en:"Watching them move slowly across the green grass, I'm struck by their beauty.",zh:"\u770b\u7740\u5b83\u4eec\u7f13\u7f13\u8d70\u8fc7\u7eff\u8349\uff0c\u6211\u88ab\u5b83\u4eec\u7684\u7f8e\u4e3d\u6240\u6253\u52a8\u3002"},
+    {en:"I'm also reminded of the danger they were in.",zh:"\u6211\u4e5f\u60f3\u8d77\u4e86\u5b83\u4eec\u66fe\u9762\u4e34\u7684\u5371\u9669\u3002"},
+    {en:"They were hunted, illegally, for their valuable fur.",zh:"\u5b83\u4eec\u56e0\u4e3a\u73cd\u8d35\u7684\u76ae\u6bdb\u800c\u88ab\u975e\u6cd5\u730e\u6740\u3002"},
+  ]},
+  {label:"Zhaxi",sentences:[
+    {en:"My guide is Zhaxi, a villager from Changtang.",zh:"\u6211\u7684\u5411\u5bfc\u662f\u624e\u897f\uff0c\u4e00\u4f4d\u6765\u81ea\u7f8c\u5858\u7684\u6751\u6c11\u3002"},
+    {en:"He works at the Changtang National Nature Reserve.",zh:"\u4ed6\u5728\u7f8c\u5858\u56fd\u5bb6\u7ea7\u81ea\u7136\u4fdd\u62a4\u533a\u5de5\u4f5c\u3002"},
+    {en:"The reserve is a shelter for the animals and plants of northwestern Xizang.",zh:"\u8fd9\u4e2a\u4fdd\u62a4\u533a\u662f\u85cf\u897f\u5317\u52a8\u690d\u7269\u7684\u5e87\u62a4\u6240\u3002"},
+    {en:"To Zhaxi, the land is sacred and protecting the wildlife is a way of life.",zh:"\u5bf9\u624e\u897f\u6765\u8bf4\uff0c\u8fd9\u7247\u571f\u5730\u662f\u795e\u5723\u7684\uff0c\u4fdd\u62a4\u91ce\u751f\u52a8\u7269\u662f\u4e00\u79cd\u751f\u6d3b\u65b9\u5f0f\u3002"},
+    {en:"\"We're not trying to save the animals,\" he says. \"Actually, we're trying to save ourselves.\"",zh:"\u201c\u6211\u4eec\u5e76\u4e0d\u662f\u5728\u62ef\u6551\u52a8\u7269\uff0c\u201d\u4ed6\u8bf4\uff0c\u201c\u5b9e\u9645\u4e0a\uff0c\u6211\u4eec\u662f\u5728\u62ef\u6551\u81ea\u5df1\u3002\u201d"},
+  ]},
+  {label:"The 1980s and 1990s",sentences:[
+    {en:"The 1980s and 1990s were bad times for the Tibetan antelope.",zh:"20 \u4e16\u7eaa 80 \u5e74\u4ee3\u548c 90 \u5e74\u4ee3\u5bf9\u85cf\u7f9a\u7f8a\u6765\u8bf4\u662f\u8270\u96be\u7684\u65f6\u671f\u3002"},
+    {en:"The population dropped by more than 50 percent.",zh:"\u79cd\u7fa4\u6570\u91cf\u4e0b\u964d\u4e86 50% \u4ee5\u4e0a\u3002"},
+    {en:"Hunters were shooting antelopes to make profits.",zh:"\u5077\u730e\u8005\u4e3a\u725f\u5229\u800c\u5c04\u6740\u85cf\u7f9a\u7f8a\u3002"},
+    {en:"Their habitats were becoming smaller as new roads and railways were built.",zh:"\u968f\u7740\u65b0\u516c\u8def\u548c\u94c1\u8def\u7684\u4fee\u5efa\uff0c\u5b83\u4eec\u7684\u6816\u606f\u5730\u53d8\u5f97\u8d8a\u6765\u8d8a\u5c0f\u3002"},
+  ]},
+  {label:"The Measures",sentences:[
+    {en:"In order to save this species from extinction, the Chinese government placed it under national protection.",zh:"\u4e3a\u4e86\u62ef\u6551\u8fd9\u4e00\u7269\u79cd\u514d\u4e8e\u706d\u7edd\uff0c\u4e2d\u56fd\u653f\u5e9c\u5c06\u5176\u5217\u4e3a\u56fd\u5bb6\u4fdd\u62a4\u52a8\u7269\u3002"},
+    {en:"Zhaxi and other volunteers watched over the antelopes day and night to keep them safe from attacks.",zh:"\u624e\u897f\u548c\u5176\u4ed6\u5fd7\u613f\u8005\u65e5\u591c\u5b88\u62a4\u85cf\u7f9a\u7f8a\uff0c\u4fdd\u62a4\u5b83\u4eec\u514d\u53d7\u88ad\u51fb\u3002"},
+    {en:"Bridges and gates were added to let the antelopes move easily and keep them safe from cars and trains.",zh:"\u589e\u8bbe\u4e86\u6865\u6881\u548c\u901a\u9053\uff0c\u8ba9\u85cf\u7f9a\u7f8a\u80fd\u591f\u81ea\u7531\u901a\u884c\uff0c\u5e76\u4fdd\u62a4\u5b83\u4eec\u514d\u53d7\u6c7d\u8f66\u548c\u706b\u8f66\u7684\u4f24\u5bb3\u3002"},
+  ]},
+  {label:"The Result",sentences:[
+    {en:"The measures were effective.",zh:"\u8fd9\u4e9b\u63aa\u65bd\u5f88\u6709\u6548\u3002"},
+    {en:"The antelope population has recovered and in June 2015, the Tibetan antelope was removed from the endangered species list.",zh:"\u85cf\u7f9a\u7f8a\u79cd\u7fa4\u5df2\u7ecf\u6062\u590d\uff0c2015 \u5e74 6 \u6708\uff0c\u85cf\u7f9a\u7f8a\u88ab\u4ece\u6fd2\u5371\u7269\u79cd\u540d\u5355\u4e2d\u79fb\u9664\u3002"},
+    {en:"The government, however, does not intend to stop the protection programmes, since the threats to the Tibetan antelope have not yet disappeared.",zh:"\u7136\u800c\uff0c\u653f\u5e9c\u5e76\u4e0d\u6253\u7b97\u505c\u6b62\u4fdd\u62a4\u9879\u76ee\uff0c\u56e0\u4e3a\u5bf9\u85cf\u7f9a\u7f8a\u7684\u5a01\u80c1\u5c1a\u672a\u6d88\u5931\u3002"},
+  ]},
+  {label:"In the Evening",sentences:[
+    {en:"In the evening, I drink a cup of tea and watch the stars.",zh:"\u508d\u665a\uff0c\u6211\u559d\u7740\u8336\uff0c\u671b\u7740\u661f\u661f\u3002"},
+    {en:"I think about the antelopes and what Zhaxi told me.",zh:"\u6211\u60f3\u8d77\u85cf\u7f9a\u7f8a\uff0c\u60f3\u8d77\u624e\u897f\u5bf9\u6211\u8bf4\u7684\u8bdd\u3002"},
+    {en:"Much is being done to protect wildlife, but if we really want to save the planet, we must change our way of life.",zh:"\u4eba\u4eec\u6b63\u5728\u4e3a\u4fdd\u62a4\u91ce\u751f\u52a8\u7269\u505a\u5f88\u591a\u4e8b\uff0c\u4f46\u5982\u679c\u6211\u4eec\u771f\u7684\u60f3\u62ef\u6551\u5730\u7403\uff0c\u5c31\u5fc5\u987b\u6539\u53d8\u6211\u4eec\u7684\u751f\u6d3b\u65b9\u5f0f\u3002"},
+    {en:"Only when we learn to exist in harmony with nature can we stop being a threat to wildlife and to our planet.",zh:"\u53ea\u6709\u5f53\u6211\u4eec\u5b66\u4f1a\u4e0e\u81ea\u7136\u548c\u8c10\u76f8\u5904\uff0c\u6211\u4eec\u624d\u80fd\u4e0d\u518d\u6210\u4e3a\u91ce\u751f\u52a8\u7269\u548c\u5730\u7403\u7684\u5a01\u80c1\u3002"},
+  ]},
+  ]
+},
+"b2u2_rw":{
+  id:"b2u2_rw",
+  unitTag:"Unit 2 \u00b7 Reading for Writing",
+  title:"Make an Effective Poster",
+  sub:"Wildlife Protection",
+  tbTitle:"Reading for Writing",
+  tbSubtitle:"Make an Effective Poster",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"Make an Effective Poster",zh:"\u505a\u4e00\u5f20\u6709\u8bf4\u670d\u529b\u7684\u6d77\u62a5"},
+  ],
+  blocks:[
+  {label:"Poster 1 \u00b7 Give Ugly a Chance!",sentences:[
+    {en:"Give Ugly a Chance!",zh:"\u7ed9\u201c\u4e11\u201d\u4e00\u4e2a\u673a\u4f1a\uff01"},
+    {en:"When it comes to wildlife protection, all species \u2014 the good, the bad, and the ugly \u2014 should be treated equally.",zh:"\u8bf4\u5230\u91ce\u751f\u52a8\u7269\u4fdd\u62a4\uff0c\u6240\u6709\u7269\u79cd\u2014\u2014\u7f8e\u7684\u3001\u4e11\u7684\u3001\u597d\u7684\u3001\u574f\u7684\u2014\u2014\u90fd\u5e94\u8be5\u53d7\u5230\u5e73\u7b49\u5bf9\u5f85\u3002"},
+    {en:"Pandas, dolphins, and other cute wildlife are important, but we must pay attention to less cute animals, too.",zh:"\u718a\u732b\u3001\u6d77\u8c5a\u548c\u5176\u4ed6\u53ef\u7231\u7684\u91ce\u751f\u52a8\u7269\u5f88\u91cd\u8981\uff0c\u4f46\u6211\u4eec\u4e5f\u5fc5\u987b\u5173\u6ce8\u90a3\u4e9b\u4e0d\u592a\u53ef\u7231\u7684\u52a8\u7269\u3002"},
+    {en:"The world needs all kinds \u2014 without variety, our planet cannot survive.",zh:"\u4e16\u754c\u9700\u8981\u5404\u79cd\u5404\u6837\u7684\u751f\u7269\u2014\u2014\u6ca1\u6709\u591a\u6837\u6027\uff0c\u6211\u4eec\u7684\u661f\u7403\u5c31\u65e0\u6cd5\u751f\u5b58\u3002"},
+    {en:"So if you want the future to be beautiful, you have to give ugly a chance.",zh:"\u6240\u4ee5\uff0c\u5982\u679c\u4f60\u60f3\u8ba9\u672a\u6765\u66f4\u7f8e\u597d\uff0c\u5c31\u5fc5\u987b\u7ed9\u201c\u4e11\u201d\u4e00\u4e2a\u673a\u4f1a\u3002"},
+  ]},
+  {label:"Poster 2 \u00b7 Don't Make Paper with My Home!",sentences:[
+    {en:"Don't Make Paper with My Home!",zh:"\u522b\u7528\u6211\u7684\u5bb6\u9020\u7eb8\uff01"},
+    {en:"Billions of trees are being cut down every year to make paper for humans.",zh:"\u6bcf\u5e74\u6709\u6570\u5341\u4ebf\u68f5\u6811\u88ab\u780d\u5012\uff0c\u4e3a\u4eba\u7c7b\u9020\u7eb8\u3002"},
+    {en:"Every tree that is cut down is a part of the habitat of animals such as these koalas.",zh:"\u6bcf\u68f5\u88ab\u780d\u5012\u7684\u6811\u90fd\u662f\u8fd9\u4e9b\u8003\u62c9\u7b49\u52a8\u7269\u6816\u606f\u5730\u7684\u4e00\u90e8\u5206\u3002"},
+    {en:"In this way a lot of animal homes are being destroyed!",zh:"\u5c31\u8fd9\u6837\uff0c\u5927\u91cf\u52a8\u7269\u7684\u5bb6\u56ed\u6b63\u5728\u88ab\u6bc1\u6389\uff01"},
+    {en:"Is it right to make animals homeless so that humans can have more paper?",zh:"\u4e3a\u4e86\u8ba9\u4eba\u7c7b\u6709\u66f4\u591a\u7684\u7eb8\uff0c\u5c31\u8ba9\u52a8\u7269\u65e0\u5bb6\u53ef\u5f52\uff0c\u8fd9\u6837\u505a\u5bf9\u5417\uff1f"},
+  ]},
+  ]
+},
+"b2u3_rt":{
+  id:"b2u3_rt",
+  unitTag:"Unit 3 \u00b7 Reading and Thinking",
+  title:"Stronger Together: How We Have Been Changed by the Internet",
+  sub:"The Internet",
+  tbTitle:"Reading and Thinking",
+  tbSubtitle:"Stronger Together",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"Stronger Together",zh:"\u643a\u624b\u66f4\u5f3a"},
+    {en:"How We Have Been Changed by the Internet",zh:"\u4e92\u8054\u7f51\u5982\u4f55\u6539\u53d8\u4e86\u6211\u4eec"},
+  ],
+  blocks:[
+  {label:"The Internet's Wonders",sentences:[
+    {en:"Much has been written about the wonders of the World Wide Web.",zh:"\u5173\u4e8e\u4e07\u7ef4\u7f51\u7684\u5947\u5999\u4e4b\u5904\uff0c\u4eba\u4eec\u5df2\u7ecf\u5199\u4e86\u5f88\u591a\u3002"},
+    {en:"There are countless articles telling us how the Internet has made our lives more convenient.",zh:"\u65e0\u6570\u6587\u7ae0\u544a\u8bc9\u6211\u4eec\u4e92\u8054\u7f51\u5982\u4f55\u8ba9\u6211\u4eec\u7684\u751f\u6d3b\u66f4\u52a0\u4fbf\u5229\u3002"},
+    {en:"We no longer have to wait in line or carry cash around when we go shopping.",zh:"\u8d2d\u7269\u65f6\uff0c\u6211\u4eec\u4e0d\u518d\u9700\u8981\u6392\u961f\u6216\u968f\u8eab\u643a\u5e26\u73b0\u91d1\u3002"},
+    {en:"We can get the most updated information from large databases.",zh:"\u6211\u4eec\u53ef\u4ee5\u4ece\u5927\u578b\u6570\u636e\u5e93\u83b7\u53d6\u6700\u65b0\u4fe1\u606f\u3002"},
+    {en:"We can download software, documents, and images whenever we need them.",zh:"\u9700\u8981\u65f6\u6211\u4eec\u53ef\u4ee5\u4e0b\u8f7d\u8f6f\u4ef6\u3001\u6587\u6863\u548c\u56fe\u7247\u3002"},
+    {en:"But the Internet has done much more for people than simply make life more convenient.",zh:"\u4f46\u4e92\u8054\u7f51\u4e3a\u4eba\u4eec\u6240\u505a\u7684\u8fdc\u4e0d\u6b62\u8ba9\u751f\u6d3b\u66f4\u4fbf\u5229\u3002"},
+    {en:"People's lives have been changed by online communities and social networks.",zh:"\u7f51\u7edc\u793e\u533a\u548c\u793e\u4ea4\u7f51\u7edc\u6539\u53d8\u4e86\u4eba\u4eec\u7684\u751f\u6d3b\u3002"},
+  ]},
+  {label:"Jan's Story",sentences:[
+    {en:"Jan Tchamani, an English teacher in Birmingham, UK, suddenly developed a serious illness and had to quit her job.",zh:"\u82f1\u56fd\u4f2f\u660e\u7ff0\u7684\u82f1\u8bed\u6559\u5e08\u7b80\u00b7\u67e5\u9a6c\u5c3c\u7a81\u7136\u60a3\u4e0a\u91cd\u75c5\uff0c\u4e0d\u5f97\u4e0d\u8f9e\u53bb\u5de5\u4f5c\u3002"},
+    {en:"At age 50, she found herself out of work and stuck at home with only her computer to keep her company.",zh:"50 \u5c81\u65f6\uff0c\u5979\u53d1\u73b0\u81ea\u5df1\u5931\u4e1a\u4e86\uff0c\u88ab\u56f0\u5728\u5bb6\u91cc\uff0c\u53ea\u6709\u7535\u8111\u966a\u4f34\u3002"},
+    {en:"After a while, she discovered that surfing the Internet could help her feel less lonely and bored.",zh:"\u8fc7\u4e86\u4e00\u6bb5\u65f6\u95f4\uff0c\u5979\u53d1\u73b0\u4e0a\u7f51\u53ef\u4ee5\u5e2e\u52a9\u5979\u51cf\u5c11\u5b64\u72ec\u548c\u65e0\u804a\u3002"},
+    {en:"She could listen to music, watch films, play games, and explore the world.",zh:"\u5979\u53ef\u4ee5\u542c\u97f3\u4e50\u3001\u770b\u7535\u5f71\u3001\u73a9\u6e38\u620f\uff0c\u63a2\u7d22\u4e16\u754c\u3002"},
+    {en:"She also joined an online group where she could talk about her problems and get support and advice from others.",zh:"\u5979\u8fd8\u52a0\u5165\u4e86\u4e00\u4e2a\u7f51\u7edc\u5c0f\u7ec4\uff0c\u5728\u90a3\u91cc\u53ef\u4ee5\u8bc9\u8bf4\u81ea\u5df1\u7684\u95ee\u9898\uff0c\u5e76\u4ece\u4ed6\u4eba\u90a3\u91cc\u83b7\u5f97\u652f\u6301\u548c\u5efa\u8bae\u3002"},
+    {en:"She realised that one of the greatest benefits of the Internet was its ability to remove the distance that usually exists between people.",zh:"\u5979\u610f\u8bc6\u5230\uff0c\u4e92\u8054\u7f51\u6700\u5927\u7684\u597d\u5904\u4e4b\u4e00\u662f\u5b83\u80fd\u6d88\u9664\u4eba\u4e0e\u4eba\u4e4b\u95f4\u901a\u5e38\u5b58\u5728\u7684\u8ddd\u79bb\u3002"},
+  ]},
+  {label:"The IT Club",sentences:[
+    {en:"She was so inspired by the people she met online that she decided to start an IT club to teach older people how to use computers and the Internet.",zh:"\u5979\u6df1\u53d7\u7f51\u4e0a\u7ed3\u8bc6\u7684\u4eba\u7684\u9f13\u821e\uff0c\u51b3\u5b9a\u521b\u529e\u4e00\u4e2a\u4fe1\u606f\u6280\u672f\u4ff1\u4e50\u90e8\uff0c\u6559\u8001\u5e74\u4eba\u4f7f\u7528\u7535\u8111\u548c\u4e92\u8054\u7f51\u3002"},
+    {en:"She and her friends now organise events and collect money to pay for private teachers.",zh:"\u5979\u548c\u670b\u53cb\u4eec\u73b0\u5728\u7ec4\u7ec7\u6d3b\u52a8\u3001\u7b79\u94b1\u8058\u8bf7\u79c1\u4eba\u6559\u5e08\u3002"},
+    {en:"Many people have been helped by the club.",zh:"\u8bb8\u591a\u4eba\u5f97\u5230\u4e86\u4ff1\u4e50\u90e8\u7684\u5e2e\u52a9\u3002"},
+    {en:"A 59-year-old man learnt how to apply for work online and found a great job.",zh:"\u4e00\u4f4d 59 \u5c81\u7684\u7537\u58eb\u5b66\u4f1a\u4e86\u5728\u7f51\u4e0a\u6c42\u804c\uff0c\u627e\u5230\u4e86\u4e00\u4efd\u597d\u5de5\u4f5c\u3002"},
+    {en:"Now that he works and can take care of himself, his daughter has time to study at university.",zh:"\u73b0\u5728\u4ed6\u6709\u5de5\u4f5c\uff0c\u80fd\u7167\u987e\u81ea\u5df1\uff0c\u4ed6\u7684\u5973\u513f\u4e5f\u6709\u65f6\u95f4\u4e0a\u5927\u5b66\u4e86\u3002"},
+    {en:"A 61-year-old woman who was living alone has started a small online company together with two friends.",zh:"\u4e00\u4f4d\u72ec\u81ea\u751f\u6d3b\u7684 61 \u5c81\u5973\u58eb\u548c\u4e24\u4e2a\u670b\u53cb\u4e00\u8d77\u521b\u529e\u4e86\u4e00\u5bb6\u5c0f\u578b\u7f51\u7edc\u516c\u53f8\u3002"},
+    {en:"She no longer feels lonely, and her company has become quite successful.",zh:"\u5979\u4e0d\u518d\u611f\u5230\u5b64\u72ec\uff0c\u5979\u7684\u516c\u53f8\u4e5f\u76f8\u5f53\u6210\u529f\u3002"},
+  ]},
+  {label:"Jan's Goal",sentences:[
+    {en:"Jan has started taking online classes to learn more about how to use the Internet to make society better.",zh:"\u7b80\u5f00\u59cb\u4e0a\u7f51\u8bfe\uff0c\u5b66\u4e60\u5982\u4f55\u66f4\u597d\u5730\u5229\u7528\u4e92\u8054\u7f51\u8ba9\u793e\u4f1a\u53d8\u5f97\u66f4\u7f8e\u597d\u3002"},
+    {en:"She believes that it is highly important to bridge the digital divide and make sure that everyone has access to the Internet and knows how to use new technology.",zh:"\u5979\u8ba4\u4e3a\uff0c\u5f25\u5408\u6570\u5b57\u9e3f\u6c9f\u3001\u786e\u4fdd\u6bcf\u4e2a\u4eba\u90fd\u80fd\u4e0a\u7f51\u5e76\u61c2\u5f97\u4f7f\u7528\u65b0\u6280\u672f\u6781\u4e3a\u91cd\u8981\u3002"},
+    {en:"Her next goal is to start a charity website to raise money for children in poor countries.",zh:"\u5979\u7684\u4e0b\u4e00\u4e2a\u76ee\u6807\u662f\u521b\u529e\u4e00\u4e2a\u6148\u5584\u7f51\u7ad9\uff0c\u4e3a\u8d2b\u56f0\u56fd\u5bb6\u7684\u513f\u7ae5\u7b79\u6b3e\u3002"},
+  ]},
+  {label:"Jan's Words",sentences:[
+    {en:"Jan's life has been greatly improved by the Internet.",zh:"\u4e92\u8054\u7f51\u6781\u5927\u5730\u6539\u5584\u4e86\u7b80\u7684\u751f\u6d3b\u3002"},
+    {en:"\"When you go through tough times, you meet others who are facing similar challenges,\" Jan says.",zh:"\u201c\u5f53\u4f60\u7ecf\u5386\u8270\u96be\u65f6\u671f\u65f6\uff0c\u4f60\u4f1a\u9047\u5230\u5176\u4ed6\u9762\u4e34\u7c7b\u4f3c\u6311\u6218\u7684\u4eba\uff0c\u201d\u7b80\u8bf4\u3002"},
+    {en:"\"Thinking about other people's situations inspired me to offer help.\"",zh:"\u201c\u60f3\u5230\u522b\u4eba\u7684\u5904\u5883\uff0c\u6fc0\u52b1\u6211\u53bb\u63d0\u4f9b\u5e2e\u52a9\u3002\u201d"},
+  ]},
+  ]
+},
+"b2u3_rw":{
+  id:"b2u3_rw",
+  unitTag:"Unit 3 \u00b7 Reading for Writing",
+  title:"How to Stay Safe Online",
+  sub:"A Blog Post",
+  tbTitle:"Reading for Writing",
+  tbSubtitle:"How to Stay Safe Online",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"How to Stay Safe Online",zh:"\u5982\u4f55\u5b89\u5168\u4e0a\u7f51"},
+  ],
+  blocks:[
+  {label:"The Question",sentences:[
+    {en:"Today I thought I'd blog about a question that has been asked many times \u2014 how do you stay safe online and avoid bad experiences on the Internet?",zh:"\u4eca\u5929\u6211\u60f3\u5728\u535a\u5ba2\u91cc\u8c08\u8c08\u4e00\u4e2a\u88ab\u95ee\u8fc7\u5f88\u591a\u6b21\u7684\u95ee\u9898\u2014\u2014\u5982\u4f55\u5728\u4e0a\u7f51\u65f6\u4fdd\u6301\u5b89\u5168\uff0c\u907f\u514d\u7cdf\u7cd5\u7684\u7ecf\u5386\uff1f"},
+    {en:"I'm not an expert, but many years as a blogger have taught me a thing or two.",zh:"\u6211\u4e0d\u662f\u4e13\u5bb6\uff0c\u4f46\u591a\u5e74\u7684\u535a\u4e3b\u7ecf\u5386\u6559\u4e86\u6211\u4e00\u4e24\u624b\u3002"},
+  ]},
+  {label:"Three Rules",sentences:[
+    {en:"First of all, there's the golden rule of the Internet: if you see or read something that makes you feel uncomfortable, leave the site immediately.",zh:"\u9996\u5148\uff0c\u662f\u4e92\u8054\u7f51\u7684\u9ec4\u91d1\u6cd5\u5219\uff1a\u5982\u679c\u4f60\u770b\u5230\u6216\u8bfb\u5230\u8ba9\u4f60\u611f\u5230\u4e0d\u9002\u7684\u5185\u5bb9\uff0c\u7acb\u523b\u79bb\u5f00\u8fd9\u4e2a\u7f51\u7ad9\u3002"},
+    {en:"Don't post comments or click on anything.",zh:"\u4e0d\u8981\u53d1\u8868\u8bc4\u8bba\uff0c\u4e5f\u4e0d\u8981\u70b9\u51fb\u4efb\u4f55\u4e1c\u897f\u3002"},
+    {en:"Second, protect your privacy.",zh:"\u5176\u6b21\uff0c\u4fdd\u62a4\u4f60\u7684\u9690\u79c1\u3002"},
+    {en:"Don't give out your address or phone number.",zh:"\u4e0d\u8981\u900f\u9732\u4f60\u7684\u5730\u5740\u6216\u7535\u8bdd\u53f7\u7801\u3002"},
+    {en:"Someone might use the information to steal your identity.",zh:"\u6709\u4eba\u53ef\u80fd\u4f1a\u5229\u7528\u8fd9\u4e9b\u4fe1\u606f\u76d7\u7528\u4f60\u7684\u8eab\u4efd\u3002"},
+    {en:"Identity theft is a common and serious problem.",zh:"\u8eab\u4efd\u76d7\u7528\u662f\u4e00\u4e2a\u666e\u904d\u800c\u4e25\u91cd\u7684\u95ee\u9898\u3002"},
+    {en:"Third, be polite.",zh:"\u7b2c\u4e09\uff0c\u8981\u6709\u793c\u8c8c\u3002"},
+    {en:"Being online is no excuse for being rude, and you don't want to become a target for a troll or cyberbully.",zh:"\u4e0a\u7f51\u4e0d\u662f\u65e0\u793c\u7684\u501f\u53e3\uff0c\u4f60\u4e5f\u4e0d\u60f3\u6210\u4e3a\u7f51\u7edc\u55b7\u5b50\u6216\u7f51\u7edc\u9738\u51cc\u8005\u7684\u76ee\u6807\u3002"},
+    {en:"A troll is a person who posts comments or questions in order to stir up trouble online.",zh:"\u7f51\u7edc\u55b7\u5b50\u662f\u6307\u4e3a\u4e86\u5728\u7f51\u4e0a\u6311\u8d77\u4e8b\u7aef\u800c\u53d1\u8868\u8bc4\u8bba\u6216\u63d0\u95ee\u7684\u4eba\u3002"},
+    {en:"Trolls often use several false names so that they can stay on a site.",zh:"\u55b7\u5b50\u5e38\u7528\u591a\u4e2a\u5047\u540d\uff0c\u4ee5\u4fbf\u80fd\u7559\u5728\u67d0\u4e2a\u7f51\u7ad9\u4e0a\u3002"},
+    {en:"A cyberbully uses the Internet to be mean to others.",zh:"\u7f51\u7edc\u9738\u51cc\u8005\u5229\u7528\u4e92\u8054\u7f51\u53bb\u4f24\u5bb3\u4ed6\u4eba\u3002"},
+    {en:"Like a troll, a cyberbully will also write something mean but it is usually directed at particular people.",zh:"\u548c\u55b7\u5b50\u4e00\u6837\uff0c\u9738\u51cc\u8005\u4e5f\u4f1a\u5199\u4e00\u4e9b\u523b\u8584\u7684\u8bdd\uff0c\u4f46\u901a\u5e38\u9488\u5bf9\u7279\u5b9a\u7684\u4eba\u3002"},
+    {en:"He or she may also post embarrassing photos and information about those people.",zh:"\u4ed6\u6216\u5979\u8fd8\u53ef\u80fd\u53d1\u5e03\u90a3\u4e9b\u4eba\u7684\u96be\u582a\u7167\u7247\u548c\u4fe1\u606f\u3002"},
+    {en:"However, the more polite you are, the less likely it is you will be attacked.",zh:"\u4e0d\u8fc7\uff0c\u4f60\u8d8a\u6709\u793c\u8c8c\uff0c\u906d\u5230\u653b\u51fb\u7684\u53ef\u80fd\u6027\u5c31\u8d8a\u5c0f\u3002"},
+  ]},
+  {label:"Your Turn",sentences:[
+    {en:"Have you had any bad experiences online, or do you have some good advice for staying safe?",zh:"\u4f60\u5728\u7f51\u4e0a\u6709\u8fc7\u7cdf\u7cd5\u7684\u7ecf\u5386\u5417\uff1f\u6216\u8005\u5bf9\u4fdd\u6301\u4e0a\u7f51\u5b89\u5168\u6709\u4ec0\u4e48\u597d\u5efa\u8bae\uff1f"},
+    {en:"Post your comments below!",zh:"\u5728\u4e0b\u9762\u53d1\u8868\u4f60\u7684\u8bc4\u8bba\u5427\uff01"},
+  ]},
+  {label:"Reader Comments",sentences:[
+    {en:"Boy579: Last year, we were having problems in our chat room.",zh:"Boy579\uff1a\u53bb\u5e74\uff0c\u6211\u4eec\u7684\u804a\u5929\u5ba4\u51fa\u4e86\u95ee\u9898\u3002"},
+    {en:"Mean comments were being posted by someone we didn't know.",zh:"\u6709\u6211\u4eec\u4e0d\u8ba4\u8bc6\u7684\u4eba\u5728\u53d1\u5e03\u523b\u8584\u7684\u8bc4\u8bba\u3002"},
+    {en:"I think he or she was only trying to make trouble.",zh:"\u6211\u89c9\u5f97\u4ed6\uff08\u5979\uff09\u53ea\u662f\u60f3\u5236\u9020\u9ebb\u70e6\u3002"},
+    {en:"Amy: A girl at my school had a very bad experience online.",zh:"Amy\uff1a\u6211\u4eec\u5b66\u6821\u7684\u4e00\u4e2a\u5973\u5b69\u5728\u7f51\u4e0a\u6709\u8fc7\u975e\u5e38\u7cdf\u7cd5\u7684\u7ecf\u5386\u3002"},
+    {en:"A photo of her had been posted online and she was being made fun of.",zh:"\u5979\u7684\u7167\u7247\u88ab\u53d1\u5230\u7f51\u4e0a\uff0c\u5979\u88ab\u4eba\u53d6\u7b11\u3002"},
+    {en:"It seemed like a joke at first, but the girl was very upset.",zh:"\u4e00\u5f00\u59cb\u770b\u8d77\u6765\u50cf\u4e2a\u73a9\u7b11\uff0c\u4f46\u90a3\u4e2a\u5973\u5b69\u975e\u5e38\u96be\u8fc7\u3002"},
+  ]},
+  ]
+},
+"b2u4_rt":{
+  id:"b2u4_rt",
+  unitTag:"Unit 4 \u00b7 Reading and Thinking",
+  title:"What's in a Name?",
+  sub:"History and Traditions",
+  tbTitle:"Reading and Thinking",
+  tbSubtitle:"What's in a Name?",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"What's in a Name?",zh:"\u540d\u5b57\u91cc\u6709\u4ec0\u4e48\uff1f"},
+  ],
+  blocks:[
+  {label:"A Puzzle of Names",sentences:[
+    {en:"The United Kingdom, Great Britain, Britain, England \u2014 many people are confused by what these different names mean.",zh:"\u8054\u5408\u738b\u56fd\u3001\u5927\u4e0d\u5217\u98a0\u3001\u82f1\u56fd\u3001\u82f1\u683c\u5170\u2014\u2014\u8bb8\u591a\u4eba\u90fd\u641e\u4e0d\u6e05\u8fd9\u4e9b\u4e0d\u540c\u540d\u79f0\u7684\u542b\u4e49\u3002"},
+    {en:"So what is the difference between them, if any?",zh:"\u90a3\u4e48\u5b83\u4eec\u4e4b\u95f4\u5982\u679c\u6709\u533a\u522b\u7684\u8bdd\uff0c\u7a76\u7adf\u6709\u4ec0\u4e48\u533a\u522b\u5462\uff1f"},
+    {en:"Getting to know a little bit about British history will help you solve this puzzle.",zh:"\u4e86\u89e3\u4e00\u70b9\u82f1\u56fd\u5386\u53f2\u80fd\u5e2e\u4f60\u89e3\u5f00\u8fd9\u4e2a\u8c1c\u9898\u3002"},
+  ]},
+  {label:"How the UK Came to Be",sentences:[
+    {en:"In the 16th century, the nearby country of Wales was joined to the Kingdom of England.",zh:"16 \u4e16\u7eaa\uff0c\u90bb\u8fd1\u7684\u5a01\u5c14\u58eb\u5e76\u5165\u82f1\u683c\u5170\u738b\u56fd\u3002"},
+    {en:"Later, in the 18th century, the country Scotland was joined to create the Kingdom of Great Britain.",zh:"\u540e\u6765\u5728 18 \u4e16\u7eaa\uff0c\u82cf\u683c\u5170\u5e76\u5165\uff0c\u5f62\u6210\u5927\u4e0d\u5217\u98a0\u738b\u56fd\u3002"},
+    {en:"In the 19th century, the Kingdom of Ireland was added to create the United Kingdom of Great Britain and Ireland.",zh:"19 \u4e16\u7eaa\uff0c\u7231\u5c14\u5170\u738b\u56fd\u52a0\u5165\uff0c\u5f62\u6210\u5927\u4e0d\u5217\u98a0\u53ca\u7231\u5c14\u5170\u8054\u5408\u738b\u56fd\u3002"},
+    {en:"Finally, in the 20th century, the southern part of Ireland broke away from the UK, which resulted in the full name we have today: the United Kingdom of Great Britain and Northern Ireland.",zh:"\u6700\u540e\u5728 20 \u4e16\u7eaa\uff0c\u7231\u5c14\u5170\u5357\u90e8\u8131\u79bb\u8054\u5408\u738b\u56fd\uff0c\u5f62\u6210\u4e86\u4eca\u5929\u7684\u5168\u79f0\uff1a\u5927\u4e0d\u5217\u98a0\u53ca\u5317\u7231\u5c14\u5170\u8054\u5408\u738b\u56fd\u3002"},
+    {en:"Most people just use the shortened name: \"the United Kingdom\" or \"the UK\".",zh:"\u5927\u591a\u6570\u4eba\u53ea\u7528\u7b80\u79f0\uff1a\u201c\u8054\u5408\u738b\u56fd\u201d\u6216\u201c\u82f1\u56fd\u201d\u3002"},
+    {en:"People from the UK are called \"British\", which means the UK is also often referred to as Britain or Great Britain.",zh:"\u6765\u81ea\u8054\u5408\u738b\u56fd\u7684\u4eba\u88ab\u79f0\u4e3a\u201c\u82f1\u56fd\u4eba\u201d\uff0c\u56e0\u6b64\u8054\u5408\u738b\u56fd\u4e5f\u5e38\u88ab\u79f0\u4e3a\u4e0d\u5217\u98a0\u6216\u5927\u4e0d\u5217\u98a0\u3002"},
+  ]},
+  {label:"The Same, Yet Different",sentences:[
+    {en:"The four countries that belong to the United Kingdom work together in some areas.",zh:"\u5c5e\u4e8e\u8054\u5408\u738b\u56fd\u7684\u56db\u4e2a\u56fd\u5bb6\u5728\u67d0\u4e9b\u9886\u57df\u5408\u4f5c\u3002"},
+    {en:"They use the same flag, known as the Union Jack, as well as share the same currency and military defence.",zh:"\u5b83\u4eec\u4f7f\u7528\u540c\u4e00\u9762\u65d7\u5e1c\uff0c\u5373\u7c73\u5b57\u65d7\uff0c\u5e76\u5171\u4eab\u540c\u4e00\u8d27\u5e01\u548c\u519b\u4e8b\u9632\u52a1\u3002"},
+    {en:"However, they also have some differences.",zh:"\u7136\u800c\uff0c\u5b83\u4eec\u4e5f\u6709\u4e00\u4e9b\u5dee\u5f02\u3002"},
+    {en:"For example, England, Wales, Scotland, and Northern Ireland all have different education systems and legal systems.",zh:"\u4f8b\u5982\uff0c\u82f1\u683c\u5170\u3001\u5a01\u5c14\u58eb\u3001\u82cf\u683c\u5170\u548c\u5317\u7231\u5c14\u5170\u90fd\u6709\u4e0d\u540c\u7684\u6559\u80b2\u5236\u5ea6\u548c\u6cd5\u5f8b\u5236\u5ea6\u3002"},
+    {en:"They also have their own traditions, like their own national days and national dishes.",zh:"\u5b83\u4eec\u4e5f\u6709\u5404\u81ea\u72ec\u7279\u7684\u4f20\u7edf\uff0c\u6bd4\u5982\u5404\u81ea\u7684\u56fd\u5e86\u65e5\u548c\u56fd\u83dc\u3002"},
+    {en:"And they even have their own football teams for competitions like the World Cup!",zh:"\u5b83\u4eec\u751a\u81f3\u5728\u4e16\u754c\u676f\u7b49\u6bd4\u8d5b\u4e2d\u62e5\u6709\u5404\u81ea\u7684\u8db3\u7403\u961f\uff01"},
+  ]},
+  {label:"Four Groups of People",sentences:[
+    {en:"The United Kingdom has a long and interesting history.",zh:"\u8054\u5408\u738b\u56fd\u6709\u7740\u60a0\u4e45\u800c\u6709\u8da3\u7684\u5386\u53f2\u3002"},
+    {en:"Exploring it can help you understand much more about the country and its traditions.",zh:"\u63a2\u7d22\u8fd9\u6bb5\u5386\u53f2\u80fd\u5e2e\u52a9\u4f60\u66f4\u6df1\u5165\u5730\u4e86\u89e3\u8fd9\u4e2a\u56fd\u5bb6\u53ca\u5176\u4f20\u7edf\u3002"},
+    {en:"Almost everywhere you go in the UK, you will be surrounded by evidence of four different groups of people who took over at different times throughout history.",zh:"\u5728\u82f1\u56fd\u51e0\u4e4e\u65e0\u8bba\u8d70\u5230\u54ea\u91cc\uff0c\u4f60\u90fd\u4f1a\u88ab\u5386\u53f2\u4e0a\u56db\u4e2a\u5728\u4e0d\u540c\u65f6\u671f\u63a5\u7ba1\u7684\u6c11\u65cf\u7559\u4e0b\u7684\u75d5\u8ff9\u6240\u5305\u56f4\u3002"},
+    {en:"The first group, the Romans, came in the first century.",zh:"\u7b2c\u4e00\u6279\u662f\u7f57\u9a6c\u4eba\uff0c\u4ed6\u4eec\u5728\u516c\u5143 1 \u4e16\u7eaa\u5230\u6765\u3002"},
+    {en:"They built the first towns and good roads.",zh:"\u4ed6\u4eec\u5efa\u8d77\u4e86\u6700\u65e9\u7684\u57ce\u9547\u548c\u4f18\u826f\u7684\u9053\u8def\u3002"},
+    {en:"Next, the Anglo-Saxons arrived in the fifth century.",zh:"\u63a5\u7740\uff0c\u76ce\u683c\u9c81-\u6492\u514b\u900a\u4eba\u4e8e 5 \u4e16\u7eaa\u5230\u6765\u3002"},
+    {en:"They introduced the beginnings of the English language, and changed the way people built houses.",zh:"\u4ed6\u4eec\u5f00\u521b\u4e86\u82f1\u8bed\u7684\u96cf\u5f62\uff0c\u5e76\u6539\u53d8\u4e86\u4eba\u4eec\u5efa\u9020\u623f\u5c4b\u7684\u65b9\u5f0f\u3002"},
+    {en:"The Vikings came in the eighth century and left behind lots of new vocabulary, as well as the names of many locations across the UK.",zh:"\u7ef4\u4eac\u4eba\u4e8e 8 \u4e16\u7eaa\u5230\u6765\uff0c\u7559\u4e0b\u4e86\u5927\u91cf\u65b0\u8bcd\u6c47\uff0c\u4ee5\u53ca\u82f1\u56fd\u5404\u5730\u8bb8\u591a\u5730\u70b9\u7684\u540d\u79f0\u3002"},
+    {en:"The last group were the Normans.",zh:"\u6700\u540e\u4e00\u6279\u662f\u8bfa\u66fc\u4eba\u3002"},
+    {en:"They conquered England after the well-known Battle of Hastings in the 11th century.",zh:"\u4ed6\u4eec\u5728 11 \u4e16\u7eaa\u8457\u540d\u7684\u9ed1\u65af\u5ef7\u65af\u6218\u5f79\u540e\u5f81\u670d\u4e86\u82f1\u683c\u5170\u3002"},
+    {en:"They had castles built all around England, and made changes to the legal system.",zh:"\u4ed6\u4eec\u5728\u82f1\u683c\u5170\u5404\u5730\u4fee\u5efa\u57ce\u5821\uff0c\u5e76\u6539\u9769\u4e86\u6cd5\u5f8b\u5236\u5ea6\u3002"},
+    {en:"The Normans were French, so many French words slowly entered into the English language.",zh:"\u8bfa\u66fc\u4eba\u662f\u6cd5\u56fd\u4eba\uff0c\u56e0\u6b64\u8bb8\u591a\u6cd5\u8bed\u8bcd\u6162\u6162\u8fdb\u5165\u4e86\u82f1\u8bed\u3002"},
+  ]},
+  {label:"Past and Present",sentences:[
+    {en:"There is so much more to learn about the interesting history and culture of the United Kingdom.",zh:"\u5173\u4e8e\u82f1\u56fd\u6709\u8da3\u7684\u5386\u53f2\u548c\u6587\u5316\uff0c\u8fd8\u6709\u592a\u591a\u4e1c\u897f\u8981\u5b66\u3002"},
+    {en:"Studying the history of the country will make your visit much more enjoyable.",zh:"\u5b66\u4e60\u8fd9\u4e2a\u56fd\u5bb6\u7684\u5386\u53f2\u4f1a\u8ba9\u4f60\u7684\u65c5\u884c\u6109\u5feb\u5f97\u591a\u3002"},
+    {en:"The capital city London is a great place to start, as it is an ancient port city that has a history dating all the way back to Roman times.",zh:"\u9996\u90fd\u4f26\u6566\u662f\u4e2a\u5f88\u597d\u7684\u8d77\u70b9\uff0c\u5b83\u662f\u4e00\u5ea7\u53e4\u8001\u7684\u6e2f\u53e3\u57ce\u5e02\uff0c\u5386\u53f2\u53ef\u4ee5\u4e00\u76f4\u8ffd\u6eaf\u5230\u7f57\u9a6c\u65f6\u4ee3\u3002"},
+    {en:"There are countless historic sites to explore, and lots of museums with ancient relics from all over the UK.",zh:"\u6709\u65e0\u6570\u5386\u53f2\u9057\u8ff9\u53ef\u4ee5\u63a2\u7d22\uff0c\u8fd8\u6709\u8bb8\u591a\u6536\u85cf\u7740\u82f1\u56fd\u5404\u5730\u53e4\u4ee3\u6587\u7269\u7684\u535a\u7269\u9986\u3002"},
+    {en:"The UK is a fascinating mix of history and modern culture, with both new and old traditions.",zh:"\u82f1\u56fd\u662f\u5386\u53f2\u4e0e\u73b0\u4ee3\u6587\u5316\u8ff7\u4eba\u7684\u7ed3\u5408\u4f53\uff0c\u65b0\u65e7\u4f20\u7edf\u5e76\u5b58\u3002"},
+    {en:"If you keep your eyes open, you will be surprised to find that you can see both its past and its present.",zh:"\u5982\u679c\u4f60\u7559\u5fc3\u89c2\u5bdf\uff0c\u4f60\u4f1a\u60ca\u8bb6\u5730\u53d1\u73b0\uff0c\u8fc7\u53bb\u4e0e\u73b0\u5728\u90fd\u80fd\u770b\u5230\u3002"},
+  ]},
+  ]
+},
+"b2u4_rw":{
+  id:"b2u4_rw",
+  unitTag:"Unit 4 \u00b7 Reading for Writing",
+  title:"Beautiful Ireland and Its Traditions",
+  sub:"A Descriptive Paragraph",
+  tbTitle:"Reading for Writing",
+  tbSubtitle:"Beautiful Ireland and Its Traditions",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"Beautiful Ireland and Its Traditions",zh:"\u7f8e\u4e3d\u7684\u7231\u5c14\u5170\u53ca\u5176\u4f20\u7edf"},
+  ],
+  blocks:[
+  {label:"A Feast for the Senses",sentences:[
+    {en:"Ireland's beautiful countryside has always had a great influence on its people and traditions.",zh:"\u7231\u5c14\u5170\u7f8e\u4e3d\u7684\u4e61\u6751\u4e00\u76f4\u5bf9\u5f53\u5730\u4eba\u548c\u4ed6\u4eec\u7684\u4f20\u7edf\u4ea7\u751f\u7740\u5de8\u5927\u5f71\u54cd\u3002"},
+    {en:"The country has a long history of producing great writers and poets.",zh:"\u8fd9\u4e2a\u56fd\u5bb6\u6709\u7740\u6d8c\u73b0\u4f1f\u5927\u4f5c\u5bb6\u548c\u8bd7\u4eba\u7684\u60a0\u4e45\u5386\u53f2\u3002"},
+    {en:"Its beautiful countryside excites and inspires all, offering something for each of the senses.",zh:"\u5b83\u7f8e\u4e3d\u7684\u4e61\u6751\u8ba9\u6240\u6709\u4eba\u90fd\u611f\u5230\u5174\u594b\u548c\u9f13\u821e\uff0c\u4e3a\u6bcf\u4e00\u79cd\u611f\u5b98\u63d0\u4f9b\u4eab\u53d7\u3002"},
+    {en:"The peaceful landscape of the \"Emerald Isle\" and its many green counties is a true feast for the eyes, with its rolling green hills dotted with sheep and cattle.",zh:"\u201c\u7fe1\u7fe0\u5c9b\u201d\u5b81\u9759\u7684\u98ce\u666f\u548c\u5b83\u4f17\u591a\u7eff\u8272\u7684\u90e1\u53bf\u662f\u771f\u6b63\u7684\u89c6\u89c9\u76db\u5bb4\uff0c\u8d77\u4f0f\u7684\u9752\u5c71\u4e0a\u70b9\u7f00\u7740\u725b\u7f8a\u3002"},
+    {en:"And down by the sea, the roar of the ocean waves and cries of the seabirds make up the music of the coast.",zh:"\u800c\u5728\u6d77\u8fb9\uff0c\u6d77\u6d6a\u7684\u8f70\u9e23\u548c\u6d77\u9e1f\u7684\u9e23\u53eb\u6784\u6210\u4e86\u6d77\u5cb8\u7684\u97f3\u4e50\u3002"},
+    {en:"On a quiet morning in the mountains, feel the sun on your skin, and breathe in the sweet scent of fresh flowers while birds greet the new day with their morning song.",zh:"\u5728\u5c71\u4e2d\u4e00\u4e2a\u5b81\u9759\u7684\u65e9\u6668\uff0c\u611f\u53d7\u9633\u5149\u6d12\u5728\u76ae\u80a4\u4e0a\uff0c\u547c\u5438\u9c9c\u82b1\u7684\u82ac\u82b3\uff0c\u9e1f\u513f\u7528\u6668\u66f2\u8fce\u63a5\u65b0\u7684\u4e00\u5929\u3002"},
+    {en:"With all this beauty, it is not surprising that Ireland has developed strong traditions that include music, dancing, and dining.",zh:"\u62e5\u6709\u8fd9\u4e00\u5207\u7f8e\u666f\uff0c\u7231\u5c14\u5170\u53d1\u5c55\u51fa\u5305\u62ec\u97f3\u4e50\u3001\u821e\u8e48\u548c\u996e\u98df\u5728\u5185\u7684\u6d53\u539a\u4f20\u7edf\u4e00\u70b9\u4e5f\u4e0d\u5947\u602a\u3002"},
+    {en:"To have a chance of experiencing this, stop by a village pub and relax with a glass of wine or a local beer.",zh:"\u60f3\u6709\u673a\u4f1a\u4f53\u9a8c\u8fd9\u4e9b\uff0c\u53ef\u4ee5\u5230\u4e61\u6751\u9152\u5427\u5750\u5750\uff0c\u559d\u676f\u8461\u8404\u9152\u6216\u5f53\u5730\u5564\u9152\u653e\u677e\u4e00\u4e0b\u3002"},
+    {en:"Better yet, enjoy a delicious traditional Irish Beef Stew.",zh:"\u66f4\u597d\u7684\u9009\u62e9\u662f\u54c1\u5c1d\u7f8e\u5473\u7684\u4f20\u7edf\u7231\u5c14\u5170\u7096\u725b\u8089\u3002"},
+    {en:"If you're lucky, you might be able to enjoy some traditional music and dancing, too.",zh:"\u8fd0\u6c14\u597d\u7684\u8bdd\uff0c\u4f60\u6216\u8bb8\u8fd8\u80fd\u6b23\u8d4f\u5230\u4e00\u4e9b\u4f20\u7edf\u97f3\u4e50\u548c\u821e\u8e48\u3002"},
+    {en:"And if you introduce yourself to a friendly face, you are more than likely to experience local culture and customs first-hand.",zh:"\u5982\u679c\u4f60\u5411\u4e00\u4f4d\u53cb\u5584\u7684\u9762\u5b54\u81ea\u6211\u4ecb\u7ecd\uff0c\u4f60\u5f88\u53ef\u80fd\u4f1a\u4eb2\u8eab\u611f\u53d7\u5f53\u5730\u7684\u6587\u5316\u548c\u4e60\u4fd7\u3002"},
+  ]},
+  ]
+},
+"b2u5_rt":{
+  id:"b2u5_rt",
+  unitTag:"Unit 5 \u00b7 Reading and Thinking",
+  title:"The Virtual Choir",
+  sub:"Music",
+  tbTitle:"Reading and Thinking",
+  tbSubtitle:"The Virtual Choir",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"The Virtual Choir",zh:"\u865a\u62df\u5408\u5531\u56e2"},
+  ],
+  blocks:[
+  {label:"What Is a Virtual Choir?",sentences:[
+    {en:"Imagine having the opportunity to sing together with hundreds of other people while you are at home alone.",zh:"\u8bbe\u60f3\u4f60\u72ec\u81ea\u5728\u5bb6\uff0c\u5374\u6709\u673a\u4f1a\u4e0e\u6570\u767e\u4eba\u4e00\u8d77\u5531\u6b4c\u3002"},
+    {en:"You can do this in a virtual choir.",zh:"\u4f60\u53ef\u4ee5\u5728\u865a\u62df\u5408\u5531\u56e2\u91cc\u505a\u5230\u8fd9\u4e00\u70b9\u3002"},
+    {en:"Virtual choir members record themselves while they perform alone on video.",zh:"\u865a\u62df\u5408\u5531\u56e2\u7684\u6210\u5458\u72ec\u81ea\u8868\u6f14\u65f6\u5f55\u4e0b\u81ea\u5df1\u3002"},
+    {en:"These videos are uploaded onto the Internet, and then they are put together into one video that you can see online \u2014 a virtual choir.",zh:"\u8fd9\u4e9b\u89c6\u9891\u88ab\u4e0a\u4f20\u5230\u4e92\u8054\u7f51\uff0c\u7136\u540e\u5408\u6210\u4e00\u4e2a\u4f60\u53ef\u4ee5\u5728\u7f51\u4e0a\u89c2\u770b\u7684\u89c6\u9891\u2014\u2014\u8fd9\u5c31\u662f\u865a\u62df\u5408\u5531\u56e2\u3002"},
+    {en:"Anyone can take part in a virtual choir from anywhere \u2014 all you need is a video camera and an Internet connection.",zh:"\u4efb\u4f55\u4eba\u90fd\u53ef\u4ee5\u5728\u4efb\u4f55\u5730\u65b9\u53c2\u52a0\u865a\u62df\u5408\u5531\u56e2\u2014\u2014\u4f60\u53ea\u9700\u8981\u4e00\u53f0\u6444\u50cf\u673a\u548c\u7f51\u7edc\u8fde\u63a5\u3002"},
+    {en:"You do not even need a studio.",zh:"\u4f60\u751a\u81f3\u4e0d\u9700\u8981\u5f55\u97f3\u68da\u3002"},
+    {en:"A virtual choir helps connect ordinary people together.",zh:"\u865a\u62df\u5408\u5531\u56e2\u5e2e\u52a9\u628a\u666e\u901a\u4eba\u8fde\u63a5\u5728\u4e00\u8d77\u3002"},
+    {en:"Many people do not have close friends or contacts who have the same interest in music.",zh:"\u8bb8\u591a\u4eba\u6ca1\u6709\u5bf9\u97f3\u4e50\u6709\u540c\u6837\u5174\u8da3\u7684\u5bc6\u53cb\u6216\u719f\u4eba\u3002"},
+    {en:"Many others do not have the chance to join a local choir.",zh:"\u8fd8\u6709\u8bb8\u591a\u5176\u4ed6\u4eba\u6ca1\u6709\u673a\u4f1a\u52a0\u5165\u5f53\u5730\u7684\u5408\u5531\u56e2\u3002"},
+    {en:"A virtual choir enables them to add their voices to those of other individuals and become part of the global community.",zh:"\u865a\u62df\u5408\u5531\u56e2\u8ba9\u4ed6\u4eec\u80fd\u628a\u81ea\u5df1\u7684\u58f0\u97f3\u52a0\u5165\u5176\u4ed6\u4eba\u7684\u58f0\u97f3\u4e2d\uff0c\u6210\u4e3a\u5168\u7403\u793e\u533a\u7684\u4e00\u90e8\u5206\u3002"},
+    {en:"It has proved to be a positive influence on the lives of many people.",zh:"\u4e8b\u5b9e\u8bc1\u660e\uff0c\u5b83\u5bf9\u8bb8\u591a\u4eba\u7684\u751f\u6d3b\u4ea7\u751f\u4e86\u79ef\u6781\u5f71\u54cd\u3002"},
+    {en:"As one virtual choir member said, \"Music helps me to forget my problems. With music, I become someone else.\"",zh:"\u6b63\u5982\u4e00\u4f4d\u865a\u62df\u5408\u5531\u56e2\u6210\u5458\u6240\u8bf4\uff1a\u201c\u97f3\u4e50\u5e2e\u6211\u5fd8\u8bb0\u70e6\u607c\u3002\u6709\u4e86\u97f3\u4e50\uff0c\u6211\u53d8\u6210\u4e86\u53e6\u4e00\u4e2a\u4eba\u3002\u201d"},
+  ]},
+  {label:"Eric Whitacre",sentences:[
+    {en:"The virtual choir was the idea of award-winning composer and conductor Eric Whitacre.",zh:"\u865a\u62df\u5408\u5531\u56e2\u662f\u83b7\u5956\u4f5c\u66f2\u5bb6\u517c\u6307\u6325\u57c3\u91cc\u514b\u00b7\u60e0\u7279\u514b\u7684\u521b\u610f\u3002"},
+    {en:"Born in the USA on 2 January 1970, Whitacre began studying music at the University of Nevada in 1988.",zh:"\u60e0\u7279\u514b 1970 \u5e74 1 \u6708 2 \u65e5\u51fa\u751f\u4e8e\u7f8e\u56fd\uff0c1988 \u5e74\u8fdb\u5165\u5185\u534e\u8fbe\u5927\u5b66\u5b66\u4e60\u97f3\u4e50\u3002"},
+    {en:"He fell in love with Mozart's classical music when he sang for the university choir.",zh:"\u4ed6\u5728\u4e3a\u5927\u5b66\u5408\u5531\u56e2\u6f14\u5531\u65f6\u7231\u4e0a\u4e86\u83ab\u624e\u7279\u7684\u53e4\u5178\u97f3\u4e50\u3002"},
+    {en:"Moved by this music, he said, \"It was like seeing color for the first time.\"",zh:"\u88ab\u8fd9\u97f3\u4e50\u6253\u52a8\uff0c\u4ed6\u8bf4\uff1a\u201c\u90a3\u79cd\u611f\u89c9\u5c31\u50cf\u7b2c\u4e00\u6b21\u770b\u89c1\u8272\u5f69\u3002\u201d"},
+    {en:"He graduated from university in 1995, and then received a master's degree in musical composition from the Juilliard School in New York in 1997.",zh:"\u4ed6 1995 \u5e74\u5927\u5b66\u6bd5\u4e1a\uff0c1997 \u5e74\u83b7\u5f97\u7ebd\u7ea6\u8331\u8389\u4e9a\u5b66\u9662\u4f5c\u66f2\u4e13\u4e1a\u7855\u58eb\u5b66\u4f4d\u3002"},
+    {en:"Over the next 10 years, Whitacre's original compositions began to become quite popular among choirs and singers.",zh:"\u5728\u63a5\u4e0b\u6765\u7684 10 \u5e74\u91cc\uff0c\u60e0\u7279\u514b\u7684\u539f\u521b\u4f5c\u54c1\u5f00\u59cb\u5728\u5408\u5531\u56e2\u548c\u6b4c\u624b\u4e2d\u76f8\u5f53\u6d41\u884c\u3002"},
+    {en:"This led to the creation of the virtual choir.",zh:"\u8fd9\u4fc3\u6210\u4e86\u865a\u62df\u5408\u5531\u56e2\u7684\u8bde\u751f\u3002"},
+  ]},
+  {label:"The First Virtual Choir",sentences:[
+    {en:"In 2009, Whitacre received a video of a girl who was singing one of his works.",zh:"2009 \u5e74\uff0c\u60e0\u7279\u514b\u6536\u5230\u4e00\u6bb5\u4e00\u4e2a\u5973\u5b69\u6f14\u5531\u4ed6\u4f5c\u54c1\u7684\u89c6\u9891\u3002"},
+    {en:"Inspired, he asked his fans to make videos, which he then joined together into one performance.",zh:"\u53d7\u5230\u542f\u53d1\uff0c\u4ed6\u8bf7\u7c89\u4e1d\u4eec\u5f55\u5236\u89c6\u9891\uff0c\u7136\u540e\u628a\u8fd9\u4e9b\u89c6\u9891\u5408\u6210\u4e00\u573a\u6f14\u51fa\u3002"},
+    {en:"His first virtual choir, \"Lux Aurumque\", had 185 singers from 12 different countries.",zh:"\u4ed6\u7684\u7b2c\u4e00\u4e2a\u865a\u62df\u5408\u5531\u56e2\u6f14\u5531\u300a\u91d1\u8272\u4e4b\u5149\u300b\uff0c\u6709\u6765\u81ea 12 \u4e2a\u4e0d\u540c\u56fd\u5bb6\u7684 185 \u540d\u6b4c\u624b\u53c2\u52a0\u3002"},
+    {en:"It has received millions of views on the Internet.",zh:"\u5b83\u5728\u4e92\u8054\u7f51\u4e0a\u83b7\u5f97\u4e86\u6570\u767e\u4e07\u6b21\u89c2\u770b\u3002"},
+    {en:"Since then, the virtual choir has become a worldwide phenomenon.",zh:"\u4ece\u90a3\u4ee5\u540e\uff0c\u865a\u62df\u5408\u5531\u56e2\u6210\u4e3a\u4e16\u754c\u6027\u7684\u73b0\u8c61\u3002"},
+    {en:"Whitacre's next effort was the Virtual Youth Choir for UNICEF, which was first seen on stage on 23 July 2014 in the UK.",zh:"\u60e0\u7279\u514b\u7684\u4e0b\u4e00\u4e2a\u9879\u76ee\u662f\u4e3a\u8054\u5408\u56fd\u513f\u7ae5\u57fa\u91d1\u4f1a\u6210\u7acb\u7684\u865a\u62df\u9752\u5e74\u5408\u5531\u56e2\uff0c2014 \u5e74 7 \u6708 23 \u65e5\u5728\u82f1\u56fd\u9996\u6b21\u767b\u4e0a\u821e\u53f0\u3002"},
+    {en:"Altogether, 2,292 young people from 80 countries joined in to sing Whitacre's song \"What If\".",zh:"\u6765\u81ea 80 \u4e2a\u56fd\u5bb6\u7684 2292 \u540d\u5e74\u8f7b\u4eba\u5171\u540c\u6f14\u5531\u4e86\u60e0\u7279\u514b\u7684\u6b4c\u66f2\u300a\u5982\u679c\u300b\u3002"},
+  ]},
+  {label:"One Voice",sentences:[
+    {en:"The virtual choir is a wonderful way for people around the world to sing with one voice and thus make the world a better place.",zh:"\u865a\u62df\u5408\u5531\u56e2\u662f\u8ba9\u4e16\u754c\u5404\u5730\u7684\u4eba\u4eec\u540c\u58f0\u6b4c\u5531\u3001\u4ece\u800c\u8ba9\u4e16\u754c\u53d8\u5f97\u66f4\u7f8e\u597d\u7684\u7edd\u5999\u65b9\u5f0f\u3002"},
+  ]},
+  ]
+},
+"b2u5_rw":{
+  id:"b2u5_rw",
+  unitTag:"Unit 5 \u00b7 Reading for Writing",
+  title:"The Story of Music and Me",
+  sub:"A Speech",
+  tbTitle:"Reading for Writing",
+  tbSubtitle:"The Story of Music and Me",
+  blockStyle:"timestamp",
+  titleSents:[
+    {en:"The Story of Music and Me",zh:"\u97f3\u4e50\u4e0e\u6211\u7684\u6545\u4e8b"},
+  ],
+  blocks:[
+  {label:"Greeting",sentences:[
+    {en:"Good morning!",zh:"\u65e9\u4e0a\u597d\uff01"},
+    {en:"My name is Sarah Williams.",zh:"\u6211\u53eb\u838e\u62c9\u00b7\u5a01\u5ec9\u59c6\u65af\u3002"},
+    {en:"It's an honour to be here and to share with you the story of how music has had an impact on my life.",zh:"\u5f88\u8363\u5e78\u6765\u5230\u8fd9\u91cc\uff0c\u4e0e\u5927\u5bb6\u5206\u4eab\u97f3\u4e50\u5982\u4f55\u5f71\u54cd\u4e86\u6211\u7684\u751f\u6d3b\u3002"},
+  ]},
+  {label:"My Illness",sentences:[
+    {en:"Have you ever faced a time when things looked dark and you had no hope at all?",zh:"\u4f60\u662f\u5426\u66fe\u7ecf\u5386\u8fc7\u8bf8\u4e8b\u7070\u6697\u3001\u6beb\u65e0\u5e0c\u671b\u7684\u65f6\u523b\uff1f"},
+    {en:"Two years ago, I was told I had a serious disease which was difficult to cure.",zh:"\u4e24\u5e74\u524d\uff0c\u6211\u88ab\u544a\u77e5\u60a3\u6709\u4e00\u79cd\u96be\u4ee5\u6cbb\u6108\u7684\u91cd\u75c5\u3002"},
+    {en:"My body ached all the time and thus I thought I didn't have much longer to live.",zh:"\u6211\u5168\u8eab\u4e00\u76f4\u75bc\u75db\uff0c\u56e0\u6b64\u89c9\u5f97\u81ea\u5df1\u6d3b\u4e0d\u957f\u4e86\u3002"},
+    {en:"I was very afraid and I felt so alone and discouraged.",zh:"\u6211\u975e\u5e38\u5bb3\u6015\uff0c\u611f\u5230\u5b64\u72ec\u548c\u6cae\u4e27\u3002"},
+    {en:"Then one day, I had to go through a two-hour medical treatment.",zh:"\u540e\u6765\u6709\u4e00\u5929\uff0c\u6211\u5fc5\u987b\u63a5\u53d7\u4e24\u5c0f\u65f6\u7684\u6cbb\u7597\u3002"},
+    {en:"The doctor wanted me to relax, so he had me listen to some music, and one of the songs was \"Happy\".",zh:"\u533b\u751f\u60f3\u8ba9\u6211\u653e\u677e\uff0c\u5c31\u8ba9\u6211\u542c\u4e00\u4e9b\u97f3\u4e50\uff0c\u5176\u4e2d\u4e00\u9996\u6b4c\u662f\u300aHappy\u300b\u3002"},
+    {en:"The song made me feel so much better that from then on I began to listen to music all the time.",zh:"\u8fd9\u9996\u6b4c\u8ba9\u6211\u611f\u89c9\u597d\u591a\u4e86\uff0c\u4ece\u90a3\u4ee5\u540e\u6211\u5f00\u59cb\u4e00\u76f4\u542c\u97f3\u4e50\u3002"},
+    {en:"John A. Logan said, \"Music is the medicine of the mind.\"",zh:"\u7ea6\u7ff0\u00b7A\u00b7\u6d1b\u6839\u8bf4\u8fc7\uff1a\u201c\u97f3\u4e50\u662f\u5fc3\u7075\u7684\u826f\u836f\u3002\u201d"},
+    {en:"And it's true.",zh:"\u786e\u5b9e\u5982\u6b64\u3002"},
+    {en:"Music helped me recover.",zh:"\u97f3\u4e50\u5e2e\u52a9\u6211\u5eb7\u590d\u3002"},
+  ]},
+  {label:"What Music Gave Me",sentences:[
+    {en:"Music gave me happiness.",zh:"\u97f3\u4e50\u7ed9\u4e86\u6211\u5feb\u4e50\u3002"},
+    {en:"When I listened to music, it made my spirits fly like a kite in the wind.",zh:"\u5f53\u6211\u542c\u97f3\u4e50\u65f6\uff0c\u5b83\u8ba9\u6211\u7684\u5fc3\u60c5\u50cf\u98ce\u4e2d\u7684\u98ce\u7b5d\u4e00\u6837\u98de\u626c\u3002"},
+    {en:"Music gave me strength and brought me relief.",zh:"\u97f3\u4e50\u7ed9\u4e86\u6211\u529b\u91cf\uff0c\u4e5f\u5e26\u6765\u4e86\u6170\u85c9\u3002"},
+    {en:"It was the rock I leant on to become strong and to get through those hard times.",zh:"\u5b83\u662f\u6211\u4f9d\u9760\u7684\u78d0\u77f3\uff0c\u8ba9\u6211\u53d8\u5f97\u575a\u5f3a\uff0c\u5ea6\u8fc7\u90a3\u4e9b\u8270\u96be\u65f6\u5149\u3002"},
+    {en:"Moreover, music gave me hope and a sense of satisfaction.",zh:"\u6b64\u5916\uff0c\u97f3\u4e50\u7ed9\u4e86\u6211\u5e0c\u671b\u548c\u6ee1\u8db3\u611f\u3002"},
+    {en:"It became my best friend.",zh:"\u5b83\u6210\u4e86\u6211\u6700\u597d\u7684\u670b\u53cb\u3002"},
+    {en:"It spoke words of encouragement to the deepest part of my being.",zh:"\u5b83\u5411\u6211\u5fc3\u7075\u6df1\u5904\u8bf4\u7740\u9f13\u52b1\u7684\u8bdd\u8bed\u3002"},
+  ]},
+  {label:"My Hope",sentences:[
+    {en:"Of course, I hope none of you have to go through the same kind of suffering that I did.",zh:"\u5f53\u7136\uff0c\u6211\u5e0c\u671b\u4f60\u4eec\u8c01\u90fd\u4e0d\u5fc5\u7ecf\u5386\u6211\u6240\u7ecf\u5386\u7684\u90a3\u79cd\u75db\u82e6\u3002"},
+    {en:"At the same time, we all go through various periods when we feel sad or alone.",zh:"\u540c\u65f6\uff0c\u6211\u4eec\u90fd\u4f1a\u7ecf\u5386\u611f\u5230\u60b2\u4f24\u6216\u5b64\u72ec\u7684\u5404\u4e2a\u65f6\u671f\u3002"},
+    {en:"During those times, music can help you in the same way that it helped me.",zh:"\u5728\u90a3\u4e9b\u65f6\u5019\uff0c\u97f3\u4e50\u80fd\u50cf\u5e2e\u52a9\u6211\u90a3\u6837\u5e2e\u52a9\u4f60\u3002"},
+    {en:"I hope all of you will somehow begin to treasure music and make it a part of your life.",zh:"\u6211\u5e0c\u671b\u4f60\u4eec\u90fd\u80fd\u5f00\u59cb\u73cd\u60dc\u97f3\u4e50\uff0c\u8ba9\u5b83\u6210\u4e3a\u751f\u6d3b\u7684\u4e00\u90e8\u5206\u3002"},
+    {en:"Thank you!",zh:"\u8c22\u8c22\u5927\u5bb6\uff01"},
+  ]},
+  ]
+},
 };
 
 /* ================= 全局状态 ================= */
